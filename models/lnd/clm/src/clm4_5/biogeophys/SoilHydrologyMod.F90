@@ -802,6 +802,10 @@ contains
     use shr_const_mod , only : SHR_CONST_TKFRZ, SHR_CONST_LATICE, SHR_CONST_G
     use TridiagonalMod, only : Tridiagonal
     use clm_time_manager  , only : get_step_size
+#ifdef CLM_PFLOTRAN
+    use clm_pflotran_interface_type
+    use clm_varcon   , only : denh2o, denice 
+#endif
 !
 ! !ARGUMENTS:
     implicit none
@@ -853,6 +857,11 @@ contains
     real(r8), pointer :: hkdepth(:)           ! decay factor (m)
     real(r8), pointer :: zwt(:)               ! water table depth (m)
     real(r8), pointer :: zi(:,:)              ! interface level below a "z" level (m)
+#ifdef CLM_PFLOTRAN
+  real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+  real(r8):: tmp
+  integer :: j
+#endif
 !
 ! local pointers to original implicit inout arguments
 !
@@ -940,6 +949,9 @@ contains
     pfti              => clm3%g%l%c%pfti
     smp_l             => clm3%g%l%c%cws%smp_l
     hk_l              => clm3%g%l%c%cws%hk_l
+#ifdef  CLM_PFLOTRAN
+  h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
+#endif
 
     ! Assign local pointers to derived type members (pft-level)
 
@@ -1297,8 +1309,21 @@ contains
     ! also compute qcharge from dwat in aquifer layer
     ! update in drainage for case jwt < nlevsoi
 
+
+#ifdef CLM_PFLOTRAN
+     do fc = 1,num_hydrologyc
+       c = filter_hydrologyc(fc)
+       do j = 1, nlevsoi
+          h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
+          h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
+          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
+       enddo
+    enddo
+#endif
+
     do fc = 1,num_hydrologyc
        c = filter_hydrologyc(fc)
+#ifndef CLM_PFLOTRAN
        do j = 1, nlevsoi
           h2osoi_liq(c,j) = h2osoi_liq(c,j) + dwat2(c,j)*dzmm(c,j)
        end do
@@ -1335,6 +1360,9 @@ contains
           ! if water table is below soil column, compute qcharge from dwat2(11)
           qcharge(c) = dwat2(c,nlevsoi+1)*dzmm(c,nlevsoi+1)/dtime
        endif
+#else
+	qcharge(c) = 0.0_r8
+#endif	   
     end do
 
 

@@ -588,6 +588,8 @@ contains
           indexc = c
        end if
     end do
+
+#ifndef CLM_PFLOTRAN
     if ( found ) then
        write(iulog,*)'WARNING:  snow balance error ',&
             ' nstep = ',nstep,' indexc= ',indexc,'ltype: ', ltype(clandunit(indexc)),' errh2osno= ',errh2osno(indexc)
@@ -616,7 +618,7 @@ contains
           call endrun()
        end if
     end if
-
+#endif
     ! Energy balance checks
 
     do p = lbp, ubp

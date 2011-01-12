@@ -20,6 +20,12 @@ module clm_initializeMod
   use ncdio_pio
   use mct_mod
 
+#ifdef CLM_PFLOTRAN
+  use clm_pflotran_interfaceMod , only : clm_pf_interface_init
+  use clm_pflotran_interfaceMod , only : pflotran_m
+  use pflotran_model_module
+#endif
+
 ! !PUBLIC TYPES:
   implicit none
   save
@@ -654,6 +660,11 @@ contains
     end if
 
     call t_stopf('clm_init2')
+
+#ifdef CLM_PFLOTRAN
+    call clm_pf_interface_init()
+    call pflotranModelGetSaturation( pflotran_m )
+#endif
 
   end subroutine initialize2
 
