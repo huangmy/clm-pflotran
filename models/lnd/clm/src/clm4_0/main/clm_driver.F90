@@ -157,6 +157,12 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 !
 ! !USES:
 
+#ifdef CLM_PFLOTRAN
+  use clm_pflotran_interface_type
+  use clm_varcon      , only : denh2o, denice
+  use clm_varpar      , only : nlevsoi
+#endif
+
 ! !ARGUMENTS:
   implicit none
   logical,         intent(in) :: doalb       ! true if time for surface albedo calc
@@ -217,6 +223,14 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   integer  :: kyr                      ! thousand years, equals 2 at end of first year
   character(len=256) :: filer          ! restart file name
   integer :: ier                       ! error code
+#ifdef CLM_PFLOTRAN
+  real(r8), pointer :: dz(:,:)          ! layer thickness depth (m)
+  real(r8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+  real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+  real(r8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+  integer :: j
+  real(r8):: tmp
+#endif
 !-----------------------------------------------------------------------
 
   ! Assign local pointers to derived subtypes components (landunit-level)
@@ -230,6 +244,45 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   ! Set pointers into derived type
 
   cptr => col
+
+#ifdef CLM_PFLOTRAN
+  ! =======================================================================
+  ! For NSTEP=0; update the soil moisture values that were initialized in
+  !              PFLOTRAN. Variables modified
+  !   h2osoi_liq [kg/m^2]  
+  !   h2osoi_vol[m^3/m^3] (water + ice)
+  ! =======================================================================
+
+  h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
+  h2osoi_liq        => clm3%g%l%c%cws%h2osoi_liq
+  h2osoi_vol        => clm3%g%l%c%cws%h2osoi_vol
+  dz                => clm3%g%l%c%cps%dz  
+
+  nclumps = get_proc_clumps()
+  nstep   = get_nstep()
+
+  if (nstep.eq.0) then
+     
+     write(iulog,*), 'NSTEP = 0'
+     tmp = 0.0_r8
+     do nc = 1,nclumps
+        call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
+        
+        do fc = 1,filter(nc)%num_hydrologyc
+           c = filter(nc)%hydrologyc(fc)
+           do j = 1, nlevsoi
+              h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
+              h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
+              h2osoi_vol(c,j) = min(h2osoi_vol(c,j),clm_pf_data%watsat(c,j))
+              tmp = tmp + h2osoi_liq(c,j) + h2osoi_ice(c,j)
+           enddo
+        enddo
+     enddo
+     
+     write(iulog,*), 'tmp = ',tmp
+  endif
+
+#endif
 
   if (use_cn) then
      ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
