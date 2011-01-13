@@ -17,7 +17,7 @@ module clm_pflotran_interfaceMod
   use decompMod       , only : get_proc_bounds, get_proc_global
   use domainMod       , only : ldomain
 
-  use ncdio           , only : ncd_iolocal, nf_close, nf_get_var_int, NF_NOERR, nf_inq_varid, nf_open, check_ret
+  use ncdio_pio       
   use fileutils       , only : getfil
   use spmdMod         , only : mpicom, MPI_INTEGER, masterproc
   use organicFileMod  , only : organicrd
@@ -99,7 +99,7 @@ contains
     !
     ! From iniTimeConst.F90
     !
-    integer  :: ncid             ! netCDF file id
+    type(file_desc_t)  :: ncid   ! netcdf id
     real(r8) :: clay,sand        ! temporaries
 
     real(r8),pointer :: arrayl(:)      ! generic global array
@@ -141,6 +141,8 @@ contains
 
     integer :: closelatidx,closelonidx
     real(r8):: closelat,closelon
+
+    logical :: readvar 
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -219,56 +221,28 @@ contains
 
     if (masterproc) then
        write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
-       call getfil (fsurdat, locfn, 0)
-       call check_ret(nf_open(locfn, 0, ncid), subname)
-
-       ! Determine number of soil color classes - if number of soil color classes is not
-       ! on input dataset set it to 8
-
-       ier = nf_inq_varid(ncid, 'mxsoil_color', varid)
-       if (ier == NF_NOERR) then
-          call check_ret(nf_inq_varid(ncid, 'mxsoil_color', varid), subname)
-          call check_ret(nf_get_var_int(ncid, varid, mxsoil_color), subname)
-       else
-          mxsoil_color = 8
-       end if
     endif
-    call mpi_bcast( mxsoil_color, 1, MPI_INTEGER, 0, mpicom, ier )
 
-    count(1) = lsmlon
-    count(2) = lsmlat
-    if (single_column) then
-       call scam_setlatlonidx(ncid,scmlat,scmlon,closelat,closelon,closelatidx,closelonidx)
-       start(1) = closelonidx
-       start(2) = closelatidx
+    call getfil (fsurdat, locfn, 0)
+    call ncd_pio_openfile(ncid, locfn, 0)
+
+    ! Determine number of soil color classes - if number of soil color classes is not
+    ! on input dataset set it to 8
+    
+    ier = pio_inq_varid(ncid, 'mxsoil_color', varid)
+    if (ier == PIO_NOERR) then
+       ier = pio_inq_varid(ncid, 'mxsoil_color', varid)
+       ier = pio_get_var(ncid, varid, mxsoil_color)
     else
-       start(1) = 1
-       start(2) = 1
+       mxsoil_color = 8
     end if
-    start(3) = 1
-    count(3) = 1
-
-    write (iulog,*), 'mxsoil_color = ',mxsoil_color
-    ! Read the Perc-Sand from the input netcdf file
-    allocate(arrayl(begg:endg))
-    do n = 1,nlevsoi
-       start(3) = n
-       call ncd_iolocal(ncid,'PCT_SAND','read',arrayl,grlnd,start,count,status=ret)
-       if (ret /= 0) call endrun( trim(subname)//' ERROR: PCT_SAND NOT on surfdata file' )
-       sand3d(begg:endg,n) = arrayl(begg:endg)
-       call ncd_iolocal(ncid,'PCT_CLAY','read',arrayl,grlnd,start,count,status=ret)
-       if (ret /= 0) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfdata file' )
-       clay3d(begg:endg,n) = arrayl(begg:endg)
-    enddo
-    deallocate(arrayl)
-
-    if (masterproc) then
-       call check_ret(nf_close(ncid), subname)
-       write(iulog,*) 'Successfully read soil color, sand and clay boundary data'
-       write(iulog,*)
-    endif
-
-
+ 
+    call ncd_io(ncid=ncid, varname='PCT_SAND', flag='read', data=sand3d, dim1name=grlnd, readvar=readvar)
+    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_SAND NOT on surfadata file' )
+    
+    call ncd_io(ncid=ncid, varname='PCT_CLAY', flag='read', data=clay3d, dim1name=grlnd,readvar=readvar)
+    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfadata file' )
+    
     ! --------------------------------------------------------------------
     ! If a organic matter dataset has been specified, read it
     ! --------------------------------------------------------------------
