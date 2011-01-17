@@ -87,6 +87,7 @@ contains
     real(r8), pointer :: sucsat(:,:)                ! minimum soil suction (mm) (nlevgrnd)
     real(r8), pointer :: watsat(:,:)                ! volumetric soil water at saturation (porosity) (nlevgrnd)
     integer , pointer :: cgridcell(:)               ! gridcell index of column
+    integer , pointer :: clandunit(:)               ! landunit index of column    
     real(r8), pointer :: wtgcell(:)                 ! weight (relative to gridcell)
     integer , pointer :: ltype(:)                   ! landunit type index
     real(r8), pointer :: h2osoi_vol(:,:)            ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
@@ -156,6 +157,7 @@ contains
     ltype           => clm3%g%l%itype
 
     ! Assign local pointer to derived subtypes components (column-level)
+    clandunit       => clm3%g%l%c%landunit
     cgridcell       => clm3%g%l%c%gridcell
     wtgcell         => clm3%g%l%c%wtgcell
     ctype           => clm3%g%l%c%itype
@@ -268,6 +270,7 @@ contains
 
        ! Set gridcell and landunit indices
        g = cgridcell(c)
+       l = clandunit(c)
 
        if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
 
