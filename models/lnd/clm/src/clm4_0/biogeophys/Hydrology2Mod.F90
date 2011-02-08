@@ -524,9 +524,9 @@ contains
     !write(iulog, *), nstep, dtime, (nstep+1.0d0)*dtime
 
     call pflotranModelUpdateSourceSink( pflotran_m )
-    call pflotranModelUpdateSaturation( pflotran_m )
+    !call pflotranModelUpdateSaturation( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    call pflotranModelGetSaturation( pflotran_m )
+    !call pflotranModelGetSaturation( pflotran_m )
     write(iulog,*), 'qflx_sink [mm/sec]: ',tmp*1000.0_r8/den
 
 

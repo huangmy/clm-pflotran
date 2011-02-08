@@ -271,9 +271,9 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
         do fc = 1,filter(nc)%num_hydrologyc
            c = filter(nc)%hydrologyc(fc)
            do j = 1, nlevsoi
-              h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
-              h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
-              h2osoi_vol(c,j) = min(h2osoi_vol(c,j),clm_pf_data%watsat(c,j))
+              !h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
+              !h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
+              !h2osoi_vol(c,j) = min(h2osoi_vol(c,j),clm_pf_data%watsat(c,j))
               tmp = tmp + h2osoi_liq(c,j) + h2osoi_ice(c,j)
            enddo
         enddo
