@@ -14,7 +14,7 @@ module clm_pflotran_interfaceMod
   use decompMod       , only : get_proc_bounds, get_proc_global
   use clm_varpar      , only : nlevsoi, lsmlon, lsmlat, nlevgrnd
   use shr_kind_mod    , only: r8 => shr_kind_r8
-  use decompMod       , only : get_proc_bounds, get_proc_global
+  use decompMod       , only : ldecomp
   use domainMod       , only : ldomain
 
   use ncdio_pio       
@@ -27,13 +27,18 @@ module clm_pflotran_interfaceMod
   use abortutils      , only : endrun
 
   use clm_pflotran_interface_type
+  use clm_pflotran_interface_data
   use pflotran_model_module
 
 
   ! !PUBLIC TYPES:
   implicit none
+
+!#include "finclude/petscsys.h"
+
   save
 
+  type(clm_pflotran_data),pointer:: clm_pf_idata
   type(pflotran_model_type),pointer,public :: pflotran_m
 
   !
@@ -96,7 +101,6 @@ contains
     real(r8), pointer :: zwt(:)                     ! water table depth (m)
 
 
-
     !
     ! From iniTimeConst.F90
     !
@@ -145,8 +149,14 @@ contains
 
     logical :: readvar 
 
+    integer, pointer :: clm_cell_ids_nindex(:) 
+    integer :: tmp_count
+
     !------------------------------------------------------------------------
     allocate(pflotran_m)
+    allocate(clm_pf_idata)
+
+    clm_pf_idata => clm_pf_data_create()
 
     ! Determine necessary indices
 
@@ -190,6 +200,7 @@ contains
     allocate(clm_pf_data%topo   ( nbeg:nend))
     allocate(clm_pf_data%zisoi  ( 0:nlevgrnd))
     allocate(clm_pf_data%zwt    ( begg:endg))
+
 
 
     qflx_sink_clmpf           => clm_pf_data%qflx_sink
@@ -417,10 +428,26 @@ contains
 
     pflotran_m => pflotranModelCreate()
     
-    call pflotranModelInitMapping(    pflotran_m )
-    call pflotranModelSetSoilProp(    pflotran_m )
-    call pflotranModelSetICs(         pflotran_m )
-    call pflotranModelStepperRunInit( pflotran_m )
+
+    tmp_count = (endg - begg + 1)*nlevsoi
+    allocate(clm_cell_ids_nindex( 1:tmp_count))
+
+    tmp_count = 0
+    do g = begg, endg
+       do j = 1,nlevsoi
+          tmp_count = tmp_count + 1
+          clm_cell_ids_nindex(tmp_count) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
+       enddo
+    enddo
+
+
+    !call pflotranModelInitMapping(    pflotran_m )
+    call pflotranModelInitMapping2(   pflotran_m, clm_pf_idata, &
+         clm_cell_ids_nindex, tmp_count )
+    !call pflotranModelSetSoilProp(    pflotran_m )
+    !call pflotranModelSetICs(         pflotran_m )
+    !call pflotranModelStepperRunInit( pflotran_m )
+
 
     deallocate(sand3d,clay3d,organic3d)
 

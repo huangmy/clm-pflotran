@@ -663,7 +663,7 @@ contains
 
 #ifdef CLM_PFLOTRAN
     call clm_pf_interface_init()
-    call pflotranModelGetSaturation( pflotran_m )
+    !call pflotranModelGetSaturation( pflotran_m )
 #endif
 
   end subroutine initialize2
