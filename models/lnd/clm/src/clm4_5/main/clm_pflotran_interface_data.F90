@@ -3,10 +3,10 @@
 module clm_pflotran_interface_data
 
   ! !USES:
-!  use shr_kind_mod, only     : r8 => shr_kind_r8
-!!  use abortutils, only       : endrun
-!!  use clm_varctl      , only : iulog
-!!  use spmdMod         , only : masterproc
+  !  use shr_kind_mod, only     : r8 => shr_kind_r8
+  !!  use abortutils, only       : endrun
+  !!  use clm_varctl      , only : iulog
+  !!  use spmdMod         , only : masterproc
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -25,27 +25,28 @@ module clm_pflotran_interface_data
      ! (i) Soil properties -
      ! Global vectors
      Vec :: hksat_x, hksat_y, hksat_z
-     Vec :: succat
+     Vec :: sucsat
      Vec :: watsat
      Vec :: bsw
 
      ! Local for CLM
      Vec :: hksat_x_clmloc, hksat_y_clmloc, hksat_z_clmloc
-     Vec :: succat_clmloc
+     Vec :: sucsat_clmloc
      Vec :: watsat_clmloc
      Vec :: bsw_clmloc
 
      ! Local for PFLOTRAN
      Vec :: hksat_x_pfloc, hksat_y_pfloc, hksat_z_pfloc
-     Vec :: succat_pfloc
+     Vec :: sucsat_pfloc
      Vec :: watsat_pfloc
      Vec :: bsw_pfloc
 
-     ! (ii) Initial conditions - 
-     Vec :: zwt, zwt_clmloc, zwt_pfloc
-     
-     ! 
-     ! Time variant data 
+     ! (ii) Initial conditions -
+     Vec :: zwt_2d, zwt_2d_clmloc, zwt_2d_pfloc
+     Vec :: topo_2d, topo_2d_clmloc, topo_2d_pfloc
+
+     !
+     ! Time variant data
      !
      ! (i) Sink/Source of water
      Vec :: qflx, qflx_clmloc, qflx_pfloc
@@ -53,24 +54,24 @@ module clm_pflotran_interface_data
      ! (ii) Saturation
      Vec :: sat, sat_clmloc, sat_pfloc
 
-     ! 
+     !
      PetscInt :: clm_num_local
      !PetscInt :: clm_num_ghost
      PetscInt :: pf_num_local
      PetscInt :: clm_num_docells
      PetscInt :: pf_num_docells
-     
-     
+
+
   end type clm_pflotran_data
 
   public :: clm_pf_data_create, &
        clm_pf_data_allocate_memory
 
-contains 
+contains
   function clm_pf_data_create()
 
     implicit none
-    
+
     type(clm_pflotran_data), pointer :: clm_pf_data_create
     type(clm_pflotran_data), pointer :: clm_pf_data
 
@@ -79,30 +80,33 @@ contains
     clm_pf_data%hksat_x = 0
     clm_pf_data%hksat_y = 0
     clm_pf_data%hksat_z = 0
-    clm_pf_data%succat  = 0
+    clm_pf_data%sucsat  = 0
     clm_pf_data%watsat  = 0
     clm_pf_data%bsw     = 0
-    clm_pf_data%zwt     = 0
+    clm_pf_data%zwt_2d  = 0
+    clm_pf_data%topo_2d = 0
     clm_pf_data%qflx    = 0
     clm_pf_data%sat     = 0
 
     clm_pf_data%hksat_x_clmloc = 0
     clm_pf_data%hksat_y_clmloc = 0
     clm_pf_data%hksat_z_clmloc = 0
-    clm_pf_data%succat_clmloc  = 0
+    clm_pf_data%sucsat_clmloc  = 0
     clm_pf_data%watsat_clmloc  = 0
     clm_pf_data%bsw_clmloc     = 0
-    clm_pf_data%zwt_clmloc     = 0
+    clm_pf_data%zwt_2d_clmloc  = 0
+    clm_pf_data%topo_2d_clmloc = 0
     clm_pf_data%qflx_clmloc    = 0
     clm_pf_data%sat_clmloc     = 0
 
     clm_pf_data%hksat_x_pfloc = 0
     clm_pf_data%hksat_y_pfloc = 0
     clm_pf_data%hksat_z_pfloc = 0
-    clm_pf_data%succat_pfloc  = 0
+    clm_pf_data%sucsat_pfloc  = 0
     clm_pf_data%watsat_pfloc  = 0
     clm_pf_data%bsw_pfloc     = 0
-    clm_pf_data%zwt_pfloc     = 0
+    clm_pf_data%zwt_2d_pfloc  = 0
+    clm_pf_data%topo_2d_pfloc = 0
     clm_pf_data%qflx_pfloc    = 0
     clm_pf_data%sat_pfloc     = 0
 
@@ -124,6 +128,7 @@ contains
     !PetscMPIInt    :: status_mpi(MPI_STATUS_SIZE)
     PetscMPIInt    :: mycomm, rank
     type(clm_pflotran_data), pointer :: data
+    PetscReal      :: zero = 0.0d0
 
     call MPI_Comm_rank(MPI_COMM_WORLD,rank, ierr)
 
@@ -148,48 +153,56 @@ contains
     ! Create MPI Vectors
     call VecCreateMPI(mycomm,data%clm_num_local,PETSC_DETERMINE,data%hksat_x,ierr)
     call VecSetBlockSize(data%hksat_x, 1, ierr)
+    !call VecSet(data%hksat_x, zero)
 
     call VecDuplicate(data%hksat_x, data%hksat_y, ierr)
     call VecDuplicate(data%hksat_x, data%hksat_z, ierr)
-    call VecDuplicate(data%hksat_x, data%succat,  ierr)
+    call VecDuplicate(data%hksat_x, data%sucsat,  ierr)
     call VecDuplicate(data%hksat_x, data%watsat,  ierr)
     call VecDuplicate(data%hksat_x, data%bsw,     ierr)
-    call VecDuplicate(data%hksat_x, data%zwt,     ierr)
+    call VecDuplicate(data%hksat_x, data%zwt_2d,  ierr)
+    call VecDuplicate(data%hksat_x, data%topo_2d, ierr)
     call VecDuplicate(data%hksat_x, data%qflx,    ierr)
 
-    
+
     call VecCreateMPI(mycomm,data%pf_num_local,PETSC_DETERMINE,data%sat,ierr)
     call VecSetBlockSize(data%sat, 1, ierr)
-
+    !call VecSet(data%sat, zero)
 
     ! Create Sequential Vectors
     call VecCreateSeq(PETSC_COMM_SELF,data%clm_num_local,data%hksat_x_clmloc,ierr)
     call VecSetBlockSize(data%hksat_x_clmloc, 1, ierr)
+    !call VecSet(data%hksat_x_clmloc, zero)
 
     call VecDuplicate(data%hksat_x_clmloc, data%hksat_y_clmloc, ierr)
     call VecDuplicate(data%hksat_x_clmloc, data%hksat_z_clmloc, ierr)
-    call VecDuplicate(data%hksat_x_clmloc, data%succat_clmloc,  ierr)
+    call VecDuplicate(data%hksat_x_clmloc, data%sucsat_clmloc,  ierr)
     call VecDuplicate(data%hksat_x_clmloc, data%watsat_clmloc,  ierr)
     call VecDuplicate(data%hksat_x_clmloc, data%bsw_clmloc,     ierr)
-    call VecDuplicate(data%hksat_x_clmloc, data%zwt_clmloc,     ierr)
+    call VecDuplicate(data%hksat_x_clmloc, data%zwt_2d_clmloc,  ierr)
+    call VecDuplicate(data%hksat_x_clmloc, data%topo_2d_clmloc, ierr)
     call VecDuplicate(data%hksat_x_clmloc, data%qflx_clmloc,    ierr)
 
     call VecCreateSeq(PETSC_COMM_SELF,data%clm_num_docells,data%sat_clmloc,ierr)
     call VecSetBlockSize(data%sat_clmloc, 1,ierr)
+    !call VecSet(data%sat_clmloc, zero)
 
     call VecCreateSeq(PETSC_COMM_SELF,data%pf_num_docells,data%hksat_x_pfloc,ierr)
     call VecSetBlockSize(data%hksat_x_pfloc, 1, ierr)
+    !call VecSet(data%hksat_x_pfloc, 0.0d0)
 
     call VecDuplicate(data%hksat_x_pfloc, data%hksat_y_pfloc, ierr)
     call VecDuplicate(data%hksat_x_pfloc, data%hksat_z_pfloc, ierr)
-    call VecDuplicate(data%hksat_x_pfloc, data%succat_pfloc,  ierr)
+    call VecDuplicate(data%hksat_x_pfloc, data%sucsat_pfloc,  ierr)
     call VecDuplicate(data%hksat_x_pfloc, data%watsat_pfloc,  ierr)
     call VecDuplicate(data%hksat_x_pfloc, data%bsw_pfloc,     ierr)
-    call VecDuplicate(data%hksat_x_pfloc, data%zwt_pfloc,     ierr)
+    call VecDuplicate(data%hksat_x_pfloc, data%zwt_2d_pfloc,  ierr)
+    call VecDuplicate(data%hksat_x_pfloc, data%topo_2d_pfloc, ierr)
     call VecDuplicate(data%hksat_x_pfloc, data%qflx_pfloc,    ierr)
 
     call VecCreateSeq(PETSC_COMM_SELF,data%pf_num_local,data%sat_pfloc,ierr)
     call VecSetBlockSize(data%sat_pfloc,1,ierr)
+    !call VecSet(data%sat_pfloc, zero)
 
   end subroutine clm_pf_data_allocate_memory
 
