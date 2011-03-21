@@ -435,7 +435,7 @@ contains
           if ( pi <= npfts(c) ) then
              p = pfti(c) + pi - 1
              if (pwtgcell(p)>0._r8) then
-                clm_pf_data%qflx_sink(g,1) = clm_pf_data%qflx_sink(g,1) + &
+                clm_pf_data%qflx_sink(g,1) = clm_pf_data%qflx_sink(g,1) - &
                      qflx_evap_soi_pft(p)/1000.0_r8 * den  * wtcol(p)
              end if
           end if
@@ -492,7 +492,7 @@ contains
           if (temp(c) /= 0._r8) then
              rootr_col(c,j) = rootr_col(c,j)/temp(c)
              clm_pf_data%qflx_sink(g,j) = clm_pf_data%qflx_sink(g,j) &
-                  + qflx_tran_veg_col(c) * rootr_col(c,j) /1000.0_r8 * den
+                  - qflx_tran_veg_col(c) * rootr_col(c,j) /1000.0_r8 * den
           end if
        end do
     end do
@@ -526,7 +526,7 @@ contains
     call pflotranModelUpdateSourceSink( pflotran_m )
     !call pflotranModelUpdateSaturation( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    !call pflotranModelGetSaturation( pflotran_m )
+    call pflotranModelGetSaturation( pflotran_m )
     write(iulog,*), 'qflx_sink [mm/sec]: ',tmp*1000.0_r8/den
 
 

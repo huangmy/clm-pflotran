@@ -117,7 +117,7 @@ contains
     real(r8) :: su                         !variable to calculate qinmax
     real(r8) :: v                          !variable to calculate qinmax
     real(r8) :: qinmax                     !maximum infiltration capacity (mm/s)
-
+    real(r8) :: scsat                      !soil column saturation [-]
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived subtype components (column-level)
@@ -188,6 +188,18 @@ contains
        ! Surface runoff
        qflx_surf(c) =  fcov(c) * qflx_top_soil(c) + &
                        (1._r8-fcov(c)) * max(0._r8, qflx_top_soil(c)-qinmax)
+
+       ! Shut of Surface runoff if the entire soil column is almost saturated (99%)
+       scsat = 0._r8
+       do j = 1,nlevsoi
+          scsat = scsat + &
+               h2osoi_liq(c,j)/watsat(c,j)/(dz(c,j)*denh2o) + &
+               h2osoi_ice(c,j)/watsat(c,j)/(dz(c,j)*denice) 
+       end do
+       
+       if ( scsat/nlevsoi.gt.0.99_r8) then
+          qflx_surf(c) = max(0._r8,qflx_top_soil(c))
+       endif
 
     end do
 
