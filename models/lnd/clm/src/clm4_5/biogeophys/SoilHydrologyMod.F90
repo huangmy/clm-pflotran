@@ -196,6 +196,7 @@ contains
     real(r8) :: su                         !variable to calculate qinmax
     real(r8) :: v                          !variable to calculate qinmax
     real(r8) :: qinmax                     !maximum infiltration capacity (mm/s)
+    real(r8) :: scsat                      !soil column saturation [-]
 #if (defined VICHYDRO)
     real(r8) :: A(lbc:ubc)                 !fraction of the saturated area
     real(r8) :: ex(lbc:ubc)                !temporary variable (exponent)
@@ -359,6 +360,18 @@ contains
        end if
        ! send flood water flux to runoff for all urban columns
        qflx_surf(c) = qflx_surf(c)  + qflx_floodc(c)
+
+       ! Shut of Surface runoff if the entire soil column is almost saturated (99%)
+       scsat = 0._r8
+       do j = 1,nlevsoi
+          scsat = scsat + &
+               h2osoi_liq(c,j)/watsat(c,j)/(dz(c,j)*denh2o) + &
+               h2osoi_ice(c,j)/watsat(c,j)/(dz(c,j)*denice) 
+       end do
+       
+       if ( scsat/nlevsoi.gt.0.99_r8) then
+          qflx_surf(c) = max(0._r8,qflx_top_soil(c))
+       endif
 
     end do
 
