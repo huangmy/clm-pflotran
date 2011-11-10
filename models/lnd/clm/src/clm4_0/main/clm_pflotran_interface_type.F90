@@ -1,5 +1,5 @@
-#include <misc.h>
-#include <preproc.h>
+!#include <misc.h>
+!#include <preproc.h>
 
 module clm_pflotran_interface_type
 
@@ -32,9 +32,9 @@ module clm_pflotran_interface_type
      ! From PFLOTRAN to CLM
      real(r8), pointer :: sat(:,:)             ! (Theta/Theta_sat)
 
-     integer, begg, endg
-     integer, nbeg, nend
-     integer, nlevgrnd, nlevsoi, ngrids
+     integer :: begg, endg
+     integer :: nbeg, nend
+     integer :: nlevgrnd, nlevsoi, ngrids
      
   end type clm_pflotran_type
 

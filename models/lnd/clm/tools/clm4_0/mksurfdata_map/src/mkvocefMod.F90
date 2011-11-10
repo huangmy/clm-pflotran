@@ -196,7 +196,7 @@ subroutine mkvocef(ldomain, mapfname, datfname, ndiag, &
         write (6,*) 'MKVOCEF error: input field not conserved'
         write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
         write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-        stop
+        !stop
      end if
   end if
 

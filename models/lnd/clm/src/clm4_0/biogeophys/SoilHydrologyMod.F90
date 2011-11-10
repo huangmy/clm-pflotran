@@ -467,7 +467,6 @@ contains
 #ifdef CLM_PFLOTRAN
   real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
   real(r8):: tmp
-  integer :: j
 #endif
 !
 ! local pointers to original implicit inout arguments

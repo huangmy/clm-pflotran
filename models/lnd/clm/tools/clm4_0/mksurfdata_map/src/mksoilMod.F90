@@ -416,7 +416,7 @@ subroutine mksoiltex(ldomain, mapfname, datfname, ndiag, pctglac_o, sand_o, clay
            write (6,*) 'MKSOILTEX error: input field not conserved'
            write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
            write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-           stop
+           !stop
         end if
      end if
 
@@ -798,7 +798,7 @@ subroutine mksoilcol(ldomain, mapfname, datfname, ndiag, &
            write (6,*) 'MKSOILCOL error: input field not conserved'
            write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
            write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-           stop
+           !stop
         end if
      end if
 
@@ -1255,7 +1255,7 @@ subroutine mkfmax(ldomain, mapfname, datfname, ndiag, fmax_o)
         write (6,*) 'MKFMAX error: input field not conserved'
         write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
         write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-        stop
+        !stop
      end if
   end if
 
