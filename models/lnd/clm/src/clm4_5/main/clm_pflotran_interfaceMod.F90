@@ -17,7 +17,6 @@ module clm_pflotran_interfaceMod
   use decompMod       , only : ldecomp
   use domainMod       , only : ldomain
 
-  use ncdio_pio
   use fileutils       , only : getfil
   use spmdMod         , only : mpicom, MPI_INTEGER, masterproc
   use organicFileMod  , only : organicrd
@@ -29,6 +28,7 @@ module clm_pflotran_interfaceMod
   use clm_pflotran_interface_type
   use clm_pflotran_interface_data
   use pflotran_model_module
+  use ncdio_pio
 
 
   ! !PUBLIC TYPES:
@@ -162,7 +162,7 @@ contains
     logical :: readvar
 
     integer, pointer :: clm_cell_ids_nindex(:)
-    integer :: tmp_count
+    integer :: clm_npts
     PetscViewer :: viewer
 
     !------------------------------------------------------------------------
@@ -254,14 +254,9 @@ contains
 
     ! Determine number of soil color classes - if number of soil color classes is not
     ! on input dataset set it to 8
-
-    ier = pio_inq_varid(ncid, 'mxsoil_color', varid)
-    if (ier == PIO_NOERR) then
-       ier = pio_inq_varid(ncid, 'mxsoil_color', varid)
-       ier = pio_get_var(ncid, varid, mxsoil_color)
-    else
-       mxsoil_color = 8
-    end if
+    call ncd_io(ncid=ncid, varname='mxsoil_color', flag='read', data=mxsoil_color, &
+                  readvar=readvar)
+    if ( .not. readvar) mxsoil_color = 8
 
     call ncd_io(ncid=ncid, varname='PCT_SAND', flag='read', data=sand3d, dim1name=grlnd, readvar=readvar)
     if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_SAND NOT on surfadata file' )
@@ -438,38 +433,41 @@ contains
        zisoi_clmpf(j) = zisoi(j)                         !interface depths [m]
     enddo
 
-
+    write (iulog, *), 'call pflotranModelCreate() >>> .....'
     pflotran_m => pflotranModelCreate()
+    write (iulog, *), 'call pflotranModelCreate() ... done'
 
+    clm_npts = (endg - begg + 1)*nlevsoi
+    allocate(clm_cell_ids_nindex( 1:clm_npts))
 
-    tmp_count = (endg - begg + 1)*nlevsoi
-    allocate(clm_cell_ids_nindex( 1:tmp_count))
-
-    tmp_count = 0
+    clm_npts = 0
     do g = begg, endg
        do j = 1,nlevsoi
-          tmp_count = tmp_count + 1
-          clm_cell_ids_nindex(tmp_count) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
+          clm_npts = clm_npts + 1
+          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
        enddo
     enddo
 
 
-    call pflotranModelInitMapping(    pflotran_m )
-    call pflotranModelSetSoilProp(    pflotran_m )
-    call pflotranModelSetICs(         pflotran_m )
+    !call pflotranModelInitMapping(    pflotran_m )
+    !call pflotranModelSetSoilProp(    pflotran_m )
+    !call pflotranModelSetICs(         pflotran_m )
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts,1,1)
+
     call pflotranModelStepperRunInit( pflotran_m )
 
-    call pflotranModelInitMapping2(   pflotran_m, clm_pf_idata, &
-         clm_cell_ids_nindex, tmp_count )
-    call VecGetArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
-    call VecGetArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
-    call VecGetArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
-    call VecGetArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
-
+    !call pflotranModelInitMapping2(   pflotran_m, clm_pf_idata, &
+    !     clm_cell_ids_nindex, tmp_count )
+    !call VecGetArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
+    !call VecGetArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
+    !call VecGetArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
+    !call VecGetArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
+    !call VecGetArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
+    !call VecGetArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
+    !call VecGetArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
+    !call VecGetArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
+    write(iulog, *), 'in clm_pf_interface_init()'
+#if 0    
     index = 0
     do g = begg, endg
        do lev = 1,nlevsoi
@@ -572,74 +570,75 @@ contains
 
 
 
-    call VecRestoreArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
-    call VecRestoreArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
-    call VecRestoreArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
-    call VecRestoreArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
-    call VecRestoreArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
+    !call VecRestoreArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
 
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%hksat_x_clmloc, clm_pf_idata%hksat_x )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%hksat_x_clmloc, clm_pf_idata%hksat_x )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%hksat_y_clmloc, clm_pf_idata%hksat_y )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%hksat_y_clmloc, clm_pf_idata%hksat_y )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%hksat_z_clmloc, clm_pf_idata%hksat_z )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%hksat_z_clmloc, clm_pf_idata%hksat_z )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%sucsat_clmloc, clm_pf_idata%sucsat )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%sucsat_clmloc, clm_pf_idata%sucsat )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%watsat_clmloc, clm_pf_idata%watsat )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%watsat_clmloc, clm_pf_idata%watsat )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%bsw_clmloc, clm_pf_idata%bsw )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%bsw_clmloc, clm_pf_idata%bsw )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%zwt_2d_clmloc, clm_pf_idata%zwt_2d )
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%zwt_2d_clmloc, clm_pf_idata%zwt_2d )
 
-    call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-         clm_pf_idata%topo_2d_clmloc, clm_pf_idata%topo_2d )
-
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_x.out',viewer,ierr)
-    call VecView(clm_pf_idata%hksat_x,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_y.out',viewer,ierr)
-    call VecView(clm_pf_idata%hksat_y,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_z.out',viewer,ierr)
-    call VecView(clm_pf_idata%hksat_z,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'sucsat.out',viewer,ierr)
-    call VecView(clm_pf_idata%sucsat,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'watsat.out',viewer,ierr)
-    call VecView(clm_pf_idata%watsat,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'bsw.out',viewer,ierr)
-    call VecView(clm_pf_idata%bsw,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'zwt_2d.out',viewer,ierr)
-    call VecView(clm_pf_idata%zwt_2d,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
-
-    call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'topo_2d.out',viewer,ierr)
-    call VecView(clm_pf_idata%topo_2d,viewer, ierr)
-    call PetscViewerDestroy(viewer, ierr)
+    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
+    !     clm_pf_idata%topo_2d_clmloc, clm_pf_idata%topo_2d )
 
 
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_x.out',viewer,ierr)
+    !call VecView(clm_pf_idata%hksat_x,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_y.out',viewer,ierr)
+    !call VecView(clm_pf_idata%hksat_y,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_z.out',viewer,ierr)
+    !call VecView(clm_pf_idata%hksat_z,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'sucsat.out',viewer,ierr)
+    !call VecView(clm_pf_idata%sucsat,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'watsat.out',viewer,ierr)
+    !call VecView(clm_pf_idata%watsat,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'bsw.out',viewer,ierr)
+    !call VecView(clm_pf_idata%bsw,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'zwt_2d.out',viewer,ierr)
+    !call VecView(clm_pf_idata%zwt_2d,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+
+    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'topo_2d.out',viewer,ierr)
+    !call VecView(clm_pf_idata%topo_2d,viewer, ierr)
+    !call PetscViewerDestroy(viewer, ierr)
+#endif
+    write(iulog, *), 'in clm_pf_interface_init() done'
+    
     call MPI_Barrier(pflotran_m%option%global_comm,ierr)
 
     deallocate(sand3d,clay3d,organic3d)

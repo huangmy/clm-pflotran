@@ -246,7 +246,7 @@ contains
     real(r8) :: icefrac(lbc:ubc,1:nlevsoi)
 
 #ifdef CLM_PFLOTRAN
-    integer  :: p,c,fc,j                  ! do loop indices
+    integer  :: p                         ! do loop indices
     integer  :: pi                        ! pft index
     integer  :: begp, endp                ! per-proc beginning and ending pft indices
     integer  :: begc, endc                ! per-proc beginning and ending column indices
@@ -549,8 +549,8 @@ contains
     !write(iulog,*), 'qflx_tran_veg_col(c) = ',qflx_tran_veg_col(1)
     !write(iulog,*), 'qflx_sink [mm/sec]: ',tmp*1000.0_r8/den
     !write(iulog, *), nstep, dtime, (nstep+1.0d0)*dtime
-
-    call pflotranModelUpdateSourceSink( pflotran_m )
+    write(iulog, *), 'call pflotranModelStepperRunTillPauseTime()'
+    !call pflotranModelUpdateSourceSink( pflotran_m )
     !call pflotranModelUpdateSaturation( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
     call pflotranModelGetSaturation( pflotran_m )
