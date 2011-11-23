@@ -95,7 +95,7 @@ co2_sw.o : co2_sw.F90 co2_span_wagner.o clm_varpar.o definitions.h
 co2_sw_global.o : co2_sw_global.F90  clm_varpar.o definitions.h
 co2_sw_rtsafe.o : co2_sw_rtsafe.F90  clm_varpar.o definitions.h 
 co2eos.o : co2eos.F90 clm_varpar.o definitions.h 
-condition.o : condition.F90 input.o utility.o option.o field.o logging.o reaction_aux.o string.o hdf5_aux.F90 reactive_transport_aux.o units.o hdf5_aux.o time_series.o
+condition.o : condition.F90 input.o utility.o option.o field.o logging.o reaction_aux.o string.o hdf5_aux.F90 reactive_transport_aux.o units.o hdf5_aux.o time_series.o dataset.o
 condition_control.o : realization.o discretization.o region.o option.o grid.o field.o coupler.o condition.o connection.o reaction.o hdf5.o mfd.o dataset_aux.o
 connection.o : connection.F90 clm_varpar.o definitions.h 
 controlMod.o : controlMod.F90 spmdMod.o SurfaceAlbedoMod.o UrbanMod.o clm_varpar.o histFileMod.o clm_varctl.o CNAllocationMod.o shr_string_mod.mod abortutils.o fileutils.o shr_const_mod.mod CASAMod.o decompMod.o  clm_time_manager.o 
@@ -205,4 +205,4 @@ unstructured_cell.o : option.o utility.o
 utility.o : utility.F90 option.o string.o input.o definitions.h
 velocity.o : velocity.F90 option.o string.o logging.o utility.o input.o units.o definitions.h
 water_eos.o : water_eos.F90 clm_varpar.o definitions.h 
-waypoint.o : waypoint.F90 option.o definitions.h
+waypoint.o : waypoint.F90 option.o definitions.h utility.o
