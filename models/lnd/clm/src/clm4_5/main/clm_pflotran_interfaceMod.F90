@@ -25,7 +25,7 @@ module clm_pflotran_interfaceMod
        icol_road_perv, icol_road_imperv, zisoi, zsoi
   use abortutils      , only : endrun
 
-  use clm_pflotran_interface_type
+  !use clm_pflotran_interface_type
   use clm_pflotran_interface_data
   use pflotran_model_module
   use ncdio_pio
@@ -34,14 +34,11 @@ module clm_pflotran_interfaceMod
   ! !PUBLIC TYPES:
   implicit none
 
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
 
   save
 
-  type(clm_pflotran_data),pointer          :: clm_pf_idata
-  type(pflotran_model_type),pointer,public :: pflotran_m
+  !type(clm_pflotran_interface_data_type),pointer,public   :: clm_pf_idata
+  type(pflotran_model_type),pointer,public                :: pflotran_m
 
   !
   private    ! By default everything is private
@@ -58,6 +55,12 @@ contains
     ! !ARGUMENTS:
 
     implicit none
+
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+#include "finclude/petscviewer.h"
+!#include "definitions.h"
+
     !
     ! !REVISION HISTORY:
     ! Created by Gautam Bisht
@@ -76,18 +79,7 @@ contains
     integer  :: numc             ! total number of columns across all processors
     integer  :: nump             ! total number of pfts across all processors
     integer  :: n,g,l,c,p,lev,j  ! indices
-
-    real(r8), pointer :: qflx_sink_clmpf(:,:)       !
-    real(r8), pointer :: sat_clmpf(:,:)             !
-    real(r8), pointer :: hksat_x_clmpf(:,:)         ! hydraulic conductivity in x-dir at saturation (mm H2O /s) (nlevgrnd)
-    real(r8), pointer :: hksat_y_clmpf(:,:)         ! hydraulic conductivity in y-dir at saturation (mm H2O /s) (nlevgrnd)
-    real(r8), pointer :: hksat_z_clmpf(:,:)         ! hydraulic conductivity in z-dir at saturation (mm H2O /s) (nlevgrnd)
-    real(r8), pointer :: sucsat_clmpf(:,:)          ! minimum soil suction (mm) (nlevgrnd)
-    real(r8), pointer :: watsat_clmpf(:,:)          ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(r8), pointer :: bsw_clmpf(:,:)             ! Clapp and Hornberger "b" (nlevgrnd)
-    real(r8), pointer :: topo_clmpf(:)              ! Topogrpahy
-    real(r8), pointer :: zisoi_clmpf(:)             ! Depth at soil interfaces
-    real(r8), pointer :: zwt_clmpf(:)               ! water table depth (m)
+    integer  :: gcount
 
     integer , pointer :: ctype(:)                   ! column type index
     real(r8), pointer :: hksat(:,:)                 ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
@@ -145,7 +137,7 @@ contains
     real(r8) :: perc_norm               ! normalize to 1 when 100% organic soil
     real(r8) :: uncon_hksat             ! series conductivity of mineral/organic soil
     real(r8) :: uncon_frac              ! fraction of "unconnected" soil
-    integer  :: start(3),count(3)      ! netcdf start/count arrays
+    integer  :: start(3),count(3)       ! netcdf start/count arrays
 
     real(r8) :: watsat_tmp, bsw_tmp, sucsat_tmp
     real(r8) :: bd, tkm, bsw2_tmp,psisat_tmp
@@ -163,13 +155,15 @@ contains
 
     integer, pointer :: clm_cell_ids_nindex(:)
     integer :: clm_npts
-    PetscViewer :: viewer
 
-    !------------------------------------------------------------------------
-    allocate(pflotran_m)
-    allocate(clm_pf_idata)
-
-    clm_pf_idata => clm_pf_data_create()
+    !PetscViewer :: viewer
+    PetscScalar, pointer :: hksat_x_clm_loc(:) ! hydraulic conductivity in x-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: hksat_y_clm_loc(:) ! hydraulic conductivity in y-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: hksat_z_clm_loc(:) ! hydraulic conductivity in z-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: watsat_clm_loc(:)  ! minimum soil suction (mm)
+    PetscScalar, pointer :: sucsat_clm_loc(:)  ! volumetric soil water at saturation (porosity)
+    PetscScalar, pointer :: bsw_clm_loc(:)     ! Clapp and Hornberger "b"
+    PetscErrorCode :: ierr
 
     ! Determine necessary indices
 
@@ -191,6 +185,45 @@ contains
     topo            => ldomain%topo
     zwt             => clm3%g%l%c%cws%zwt
 
+    !------------------------------------------------------------------------
+    allocate(pflotran_m)
+    !allocate(clm_pf_idata)
+    !clm_pf_idata => clm_pf_data_create()
+
+    write (iulog, *), 'call pflotranModelCreate() >>> .....'
+    pflotran_m => pflotranModelCreate(mpicom)
+    write (iulog, *), 'call pflotranModelCreate() ... done'
+
+    clm_npts = (endg - begg + 1)*nlevsoi
+    allocate(clm_cell_ids_nindex( 1:clm_npts))
+
+    clm_npts = 0
+    do g = begg, endg
+       do j = 1,nlevsoi
+          clm_npts = clm_npts + 1
+          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
+       enddo
+    enddo
+
+    pflotran_m%nlclm = clm_npts
+    pflotran_m%ngclm = clm_npts
+    call pflotranModelCreateDataVecs(pflotran_m)
+
+    clm_pf_idata%nlclm = clm_npts
+    clm_pf_idata%ngclm = clm_npts
+    clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
+    clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
+    !call clm_pf_data_allocate_memory(clm_pf_idata, pflotran_m%option%mycomm)
+    call clm_pf_data_allocate_memory(pflotran_m%option%mycomm)
+
+    call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
+    call VecGetArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
+
+
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) '%%                                                     %%'
     write(iulog,*) '%%                                                     %%'
@@ -199,44 +232,7 @@ contains
     write(iulog,*) '%%                                                     %%'
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) ' '
-    write(iulog,*) 'begg=',begg, 'endg=',endg
-
-    allocate(clm_pf_data%qflx_sink(begg:endg,1:nlevsoi))
-    allocate(clm_pf_data%sat      (begg:endg,1:nlevsoi))
-
-    allocate(clm_pf_data%hksat_x( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%hksat_y( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%hksat_z( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%sucsat ( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%watsat ( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%bsw    ( begg:endg,1:nlevgrnd))
-    allocate(clm_pf_data%topo   ( nbeg:nend))
-    allocate(clm_pf_data%zisoi  ( 0:nlevgrnd))
-    allocate(clm_pf_data%zwt    ( begg:endg))
-
-
-
-    qflx_sink_clmpf           => clm_pf_data%qflx_sink
-    sat_clmpf                 => clm_pf_data%sat
-
-    hksat_x_clmpf             => clm_pf_data%hksat_x
-    hksat_y_clmpf             => clm_pf_data%hksat_y
-    hksat_z_clmpf             => clm_pf_data%hksat_z
-    sucsat_clmpf              => clm_pf_data%sucsat
-    watsat_clmpf              => clm_pf_data%watsat
-    bsw_clmpf                 => clm_pf_data%bsw
-    topo_clmpf                => clm_pf_data%topo
-    zisoi_clmpf               => clm_pf_data%zisoi
-    zwt_clmpf                 => clm_pf_data%zwt
-
-    clm_pf_data%begg       = begg
-    clm_pf_data%endg       = endg
-    clm_pf_data%nbeg       = nbeg
-    clm_pf_data%nend       = nend
-    clm_pf_data%nlevgrnd   = nlevgrnd
-    clm_pf_data%nlevsoi    = nlevsoi
-    clm_pf_data%ngrids     = endg - begg + 1
-
+    write(*,*) 'begg=',begg, 'endg=',endg
 
     allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
     allocate(organic3d(begg:endg,nlevsoi))
@@ -270,212 +266,40 @@ contains
 
     call organicrd(organic3d)
 
-    ! Initialize the variables to ZERO
-    do g = begg, endg
-       zwt_clmpf(g)                = 0._r8
-       do lev = 1,nlevgrnd
-          qflx_sink_clmpf(g,lev)   = 0._r8
-          hksat_x_clmpf(g,lev)     = 0._r8
-          hksat_y_clmpf(g,lev)     = 0._r8
-          hksat_z_clmpf(g,lev)     = 0._r8
-          sucsat_clmpf(g,lev)      = 0._r8
-          watsat_clmpf(g,lev)      = 0._r8
-          bsw_clmpf(g,lev)         = 0._r8
-       enddo
-    end do
-
-
+    gcount = 0_r8 ! assumption that only 1 soil-column per grid cell
     do c = begc, endc
 
-       ! Set gridcell and landunit indices
-       g = cgridcell(c)
-       l = clandunit(c)
+      ! Set gridcell and landunit indices
+      g = cgridcell(c)
+      l = clandunit(c)
+      gcount = g - begg + 1
 
-       if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
+      if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
+        write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
+        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+      else if (ltype(l)==isturb .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
+        ! Urban Roof, sunwall, shadewall properties set to special value
+        write (iulog,*), 'WARNING: Land Unit type is Urban '
+        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+      else  ! soil columns of both urban and non-urban types
 
-          write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
-          write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+        do lev = 1,nlevgrnd
 
+          ! duplicate clay and sand values from 10th soil layer
+          if (lev .le. nlevsoi) then
+            clay    = clay3d(g,lev)
+              sand    = sand3d(g,lev)
+            om_frac = (organic3d(g,lev)/organic_max)**2._r8
+          else
+            clay    = clay3d(g,nlevsoi)
+            sand    = sand3d(g,nlevsoi)
+            om_frac = 0._r8
+          endif
 
-       else if (ltype(l)==isturb .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
-          ! Urban Roof, sunwall, shadewall properties set to special value
-          write (iulog,*), 'WARNING: Land Unit type is Urban '
-          write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
-
-       else  ! soil columns of both urban and non-urban types
-
-          !write (iulog,*) 'g = ', g
-          do lev = 1,nlevgrnd
-
-             ! duplicate clay and sand values from 10th soil layer
-             if (lev .le. nlevsoi) then
-                clay    = clay3d(g,lev)
-                sand    = sand3d(g,lev)
-                om_frac = (organic3d(g,lev)/organic_max)**2._r8
-             else
-                clay    = clay3d(g,nlevsoi)
-                sand    = sand3d(g,nlevsoi)
-                om_frac = 0._r8
-             endif
-             ! No organic matter for urban
-             if (ltype(l)==isturb) then
-                om_frac = 0._r8
-             end if
-
-             watsat_tmp = 0.489_r8 - 0.00126_r8*sand
-             bsw_tmp    = 2.91 + 0.159*clay
-             sucsat_tmp = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )
-             bd            = (1._r8-watsat_tmp)*2.7e3_r8
-             watsat_tmp = (1._r8 - om_frac)*watsat_tmp + om_watsat*om_frac
-             tkm           = (1._r8-om_frac)*(8.80_r8*sand+2.92_r8*clay)/(sand+clay)+om_tkm*om_frac ! W/(m K)
-             bsw_tmp    = (1._r8-om_frac)*(2.91_r8 + 0.159_r8*clay) + om_frac*om_b
-             bsw2_tmp   = -(3.10_r8 + 0.157_r8*clay - 0.003_r8*sand)
-             psisat_tmp = -(exp((1.54_r8 - 0.0095_r8*sand + 0.0063_r8*(100.0_r8-sand-clay))*log(10.0_r8))*9.8e-5_r8)
-             vwcsat_tmp = (50.5_r8 - 0.142_r8*sand - 0.037_r8*clay)/100.0_r8
-             sucsat_tmp = (1._r8-om_frac)*sucsat_tmp + om_sucsat*om_frac
-             xksat         = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
-
-
-             ! perc_frac is zero unless perf_frac greater than percolation threshold
-             if (om_frac > pc) then
-                perc_norm=(1._r8 - pc)**(-pcbeta)
-                perc_frac=perc_norm*(om_frac - pc)**pcbeta
-             else
-                perc_frac=0._r8
-             endif
-
-
-             !
-             !                                ||
-             !                                ||
-             !                               \||/
-             !
-             !
-             !            ******************************************
-             !            *                                        *
-             !            *                                        *
-             !            *           ORGANIC PERCOLATING          *
-             !            *               f_om*f_pre               *
-             !            *                                        *
-             ! ---\       ******************************************
-             ! ---/       *                    *                   *
-             !            *                    *                   *
-             !            *                    *                   *
-             !            *     ORGANIC        *       MINERAL     *
-             !            *  NON-PERCOLATING   *                   *
-             !            *                    *                   *
-             !            *   f_om*(1-f_pre)   *       1-f_om      *
-             !            *                    *                   *
-             !            ******************************************
-             !
-
-
-             ! ---------------------------------------------------------------
-             ! Hydraulic conductivity in Z-direction
-             ! ---------------------------------------------------------------
-
-             ! uncon_frac is fraction of mineral soil plus fraction of "nonpercolating" organic soil
-             uncon_frac=(1._r8-om_frac)+(1._r8-perc_frac)*om_frac
-
-             ! uncon_hksat is series addition of mineral/organic conductivites
-             if (om_frac .lt. 1._r8) then
-                uncon_hksat=uncon_frac/((1._r8-om_frac)/xksat &
-                     +((1._r8-perc_frac)*om_frac)/om_hksat)
-             else
-                uncon_hksat = 0._r8
-             end if
-             hksat_tmp  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
-
-             ! ---------------------------------------------------------------
-             ! Hydraulic conductivity in X/Y-direction
-             ! ---------------------------------------------------------------
-
-             !
-             if (om_frac .lt. 1._r8) then
-                uncon_hksat = ( (1._r8 - om_frac)*xksat + &
-                     (1._r8 - perc_frac)*om_frac*om_hksat )/uncon_frac
-                hksat_tmp   = uncon_hksat*om_hksat/(om_frac*perc_frac*uncon_hksat &
-                     + (1._r8 - om_frac*perc_frac)*om_hksat)
-             else
-                uncon_hksat = 0._r8
-                hksat_tmp   = om_hksat
-             end if
-
-
-             hksat_x_clmpf(g,lev)  = hksat_x_clmpf(g,lev)  + hksat_tmp     * wtgcell(g)
-             hksat_y_clmpf(g,lev)  = hksat_x_clmpf(g,lev)
-             hksat_z_clmpf(g,lev)  = hksat_z_clmpf(g,lev)  + hksat(g,lev)  * wtgcell(g)
-
-             sucsat_clmpf(g,lev)   = sucsat_clmpf(g,lev)   + sucsat(g,lev) * wtgcell(g)
-             watsat_clmpf(g,lev)   = watsat_clmpf(g,lev)   + watsat(g,lev) * wtgcell(g)
-             bsw_clmpf(g,lev)      = bsw_clmpf(g,lev)      + bsw_tmp       * wtgcell(g)
-
-             !write(iulog, *), ' clm-zsoi : ',zsoi(lev)
-             !write(iulog, *), ' clm-hksat_x:', hksat_x_clmpf(g,lev)
-             !write(iulog, *), ' clm-hksat_y:', hksat_y_clmpf(g,lev)
-             !write(iulog, *), ' clm-hksat_z:', hksat_z_clmpf(g,lev)
-             !write(iulog, *), ' clm-sucsat:', sucsat_clmpf(g,lev)
-             !write(iulog, *), ' clm-watsat:', watsat_clmpf(g,lev)
-             !write(iulog, *), ' clm-bsw:', bsw_clmpf(g,lev)
-
-
-          enddo
-
-          zwt_clmpf(g)      = zwt_clmpf(g)      + zwt(g)    * wtgcell(g)
-          !write (iulog,*), 'zwt = ', zwt(c)
-
-       endif
-
-    enddo
-
-
-    do j = 0, nlevgrnd
-       zisoi_clmpf(j) = zisoi(j)                         !interface depths [m]
-    enddo
-
-    write (iulog, *), 'call pflotranModelCreate() >>> .....'
-    pflotran_m => pflotranModelCreate()
-    write (iulog, *), 'call pflotranModelCreate() ... done'
-
-    clm_npts = (endg - begg + 1)*nlevsoi
-    allocate(clm_cell_ids_nindex( 1:clm_npts))
-
-    clm_npts = 0
-    do g = begg, endg
-       do j = 1,nlevsoi
-          clm_npts = clm_npts + 1
-          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
-       enddo
-    enddo
-
-
-    !call pflotranModelInitMapping(    pflotran_m )
-    !call pflotranModelSetSoilProp(    pflotran_m )
-    !call pflotranModelSetICs(         pflotran_m )
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts,1,1)
-
-    call pflotranModelStepperRunInit( pflotran_m )
-
-    !call pflotranModelInitMapping2(   pflotran_m, clm_pf_idata, &
-    !     clm_cell_ids_nindex, tmp_count )
-    !call VecGetArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
-    !call VecGetArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
-    !call VecGetArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
-    !call VecGetArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
-    !call VecGetArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
-    !call VecGetArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
-    !call VecGetArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
-    !call VecGetArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
-    write(iulog, *), 'in clm_pf_interface_init()'
-#if 0    
-    index = 0
-    do g = begg, endg
-       do lev = 1,nlevsoi
-
-          index   = index + 1
-          clay    = clay3d(g,lev)
-          sand    = sand3d(g,lev)
-          om_frac = (organic3d(g,lev)/organic_max)**2._r8
+          ! No organic matter for urban
+          if (ltype(l)==isturb) then
+            om_frac = 0._r8
+          end if
 
           watsat_tmp = 0.489_r8 - 0.00126_r8*sand
           bsw_tmp    = 2.91 + 0.159*clay
@@ -492,10 +316,10 @@ contains
 
           ! perc_frac is zero unless perf_frac greater than percolation threshold
           if (om_frac > pc) then
-             perc_norm=(1._r8 - pc)**(-pcbeta)
-             perc_frac=perc_norm*(om_frac - pc)**pcbeta
+            perc_norm=(1._r8 - pc)**(-pcbeta)
+            perc_frac=perc_norm*(om_frac - pc)**pcbeta
           else
-             perc_frac=0._r8
+            perc_frac=0._r8
           endif
 
           !
@@ -522,7 +346,6 @@ contains
           !            ******************************************
           !
 
-
           ! ---------------------------------------------------------------
           ! Hydraulic conductivity in Z-direction
           ! ---------------------------------------------------------------
@@ -532,112 +355,69 @@ contains
 
           ! uncon_hksat is series addition of mineral/organic conductivites
           if (om_frac .lt. 1._r8) then
-             uncon_hksat=uncon_frac/((1._r8-om_frac)/xksat &
-                  +((1._r8-perc_frac)*om_frac)/om_hksat)
+            uncon_hksat = uncon_frac/((1._r8-om_frac)/xksat &
+                         + ((1._r8-perc_frac)*om_frac)/om_hksat)
           else
-             uncon_hksat = 0._r8
+            uncon_hksat = 0._r8
           end if
           hksat_tmp  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
 
-          hksat_z_loc(index)  = hksat(g,lev)
-
           ! ---------------------------------------------------------------
           ! Hydraulic conductivity in X/Y-direction
-          ! --------------------------------------------------------------
+          ! ---------------------------------------------------------------
+
+          !
           if (om_frac .lt. 1._r8) then
-             uncon_hksat = ( (1._r8 - om_frac)*xksat + &
-                  (1._r8 - perc_frac)*om_frac*om_hksat )/uncon_frac
-             hksat_tmp   = uncon_hksat*om_hksat/(om_frac*perc_frac*uncon_hksat &
-                  + (1._r8 - om_frac*perc_frac)*om_hksat)
+            uncon_hksat = ( (1._r8 - om_frac)*xksat + &
+                            (1._r8 - perc_frac)*om_frac*om_hksat )/uncon_frac
+            hksat_tmp   = uncon_hksat*om_hksat/(om_frac*perc_frac*uncon_hksat &
+                          + (1._r8 - om_frac*perc_frac)*om_hksat)
           else
-             uncon_hksat = 0._r8
-             hksat_tmp   = om_hksat
+            uncon_hksat = 0._r8
+            hksat_tmp   = om_hksat
           end if
 
-          
-          hksat_x_loc(index)  = hksat_tmp
-          hksat_y_loc(index)  = hksat_tmp
+          if (lev <= nlevsoi) then
+            hksat_x_clm_loc(gcount*nlevsoi + lev ) = hksat_x_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
+            hksat_y_clm_loc(gcount*nlevsoi + lev ) = hksat_y_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
+            hksat_z_clm_loc(gcount*nlevsoi + lev ) = hksat_z_clm_loc(gcount*nlevsoi + lev ) + hksat(g,lev)*wtgcell(g)
+            sucsat_clm_loc( gcount*nlevsoi + lev ) = sucsat_clm_loc( gcount*nlevsoi + lev ) + sucsat(g,lev)*wtgcell(g)
+            watsat_clm_loc( gcount*nlevsoi + lev ) = watsat_clm_loc( gcount*nlevsoi + lev ) + watsat(g,lev)*wtgcell(g)
+            bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*wtgcell(g)
 
-          sucsat_loc(index)  = sucsat(g,lev)
-          watsat_loc(index)  = watsat(g,lev)
-          bsw_loc(index)     = bsw_tmp
+            if(pflotran_m%option%myrank.eq.-1) then
+              write(*,'(I4,6F10.5)'), gcount*nlevsoi + lev, &
+                                      sucsat_clm_loc( gcount*nlevsoi + lev ), &
+                                      bsw_clm_loc(    gcount*nlevsoi + lev ), &
+                                      watsat_clm_loc( gcount*nlevsoi + lev ), &
+                                      hksat_x_clm_loc(gcount*nlevsoi + lev ), &
+                                      hksat_y_clm_loc(gcount*nlevsoi + lev ), &
+                                      hksat_z_clm_loc(gcount*nlevsoi + lev )
+            endif
+          endif
+        enddo ! do lev = 1,nlevgrnd
+        !gcount = gcount + 1_r8
+        !zwt_clmpf(g)      = zwt_clmpf(g)      + zwt(g)    * wtgcell(g)
+      endif
+    enddo ! do c = begc, endc
 
-          zwt_2d_loc(index)  = zwt(g)
-          topo_2d_loc(index) = topo(g)
+    call VecRestoreArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
+    call VecRestoreArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
+    call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
 
-       enddo
-    enddo
+    !call pflotranModelInitMapping(    pflotran_m )
+    !call pflotranModelSetSoilProp(    pflotran_m )
+    !call pflotranModelSetICs(         pflotran_m )
 
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
+    call pflotranModelSetSoilProp3(pflotran_m)
 
-
-    !call VecRestoreArrayF90(clm_pf_idata%hksat_x_clmloc, hksat_x_loc, ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%hksat_y_clmloc, hksat_y_loc, ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%hksat_z_clmloc, hksat_z_loc, ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%sucsat_clmloc,  sucsat_loc,  ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%watsat_clmloc,  watsat_loc,  ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%bsw_clmloc,     bsw_loc,     ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%zwt_2d_clmloc,  zwt_2d_loc,  ierr)
-    !call VecRestoreArrayF90(clm_pf_idata%topo_2d_clmloc, topo_2d_loc, ierr)
-
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%hksat_x_clmloc, clm_pf_idata%hksat_x )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%hksat_y_clmloc, clm_pf_idata%hksat_y )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%hksat_z_clmloc, clm_pf_idata%hksat_z )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%sucsat_clmloc, clm_pf_idata%sucsat )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%watsat_clmloc, clm_pf_idata%watsat )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%bsw_clmloc, clm_pf_idata%bsw )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%zwt_2d_clmloc, clm_pf_idata%zwt_2d )
-
-    !call MappingScatterLocal2Global( pflotran_m%map_clm2pf, &
-    !     clm_pf_idata%topo_2d_clmloc, clm_pf_idata%topo_2d )
-
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_x.out',viewer,ierr)
-    !call VecView(clm_pf_idata%hksat_x,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_y.out',viewer,ierr)
-    !call VecView(clm_pf_idata%hksat_y,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'hksat_z.out',viewer,ierr)
-    !call VecView(clm_pf_idata%hksat_z,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'sucsat.out',viewer,ierr)
-    !call VecView(clm_pf_idata%sucsat,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'watsat.out',viewer,ierr)
-    !call VecView(clm_pf_idata%watsat,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'bsw.out',viewer,ierr)
-    !call VecView(clm_pf_idata%bsw,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'zwt_2d.out',viewer,ierr)
-    !call VecView(clm_pf_idata%zwt_2d,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-
-    !call PetscViewerASCIIOpen(pflotran_m%option%global_comm, 'topo_2d.out',viewer,ierr)
-    !call VecView(clm_pf_idata%topo_2d,viewer, ierr)
-    !call PetscViewerDestroy(viewer, ierr)
-#endif
-    write(iulog, *), 'in clm_pf_interface_init() done'
+    call pflotranModelStepperRunInit( pflotran_m )
     
     call MPI_Barrier(pflotran_m%option%global_comm,ierr)
 
