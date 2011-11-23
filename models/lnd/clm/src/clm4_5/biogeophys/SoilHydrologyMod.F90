@@ -816,12 +816,18 @@ contains
     use TridiagonalMod, only : Tridiagonal
     use clm_time_manager  , only : get_step_size
 #ifdef CLM_PFLOTRAN
+    use clm_varcon   , only : denh2o, denice
+    use decompMod    , only : get_proc_bounds, get_proc_global
     use clm_pflotran_interface_type
-    use clm_varcon   , only : denh2o, denice 
+    use clm_pflotran_interface_data
 #endif
 !
 ! !ARGUMENTS:
     implicit none
+
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+
     integer , intent(in)  :: lbc, ubc                     ! column bounds
     integer , intent(in)  :: num_hydrologyc               ! number of column soil points in column filter
     integer , intent(in)  :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
@@ -871,8 +877,17 @@ contains
     real(r8), pointer :: zwt(:)               ! water table depth (m)
     real(r8), pointer :: zi(:,:)              ! interface level below a "z" level (m)
 #ifdef CLM_PFLOTRAN
-  real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-  real(r8):: tmp
+    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(r8):: tmp
+    integer  :: g,gcount                  ! do loop indices
+    integer  :: begp, endp                ! per-proc beginning and ending pft indices
+    integer  :: begc, endc                ! per-proc beginning and ending column indices
+    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
+    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
+    integer , pointer :: cgridcell(:)     ! column's gridcell
+    PetscScalar, pointer :: sat_clm_loc(:)     !
+    PetscScalar, pointer :: watsat_clm_loc(:)    !
+    PetscErrorCode :: ierr
 #endif
 !
 ! local pointers to original implicit inout arguments
@@ -962,7 +977,8 @@ contains
     smp_l             => clm3%g%l%c%cws%smp_l
     hk_l              => clm3%g%l%c%cws%hk_l
 #ifdef  CLM_PFLOTRAN
-  h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
+    h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
+    cgridcell         => clm3%g%l%c%gridcell
 #endif
 
     ! Assign local pointers to derived type members (pft-level)
@@ -1323,14 +1339,23 @@ contains
 
 
 #ifdef CLM_PFLOTRAN
-     do fc = 1,num_hydrologyc
-       c = filter_hydrologyc(fc)
-       do j = 1, nlevsoi
-          h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
-          h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
-          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
-       enddo
+    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
+    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+
+    do fc = 1,num_hydrologyc
+      c = filter_hydrologyc(fc)
+      g = cgridcell(c)
+      gcount = g - begg + 1
+      do j = 1, nlevsoi
+        h2osoi_liq(c,j) = watsat_clm_loc(gcount) * sat_clm_loc(gcount) * denh2o * dz(c,j)
+        h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
+        h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
+      enddo
     enddo
+
+    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ier
 #endif
 
     do fc = 1,num_hydrologyc
@@ -1373,7 +1398,7 @@ contains
           qcharge(c) = dwat2(c,nlevsoi+1)*dzmm(c,nlevsoi+1)/dtime
        endif
 #else
-	qcharge(c) = 0.0_r8
+      qcharge(c) = 0.0_r8
 #endif	   
     end do
 
