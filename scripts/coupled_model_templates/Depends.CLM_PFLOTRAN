@@ -48,13 +48,13 @@ DryDepVelocity.o : DryDepVelocity.F90 shr_const_mod.mod spmdMod.o clm_varcon.o c
 FracWetMod.o : FracWetMod.F90 clmtype.o   
 FrictionVelocityMod.o : FrictionVelocityMod.F90 shr_const_mod.mod clm_varcon.o clmtype.o  clm_varctl.o clm_atmlnd.o 
 Hydrology1Mod.o : Hydrology1Mod.F90 subgridAveMod.o SNICARMod.o clm_varcon.o clmtype.o FracWetMod.o  clm_time_manager.o clm_atmlnd.o  
-Hydrology2Mod.o : Hydrology2Mod.F90 pflotran_model.o clm_pflotran_interfaceMod.o clm_varcon.o clmtype.o clm_pflotran_interface_type.o decompMod.o SoilHydrologyMod.o clm_varpar.o  clm_time_manager.o clm_varctl.o clm_atmlnd.o SnowHydrologyMod.o  
+Hydrology2Mod.o : Hydrology2Mod.F90 pflotran_model.o clm_pflotran_interfaceMod.o clm_varcon.o clmtype.o decompMod.o SoilHydrologyMod.o clm_varpar.o  clm_time_manager.o clm_varctl.o clm_atmlnd.o SnowHydrologyMod.o  
 HydrologyLakeMod.o : HydrologyLakeMod.F90 clm_varcon.o clmtype.o  clm_time_manager.o clm_atmlnd.o  
 QSatMod.o : QSatMod.F90 shr_const_mod.mod   
 SNICARMod.o : SNICARMod.F90 shr_const_mod.mod spmdMod.o clm_varcon.o clmtype.o shr_sys_mod.mod clm_varpar.o  clm_time_manager.o clm_varctl.o abortutils.o fileutils.o 
 STATICEcosysDynMod.o : STATICEcosysDynMod.F90 spmdMod.o clmtype.o perf_mod.mod decompMod.o clm_varpar.o ncdio_pio.o  clm_time_manager.o clm_varctl.o abortutils.o pftvarcon.o fileutils.o nanMod.o 
 SnowHydrologyMod.o : SnowHydrologyMod.F90 SNICARMod.o clm_varcon.o clmtype.o clm_varpar.o  clm_time_manager.o clm_atmlnd.o  
-SoilHydrologyMod.o : SoilHydrologyMod.F90 shr_const_mod.mod clm_varcon.o clmtype.o clm_pflotran_interface_type.o clm_varpar.o  TridiagonalMod.o clm_varctl.o clm_time_manager.o 
+SoilHydrologyMod.o : SoilHydrologyMod.F90 shr_const_mod.mod clm_varcon.o clmtype.o clm_varpar.o  TridiagonalMod.o clm_varctl.o clm_time_manager.o 
 SoilTemperatureMod.o : SoilTemperatureMod.F90 clm_varcon.o clmtype.o clm_varpar.o  TridiagonalMod.o clm_varctl.o clm_time_manager.o clm_atmlnd.o  
 SurfaceAlbedoMod.o : SurfaceAlbedoMod.F90 shr_orb_mod.mod SNICARMod.o clmtype.o clm_varcon.o clm_varpar.o  clm_time_manager.o  
 SurfaceRadiationMod.o : SurfaceRadiationMod.F90 SNICARMod.o clm_varcon.o clmtype.o clm_varpar.o  clm_time_manager.o clm_varctl.o clm_atmlnd.o abortutils.o  
@@ -73,14 +73,12 @@ cf90bridge.o : cf90bridge.F90 clm_varpar.o definitions.h
 checkpoint.o : checkpoint.F90 realization.o logging.o flash2.o reactive_transport.o
 clm_atmlnd.o : clm_atmlnd.F90 subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o downscaleMod.o decompMod.o clm_varpar.o domainMod.o  clm_varctl.o seq_drydep_mod.mod abortutils.o QSatMod.o nanMod.o 
 clm_cpl_indices.o : clm_cpl_indices.F90 mct_mod.mod seq_drydep_mod.mod seq_flds_mod.mod
-clm_driver.o : clm_driver.F90 CNAnnualUpdateMod.o CNDVMod.o SurfaceAlbedoMod.o pftdynMod.o spmdMod.o SNICARMod.o UrbanMod.o clm_varcon.o clmtype.o Biogeophysics1Mod.o shr_sys_mod.mod CanopyFluxesMod.o VOCEmissionMod.o Hydrology2Mod.o clm_pflotran_interface_type.o CNSetValueMod.o clm_driverInitMod.o clm_varpar.o restFileMod.o histFileMod.o CNBalanceCheckMod.o clm_varctl.o abortutils.o DUSTMod.o Hydrology1Mod.o BalanceCheckMod.o DryDepVelocity.o SurfaceRadiationMod.o STATICEcosysDynMod.o dynlandMod.o CASAMod.o BiogeophysicsLakeMod.o BareGroundFluxesMod.o inicPerpMod.o perf_mod.mod decompMod.o filterMod.o accFldsMod.o  ndepStreamMod.o clm_time_manager.o HydrologyLakeMod.o clm_atmlnd.o seq_drydep_mod.mod pft2colMod.o Biogeophysics2Mod.o CNEcosystemDynMod.o 
+clm_driver.o : clm_driver.F90 CNAnnualUpdateMod.o CNDVMod.o SurfaceAlbedoMod.o pftdynMod.o spmdMod.o SNICARMod.o UrbanMod.o clm_varcon.o clmtype.o Biogeophysics1Mod.o shr_sys_mod.mod CanopyFluxesMod.o VOCEmissionMod.o Hydrology2Mod.o CNSetValueMod.o clm_driverInitMod.o clm_varpar.o restFileMod.o histFileMod.o CNBalanceCheckMod.o clm_varctl.o abortutils.o DUSTMod.o Hydrology1Mod.o BalanceCheckMod.o DryDepVelocity.o SurfaceRadiationMod.o STATICEcosysDynMod.o dynlandMod.o CASAMod.o BiogeophysicsLakeMod.o BareGroundFluxesMod.o inicPerpMod.o perf_mod.mod decompMod.o filterMod.o accFldsMod.o  ndepStreamMod.o clm_time_manager.o HydrologyLakeMod.o clm_atmlnd.o seq_drydep_mod.mod pft2colMod.o Biogeophysics2Mod.o CNEcosystemDynMod.o 
 clm_driverInitMod.o : clm_driverInitMod.F90 subgridAveMod.o clm_varcon.o clmtype.o clm_varpar.o domainMod.o  clm_atmlnd.o QSatMod.o  
 clm_glclnd.o : clm_glclnd.F90 spmdMod.o clm_varcon.o clmtype.o clm_varctl.o downscaleMod.o decompMod.o domainMod.o  clm_atmlnd.o nanMod.o 
 clm_initializeMod.o : clm_initializeMod.F90 clm_varsur.o CASAPhenologyMod.o pftdynMod.o pflotran_model.o spmdMod.o mct_mod.mod UrbanInputMod.o UrbanMod.o initGridCellsMod.o clmtype.o decompInitMod.o shr_sys_mod.mod restFileMod.o clm_varpar.o histFileMod.o controlMod.o clm_varctl.o DUSTMod.o abortutils.o UrbanInitMod.o fileutils.o histFldsMod.o STATICEcosysDynMod.o CASAMod.o mkarbinitMod.o CNDVEcosystemDynIniMod.o clm_pflotran_interfaceMod.o perf_mod.mod downscaleMod.o decompMod.o accFldsMod.o filterMod.o ncdio_pio.o domainMod.o  clm_time_manager.o ndepStreamMod.o clm_atmlnd.o seq_drydep_mod.mod pftvarcon.o clmtypeInitMod.o clm_glclnd.o surfrdMod.o CASAiniTimeVarMod.o clm_varorb.o pflotran_model.o
 clm_mct_mod.o : clm_mct_mod.F90 m_attrvectcomms.mod m_die.mod shr_sys_mod.mod m_stdio.mod m_sparsematrixplus.mod m_attrvect.mod m_globalsegmap.mod m_generalgrid.mod m_mctworld.mod clm_varctl.o m_rearranger.mod m_generalgridcomms.mod shr_mpi_mod.mod m_list.mod shr_const_mod.mod m_globaltolocal.mod m_sparsematrixcomms.mod m_mergesorts.mod m_matattrvectmul.mod m_sparsematrix.mod m_sparsematrixtomaps.mod  m_string.mod 
-clm_pflotran_interfaceMod.o : clm_pflotran_interfaceMod.F90 pflotran_model.o spmdMod.o clm_varcon.o clmtype.o clm_pflotran_interface_type.o clm_varpar.o organicFileMod.o clm_varctl.o abortutils.o fileutils.o decompMod.o ncdio_pio.o domainMod.o  
-clm_pflotran_interface_type.o : clm_pflotran_interface_type.F90 clm_varpar.o definitions.h
-clm_pflotran_interface_data.o : clm_pflotran_interface_data.F90 clm_varpar.o definitions.h
+clm_pflotran_interfaceMod.o : clm_pflotran_interfaceMod.F90 pflotran_model.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o organicFileMod.o clm_varctl.o abortutils.o fileutils.o decompMod.o ncdio_pio.o domainMod.o  
 clm_time_manager.o : clm_time_manager.F90 spmdMod.o clm_varctl.o abortutils.o ncdio_pio.o esmf_mod.mod  
 clm_varcon.o : clm_varcon.F90 clm_varpar.o shr_const_mod.mod definitions.h
 clm_varctl.o : clm_varctl.F90 shr_sys_mod.mod clm_varpar.o  definitions.h
@@ -142,7 +140,7 @@ input.o : input.F90 option.o string.o definitions.h
 level.o : level.F90 option.o patch.o material.o condition.o definitions.h
 lnd_comp_mct.o : lnd_comp_mct.F90 clm_initializeMod.o seq_flds_indices.mod spmdMod.o shr_file_mod.mod mct_mod.mod seq_cdata_mod.mod clm_varcon.o clm_varpar.o controlMod.o clm_varorb.o clm_varctl.o abortutils.o clm_cpl_indices.o seq_flds_mod.mod shr_const_mod.mod seq_infodata_mod.mod perf_mod.mod downscaleMod.o decompMod.o seq_timemgr_mod.mod esmf_mod.mod domainMod.o  clm_time_manager.o clm_atmlnd.o seq_drydep_mod.mod clm_glclnd.o 
 logging.o : logging.F90 clm_varpar.o definitions.h 
-mapping.o : mapping.F90 clm_pflotran_interface_type.o definitions.h
+mapping.o : mapping.F90 definitions.h
 mass_balance.o : mass_balance.F90 thc.o option.o solver.o realization.o logging.o field.o definitions.h
 material.o : material.F90 option.o string.o input.o dataset.o definitions.h dataset_aux.o
 material_aux.o : material_aux.F90 option.o
@@ -164,7 +162,7 @@ output.o : output.F90 observation.o flash2.o global_aux.o thc.o immis.o region.o
 patch.o : patch.F90 observation.o global_aux.o region.o reactive_transport_aux.o hydrostatic.o option.o coupler.o grid.o thc_aux.o richards_aux.o mphase_aux.o reaction.o connection.o field.o material.o strata.o auxilliary.o water_eos.o condition.o reaction_aux.o saturation.o definitions.h
 pckr_mod.o : pckr_mod.F90 option.o saturation_function.o material.o definitions.h
 pflotran_clm_interface_type.o : pflotran_clm_interface_type.F90 clm_varpar.o definitions.h
-pflotran_model.o : pflotran_model.F90 waypoint.o global_aux.o clm_pflotran_interface_type.o clm_pflotran_interface_data.o option.o patch.o grid.o simulation.o clm_varctl.o discretization.o timestepper.o realization.o richards_aux.o logging.o field.o init.o saturation_function.o stochastic.o input.o pflotran_clm_interface_type.o stochastic_aux.o units.o richards.o condition.o definitions.h option.o mapping.o
+pflotran_model.o : pflotran_model.F90 waypoint.o global_aux.o option.o patch.o grid.o simulation.o clm_varctl.o discretization.o timestepper.o realization.o richards_aux.o logging.o field.o init.o saturation_function.o stochastic.o input.o pflotran_clm_interface_type.o stochastic_aux.o units.o richards.o condition.o definitions.h option.o mapping.o
 pft2colMod.o : pft2colMod.F90 subgridAveMod.o clmtype.o   
 pftdynMod.o : pftdynMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o shr_sys_mod.mod clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_const_mod.mod decompMod.o ncdio_pio.o  clm_time_manager.o pftvarcon.o 
 pftvarcon.o : pftvarcon.F90 spmdMod.o clm_varcon.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o ncdio_pio.o  nanMod.o 
@@ -176,7 +174,7 @@ reactive_transport_aux.o : reactive_transport_aux.F90 option.o matrix_block_aux.
 realization.o : realization.F90 waypoint.o mfd_aux.o observation.o global_aux.o region.o reactive_transport_aux.o debug.o option.o coupler.o velocity.o grid.o string.o discretization.o fluid.o amrgrid.o unstructured_grid.o reaction.o connection.o field.o saturation_function.o material.o strata.o mfd.o input.o reaction_aux.o condition.o definitions.h
 region.o : region.F90 option.o string.o logging.o utility.o input.o definitions.h
 restFileMod.o : restFileMod.F90 spmdMod.o clm_varpar.o histFileMod.o clm_varctl.o abortutils.o fileutils.o subgridRestMod.o CASAMod.o decompMod.o ncdio_pio.o CNrestMod.o  clm_time_manager.o accumulMod.o BiogeophysRestMod.o 
-richards.o : richards.F90 mfd_aux.o global_aux.o debug.o option.o coupler.o patch.o grid.o level.o clm_varctl.o discretization.o realization.o richards_aux.o connection.o logging.o field.o saturation_function.o material.o mfd.o pflotran_clm_interface_type.o matrix_buffer.o water_eos.o definitions.h
+richards.o : richards.F90 mfd_aux.o global_aux.o debug.o option.o coupler.o patch.o grid.o level.o clm_varctl.o discretization.o realization.o richards_aux.o connection.o logging.o field.o saturation_function.o material.o mfd.o pflotran_clm_interface_type.o matrix_buffer.o water_eos.o clm_pflotran_interface_data.o definitions.h
 richards_aux.o : richards_aux.F90 global_aux.o option.o saturation_function.o matrix_buffer.o water_eos.o definitions.h
 saturation.o : option.o grid.o coupler.o condition.o connection.o region.o
 saturation_function.o : saturation_function.F90 option.o string.o utility.o input.o definitions.h
