@@ -412,16 +412,17 @@ contains
 #ifdef CLM_PFLOTRAN
     use clm_varcon   , only : denh2o, denice
     use decompMod    , only : get_proc_bounds, get_proc_global
-    use clm_pflotran_interface_type
+    !use clm_pflotran_interface_type
     use clm_pflotran_interface_data
 #endif
 !
 ! !ARGUMENTS:
     implicit none
 
+#ifdef CLM_PFLOTRAN
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
-
+#endif
     integer , intent(in)  :: lbc, ubc                     ! column bounds
     integer , intent(in)  :: num_hydrologyc               ! number of column soil points in column filter
     integer , intent(in)  :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
@@ -885,16 +886,16 @@ contains
     do fc = 1,num_hydrologyc
       c = filter_hydrologyc(fc)
       g = cgridcell(c)
-      gcount = g - begg + 1
+      gcount = g - begg
       do j = 1, nlevsoi
-        h2osoi_liq(c,j) = watsat_clm_loc(gcount) * sat_clm_loc(gcount) * denh2o * dz(c,j)
+        h2osoi_liq(c,j) = watsat_clm_loc(gcount*nlevsoi + j) * sat_clm_loc(gcount*nlevsoi + j) * denh2o * dz(c,j)
         h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
         h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
       enddo
     enddo
 
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ier
+    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 #endif
 
     do fc = 1,num_hydrologyc

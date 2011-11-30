@@ -15,8 +15,10 @@ module Hydrology2Mod
   implicit none
   save
 
+#ifdef CLM_PFLOTRAN
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
+#endif
 
 !
 ! !PUBLIC MEMBER FUNCTIONS:
@@ -428,8 +430,8 @@ contains
     ! Initialize to ZERO
     do g = begg, endg
       do j = 1,nlevsoi
-        gcount = g - begg + 1
-        qflx_clm_loc((gcount-1)*nlevsoi + j ) = 0.0_r8
+        gcount = g - begg
+        qflx_clm_loc(gcount*nlevsoi + j ) = 0.0_r8
       end do
     end do
 
@@ -441,8 +443,9 @@ contains
     do c = begc, endc
      ! Set gridcell indices
      g = cgridcell(c)
-     gcount = g - begg + 1
-     qflx_clm_loc((gcount-1)*nlevsoi + 1) = qflx_clm_loc((gcount-1)*nlevsoi + 1) + &
+     gcount = g - begg
+     j = 1
+     qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
                                         qflx_infl(c)/1000.0_r8*den*wtgcell(c)
     enddo
 
@@ -492,11 +495,11 @@ contains
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
         g = cgridcell(c)
-        gcount = g - begg + 1
+        gcount = g - begg
         if (temp(c) /= 0._r8) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
-          qflx_clm_loc((gcount-1)*nlevsoi + j ) = &
-                              qflx_clm_loc((gcount-1)*nlevsoi + j ) - &
+          qflx_clm_loc(gcount*nlevsoi + j ) = &
+                              qflx_clm_loc(gcount*nlevsoi + j ) - &
                               qflx_tran_veg_col(c)*rootr_col(c,j)/1000.0_r8*den
         end if
       end do
