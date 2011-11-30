@@ -175,7 +175,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 ! !USES:
 
 #ifdef CLM_PFLOTRAN
-  use clm_pflotran_interface_type
   use clm_varcon      , only : denh2o, denice
   use clm_varpar      , only : nlevsoi
 #endif
