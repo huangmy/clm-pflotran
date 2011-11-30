@@ -79,7 +79,6 @@ clm_glclnd.F90
 clm_initializeMod.F90
 clm_mct_mod.F90
 clm_pflotran_interfaceMod.F90
-clm_pflotran_interface_type.F90
 clm_pflotran_interface_data.F90
 clm_time_manager.F90
 clm_varcon.F90
@@ -163,7 +162,6 @@ organicFileMod.F90
 output.F90
 patch.F90
 pckr_mod.F90
-pflotran_clm_interface_type.F90
 pflotran_model.F90
 pft2colMod.F90
 pftdynMod.F90
