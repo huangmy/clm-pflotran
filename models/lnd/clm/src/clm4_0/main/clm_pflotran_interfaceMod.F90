@@ -1,3 +1,5 @@
+#ifdef CLM_PFLOTRAN
+
 module clm_pflotran_interfaceMod
 
   !-----------------------------------------------------------------------
@@ -272,7 +274,7 @@ contains
       ! Set gridcell and landunit indices
       g = cgridcell(c)
       l = clandunit(c)
-      gcount = g - begg + 1
+      gcount = g - begg
 
       if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
         write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
@@ -426,3 +428,5 @@ contains
   end subroutine clm_pf_interface_init
 
 end module clm_pflotran_interfaceMod
+
+#endif
