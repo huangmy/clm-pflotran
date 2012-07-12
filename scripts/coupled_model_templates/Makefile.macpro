@@ -31,7 +31,7 @@ PF_bindir = ./${PETSC_ARCH}/bin
 PF_MYFLAGS =-I/${PETSC_DIR}/${PETSC_ARCH}/include \
 	-I/${PETSC_DIR}/include \
 	-I./${PETSC_ARCH}  \
-	-DOS_STATISTICS -DENABLE_UNSTRUCTURED -w -DMIXED_UMESH
+	-w
 
 
 PF_CFLAGS		 = 
@@ -243,8 +243,8 @@ ifeq ($(strip $(ULIBDEP)),)
 endif
 
 PETSC_LIB=-L/Users/gb9/Models/netcdf-4.1.3/netcdf-4.1.3_intel/lib -lnetcdf -lnetcdff       \
-	-L/Users/gb9/Models/petsc-dev/mac_intel12_g/lib -lmpich  -m64 \
-	-L/Users/gb9/Models/petsc-dev/mac_intel12_g/lib  -lpetsc \
+	-L${PETSC_DIR}/${PETSC_ARCH}/lib -lmpich  -m64 \
+	-L${PETSC_DIR}/${PETSC_ARCH}/lib  -lpetsc \
 	-L/usr/X11R6/lib -lX11 -lhdf5_fortran -lhdf5 -lz -lparmetis -lmetis -lflapack -lfblas -ldl -lpmpich \
 	-lmpich -lopa -lmpl -lpthread -L/usr/bin/icc-2011-base/compiler/lib \
 	-L/usr/lib/gcc/i686-apple-darwin10/4.2.1/x86_64 -L/usr/lib/i686-apple-darwin10/4.2.1 \

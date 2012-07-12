@@ -473,7 +473,7 @@ contains
      gcount = g - begg
      j = 1
      qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
-                                        qflx_infl(c)/1000.0_r8*den*wtgcell(c)
+                                        qflx_infl(c)*wtgcell(c)/1000.0_r8*1600_r8*1600_r8/2_r8
     enddo
 
     ! Compute the Transpiration sink at grid-level for each soil layer
@@ -527,7 +527,7 @@ contains
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
           qflx_clm_loc(gcount*nlevsoi + j ) = &
                               qflx_clm_loc(gcount*nlevsoi + j ) - &
-                              qflx_tran_veg_col(c)*rootr_col(c,j)/1000.0_r8*den
+                              qflx_tran_veg_col(c)*rootr_col(c,j)/1000.0_r8*1600_r8*1600_r8!*dz(c,j)
         end if
       end do
     end do
@@ -561,10 +561,10 @@ contains
     write(iulog, *), 'call pflotranModelStepperRunTillPauseTime()'
     !call pflotranModelUpdateSourceSink( pflotran_m )
     !call pflotranModelUpdateSaturation( pflotran_m )
-    call pflotranModelUpdateSourceSink3(pflotran_m)
+    !call pflotranModelUpdateSourceSink3(pflotran_m)
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
     !call pflotranModelGetSaturation( pflotran_m )
-    call pflotranModelGetSaturation3( pflotran_m )
+    !call pflotranModelGetSaturation3( pflotran_m )
     write(iulog,*), 'qflx_sink [mm/sec]: ',tmp*1000.0_r8/den
 
 #endif

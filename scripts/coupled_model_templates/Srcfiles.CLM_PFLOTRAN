@@ -66,8 +66,6 @@ VOCEmissionMod.F90
 abortutils.F90
 accFldsMod.F90
 accumulMod.F90
-amrgrid.F90
-amrstubs.F90
 auxilliary.F90
 cf90bridge.F90
 checkpoint.F90
@@ -101,6 +99,8 @@ controlMod.F90
 convergence.F90
 coupler.F90
 database.F90
+database_aux.F90
+database_hpt.F90
 dataset.F90
 dataset_aux.F90
 debug.F90
@@ -120,6 +120,7 @@ gaseos_mod.F90
 general.F90
 general_aux.F90
 general_grid.F90
+geometry.F90
 getdatetime.F90
 global.F90
 global_aux.F90
@@ -142,7 +143,6 @@ level.F90
 lnd_comp_mct.F90
 logging.F90
 mapping.F90
-mass_balance.F90
 material.F90
 material_aux.F90
 matrix_block_aux.F90
@@ -152,6 +152,8 @@ mfd_aux.F90
 mkarbinitMod.F90
 mphase.F90
 mphase_aux.F90
+miscible.F90
+miscible_aux.F90
 nanMod.F90
 ncdio_pio.F90
 ndepStreamMod.F90
@@ -167,7 +169,6 @@ pft2colMod.F90
 pftdynMod.F90
 pftvarcon.F90
 reaction.F90
-reaction_chunk.F90
 reaction_aux.F90
 reactive_transport.F90
 reactive_transport_aux.F90
@@ -192,8 +193,12 @@ subgridAveMod.F90
 subgridMod.F90
 subgridRestMod.F90
 surfrdMod.F90
+surface_complexation.F90
+surface_complexation_aux.F90
 thc.F90
 thc_aux.F90
+thmc.F90
+thmc_aux.F90
 timestepper.F90
 time_series.F90
 transport.F90

@@ -1350,6 +1350,7 @@ contains
       gcount = g - begg
       do j = 1, nlevsoi
         h2osoi_liq(c,j) = watsat_clm_loc(gcount*nlevsoi + j) * sat_clm_loc(gcount*nlevsoi + j) * denh2o * dz(c,j)
+        h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi + j) * dzmm(c,j)
         h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
         h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
       enddo
