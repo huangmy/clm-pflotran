@@ -106,6 +106,8 @@ contains
     real(r8), pointer :: topo_2d_loc(:)         ! Topogrpahy
     integer :: index
     
+    real(r8), pointer :: latdeg(:)             ! latitude (radians)
+    real(r8), pointer :: londeg(:)             ! longitude (radians)
 
     !
     ! From iniTimeConst.F90
@@ -141,7 +143,7 @@ contains
     real(r8) :: uncon_frac              ! fraction of "unconnected" soil
     integer  :: start(3),count(3)       ! netcdf start/count arrays
 
-    real(r8) :: watsat_tmp, bsw_tmp, sucsat_tmp
+    real(r8) :: watsat_tmp, bsw_tmp, sucsat_tmp, press_tmp
     real(r8) :: bd, tkm, bsw2_tmp,psisat_tmp
     real(r8) :: vwcsat_tmp, xksat, hksat_tmp
 
@@ -165,6 +167,7 @@ contains
     PetscScalar, pointer :: watsat_clm_loc(:)  ! minimum soil suction (mm)
     PetscScalar, pointer :: sucsat_clm_loc(:)  ! volumetric soil water at saturation (porosity)
     PetscScalar, pointer :: bsw_clm_loc(:)     ! Clapp and Hornberger "b"
+    PetscScalar, pointer :: press_clm_loc(:)   ! Pressure
     PetscErrorCode :: ierr
 
     ! Determine necessary indices
@@ -186,6 +189,8 @@ contains
     h2osoi_vol      => clm3%g%l%c%cws%h2osoi_vol
     topo            => ldomain%topo
     zwt             => clm3%g%l%c%cws%zwt
+    latdeg          => clm3%g%latdeg
+    londeg          => clm3%g%londeg
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -194,6 +199,7 @@ contains
 
     write (iulog, *), 'call pflotranModelCreate() >>> .....'
     pflotran_m => pflotranModelCreate(mpicom)
+    !pflotran_m => pflotranModelCreate()
     write (iulog, *), 'call pflotranModelCreate() ... done'
 
     clm_npts = (endg - begg + 1)*nlevsoi
@@ -207,16 +213,18 @@ contains
        enddo
     enddo
 
-    pflotran_m%nlclm = clm_npts
-    pflotran_m%ngclm = clm_npts
-    call pflotranModelCreateDataVecs(pflotran_m)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
+
+    !pflotran_m%nlclm = clm_npts
+    !pflotran_m%ngclm = clm_npts
 
     clm_pf_idata%nlclm = clm_npts
     clm_pf_idata%ngclm = clm_npts
     clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
     clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
-    !call clm_pf_data_allocate_memory(clm_pf_idata, pflotran_m%option%mycomm)
-    call clm_pf_data_allocate_memory(pflotran_m%option%mycomm)
+    call clm_pflotran_interface_data_allocate_memory(pflotran_m%option%mycomm)
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -224,7 +232,7 @@ contains
     call VecGetArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
     call VecGetArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
     call VecGetArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
-
+    call VecGetArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
 
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) '%%                                                     %%'
@@ -234,7 +242,7 @@ contains
     write(iulog,*) '%%                                                     %%'
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) ' '
-    write(*,*) 'begg=',begg, 'endg=',endg
+    !write(iulog,*) 'begg=',begg, 'endg=',endg
 
     allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
     allocate(organic3d(begg:endg,nlevsoi))
@@ -286,6 +294,7 @@ contains
       else  ! soil columns of both urban and non-urban types
 
         do lev = 1,nlevgrnd
+          write(iulog,*),c,lev,gcount
 
           ! duplicate clay and sand values from 10th soil layer
           if (lev .le. nlevsoi) then
@@ -379,6 +388,9 @@ contains
             hksat_tmp   = om_hksat
           end if
 
+          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(g) - zsoi(lev))
+          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(2.0_r8 - zsoi(lev))
+
           if (lev <= nlevsoi) then
             hksat_x_clm_loc(gcount*nlevsoi + lev ) = hksat_x_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
             hksat_y_clm_loc(gcount*nlevsoi + lev ) = hksat_y_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
@@ -386,20 +398,21 @@ contains
             sucsat_clm_loc( gcount*nlevsoi + lev ) = sucsat_clm_loc( gcount*nlevsoi + lev ) + sucsat(g,lev)*wtgcell(g)
             watsat_clm_loc( gcount*nlevsoi + lev ) = watsat_clm_loc( gcount*nlevsoi + lev ) + watsat(g,lev)*wtgcell(g)
             bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*wtgcell(g)
+            press_clm_loc(  gcount*nlevsoi + lev ) = press_clm_loc(  gcount*nlevsoi + lev ) + press_tmp*wtgcell(g)
 
             if(pflotran_m%option%myrank.eq.-1) then
-              write(*,'(I4,6F10.5)'), gcount*nlevsoi + lev, &
+              write(*,'(I4,9F15.10)'), gcount*nlevsoi + lev, &
                                       sucsat_clm_loc( gcount*nlevsoi + lev ), &
                                       bsw_clm_loc(    gcount*nlevsoi + lev ), &
                                       watsat_clm_loc( gcount*nlevsoi + lev ), &
                                       hksat_x_clm_loc(gcount*nlevsoi + lev ), &
                                       hksat_y_clm_loc(gcount*nlevsoi + lev ), &
-                                      hksat_z_clm_loc(gcount*nlevsoi + lev )
+                                      hksat_z_clm_loc(gcount*nlevsoi + lev ), &
+                                      998.2_r8*9.81_r8*(zwt(g) - zsoi(lev)), zwt(g), zsoi(lev)
+              write(*,*),gcount*nlevsoi+lev, press_clm_loc(gcount*nlevsoi+lev)
             endif
           endif
-        enddo ! do lev = 1,nlevgrnd
-        !gcount = gcount + 1_r8
-        !zwt_clmpf(g)      = zwt_clmpf(g)      + zwt(g)    * wtgcell(g)
+        enddo 
       endif
     enddo ! do c = begc, endc
 
@@ -409,15 +422,10 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
     call VecRestoreArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
     call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
+    call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
 
-    !call pflotranModelInitMapping(    pflotran_m )
-    !call pflotranModelSetSoilProp(    pflotran_m )
-    !call pflotranModelSetICs(         pflotran_m )
-
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
     call pflotranModelSetSoilProp3(pflotran_m)
+    !call pflotranModelSetICs3(pflotran_m)
 
     call pflotranModelStepperRunInit( pflotran_m )
     
@@ -425,6 +433,7 @@ contains
 
     deallocate(sand3d,clay3d,organic3d)
 
+    write(iulog,*) 'clm_pf_interface_init --- done '
   end subroutine clm_pf_interface_init
 
 end module clm_pflotran_interfaceMod
