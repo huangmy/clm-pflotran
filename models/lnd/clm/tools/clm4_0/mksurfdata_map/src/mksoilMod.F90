@@ -960,7 +960,7 @@ subroutine mkorganic(ldomain, mapfname, datfname, ndiag, organic_o)
            write (6,*) 'MKORGANIC error: organic = ',organic_o(no,lev), &
                 ' greater than 130.000001 for column, row = ',no
            call shr_sys_flush(6)
-           stop
+           !stop
         end if
      enddo
 
@@ -1228,7 +1228,7 @@ subroutine mkfmax(ldomain, mapfname, datfname, ndiag, fmax_o)
         write (6,*) 'MKFMAX error: fmax = ',fmax_o(no), &
                 ' greater than 1.000001 for column, row = ',no
         call shr_sys_flush(6)
-        stop
+        !stop
      end if
   enddo
 
