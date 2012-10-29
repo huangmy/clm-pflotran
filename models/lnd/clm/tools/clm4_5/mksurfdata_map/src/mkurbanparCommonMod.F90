@@ -110,7 +110,7 @@ subroutine mkurban_pct(ldomain, tdomain, tgridmap, urbn_i, urbn_o)
       if ((urbn_o(no)) > 100.000001_r8) then
          write (6,*) 'MKURBAN error: urban = ',urbn_o(no), &
               ' greater than 100.000001 for column, row = ',no
-         stop
+         !stop
       end if
    enddo
 
