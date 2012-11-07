@@ -209,3 +209,16 @@ utility.F90
 velocity.F90
 water_eos.F90
 waypoint.F90
+mineral.F90
+mineral_aux.F90
+secondary_continuum.F90
+solid_solution.F90
+solid_solution_aux.F90
+surface_field.F90
+surface_flow.F90
+surface_flow_aux.F90
+surface_material.F90
+surface_realization.F90
+unstructured_explicit.F90
+unstructured_grid_aux.F90
+

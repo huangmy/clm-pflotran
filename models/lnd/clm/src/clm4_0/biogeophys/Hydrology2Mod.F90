@@ -245,7 +245,7 @@ contains
 
 #ifdef CLM_PFLOTRAN
     integer  :: p                         ! do loop indices
-    integer  :: pi                        ! pft index
+    integer  :: pftindex                        ! pft index
     integer  :: begp, endp                ! per-proc beginning and ending pft indices
     integer  :: begc, endc                ! per-proc beginning and ending column indices
     integer  :: begl, endl                ! per-proc beginning and ending landunit indices
@@ -437,7 +437,10 @@ contains
 
     ! Compute the Infiltration - Evaporation at each grid-level
     ! qflx_infl [mm/sec],
-    ! qflx_clm_loc [kg/sec] (assuming top surf-area = 1 m^2)
+    ! qflx_clm_loc [m^3/sec] (assuming top surf-area = 1 m^2)
+    !
+    ! [m^3/s] = [mm/s]/1000
+    !
 
     gcount = 1_r8 ! assumption that only 1 soil-column per grid cell
     do c = begc, endc
@@ -446,7 +449,7 @@ contains
      gcount = g - begg
      j = 1
      qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
-                                        qflx_infl(c)*wtgcell(c)/1000.0_r8*1600_r8*1600_r8/2_r8
+                                        qflx_infl(c)*wtgcell(c)/1000.0_r8*10_r8*10_r8/2_r8
     enddo
 
     ! Compute the Transpiration sink at grid-level for each soil layer
@@ -464,12 +467,12 @@ contains
     temp(:) = 0._r8
 
     ! (ii) Compute the root fraction at column level
-    do pi = 1,max_pft_per_col
+    do pftindex = 1,max_pft_per_col
       do j = 1,nlevsoi
         do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
-          if (pi <= npfts(c)) then
-            p = pfti(c) + pi - 1
+          if (pftindex <= npfts(c)) then
+            p = pfti(c) + pftindex - 1
             if (pwtgcell(p)>0._r8) then
               rootr_col(c,j) = rootr_col(c,j) + &
               rootr_pft(p,j) * qflx_tran_veg_pft(p) * pwtcol(p)
@@ -481,8 +484,8 @@ contains
 
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
-        if (pi <= npfts(c)) then
-          p = pfti(c) + pi - 1
+        if (pftindex <= npfts(c)) then
+          p = pfti(c) + pftindex - 1
           if (pwtgcell(p)>0._r8) then
             temp(c) = temp(c) + qflx_tran_veg_pft(p) * pwtcol(p)
           end if

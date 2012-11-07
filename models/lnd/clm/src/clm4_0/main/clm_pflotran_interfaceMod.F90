@@ -197,10 +197,8 @@ contains
     !allocate(clm_pf_idata)
     !clm_pf_idata => clm_pf_data_create()
 
-    write (iulog, *), 'call pflotranModelCreate() >>> .....'
     pflotran_m => pflotranModelCreate(mpicom)
     !pflotran_m => pflotranModelCreate()
-    write (iulog, *), 'call pflotranModelCreate() ... done'
 
     clm_npts = (endg - begg + 1)*nlevsoi
     allocate(clm_cell_ids_nindex( 1:clm_npts))
@@ -213,18 +211,17 @@ contains
        enddo
     enddo
 
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
-
     !pflotran_m%nlclm = clm_npts
     !pflotran_m%ngclm = clm_npts
-
     clm_pf_idata%nlclm = clm_npts
     clm_pf_idata%ngclm = clm_npts
     clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
     clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
     call clm_pflotran_interface_data_allocate_memory(pflotran_m%option%mycomm)
+
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
+    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -242,7 +239,6 @@ contains
     write(iulog,*) '%%                                                     %%'
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) ' '
-    !write(iulog,*) 'begg=',begg, 'endg=',endg
 
     allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
     allocate(organic3d(begg:endg,nlevsoi))
@@ -294,7 +290,6 @@ contains
       else  ! soil columns of both urban and non-urban types
 
         do lev = 1,nlevgrnd
-          write(iulog,*),c,lev,gcount
 
           ! duplicate clay and sand values from 10th soil layer
           if (lev .le. nlevsoi) then
@@ -426,14 +421,11 @@ contains
 
     call pflotranModelSetSoilProp3(pflotran_m)
     !call pflotranModelSetICs3(pflotran_m)
-
     call pflotranModelStepperRunInit( pflotran_m )
-    
     call MPI_Barrier(pflotran_m%option%global_comm,ierr)
 
     deallocate(sand3d,clay3d,organic3d)
 
-    write(iulog,*) 'clm_pf_interface_init --- done '
   end subroutine clm_pf_interface_init
 
 end module clm_pflotran_interfaceMod
