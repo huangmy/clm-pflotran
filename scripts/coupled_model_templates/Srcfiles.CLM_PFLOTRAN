@@ -93,6 +93,7 @@ co2_sw_global.F90
 co2_sw_rtsafe.F90
 co2eos.F90
 condition.F90
+constraint.F90
 condition_control.F90
 connection.F90
 controlMod.F90
