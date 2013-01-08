@@ -472,7 +472,7 @@ contains
     real(r8), pointer :: zwt(:)               ! water table depth (m)
     real(r8), pointer :: zi(:,:)              ! interface level below a "z" level (m)
 #ifdef CLM_PFLOTRAN
-    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+!    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
     real(r8):: tmp
     integer  :: g,gcount                  ! do loop indices
     integer  :: begp, endp                ! per-proc beginning and ending pft indices
@@ -564,7 +564,7 @@ contains
     smp_l             => cws%smp_l
     hk_l              => cws%hk_l
 #ifdef  CLM_PFLOTRAN
-    h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
+!    h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
     cgridcell         => clm3%g%l%c%gridcell
 #endif
 
