@@ -19,6 +19,7 @@ $CODEROOT/lnd/clm/src/cpl_share
 $CODEROOT/lnd/clm/src/main
 $CODEROOT/lnd/clm/src/biogeophys
 $CODEROOT/lnd/clm/src/biogeochem
+$CODEROOT/lnd/clm/src/riverroute
 $CODEROOT/lnd/clm/src/cpl_$COMP
 $PFLOTRAN_COUPLED_MODEL/src/pflotran
 $PFLOTRAN_COUPLED_MODEL/src/clm-pflotran
