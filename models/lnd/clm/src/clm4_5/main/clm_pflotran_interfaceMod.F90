@@ -14,7 +14,7 @@ module clm_pflotran_interfaceMod
   use clmtype
   use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column
   use decompMod       , only : get_proc_bounds, get_proc_global
-  use clm_varpar      , only : nlevsoi, lsmlon, lsmlat, nlevgrnd
+  use clm_varpar      , only : nlevsoi, nlevgrnd
   use shr_kind_mod    , only: r8 => shr_kind_r8
   use decompMod       , only : ldecomp
   use domainMod       , only : ldomain
