@@ -28,7 +28,7 @@ EOF
 #
 # Build the clm library
 #
-set clmdefs = "  -DMAXPATCH_PFT=17 -DCN -DAD_SPINUP -D_USEBOX -D_NETCDF -DCLM_PFLOTRAN -DWITH_CLM"
+set clmdefs = "  -DMAXPATCH_PFT=17 -DCN -DAD_SPINUP -D_USEBOX -D_NETCDF -DCLM_PFLOTRAN -DWITH_CLM -DSURFACE_FLOW"
 if ( ! $?GMAKE ) setenv GMAKE gmake
 $GMAKE complib -j $GMAKE_J MODEL=clm COMPLIB=$LIBROOT/liblnd.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$clmdefs" -f $CASETOOLS/Makefile || exit 2
 
