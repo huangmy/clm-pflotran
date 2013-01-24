@@ -151,6 +151,7 @@ database_aux.F90
 dataset.F90
 dataset_aux.F90
 debug.F90
+database_hpt.F90
 discretization.F90
 field.F90
 flash2.F90

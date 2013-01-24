@@ -144,28 +144,27 @@ condition_control.o : realization.o discretization.o region.o option.o grid.o fi
 condition.o : condition.F90 input.o utility.o option.o field.o logging.o reaction_aux.o string.o dataset.o time_series.o reactive_transport_aux.o constraint.o
 connection.o : connection.F90 clm_varpar.o definitions.h 
 convergence.o : convergence.F90 option.o grid.o solver.o definitions.h clm_varctl.o
+constraint.o : constraint.F90 reaction_aux.o reactive_transport_aux.o global_aux.o surface_complexation_aux.o mineral_aux.o option.o input.o units.o string.o logging.o
 coupler.o : coupler.F90 condition.o connection.o region.o input.o grid.o mfd_aux.o auxilliary.o 
 database.o : database.F90 option.o string.o reaction.o utility.o input.o reaction_aux.o definitions.h mineral_aux.o microbial_aux.o
+database_aux.o : database_aux.F90 string.o utility.o option.o input.o
 dataset.o : dataset.F90 option.o string.o input.o definitions.h dataset_aux.o hdf5_aux.o
-hdf5_dataset.o : hdf5_dataset.F90 hdf5.o 
+dataset_aux.o : dataset_aux.F90 string.o utility.o option.o input.o
 debug.o : debug.F90 option.o input.o definitions.h
+database_hpt.o : database_hpt.F90 database.o reaction.o database_aux.o mineral_aux.o
 discretization.o : discretization.F90 mfd_aux.o option.o structured_grid.o grid.o string.o unstructured_grid.o input.o mfd.o definitions.h unstructured_grid_aux.o
 field.o : field.F90 clm_varpar.o definitions.h 
 flash2.o : flash2.F90 global_aux.o co2_sw.o debug.o option.o coupler.o co2_span_wagner.o patch.o grid.o level.o discretization.o co2eos.o co2_span_wagner_spline.o realization.o connection.o logging.o field.o flash2_aux.o material.o water_eos.o definitions.h
 flash2_aux.o : flash2_aux.F90 global_aux.o co2_sw.o option.o co2_span_wagner.o fluid.o co2eos.o co2_span_wagner_spline.o saturation_function.o water_eos.o definitions.h pckr_mod.o
 fluid.o : fluid.F90 option.o string.o input.o definitions.h
 gaseos_mod.o : gaseos_mod.F90 clm_varcon.o definitions.h 
-general_aux.o : general_aux.F90 global_aux.o option.o saturation_function.o matrix_buffer.o water_eos.o definitions.h
-general_grid.o : general_grid.F90 hdf5.o option.o patch.o grid.o discretization.o hdf5.o realization.o connection.o logging.o field.o definitions.h unstructured_grid_aux.o 
-co2_sw_global.o : co2_sw_global.F90  clm_varpar.o definitions.h
-global.o : global.F90 global_aux.o option.o coupler.o patch.o grid.o level.o discretization.o realization.o connection.o field.o definitions.h
-global_aux.o : global_aux.F90 option.o definitions.h
 general.o : general.F90 general_aux.o global_aux.o realization.o option.o level.o patch.o field.o coupler.o grid.o connection.o material.o material_aux.o discretization.o water_eos.o debug.o saturation_function.o
 general_aux.o : general_aux.F90 option.o water_eos.o gaseos_mod.o saturation_function.o global_aux.o
 general_grid.o : general_grid.F90 hdf5.o option.o patch.o grid.o discretization.o hdf5.o realization.o connection.o logging.o field.o definitions.h unstructured_grid_aux.o 
+geometry.o : geometry.F90 input.o option.o
+global.o : global.F90 global_aux.o option.o coupler.o patch.o grid.o level.o discretization.o realization.o connection.o field.o definitions.h
+global_aux.o : global_aux.F90 option.o utility.o definitions.h
 grid.o : grid.F90 structured_grid.o unstructured_grid.o option.o region.o connection.o input.o mfd_aux.o unstructured_grid_aux.o unstructured_explicit.o
-structured_grid.o : structured_grid.F90 option.o string.o connection.o input.o definitions.h cf90bridge.o 
-unstructured_grid.o : unstructured_grid.F90 option.o connection.o utility.o input.o definitions.h unstructured_cell.o geometry.o unstructured_grid_aux.o
 hdf5.o : hdf5.F90 region.o option.o  grid.o discretization.o realization.o logging.o field.o definitions.h
 hdf5_aux.o : hdf5_aux.F90 option.o logging.o definitions.h dataset_aux.o units.o
 hdf5_dataset.o : hdf5_dataset.F90 hdf5.o 
@@ -178,14 +177,15 @@ level.o : level.F90 option.o patch.o material.o condition.o definitions.h
 logging.o : logging.F90 clm_varpar.o definitions.h 
 mapping.o : mapping.F90 option.o definitions.h
 material.o : material.F90 option.o input.o string.o dataset_aux.o material_aux.o surface_material.o definitions.h
-surface_material.o : surface_material.F90 string.o option.o input.o 
 material_aux.o : material_aux.F90 option.o
 matrix_block_aux.o : matrix_block_aux.F90 option.o definitions.h
 matrix_buffer.o : matrix_buffer.F90 structured_grid.o grid.o definitions.h
-mfd.o : mfd.F90 option.o mfd_aux.o grid.o
+mfd.o : mfd.F90 option.o mfd_aux.o grid.o richards_aux.o patch.o
 mfd_aux.o : mfd_aux.F90 option.o connection.o definitions.h
 microbial.o : microbial.F90 microbial_aux.o reaction_aux.o reactive_transport_aux.o global_aux.o option.o string.o input.o utility.o
 microbial_aux.o : microbial_aux.F90 database_aux.o utility.o
+miscible_aux.o : miscible_aux.F90 database_aux.o option.o string.o
+miscible.o : miscible.F90 miscible_aux.o realization.o global_aux.o variables.o
 mineral.o : mineral.F90 mineral_aux.o reaction_aux.o reactive_transport_aux.o global_aux.o option.o string.o input.o utility.o solid_solution_aux.o database_aux.o
 mineral_aux.o : mineral_aux.F90 database_aux.o option.o string.o
 mphase.o : mphase.F90 mphase_aux.o realization.o fluid.o global_aux.o secondary_continuum.o
@@ -194,6 +194,7 @@ observation.o : observation.F90 region.o option.o string.o connection.o input.o 
 oil_eos.o : oil_eos.F90  definitions.h 
 option.o : option.F90  definitions.h clm_varctl.o
 output.o : output.F90 observation.o flash2.o global_aux.o thc.o immis.o region.o reactive_transport_aux.o hdf5.o option.o coupler.o structured_grid.o patch.o grid.o discretization.o hdf5.o mphase.o realization.o connection.o logging.o field.o material.o reactive_transport.o richards.o reaction_aux.o definitions.h general.o miscible.o thmc.o unstructured_grid_aux.o surface_realization.o surface_flow.o output_aux.o
+output_aux.o : output_aux.F90 definitions.h
 patch.o : patch.F90 observation.o global_aux.o region.o reactive_transport_aux.o hydrostatic.o option.o coupler.o grid.o thc_aux.o richards_aux.o mphase_aux.o reaction.o connection.o field.o material.o strata.o auxilliary.o water_eos.o condition.o reaction_aux.o saturation.o definitions.h mineral.o output_aux.o
 pckr_mod.o : pckr_mod.F90 option.o saturation_function.o material.o definitions.h
 pflotran_model.o : pflotran_model.F90 waypoint.o global_aux.o option.o patch.o grid.o simulation.o clm_varctl.o discretization.o timestepper.o realization.o richards_aux.o logging.o field.o init.o saturation_function.o stochastic.o input.o stochastic_aux.o units.o richards.o condition.o definitions.h option.o mapping.o
@@ -203,7 +204,6 @@ reaction_sandbox.o : reaction_sandbox.F90 option.o
 reactive_transport.o : reactive_transport.F90 global_aux.o region.o debug.o reactive_transport_aux.o option.o coupler.o patch.o grid.o level.o discretization.o fluid.o realization.o reaction.o connection.o logging.o field.o material.o transport.o global.o condition.o reaction_aux.o output_aux.o definitions.h
 reactive_transport_aux.o : reactive_transport_aux.F90 option.o reaction_aux.o surface_complexation_aux.o matrix_block_aux.o secondary_continuum.o
 realization.o : realization.F90 grid.o option.o region.o condition.o coupler.o material.o strata.o waypoint.o field.o hydrostatic.o debug.o observation.o velocity.o patch.o level.o discretization.o reaction.o reaction_aux.o fluid.o saturation_function.o dataset.o surface_field.o surface_material.o output_aux.o
-surface_realization.o : surface_realization.F90 condition.o debug.o discretization.o input.o level.o option.o patch.o region.o surface_field.o surface_material.o waypoint.o dataset_aux.o coupler.o string.o grid.o strata.o unstructured_grid.o dataset.o unstructured_grid_aux.o output_aux.o
 region.o : region.F90 option.o string.o logging.o utility.o input.o definitions.h geometry.o
 regression.o : regression.F90 realization.o discretization.o timestepper.o option.o string.o utility.o grid.o output.o output_aux.o
 richards.o : richards.F90 mfd_aux.o global_aux.o debug.o option.o coupler.o patch.o grid.o level.o clm_varctl.o discretization.o realization.o richards_aux.o connection.o logging.o field.o saturation_function.o material.o mfd.o matrix_buffer.o water_eos.o output_aux.o clm_pflotran_interface_data.o definitions.h
@@ -215,7 +215,6 @@ simulation.o : simulation.F90 option.o solver.o timestepper.o realization.o reac
 solid_solution.o : solid_solution.F90 solid_solution_aux.o option.o string.o reaction_aux.o mineral_aux.o utility.o mineral.o input.o
 solid_solution_aux.o : solid_solution_aux.F90 mineral_aux.o
 solver.o : solver.F90 option.o string.o input.o definitions.h
-co2_span_wagner_spline.o : co2_span_wagner_spline.F90 spline.o definitions.h 
 spline.o : spline.F90 clm_varpar.o definitions.h 
 stochastic.o : stochastic.F90 option.o simulation.o timestepper.o realization.o logging.o init.o input.o stochastic_aux.o definitions.h regression.o
 stochastic_aux.o : stochastic_aux.F90 option.o simulation.o input.o definitions.h
@@ -223,19 +222,21 @@ strata.o : strata.F90 region.o option.o material.o input.o definitions.h
 string.o : string.F90 clm_varpar.o definitions.h 
 structured_grid.o : structured_grid.F90 option.o string.o connection.o input.o definitions.h cf90bridge.o 
 surface_field.o : surface_field.F90 clm_varpar.o
-unstructured_grid.o : unstructured_grid.F90 option.o connection.o utility.o input.o definitions.h unstructured_cell.o geometry.o unstructured_grid_aux.o
 surface_flow.o : surface_flow.F90 surface_flow_aux.o surface_realization.o surface_field.o surface_material.o
 surface_flow_aux.o : surface_flow_aux.F90 option.o
 surface_material.o : surface_material.F90 string.o option.o input.o 
-surface_realization.o : surface_realization.F90 condition.o debug.o discretization.o input.o level.o option.o patch.o region.o surface_field.o surface_material.o waypoint.o dataset_aux.o coupler.o string.o grid.o strata.o unstructured_grid.o dataset.o unstructured_grid_aux.o output_aux.o
-thc.o : thc.F90 secondary_continuum.o option.o material.o water_eos.o saturation_function.o grid.o definitions.h
+surface_realization.o : surface_realization.F90 realization.o condition.o debug.o discretization.o input.o level.o option.o patch.o region.o surface_field.o surface_material.o waypoint.o dataset_aux.o coupler.o string.o grid.o strata.o unstructured_grid.o dataset.o unstructured_grid_aux.o output_aux.o
+surface_complexation.o : surface_complexation.F90 surface_complexation_aux.o reaction_aux.o global_aux.o  reactive_transport_aux.o option.o string.o input.o utility.o
+surface_complexation_aux.o : surface_complexation_aux.F90 option.o string.o database_aux.o
+thc.o : thc.F90 secondary_continuum.o thc_aux.o realization.o saturation_function.o variables.o
 thc_aux.o : thc_aux.F90 option.o saturation_function.o water_eos.o definitions.h pckr_mod.o
 thmc.o : thmc.F90 thmc_aux.o realization.o saturation_function.o
 thmc_aux.o : thmc_aux.F90 option.o material.o water_eos.o saturation_function.o grid.o
 timestepper.o : timestepper.F90 waypoint.o flash2.o global_aux.o thc.o immis.o option.o patch.o grid.o level.o clm_varctl.o string.o discretization.o solver.o mphase.o realization.o checkpoint.o logging.o field.o utility.o output.o input.o global.o reactive_transport.o richards.o convergence.o condition_control.o surface_flow.o output_aux.o definitions.h
-reactive_transport.o : reactive_transport.F90 global_aux.o region.o debug.o reactive_transport_aux.o option.o coupler.o patch.o grid.o level.o discretization.o fluid.o realization.o reaction.o connection.o logging.o field.o material.o transport.o global.o condition.o reaction_aux.o output_aux.o definitions.h
+time_series.o : time_series.F90 string.o option.o input.o
 transport.o : transport.F90 global_aux.o reactive_transport_aux.o option.o matrix_block_aux.o definitions.h
 units.o : units.F90 option.o definitions.h 
+unstructured_cell.o : unstructured_cell.F90 option.o utility.o
 unstructured_explicit.o : unstructured_explicit.F90 geometry.o unstructured_grid_aux.o
 unstructured_grid.o : unstructured_grid.F90 option.o connection.o utility.o input.o definitions.h unstructured_cell.o geometry.o unstructured_grid_aux.o
 unstructured_grid_aux.o : unstructured_grid_aux.F90 unstructured_cell.o
