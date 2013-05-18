@@ -1,9 +1,162 @@
 ================================================================================
-SVN $Id: ChangeLog 46664 2013-05-02 17:22:59Z jshollen $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130502/ChangeLog $
+SVN $Id: ChangeLog 47024 2013-05-10 19:37:58Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130510/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+
+================================================================================
+Originator: erik
+Date: May 10 2013
+Model: scripts
+Version: scripts4_130510
+One-line:  Fix more create_test issues, add more tests for CLM45/DV/CROP to test lists
+
+M       create_test --- Fix cesmroot option and problem that would abort on setting
+           STOP_N when it was undef.
+M       ccsm_utils/Case.template/config_compsets.xml -- add ICRUCLM45BGCTEST for
+           testing CLM45 with CRUNCEP forcing on machines with only 2002-2003 data
+MM      ccsm_utils/Testlistxml/sort_xml_entries -- fix typo so would work
+M       ccsm_utils/Testlistxml/testlist.xml --- Add CLM45/DV/CROP tests
+M       ccsm_utils/Testcases/SSP_script -- Change final mode to ref case hybrid
+M       ccsm_utils/Testcases/SBN_script -- Fix bug 1687
+
+================================================================================
+Originator: jshollen
+Date: May 9 2013
+Model: scripts
+Version: scripts4_130509a
+One-line:  create_test now uses config_machines baselineroot if none is set, better
+error checking for namelist comparisons.  
+
+M       create_test
+
+================================================================================
+Originator: erik
+Date: May 9 2013
+Model: scripts
+Version: scripts4_130509
+One-line:  Fix some bugs with create_test, fix SBN test, add SSP, fix S1850 compsets
+           remove asphaltjungle grid
+
+   Fix -help, and -mach machine_compiler in create_test, make sure baselineroot set for compare/generate
+   Fix the S1850 compsets
+   Fix SBN test add a SSP test for CLM45 spinup
+   Add and improve documentation of I compsets.
+   Work with testlist for I compsets a bit.
+   Remove asphaltjungle grid
+
+M       create_test
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+M       ccsm_utils/Testcases/config_tests.xml
+
+A       ccsm_utils/Case.template/config_compsets.xsl - So can view the XML compset file
+            to check for errors.
+A       ccsm_utils/Testcases/SSP_script ---- CLM45 spinup test
+
+================================================================================
+Originator: mvertens
+Date: May 7 2013
+Model: scripts
+Version: scripts4_130508
+
+One-line: more updates to config_compsets.xml and testlist.xml that fix SFAILS in
+	  namelists tests
+
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+M       README
+	
+================================================================================
+Originator: mvertens
+Date: May 7 2013
+Model: scripts
+Version: scripts4_130507b
+One-line: more updates to config_compsets.xml and testlist.xml that fix SFAILS in
+	  namelists tests
+	
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+	
+================================================================================
+Originator: mvertens
+Date: May 7 2013
+Model: scripts
+Version: scripts4_130507a
+One-line: updates to config_compsets.xml and testlist.xml that fix SFAILS in
+	  namelists tests
+
+M       ccsm_utils/Case.template/config_compsets.xml
+D       ccsm_utils/Testlistxml/sort_file.pl
+A  +    ccsm_utils/Testlistxml/sort_xml_entries
+M       ccsm_utils/Testlistxml/add_xml_entries
+M       ccsm_utils/Testlistxml/testlist.xml
+	
+================================================================================
+Originator: jshollen
+Date: May 7 2013
+Model: scripts
+Version: scripts4_130507
+One-line: testlist update, bug fixes for compare_namelists and create_test,
+          query_tests docs updates. 
+
+M       create_test
+M       ccsm_utils/Tools/compare_namelists.pl
+M       ccsm_utils/Testlistxml/testlist.xml
+M       query_tests
+
+================================================================================
+Originator: mvertens
+Date: May 6 2013
+Model: update for
+Version: scripts4_130506
+One-line: Updates to create_tables for new compsets and grids
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_grid.xml
+A       doc/modelnl/nl_clm45.html
+M       doc/modelnl/nl_drv.html
+M       doc/modelnl/nl_cism.html
+D       doc/modelnl/nldef2html_clm
+M       doc/modelnl/machines.html
+M       doc/modelnl/xmldef2html_grid
+M       doc/modelnl/compsets.html
+M       doc/modelnl/nldef2html_cism
+A       doc/modelnl/nl_clm40.html
+M       doc/modelnl/env_run.html
+M       doc/modelnl/env_case.html
+M       doc/modelnl/grid.html
+M       doc/modelnl/nl_cam.html
+M       doc/modelnl/create_tables
+M       doc/modelnl/nl_rtm.html
+A       doc/modelnl/nldef2html_clm40
+M       doc/modelnl/env_pesetup.html
+M       doc/modelnl/xmldef2html_compsets
+A       doc/modelnl/nldef2html_clm45
+M       doc/modelnl/nl_clm.html
+M       doc/modelnl/env_build.html
+M       doc/modelnl/nl_pop2.html
+M       create_newcase
+	
+================================================================================
+Originator: tcraig
+Date: May 3 2013
+Model: scripts
+Version: scripts4_130503a
+One-line: modify rx1 grid/compset match
+M       ccsm_utils/Case.template/config_grid.xml
+================================================================================
+
+Originator: mlevy
+Date: May 3 2013
+Model: scripts
+Version: scripts4_130503
+One-line: set B[1850,20TR][BPRP,BDRD] compsets to startup rather than hybid
+          (new POP ecosystem means no spun-up cases to start from)
+
+M       ccsm_utils/Case.template/config_compsets.xml
 
 ================================================================================
 

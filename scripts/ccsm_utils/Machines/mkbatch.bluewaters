@@ -1,5 +1,4 @@
 #! /bin/csh -f
-
 # env variables used are 
 #   CASEROOT, CASE
 #   MAX_TASKS_PER_NODE, PES_PER_NODE
@@ -39,8 +38,6 @@ foreach model ($MODELS)
   endif
 end
 
-@ ppn = $MAX_TASKS_PER_NODE / $maxthrds
-
 #--- Job name is first fifteen characters of case name ---
 set jobname = `echo ${CASE} | cut -c1-15`
 
@@ -58,7 +55,7 @@ cat >! $file << EOF1
 #!/bin/csh -f
 #PBS -N ${jobname}
 #PBS -q batch
-#PBS -l nodes=${mppnodes}:ppn=${ppn}:xe
+#PBS -l nodes=${mppnodes}:ppn=32:xe
 #PBS -l walltime=${walltime}
 #PBS -j oe
 #PBS -S /bin/csh -V

@@ -113,7 +113,7 @@ begin
     nco@history = nco@history + " Removed duplicate weights from mapping file with: rmdups.ncl "
     nco@rmdups_Logname       = logname;
     nco@rmdups_mod_date      = ldate;
-    nco@rmdups_version       = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_03/models/lnd/clm/tools/shared/mkmapdata/rmdups.ncl $";
+    nco@rmdups_version       = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_04/models/lnd/clm/tools/shared/mkmapdata/rmdups.ncl $";
     nco@rmdups_revision_id   = "$Id: rmdups.ncl 46863 2013-05-08 03:25:21Z sacks $";
 
     print("Successfully removed duplicate weights from mapping file" );

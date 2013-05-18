@@ -23,9 +23,9 @@ print <<"END_of_Start";
 
 <body>
 
-<h2>Search or Browse CISM Component Model Namelist Variables</h2>
+<h2>Search or Browse CLM4_5 Component Model Namelist Variables</h2>
 <p>
-This page contains the complete list of CISM namelist variables available.  They are grouped
+This page contains the complete list of CLM4_5 namelist variables available. They are grouped
 by categories designed to aid browsing.  Clicking on the name of a variable will display descriptive
 information.  If search terms are entered in the text box below, the list will be condensed to contain
 only matched variables.
@@ -82,7 +82,7 @@ only matched variables.
 
 END_of_Start
 
-my $nldef_file = "../../../models/glc/cism/bld/namelist_files/namelist_definition_cism.xml";
+my $nldef_file = "../../../models/lnd/clm/bld/namelist_files/namelist_definition_clm4_5.xml";
 my $nldef = Build::NamelistDefinition->new($nldef_file);
 
 # Get list of categories in the definition file.
@@ -102,37 +102,24 @@ foreach my $k (@nldef_cats) {
 # in the %cat_heading hash (order is not important in the hash definition).
 
 my @categories = qw/
-cism
-grid
-time
-cism_config_grid
-cism_config_sigma
-cism_config_climate
-cism_config_projection
-cism_config_options
-cism_config_time
-cism_config_parameters
-cism_config_ho_options
-cism_config_gthf
-cism_config_isostasy
-cism_config_elastic_lithosphere
+datasets
+clm_physics
+dry-deposition
+clm_restart 
+clm_performance
+history
 /;
 
+# Set headings for the table.  Set the heading to 'exclude' to exclude a
+# category from the table.
+
 my %cat_heading = (
-    'cism'        		      => 'CISM:  General Settings',
-    'grid'        		      => 'CISM:  Grid Settings',
-    'time'        		      => 'CISM:  Time Manager Settings',
-    'cism_config_grid'                => 'CISM:  cism.config Grid Settings',
-    'cism_config_sigma'               => 'CISM:  cism.config Sigma Settings',
-    'cism_config_climate'             => 'CISM:  cism.config Climate Settings',
-    'cism_config_projection'          => 'CISM:  cism.config Projection Settings',
-    'cism_config_options'             => 'CISM:  cism.config Options',
-    'cism_config_time'                => 'CISM:  cism.config Time Settings',
-    'cism_config_parameters'          => 'CISM:  cism.config Parameters',
-    'cism_config_ho_options'          => 'CISM:  cism.config Higher-Order Options',
-    'cism_config_gthf'                => 'CISM:  cism.config Geothermal Heat Flux Settings',
-    'cism_config_isostasy'            => 'CISM:  cism.config Isostasy Settings',
-    'cism_config_elastic_lithosphere' => 'CISM:  cism.config Elastic Lithosphere Settings'
+    'datasets'         => '<a name="datasets"       >CLM: Input Datasetes </a>',
+    'clm_physics'      => '<a name="clm_physics"    >CLM: Physics Settings </a>',
+    'dry-deposition'   => '<a name="dry-deposition" >CLM: Dry Deposition Settings </a>',
+    'clm_restart'      => '<a name="clm_restart"    >CLM: Restart Control Settings</a>',
+    'clm_performance'  => '<a name="clm_performance">CLM: Decomposition Settings </a>',
+    'history'          => '<a name="history"        >CLM: History Control Settings </a>',
     );
 
 foreach my $cat (@categories) {

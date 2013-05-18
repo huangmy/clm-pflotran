@@ -15,7 +15,7 @@ echo "just check that namelists build and files exist" >>& $TESTSTATUS_LOG
 
 ./preview_namelists
 if ( $status != 0 ) set stat = "FAIL"
-./check_input_data -check
+./check_input_data -check -inputdata $DIN_LOC_ROOT
 if ( $status != 0 ) set stat = "FAIL"
 set CplNmlFile = `ls -1t $CASEROOT/CaseDocs/drv_in`
 setenv CPLNML_INIT $CplNmlFile

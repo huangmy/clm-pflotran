@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <config_compilers>
 
-
 <!--
 ===========================
 This file defines compiler flags for building CESM.  General flags are listed first
@@ -459,6 +458,10 @@ for mct, etc.
   <SUPPORTS_CXX>TRUE</SUPPORTS_CXX>
 </compiler>
 
+<compiler  MACH="bluewaters" COMPILER="pgi">
+ <CXX_LIBS> -lmpichf90_pgi $(PGI_PATH)/linux86-64/$(PGI_VERSION)/lib/f90main.o </CXX_LIBS>
+ <SUPPORTS_CXX>TRUE</SUPPORTS_CXX>
+</compiler>
 
 <compiler  MACH="bluewaters">
   <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>

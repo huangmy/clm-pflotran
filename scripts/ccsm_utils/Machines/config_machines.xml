@@ -37,7 +37,7 @@
         <RUNDIR>USERDEFINED_required_build</RUNDIR>                       <!-- complete path to the run directory -->
         <EXEROOT>USERDEFINED_required_build</EXEROOT>                     <!-- complete path to the build directory -->
         <DIN_LOC_ROOT>USERDEFINED_required_build</DIN_LOC_ROOT>           <!-- complete path to the inputdata directory -->
-        <DIN_LOC_ROOT_CLMFORC>USERDEFINED_optional_build</DIN_LOC_ROOT_CLMFORC>
+        <DIN_LOC_ROOT_CLMFORC>USERDEFINED_optional_build</DIN_LOC_ROOT_CLMFORC> <!-- path to the optional forcing data for CLM (for CRUNCEP forcing) -->
         <DOUT_S>FALSE</DOUT_S>                                            <!-- logical for short term archiving -->
         <DOUT_S_ROOT>USERDEFINED_optional_run</DOUT_S_ROOT>               <!-- complete path to a short term archiving directory -->
         <DOUT_L_MSROOT>USERDEFINED_optional_run</DOUT_L_MSROOT>           <!-- complete path to a long term archiving directory -->
@@ -98,7 +98,7 @@
          <RUNDIR>/lustre/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/lustre/$CCSMUSER/$CASE/bld</EXEROOT>
          <DIN_LOC_ROOT>/lustre/tcraig/IRESM/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/lustre/tcraig/IRESM/inputdata/atm/datm7/atm_forcing.datm7.Qian.T62.c080727</DIN_LOC_ROOT_CLMFORC>
+         <DIN_LOC_ROOT_CLMFORC>/lustre/tcraig/IRESM/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/lustre/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>UNSET</DOUT_L_MSROOT>
          <CCSM_BASELINE>/lustre/tcraig/IRESM/ccsm_baselines</CCSM_BASELINE>
@@ -160,7 +160,7 @@
          <RUNDIR>/lustre/data/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/lustre/data/$CCSMUSER/$CASE/bld</EXEROOT>
          <DIN_LOC_ROOT>/data/eg_nfs/tcraig/IRESM/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/data/eg_nfs/tcraig/IRESM/inputdata/atm/datm7/atm_forcing.datm7.Qian.T62.c080727</DIN_LOC_ROOT_CLMFORC>
+         <DIN_LOC_ROOT_CLMFORC>/data/eg_nfs/tcraig/IRESM/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/lustre/data/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>UNSET</DOUT_L_MSROOT>
          <CCSM_BASELINE>/data/eg_nfs/tcraig/IRESM/ccsm_baselines</CCSM_BASELINE>
@@ -181,7 +181,7 @@
          <OBJROOT>$EXEROOT</OBJROOT>
          <INCROOT>$EXEROOT/lib/include</INCROOT>
          <DIN_LOC_ROOT>/fs/cgd/csm/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/fs/cgd/csm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DIN_LOC_ROOT_CLMFORC>/project/tss</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/scratch/cluster/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>/`echo $CCSMUSER | tr '[a-z]' '[A-Z]'`/csm/$CASE</DOUT_L_MSROOT>
          <CCSM_BASELINE>/fs/cgd/csm/ccsm_baselines</CCSM_BASELINE>
@@ -282,6 +282,7 @@
          <RUNDIR>/lustre/janus_scratch/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/lustre/janus_scratch/$CCSMUSER/$CASE/bld</EXEROOT>
          <DIN_LOC_ROOT>/lustre/janus_scratch/cesm/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/lustre/janus_scratch/cesm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/lustre/janus_scratch/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
          <CCSM_BASELINE>/lustre/janus_scratch/cesm/baselines</CCSM_BASELINE>
@@ -346,7 +347,7 @@
          <RUNDIR>/pic/scratch/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/pic/scratch/$CCSMUSER/$CASE/bld</EXEROOT>
          <DIN_LOC_ROOT>/pic/scratch/tcraig/IRESM/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/pic/scratch/tcraig/IRESM/inputdata/atm/datm7/atm_forcing.datm7.Qian.T62.c080727</DIN_LOC_ROOT_CLMFORC>
+         <DIN_LOC_ROOT_CLMFORC>/pic/scratch/tcraig/IRESM/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/pic/scratch/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>UNSET</DOUT_L_MSROOT>
          <CCSM_BASELINE>/pic/scratch/tcraig/IRESM/ccsm_baselines</CCSM_BASELINE>

@@ -368,6 +368,20 @@ OPTIONS
      -compiler <name>         limit selection to target compiler name
      -grid <name>             limit selection to target grid name match
 
+    A note on the PE count specifiers:
+    T, S, M, L, X are not constant.  first, they are only defined for a few
+    compsets/resolution combinations.  second, they depend on compset
+    and resolution.   you can imagine a T31_g37 range being 100 cores
+    to 1000 cores from T to X.  but ne240_t12 would probably be 500 at T
+    and 100,000 at X, for instance.  the 1, 1x1, 16x4, etc specify the tasks
+    and threads for each component directly.
+ 
+    A note aobut the "points mode" specifier for tests, ie SMS_RL*:
+	"L" is a land point "O" is an ocean point A and B are two points on the land 
+    and ocean that CLM provided. so LA, LB, OA, and OB are 4 distinct single test 
+    points, 2 over land, 2 over ocean. 
+
+
      Usage command
 
      -help [or -h]       Print usage to STDOUT (optional).
@@ -407,6 +421,17 @@ EOF
     _P*  = set pecount to *, where * are specific values which include 
            T,S,M,L,X,1,1x1,16,16x1,4x4, etc
     _R*  = PTS_MODE test case, valid values are LA, LB, OA, OB
+  
+    T, S, M, L, X are not constant.  first, they are only defined for a few
+    compsets/resolution combinations.  second, they depend on compset
+    and resolution.   you can imagine a T31_g37 range being 100 cores
+    to 1000 cores from T to X.  but ne240_t12 would probably be 500 at T
+    and 100,000 at X, for instance.  the 1, 1x1, 16x4, etc specify the tasks
+    and threads for each component directly.
+
+    "L" is a land point "O" is an ocean point A and B are two points on the land
+    and ocean that CLM provided. so LA, LB, OA, and OB are 4 distinct single test
+    points, 2 over land, 2 over ocean.
 EOF
 exit 0;
 

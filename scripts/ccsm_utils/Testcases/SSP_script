@@ -1,0 +1,127 @@
+
+#======================================================================
+# Clear coupler log files for comparison tests
+#======================================================================
+
+unsetenv CPLLOG_INIT
+unsetenv CPLLOG_FINAL
+# turn on memory leak check and baseline memory compare
+setenv DETECT_MEMORY_LEAK
+# if comparing with baseline also compare memory highwater mark from baseline 
+if ($?COMPARE_BASELINE ) then
+  setenv COMPARE_MEMORY
+  setenv COMPARE_THROUGHPUT
+endif
+
+#--- clone the main case to create ref1 case
+set CASER0  = ${CASEROOT}
+set CASERR1 = ${CASEROOT}.ref1
+set CASE0   = ${CASE}
+
+cd $CCSMROOT/scripts
+rm -r -f ${CASERR1}; ./create_clone -case ${CASERR1} -clone ${CASER0} 
+
+cd $CASERR1
+./xmlchange -file env_build.xml -id EXEROOT        -val ${EXEROOT}
+./xmlchange -file env_build.xml -id BUILD_COMPLETE -val TRUE
+./cesm_setup
+
+@ stopn1 = ${STOP_N} / 2
+@ stopn2 = $_STOP_N} - $stopn1
+
+#======================================================================
+# do a spinup run in the main case
+#======================================================================
+
+cd $CASEROOT
+echo "doing a ${stopn1} ${STOP_OPTION} initial spinup test" >>& $TESTSTATUS_LOG 
+
+./xmlchange STOP_N=${stopn1},CLM_BLDNML_OPTS="-bgc_spinup on"
+
+./$CASE.run
+
+gunzip $RUNDIR/cpl.log*.gz
+set CplLogFile = `ls -1t $RUNDIR/cpl.log* | head -1`
+setenv BASEGEN_FILE01 $CplLogFile
+set cplhist_init = `ls -1t $RUNDIR/*.cpl.hi.*.nc | head -1`
+mv ${cplhist_init} ${cplhist_init}.base
+set cplhist_init = ${cplhist_init}.base
+set refdate3   = `ls -1dt ${DOUTSR1}/rest/*-00000* | head -1 | sed "s/-00000.*//" | sed "s/^.*rest\///" `
+
+if (-e $CplLogFile) then
+   set pass = `grep "SUCCESSFUL TERMINATION OF CPL7-CCSM" $CplLogFile | wc -l`
+   echo "pass = $pass" >>& $TESTSTATUS_LOG
+   if ($pass != 1) then
+      echo "initial spinup run failed."
+      echo "ERROR in ${0}: coupler log indicates that inital model run failed" >>& $TESTSTATUS_LOG
+      exit -1;
+    endif
+else
+      echo "ERROR in ${0}: no coupler log created, inital model run failed" >>& $TESTSTATUS_LOG
+      exit -1;
+endif
+
+#======================================================================
+# do the final spinup run in the cloned ref case
+#======================================================================
+
+cd ${CASERR1}
+source ./Tools/ccsm_getenv || exit -1
+echo "doing a ${stopn2} ${STOP_OPTION} final spinup test" >>& $TESTSTATUS_LOG 
+
+#--- setup ref1 case 
+cd $CASEROOT
+
+./xmlchange RUN_REFCASE=$CASE0,GET_REFCASE=FALSE,REF_DATE=${refdate3},RUN_TYPE="hybrid",STOP_N=${stopn2},CLM_BLDNML_OPTS="-bgc_spinup off"
+
+./$CASE.run
+
+gunzip $RUNDIR/cpl.log*.gz
+set CplLogFile = `ls -1t $RUNDIR/cpl.log* | head -1`
+setenv BASEGEN_FILE02 $CplLogFile
+set cplhist_final= `ls -1t $RUNDIR/*.cpl.hi.*.nc | head -1`
+if (-e $CplLogFile) then
+   set pass = `grep "SUCCESSFUL TERMINATION OF CPL7-CCSM" $CplLogFile | wc -l`
+   echo "pass = $pass" >>& $TESTSTATUS_LOG
+   if ($pass != 1) then
+      echo "initial spinup run failed."
+      echo "ERROR in ${0}: coupler log indicates that inital model run failed" >>& $TESTSTATUS_LOG
+      exit -1;
+    endif
+else
+      echo "ERROR in ${0}: no coupler log created, inital model run failed" >>& $TESTSTATUS_LOG
+      exit -1;
+endif
+
+#======================================================================
+# runs complete, reset
+#======================================================================
+
+./xmlchange STOP_N=${stopn1},CLM_BLDNML_OPTS="-bgc_spinup on"
+
+setenv CPLLOG_GENCMP $CPLLOG_FINAL
+echo "Initial spinup Test log is $CPLLOG_INIT"    >>& $TESTSTATUS_LOG 
+echo "Final   spinup Test log is $CPLLOG_FINAL"   >>& $TESTSTATUS_LOG 
+echo "Initial spinup Test hist is $cplhist_init"  >>& $TESTSTATUS_LOG 
+echo "Final   spinup Test hist is $cplhist_final" >>& $TESTSTATUS_LOG 
+
+#======================================================================
+# Check case validation first
+#======================================================================
+
+set basestatus = "UNDEF"
+
+if ( $?CPLLOG_INIT ) then
+  if ( $?CPLLOG_FINAL ) then
+    set basestatus = "PASS "
+  else
+    echo "ERROR in ${0}:  final coupler log file NOT set" >>& $TESTSTATUS_LOG
+    set basestatus = "ERROR"
+  endif
+else
+  echo "ERROR in ${0}:  initial spinup coupler log file NOT set" >>& $TESTSTATUS_LOG
+  set basestatus = "ERROR"
+endif
+
+echo "$basestatus ${CASEBASEID} " >&! $TESTSTATUS_OUT
+

@@ -21,8 +21,8 @@ use XML::LibXML;
 my $ProgName = basename($0);
 my $ProgDir = $1;
 my $cwd;
-my %opts = ( listtest => undef,
-	     listnew  => undef,
+my %opts = ( testlist => "testlist.xml",
+	     newlist  => undef,
     );
 
 GetOptions(

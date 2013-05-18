@@ -81,7 +81,7 @@
         <machine compiler="intel" testtype="aux_esmf">yellowstone</machine>
       </test>
     </grid>
-    <grid name="f45_g37">
+    <grid name="f45_g37_rx1">
       <test name="PET_PT">
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
@@ -358,8 +358,6 @@
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-    </grid>
-    <grid name="ne30_ne30">
       <test name="PFS">
         <machine compiler="intel" testtype="prebeta">edison</machine>
         <machine compiler="ibm" testtype="prebeta">mira</machine>
@@ -370,7 +368,7 @@
       </test>
     </grid>
   </compset>
-  <compset name="B1850CLM45CNF">
+  <compset name="B1850CLM45CN">
     <grid name="f19_g16">
       <test name="ERS_D">
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
@@ -1148,7 +1146,7 @@
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
     </grid>
-    <grid name="f45_g37">
+    <grid name="f45_g37_rx1">
       <test name="ERB">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
@@ -1183,7 +1181,7 @@
     </grid>
   </compset>
   <compset name="EG1850CNTEST">
-    <grid name="T31_T31">
+    <grid name="T31_g37">
       <test name="ERI">
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1870,12 +1868,12 @@
         <machine compiler="pgi" testtype="prebeta">titan</machine>
       </test>
     </grid>
-    <grid name="f19_g16">
+    <grid name="f19_g16_rx1">
       <test name="ERH">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
     </grid>
-    <grid name="f45_g37">
+    <grid name="f45_g37_rx1">
       <test name="PET_PT">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
@@ -1887,7 +1885,7 @@
         <machine compiler="null" testtype="null">null</machine>
       </test>
     </grid>
-    <grid name="f19_g16">
+    <grid name="f19_g16_rx1">
       <test name="ERS">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
@@ -2072,15 +2070,12 @@
       <test name="ERH_D">
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
       </test>
-      <test name="PET_PT">
-        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
-      </test>
       <test name="SMS_D">
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
       </test>
     </grid>
   </compset>
-  <compset name="I1850CLM45CN4Me">
+  <compset name="I1850CLM45BGC">
     <grid name="f10_f10">
       <test name="ERS">
         <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
@@ -2095,6 +2090,11 @@
         <machine compiler="intel" testtype="aux_clm" nldir="rtm/rtmOff">yellowstone</machine>
         <machine compiler="intel" testtype="aux_clm" nldir="rtm/rtmOnFloodOnEffvelOn">yellowstone</machine>
         <machine compiler="intel" testtype="aux_clm" nldir="rtm/rtmOnIceOff">yellowstone</machine>
+      </test>
+      <test name="SSP">
+        <machine compiler="intel" testtype="aux_clm" nldir="clm/default">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prebeta"                    >yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta"                    >frankfurt</machine>
       </test>
       <test name="ERS_D_E">
         <machine compiler="intel" testtype="aux_clm" nldir="rtm/rtmOnIceOff">yellowstone</machine>
@@ -2156,14 +2156,14 @@
       </test>
     </grid>
   </compset>
-  <compset name="I1850CRUCLM45CN4Me">
+  <compset name="I1850CRUCLM45BGC">
     <grid name="hcru_hcru">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
       </test>
     </grid>
   </compset>
-  <compset name="I1850SPINUPCLM45CN4ME">
+  <compset name="I1850SPINUPCLM45BGC">
     <grid name="hcru_hcru">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
@@ -2282,12 +2282,12 @@
   </compset>
   <compset name="I20TRCLM45CN">
     <grid name="f10_f10">
-      <test name="PET_PT">
+      <test name="SMS_D">
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
       </test>
     </grid>
   </compset>
-  <compset name="I20TRCLM45CN4Me">
+  <compset name="I20TRCRUCLM45BGC">
     <grid name="f10_f10">
       <test name="ERS_Ly5">
         <machine compiler="intel" testtype="aux_clm" nldir="clm/monthly_noinitial">yellowstone</machine>
@@ -2315,7 +2315,7 @@
       </test>
     </grid>
   </compset>
-  <compset name="I20TRCRUCLM45CN4Me">
+  <compset name="I20TRCRUCLM45BGC">
     <grid name="f19_g16">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
@@ -2424,7 +2424,7 @@
       </test>
     </grid>
   </compset>
-  <compset name="ICLM45CN4Me">
+  <compset name="ICLM45BGC">
     <grid name="f10_f10">
       <test name="ERI_D">
         <machine compiler="intel" testtype="aux_clm" nldir="clm/vrtlay">yellowstone</machine>
@@ -2438,14 +2438,14 @@
       </test>
     </grid>
   </compset>
-  <compset name="ICLM45CN4MeCROP">
+  <compset name="ICLM45BGCCROP">
     <grid name="f19_g16">
       <test name="ERS">
         <machine compiler="intel" testtype="aux_clm" nldir="clm/default">yellowstone</machine>
       </test>
     </grid>
   </compset>
-  <compset name="ICLM45CN4MeNoVS">
+  <compset name="ICLM45BGCNoVS">
     <grid name="f10_f10">
       <test name="ERS_D">
         <machine compiler="intel" testtype="aux_clm" nldir="clm/rootlit">yellowstone</machine>
@@ -2475,9 +2475,9 @@
     </grid>
   </compset>
   <compset name="ICLM45CNTEST">
-    <grid name="1x1_asphaltjungleNJ">
-      <test name="SBN">
-        <machine compiler="null" testtype="null">null</machine>
+    <grid name="1x1_camdenNJ">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="prebeta"                   >yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -2573,7 +2573,7 @@
     </grid>
   </compset>
   <compset name="ICNTEST">
-    <grid name="1x1_asphaltjungleNJ">
+    <grid name="1x1_camdenNJ">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
       </test>
@@ -2598,10 +2598,86 @@
       </test>
     </grid>
   </compset>
-  <compset name="ICRUCLM45CN4Me">
+  <compset name="ICLM45CNDV">
+    <grid name="f10_f10">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prebeta">yellowstone</machine>
+      </test>
+    </grid>
+    <grid name="f19_g16">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prerelease">yellowstone</machine>
+      </test>
+    </grid>
+    <grid name="1x1_numaIA">
+      <test name="SMS_Ly3">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prerelease">yellowstone</machine>
+      </test>
+    </grid>
+  </compset>
+  <compset name="ICLM45CNCROP">
+    <grid name="f10_f10">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prebeta">yellowstone</machine>
+      </test>
+    </grid>
+    <grid name="f19_g16">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prerelease">yellowstone</machine>
+      </test>
+    </grid>
+    <grid name="1x1_numaIA">
+      <test name="SMS_Ly3">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prerelease">yellowstone</machine>
+      </test>
+    </grid>
+    <grid name="1x1_smallvilleIA">
+      <test name="SMS_Ly3_D">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prerelease">yellowstone</machine>
+      </test>
+    </grid>
+  </compset>
+  <compset name="ICRUCLM45BGC">
     <grid name="hcru_hcru">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
+      </test>
+    </grid>
+    <grid name="f19_g16">
+      <test name="SMS">
+        <machine compiler="pgi"   testtype="prebeta">hopper</machine>
+        <machine compiler="intel" testtype="prebeta">janus</machine>
+      </test>
+    </grid>
+    <grid name="f09_g16">
+      <test name="SMS">
+        <machine compiler="intel" testtype="prerelease">hopper</machine>
+      </test>
+    </grid>
+    <grid name="f09_g16">
+      <test name="ERI_D">
+        <machine compiler="intel" testtype="prerelease">yellowstone</machine>
+        <machine compiler="intel" testtype="prerelease">hopper</machine>
+        <machine compiler="intel" testtype="prerelease">janus</machine>
+      </test>
+    </grid>
+  </compset>
+  <compset name="ICRUCLM45BGCTEST">
+    <grid name="f19_g16">
+      <test name="SMS">
+        <machine compiler="ibm" testtype="prerelease">intrepid</machine>
+      </test>
+    </grid>
+    <grid name="f09_g16">
+      <test name="SMS">
+        <machine compiler="ibm"   testtype="prerelease">intrepid</machine>
       </test>
     </grid>
   </compset>

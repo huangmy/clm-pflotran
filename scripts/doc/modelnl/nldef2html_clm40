@@ -23,9 +23,9 @@ print <<"END_of_Start";
 
 <body>
 
-<h2>Search or Browse CLM Component Model Namelist Variables</h2>
+<h2>Search or Browse CLM4_0 Component Model Namelist Variables</h2>
 <p>
-This page contains the complete list of CLM namelist variables available. They are grouped
+This page contains the complete list of CLM4_0 namelist variables available. They are grouped
 by categories designed to aid browsing.  Clicking on the name of a variable will display descriptive
 information.  If search terms are entered in the text box below, the list will be condensed to contain
 only matched variables.
@@ -82,7 +82,7 @@ only matched variables.
 
 END_of_Start
 
-my $nldef_file = "../../../models/lnd/clm/bld/namelist_files/namelist_definition.xml";
+my $nldef_file = "../../../models/lnd/clm/bld/namelist_files/namelist_definition_clm4_0.xml";
 my $nldef = Build::NamelistDefinition->new($nldef_file);
 
 # Get list of categories in the definition file.

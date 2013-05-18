@@ -23,7 +23,6 @@ my $ProgDir = $1;
 my $cwd = getcwd;
 my $cfgdir;
 my $scriptsroot;
-my $ccsmroot;
 my $testlistsubdirxml;
 my $testlid; 
 my $suitemode = 0;
@@ -100,7 +99,8 @@ OPTIONS:
       -autosubmit [on|off]  Flag that controls whether the tests are automatically submitted to the batch queueing system. 
 
       -baselineroot <dir>   Specifies an alternate root directory for baseline datasets used
-                            for BFB generate/compare testing. 
+                            for BFB generate/compare testing.  If this argument is not supplied, the default 
+                            baselineroot will be used from scripts. 
 
       -cesmroot <dir>      manually specify the root directory of your CESM sandbox. 
       
@@ -225,7 +225,7 @@ USAGE
   exit(1);
 }
 
-# Initialize the script.  Set up the cfgdir, the scriptsroot, and the ccsmroot.  
+# Initialize the script.  Set up the cfgdir, the scriptsroot, and the options.
 # Find the location of the model Perl modules.  
 sub initialize()
 {
@@ -240,7 +240,6 @@ sub initialize()
     $cfgdir = $cwd;
   }
   $scriptsroot = abs_path("$cfgdir");
-  $ccsmroot = abs_path("$scriptsroot/..");
 
   if( ! -d "$scriptsroot")
   {
@@ -292,7 +291,6 @@ sub initialize()
            user_nl_dir          => undef,
            verbose              => 0,
            );
-  usage() if $opts{'help'};
 }
 
 # Get the command line options. 
@@ -302,6 +300,7 @@ sub options
                "autosubmit=s"      => \$opts{'autosubmit'},
                "baselineroot=s"    => \$opts{'baselineroot'},
                "clean=s"           => \$opts{'clean'},
+               "cesmroot=s"        => \$opts{'cesmroot'},
                "compare=s"         => \$opts{'compare'},
                "compiler=s"        => \$opts{'compiler'},
                "compset_file=s"    => \$opts{'compset_file'},
@@ -327,6 +326,7 @@ sub options
                "user_nl_dir=s"     => \$opts{'user_nl_dir'},
                "verbose"           => \$opts{'verbose'},  
               ) or usage();
+  usage() if $opts{'help'};
 }
 
 # Options checking not specific to either a single test or test suite. 
@@ -381,6 +381,13 @@ sub checkOptions
       &Debug("opts xml_category: $opts{'xml_category'}");
       $suitemode = 1;
       $xmlmode = 1;
+  }
+
+  # if an xml_list is defined on the command line and does not exist, exit. 
+  $opts{'xml_list'} = abs_path($opts{'xml_list'});
+  if(defined $opts{'xml_list'} && ! -e $opts{'xml_list'})
+  {
+	die "Sorry, could not find the specified xml test list: $opts{'xml_list'}";
   }
 
   # If both input_list and testname are given as options, 
@@ -469,14 +476,8 @@ sub checkOptions
 
   # If the nlcompareonly option was invoked, we only want to generate a test suite, compare the namelist
   # et al to a set of namelist baselines. 
-  if( defined $opts{'nlcompareonly'} )
+  if( defined $opts{'nlcompareonly'}   && (  defined $opts{'compare'} ||  defined $opts{'generate'}) )
   {
-    if(! defined $opts{'compare'} || ! defined $opts{'baselineroot'})
-    {
-      print "$ProgName: to use the 'nlcompareonly' option, the -generate or -compare options must be set\n";
-      print "and the -baselineroot option must be set\n";
-      exit(1);
-    }
     print "----------------------------------------------------------------------------\n";
     print "Offline namelist comparision option invoked\n";
     print "Setting autosubmit, nobatch, nobuild, and reruntests to off!\n";
@@ -486,6 +487,11 @@ sub checkOptions
     $opts{'nobatch'} = 'on';
     $opts{'nobuild'} = 'on';
     $opts{'reruntests'} = 'off';
+  }
+  elsif( defined $opts{'nlcompareonly'} && ! defined $opts{'compare'} && ! defined $opts{'generate'})
+  {
+    print "$ProgName: to use the 'nlcompareonly' option, either the -generate or -compare options must be set\n";
+    exit(1);
   }
 }
 
@@ -806,7 +812,7 @@ sub ParseTestName
   {
     if($opts{'mach'} =~ /_/)
     {
-       ($testhash->{'mach'}, $testhash->{'compiler'}) = split('_', $opts{'machine'});    
+       ($testhash->{'mach'}, $testhash->{'compiler'}) = split('_', $opts{'mach'});    
     }
     else
     {
@@ -984,7 +990,7 @@ sub runCreateNewcase
   {
     $cn_args .= " -compiler $test{'compiler'}";
   }
-  my $createnewcase = "$scriptsroot/create_newcase $cn_args";
+  my $createnewcase = "$opts{'cesmroot'}/scripts/create_newcase $cn_args";
   if($opts{'dryrun'}){
       print "$createnewcase\n";
       return;
@@ -1126,6 +1132,19 @@ sub writeEnvTestXML
   $cfg_ref->write_file("$caseroot/env_test.xml");
   
 }
+# Set the baselineroot defined for this machine if not already set.
+sub getBaselineRoot
+{
+	my $test = shift;
+	my $caseroot = $opts{'testroot'}."/".$test->{'case'};
+	my %xmlvars = ();
+	SetupTools::getxmlvars($caseroot, \%xmlvars);
+	foreach my $attr(keys %xmlvars)
+	{
+		$xmlvars{$attr} = SetupTools::expand_env_var($xmlvars{$attr}, \%xmlvars);
+	}
+	return $xmlvars{'CCSM_BASELINE'};
+}
 
 # Post create_newcase testcase setup.  Set up the environment properly for testcase_setup.csh, 
 # and call it. 
@@ -1159,7 +1178,14 @@ sub testcaseSetup
   {
       $sysmod = "$sysmod COMPARE_BASELINE='' baseline_name_cmp=$xmlvars{'BASELINE_NAME_CMP'} BASECMP_CASE=$xmlvars{'BASECMP_CASE'} ";
   }
-  $sysmod = "$sysmod STOP_OPTION=$xmlvars{'STOP_OPTION'} STOP_N=$xmlvars{'STOP_N'} ";
+  if(defined $xmlvars{'STOP_OPTION'})
+  {
+      $sysmod = "$sysmod STOP_OPTION=$xmlvars{'STOP_OPTION'} ";
+  }
+  if(defined $xmlvars{'STOP_N'})
+  {
+      $sysmod = "$sysmod STOP_N=$xmlvars{'STOP_N'} ";
+  }
   $sysmod = "$sysmod  $scriptsroot/ccsm_utils/Tools/testcase_setup.csh"; 
 
   print "Setting up test case..\n";
@@ -1274,7 +1300,7 @@ sub writeTestListXML
 <testlist>
   <testroot>$opts{'testroot'}</testroot>
   <scriptsroot>$scriptsroot</scriptsroot>
-  <ccsmroot>$ccsmroot</ccsmroot>
+  <ccsmroot>$opts{'cesmroot'}</ccsmroot>
   <nobatch>$opts{'nobatch'}</nobatch>
   <nobuild>$opts{'nobuild'}</nobuild>
   <autosubmit>$opts{'autosubmit'}</autosubmit>
@@ -1443,47 +1469,49 @@ sub namelistCompare
 
 
 	# print the compare_namelist results to TestStatus.out 
-	open my $STATUSOUT, ">" , "$testpath/TestStatus.out" or die $!;
-	print $STATUSOUT $nlcompoutput ;
-	close $STATUSOUT;
-   
-	# set the status of the namelist comparison to PASS or FAIL 
-	# if ANY of the namelist comparisons failed.  
-	open my $STATUS, ">>", "$testpath/TestStatus" or die $!;
-	open my $STATUSCOMP, ">", "$testpath/TestStatus.nlcomp" or die $!;
-	my $cprstatus;
-	if($nlcompoutput =~ /FAIL/)
+    if(defined $nlcompoutput && length $nlcompoutput > 0) 
 	{
-	    $status = "FAIL" if(defined $status);
-	    $cprstatus =  "FAIL $test.nlcomp\n";
-	    print $STATUS $cprstatus;
-	    print $STATUSCOMP $cprstatus;
-	}
-	else
-	{
-	    $status = "PASS" if(defined $status);
-	    $cprstatus = "PASS $test.nlcomp\n";
-	    print $STATUS $cprstatus;
-	    print $STATUSCOMP $cprstatus;
-	}
-	close $STATUS;
-	close $STATUSCOMP;
+		open my $STATUSOUT, ">" , "$testpath/TestStatus.out" or die $!;
+		print $STATUSOUT $nlcompoutput ;
+		close $STATUSOUT;
+	   
+		# set the status of the namelist comparison to PASS or FAIL 
+		# if ANY of the namelist comparisons failed.  
+		open my $STATUS, ">>", "$testpath/TestStatus" or die $!;
+		open my $STATUSCOMP, ">", "$testpath/TestStatus.nlcomp" or die $!;
+		my $cprstatus;
+		if($nlcompoutput =~ /FAIL/)
+		{
+			$status = "FAIL" if(defined $status);
+			$cprstatus =  "FAIL $test.nlcomp\n";
+			print $STATUS $cprstatus;
+			print $STATUSCOMP $cprstatus;
+		}
+		else
+		{
+			$status = "PASS" if(defined $status);
+			$cprstatus = "PASS $test.nlcomp\n";
+			print $STATUS $cprstatus;
+			print $STATUSCOMP $cprstatus;
+		}
+		close $STATUS;
+		close $STATUSCOMP;
 
-        # print the compare_namelist output to namelistcompare.$testid.$mach.log
-	# only if we're running a suite. 
-        if( $suitemode != 0 || $xmlmode != 0)
-	{
-	    my $nlcomparelog= "$opts{'testroot'}/namelistcompare.$opts{'testid'}.$opts{'mach'}.log";
-	    open my $NLCMPLOG, ">>", "$nlcomparelog" or die $!;
-	    print $NLCMPLOG "---------------------------------------------------------------------\n";
-	    print $NLCMPLOG "$cprstatus $test\n";
-	    print $NLCMPLOG $nlcompoutput;
-	    print $NLCMPLOG "---------------------------------------------------------------------\n";
-	    close $NLCMPLOG;
-        }
-	
-	print $cprstatus;
+		# print the compare_namelist output to namelistcompare.$testid.$mach.log
+		# only if we're running a suite. 
+		if( $suitemode != 0 || $xmlmode != 0)
+		{
+			my $nlcomparelog= "$opts{'testroot'}/namelistcompare.$opts{'testid'}.$opts{'mach'}.log";
+			open my $NLCMPLOG, ">>", "$nlcomparelog" or die $!;
+			print $NLCMPLOG "---------------------------------------------------------------------\n";
+			print $NLCMPLOG "$cprstatus $test\n";
+			print $NLCMPLOG $nlcompoutput;
+			print $NLCMPLOG "---------------------------------------------------------------------\n";
+			close $NLCMPLOG;
+		}
+		print $cprstatus;
     }
+	}
     if($opts{'generate'}){
 	my $genpath = "$baseroot/".$opts{'generate'}."/$basename";
 	if(-d $genpath){
@@ -1526,6 +1554,9 @@ sub doonetest{
     checkTestCase($testhash);
     documentTestCase($testhash);
     runCreateNewcase($testhash);
+	if(! defined $opts{'baselineroot'}) {
+        $opts{'baselineroot'} = getBaselineRoot($testhash);
+    }
     if(! $opts{'dryrun'}){
 	writeEnvTestXML($testhash);
 	testcaseSetup($testhash);

@@ -2,6 +2,22 @@
 
 if !(-d $CASEBUILD/rtmconf) mkdir -p $CASEBUILD/rtmconf
 
+#------------------------------
+# Verify rof grid is supported
+
+set check_grid = "fail"
+if (${ROF_GRID} == "null")set check_grid = "OK"
+if (${ROF_GRID} == "r05") set check_grid = "OK"
+if (${ROF_GRID} == "r01") set check_grid = "OK"
+
+if (${check_grid} != "OK") then
+  echo "ROF_GRID=${ROF_GRID} not supported in rtm"
+  echo "  rtm support on null (for single point runs), r05 and r01 ROF_GRIDs only"
+  exit -2
+endif
+
+#------------------------------
+
 set default_rof_in_filename = "rof_in"
 
 set inst_counter = 1
@@ -27,24 +43,24 @@ if (-e $CASEBUILD/rtm.input_data_list) rm $CASEBUILD/rtm.input_data_list
 # The following is for backwards compatibility when runoff restart data was on clm restart files
 set finidat_rtm = ""
 if ($RUN_TYPE == 'hybrid') then
-  set finidat_rtm = "finidat_rtm ='${RUN_REFCASE}.rtm.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'"
+  set finidat_rtm = "finidat_rtm ='${RUN_REFCASE}.rtm${inst_string}.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'" 
   if ($GET_REFCASE == 'TRUE') then
     set refdir = "ccsm4_init/$RUN_REFCASE/$RUN_REFDATE"
     ls $refdir/*rtm* >& /dev/null
     if ( $status != 0 ) then
-      set finidat_rtm = "finidat_rtm ='${RUN_REFCASE}.clm2.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'" 
+      set finidat_rtm = "finidat_rtm ='${RUN_REFCASE}.clm2${inst_string}.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'" 
     endif
   endif
 endif
 
 set nrevsn_rtm = ""
 if ($RUN_TYPE == 'branch') then
-  set nrevsn_rtm = "nrevsn_rtm ='${RUN_REFCASE}.rtm.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'"
+  set nrevsn_rtm = "nrevsn_rtm ='${RUN_REFCASE}.rtm${inst_string}.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'" 
   if ($GET_REFCASE == 'TRUE') then
      set refdir = "ccsm4_init/$RUN_REFCASE/$RUN_REFDATE"
      ls $refdir/*rtm* >& /dev/null
      if ( $status != 0 ) then
-       set nrevsn_rtm = "nrevsn_rtm ='${RUN_REFCASE}.clm2.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'"
+       set nrevsn_rtm = "nrevsn_rtm ='${RUN_REFCASE}.clm2${inst_string}.r.${RUN_REFDATE}-${RUN_REFTOD}.nc'" 
      endif
   endif
 endif

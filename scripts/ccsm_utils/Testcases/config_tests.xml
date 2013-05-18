@@ -133,6 +133,15 @@
           CCSM_TCOST="-1"
           DOUT_S="FALSE" />
 
+<ccsmtest NAME="SSP"
+          DESC="smoke CLM spinup test (only valid for CLM compsets with CLM45 and CN or BGC)"
+          INFO_DBUG="2"
+          CCSM_TCOST="-1"
+          STOP_OPTION="nsteps"
+          RUN_TYPE="startup"
+          STOP_N="96"
+          DOUT_S="FALSE" />
+
 <ccsmtest NAME="NCK"
           DESC="multi-instance validation vs single instance (default length)"
           INFO_DBUG="2"

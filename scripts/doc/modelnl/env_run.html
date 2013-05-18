@@ -1155,6 +1155,67 @@ Valid Values: nothing,netcdf,pnetcdf,netcdf4p,netcdf4c </pre>
     </td>
     <td>env_run.xml</td>
   </tr>
+  <tr id="WAV_PIO_STRIDE_tr">
+    <td><a name="WAV_PIO_STRIDE"></a>
+        <img id="WAV_PIO_STRIDE_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_PIO_STRIDE')">WAV_PIO_STRIDE</a>
+        </code>
+        <div id="WAV_PIO_STRIDE_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>pio stride</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="WAV_PIO_ROOT_tr">
+    <td><a name="WAV_PIO_ROOT"></a>
+        <img id="WAV_PIO_ROOT_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_PIO_ROOT')">WAV_PIO_ROOT</a>
+        </code>
+        <div id="WAV_PIO_ROOT_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>pio root processor</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="WAV_PIO_NUMTASKS_tr">
+    <td><a name="WAV_PIO_NUMTASKS"></a>
+        <img id="WAV_PIO_NUMTASKS_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_PIO_NUMTASKS')">WAV_PIO_NUMTASKS</a>
+        </code>
+        <div id="WAV_PIO_NUMTASKS_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>pio number of io tasks</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="WAV_PIO_TYPENAME_tr">
+    <td><a name="WAV_PIO_TYPENAME"></a>
+        <img id="WAV_PIO_TYPENAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_PIO_TYPENAME')">WAV_PIO_TYPENAME</a>
+        </code>
+        <div id="WAV_PIO_TYPENAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>pio io type
+Valid Values: nothing,netcdf,pnetcdf,netcdf4p,netcdf4c </pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
 </table>
 <h3><span style="background-color: #00FFFF" font color="purple"><a name="run_mpi"     >MPI library setting</a></h3></span>
 <table id="run_mpi_table" border="1" width="100%" cellpadding="2" cellspacing="0">
@@ -1336,6 +1397,21 @@ Valid Values: hour,day,year,decade </pre>
     </td>
     <td>env_run.xml</td>
   </tr>
+  <tr id="WAV_NCPL_tr">
+    <td><a name="WAV_NCPL"></a>
+        <img id="WAV_NCPL_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_NCPL')">WAV_NCPL</a>
+        </code>
+        <div id="WAV_NCPL_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>number of wav coupling intervals per NCPL_BASE_PERIOD (integer)</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
   <tr id="OCN_TIGHT_COUPLING_tr">
     <td><a name="OCN_TIGHT_COUPLING"></a>
         <img id="OCN_TIGHT_COUPLING_arrow" src="./images/arrow_right.gif">
@@ -1357,6 +1433,22 @@ Valid Values: TRUE,FALSE </pre>
 <table id="run_defpts_table" border="1" width="100%" cellpadding="2" cellspacing="0">
   <th width="80%">Variable Name</th>
   <th width="10%">File Name</th>
+  <tr id="PTS_MODE_tr">
+    <td><a name="PTS_MODE"></a>
+        <img id="PTS_MODE_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('PTS_MODE')">PTS_MODE</a>
+        </code>
+        <div id="PTS_MODE_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Operate on only a single point of the global grid  - DO NOT EDIT (for experts only)
+Valid Values: TRUE,FALSE </pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
   <tr id="PTS_LAT_tr">
     <td><a name="PTS_LAT"></a>
         <img id="PTS_LAT_arrow" src="./images/arrow_right.gif">
@@ -1367,7 +1459,7 @@ Valid Values: TRUE,FALSE </pre>
         <div id="PTS_LAT_help" style="display: none;
              padding-left: 16px; margin-top: 4px; border-top: 1px dashed
              #cccccc;">
-	     <pre>Latitude to find nearest points for points mode</pre>
+	     <pre>Latitude to find nearest points for points mode (only used if PTS_MODE is TRUE)</pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -1382,7 +1474,7 @@ Valid Values: TRUE,FALSE </pre>
         <div id="PTS_LON_help" style="display: none;
              padding-left: 16px; margin-top: 4px; border-top: 1px dashed
              #cccccc;">
-	     <pre>Longitude to find nearest points for points mode</pre>
+	     <pre>Longitude to find nearest points for points mode (only used if PTS_MODE is TRUE)</pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -1482,6 +1574,36 @@ Valid Values: TRUE,FALSE </pre>
     </td>
     <td>env_run.xml</td>
   </tr>
+  <tr id="WAV_DOMAIN_FILE_tr">
+    <td><a name="WAV_DOMAIN_FILE"></a>
+        <img id="WAV_DOMAIN_FILE_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_DOMAIN_FILE')">WAV_DOMAIN_FILE</a>
+        </code>
+        <div id="WAV_DOMAIN_FILE_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>wav domain file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="WAV_DOMAIN_PATH_tr">
+    <td><a name="WAV_DOMAIN_PATH"></a>
+        <img id="WAV_DOMAIN_PATH_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV_DOMAIN_PATH')">WAV_DOMAIN_PATH</a>
+        </code>
+        <div id="WAV_DOMAIN_PATH_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>path of wav domain file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
   <tr id="ICE_DOMAIN_FILE_tr">
     <td><a name="ICE_DOMAIN_FILE"></a>
         <img id="ICE_DOMAIN_FILE_arrow" src="./images/arrow_right.gif">
@@ -1538,6 +1660,427 @@ Valid Values: TRUE,FALSE </pre>
              padding-left: 16px; margin-top: 4px; border-top: 1px dashed
              #cccccc;">
 	     <pre>path of ocn domain file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="GLC_DOMAIN_FILE_tr">
+    <td><a name="GLC_DOMAIN_FILE"></a>
+        <img id="GLC_DOMAIN_FILE_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('GLC_DOMAIN_FILE')">GLC_DOMAIN_FILE</a>
+        </code>
+        <div id="GLC_DOMAIN_FILE_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>glc domain file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="GLC_DOMAIN_PATH_tr">
+    <td><a name="GLC_DOMAIN_PATH"></a>
+        <img id="GLC_DOMAIN_PATH_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('GLC_DOMAIN_PATH')">GLC_DOMAIN_PATH</a>
+        </code>
+        <div id="GLC_DOMAIN_PATH_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>path of glc domain file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2OCN_FMAPNAME_tr">
+    <td><a name="ATM2OCN_FMAPNAME"></a>
+        <img id="ATM2OCN_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2OCN_FMAPNAME')">ATM2OCN_FMAPNAME</a>
+        </code>
+        <div id="ATM2OCN_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2ocn flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2OCN_SMAPNAME_tr">
+    <td><a name="ATM2OCN_SMAPNAME"></a>
+        <img id="ATM2OCN_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2OCN_SMAPNAME')">ATM2OCN_SMAPNAME</a>
+        </code>
+        <div id="ATM2OCN_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2ocn state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2OCN_VMAPNAME_tr">
+    <td><a name="ATM2OCN_VMAPNAME"></a>
+        <img id="ATM2OCN_VMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2OCN_VMAPNAME')">ATM2OCN_VMAPNAME</a>
+        </code>
+        <div id="ATM2OCN_VMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2ocn vector mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="OCN2ATM_FMAPNAME_tr">
+    <td><a name="OCN2ATM_FMAPNAME"></a>
+        <img id="OCN2ATM_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('OCN2ATM_FMAPNAME')">OCN2ATM_FMAPNAME</a>
+        </code>
+        <div id="OCN2ATM_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>ocn2atm flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="OCN2ATM_SMAPNAME_tr">
+    <td><a name="OCN2ATM_SMAPNAME"></a>
+        <img id="OCN2ATM_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('OCN2ATM_SMAPNAME')">OCN2ATM_SMAPNAME</a>
+        </code>
+        <div id="OCN2ATM_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>ocn2atm state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2LND_FMAPNAME_tr">
+    <td><a name="ATM2LND_FMAPNAME"></a>
+        <img id="ATM2LND_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2LND_FMAPNAME')">ATM2LND_FMAPNAME</a>
+        </code>
+        <div id="ATM2LND_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2lnd flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2LND_SMAPNAME_tr">
+    <td><a name="ATM2LND_SMAPNAME"></a>
+        <img id="ATM2LND_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2LND_SMAPNAME')">ATM2LND_SMAPNAME</a>
+        </code>
+        <div id="ATM2LND_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2lnd state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="LND2ATM_FMAPNAME_tr">
+    <td><a name="LND2ATM_FMAPNAME"></a>
+        <img id="LND2ATM_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('LND2ATM_FMAPNAME')">LND2ATM_FMAPNAME</a>
+        </code>
+        <div id="LND2ATM_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>lnd2atm flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="LND2ATM_SMAPNAME_tr">
+    <td><a name="LND2ATM_SMAPNAME"></a>
+        <img id="LND2ATM_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('LND2ATM_SMAPNAME')">LND2ATM_SMAPNAME</a>
+        </code>
+        <div id="LND2ATM_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>lnd2atm state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ROF2LND_FMAPNAME_tr">
+    <td><a name="ROF2LND_FMAPNAME"></a>
+        <img id="ROF2LND_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ROF2LND_FMAPNAME')">ROF2LND_FMAPNAME</a>
+        </code>
+        <div id="ROF2LND_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>rof2lnd flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ROF2LND_SMAPNAME_tr">
+    <td><a name="ROF2LND_SMAPNAME"></a>
+        <img id="ROF2LND_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ROF2LND_SMAPNAME')">ROF2LND_SMAPNAME</a>
+        </code>
+        <div id="ROF2LND_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>rof2lnd state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="LND2ROF_FMAPNAME_tr">
+    <td><a name="LND2ROF_FMAPNAME"></a>
+        <img id="LND2ROF_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('LND2ROF_FMAPNAME')">LND2ROF_FMAPNAME</a>
+        </code>
+        <div id="LND2ROF_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>lnd2rof flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ROF2OCN_FMAPNAME_tr">
+    <td><a name="ROF2OCN_FMAPNAME"></a>
+        <img id="ROF2OCN_FMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ROF2OCN_FMAPNAME')">ROF2OCN_FMAPNAME</a>
+        </code>
+        <div id="ROF2OCN_FMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>rof2ocn flux mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ROF2OCN_RMAPNAME_tr">
+    <td><a name="ROF2OCN_RMAPNAME"></a>
+        <img id="ROF2OCN_RMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ROF2OCN_RMAPNAME')">ROF2OCN_RMAPNAME</a>
+        </code>
+        <div id="ROF2OCN_RMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>rof2ocn runoff mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ATM2WAV_SMAPNAME_tr">
+    <td><a name="ATM2WAV_SMAPNAME"></a>
+        <img id="ATM2WAV_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ATM2WAV_SMAPNAME')">ATM2WAV_SMAPNAME</a>
+        </code>
+        <div id="ATM2WAV_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>atm2wav state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="OCN2WAV_SMAPNAME_tr">
+    <td><a name="OCN2WAV_SMAPNAME"></a>
+        <img id="OCN2WAV_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('OCN2WAV_SMAPNAME')">OCN2WAV_SMAPNAME</a>
+        </code>
+        <div id="OCN2WAV_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>ocn2wav state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="ICE2WAV_SMAPNAME_tr">
+    <td><a name="ICE2WAV_SMAPNAME"></a>
+        <img id="ICE2WAV_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('ICE2WAV_SMAPNAME')">ICE2WAV_SMAPNAME</a>
+        </code>
+        <div id="ICE2WAV_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>ice2wav state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="WAV2OCN_SMAPNAME_tr">
+    <td><a name="WAV2OCN_SMAPNAME"></a>
+        <img id="WAV2OCN_SMAPNAME_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('WAV2OCN_SMAPNAME')">WAV2OCN_SMAPNAME</a>
+        </code>
+        <div id="WAV2OCN_SMAPNAME_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>wav2ocn state mapping file</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="VECT_MAP_tr">
+    <td><a name="VECT_MAP"></a>
+        <img id="VECT_MAP_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('VECT_MAP')">VECT_MAP</a>
+        </code>
+        <div id="VECT_MAP_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>vector mapping option
+Valid Values: none,npfix,cart3d,cart3d_diag,cart3d_uvw,cart3d_uvw_diag </pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_FRAC_tr">
+    <td><a name="EPS_FRAC"></a>
+        <img id="EPS_FRAC_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_FRAC')">EPS_FRAC</a>
+        </code>
+        <div id="EPS_FRAC_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in fractions in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_AAREA_tr">
+    <td><a name="EPS_AAREA"></a>
+        <img id="EPS_AAREA_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_AAREA')">EPS_AAREA</a>
+        </code>
+        <div id="EPS_AAREA_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in atm/land areas in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_AMASK_tr">
+    <td><a name="EPS_AMASK"></a>
+        <img id="EPS_AMASK_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_AMASK')">EPS_AMASK</a>
+        </code>
+        <div id="EPS_AMASK_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in atm/land masks in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_AGRID_tr">
+    <td><a name="EPS_AGRID"></a>
+        <img id="EPS_AGRID_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_AGRID')">EPS_AGRID</a>
+        </code>
+        <div id="EPS_AGRID_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in atm/land lat/lon in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_OAREA_tr">
+    <td><a name="EPS_OAREA"></a>
+        <img id="EPS_OAREA_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_OAREA')">EPS_OAREA</a>
+        </code>
+        <div id="EPS_OAREA_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in ocean/ice lon/lat in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_OMASK_tr">
+    <td><a name="EPS_OMASK"></a>
+        <img id="EPS_OMASK_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_OMASK')">EPS_OMASK</a>
+        </code>
+        <div id="EPS_OMASK_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in ocean/ice lon/lat in domain checking</pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="EPS_OGRID_tr">
+    <td><a name="EPS_OGRID"></a>
+        <img id="EPS_OGRID_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('EPS_OGRID')">EPS_OGRID</a>
+        </code>
+        <div id="EPS_OGRID_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Error tolerance for differences in ocean/ice lon/lat in domain checking</pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -1843,7 +2386,7 @@ Valid Values: none,CO2A,CO2B,CO2C,CO2_DMSA </pre>
              #cccccc;">
 	     <pre>Glacier model number of elevation classes, 0 implies no glacier land unit in clm . 
 Used by both CLM and CISM (even if CISM is not running, and only SGLC is used)
-Valid Values: 0,1,3,5,10 </pre>
+Valid Values: 0,1,3,5,10,36 </pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -2216,22 +2759,59 @@ Valid Values: TRUE,FALSE </pre>
 <table id="run_component_cism_table" border="1" width="100%" cellpadding="2" cellspacing="0">
   <th width="80%">Variable Name</th>
   <th width="10%">File Name</th>
-  <tr id="GLC_GRID_tr">
-    <td><a name="GLC_GRID"></a>
-        <img id="GLC_GRID_arrow" src="./images/arrow_right.gif">
+  <tr id="CISM_GRID_tr">
+    <td><a name="CISM_GRID"></a>
+        <img id="CISM_GRID_arrow" src="./images/arrow_right.gif">
         <code class="varname">
           <a href="javascript:void(0)"
-             onclick="toggleHelp('GLC_GRID')">GLC_GRID</a>
+             onclick="toggleHelp('CISM_GRID')">CISM_GRID</a>
         </code>
-        <div id="GLC_GRID_help" style="display: none;
+        <div id="CISM_GRID_help" style="display: none;
              padding-left: 16px; margin-top: 4px; border-top: 1px dashed
              #cccccc;">
 	     <pre>Glacier model grid - used only for glacier land mask in clm . 
-Currently the GLC grid and GLC_NX and GLC_NY is assumed to be
-identical to the land grid. GLC_GRID determines the specific local internal 
-grid that CISM will use for internal calculations. 
+The glimmer-cism grid for coupling is assumed to be identical to the land grid. 
+CISM_GRID determines the specific local internal grid that CISM will use for 
+internal calculations. 
 The default is gland5UM (5km grid).
-Valid Values: gland20,gland10,gland5,gland5UM </pre>
+Valid Values: gland20,gland10,gland5,gland5UM,null </pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="CISM_PHYS_tr">
+    <td><a name="CISM_PHYS"></a>
+        <img id="CISM_PHYS_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('CISM_PHYS')">CISM_PHYS</a>
+        </code>
+        <div id="CISM_PHYS_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>Version of CISM physics/dynamics to use
+Valid Values: cism1,cism2 </pre>
+        </div>
+    </td>
+    <td>env_run.xml</td>
+  </tr>
+  <tr id="CISM_OBSERVED_IC_tr">
+    <td><a name="CISM_OBSERVED_IC"></a>
+        <img id="CISM_OBSERVED_IC_arrow" src="./images/arrow_right.gif">
+        <code class="varname">
+          <a href="javascript:void(0)"
+             onclick="toggleHelp('CISM_OBSERVED_IC')">CISM_OBSERVED_IC</a>
+        </code>
+        <div id="CISM_OBSERVED_IC_help" style="display: none;
+             padding-left: 16px; margin-top: 4px; border-top: 1px dashed
+             #cccccc;">
+	     <pre>For hybrid runs, whether CISM should use observed initial conditions instead of restart file . 
+For hybrid runs, a value of FALSE (default) implies that CISM should
+use the restart file from the reference case; a value of TRUE implies
+that CISM should instead use the observed initial conditions that are
+generally used for startup runs. This variable is ignored for startup
+runs; for branch runs, it MUST BE FALSE.
+Valid Values: TRUE,FALSE </pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -2270,9 +2850,9 @@ Valid Values: true,false </pre>
 	     <pre>DATM mode . 
 Mode for data atmosphere component.
 The default is CORE2_NYF (CORE2 normal year forcing) is the 
-DATM mode used in C and G compsets. CLM_QIAN and CLM1PT are 
+DATM mode used in C and G compsets. CLM_QIAN, CLMCRUNCEP and CLM1PT are 
 modes using observational data for forcing CLM in I compsets.
-Valid Values: CORE2_NYF,CORE2_IAF,TN460,CLM_QIAN,CLM1PT,CPLHIST3HrWx,COPYALL_NPS_v1,COPYALL_NPS_CORE2_v1,WRF </pre>
+Valid Values: CORE2_NYF,CORE2_IAF,TN460,CLM_QIAN,CLM1PT,CLMCRUNCEP,CPLHIST3HrWx,COPYALL_NPS_v1,COPYALL_NPS_CORE2_v1,WRF,WW3 </pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -2436,7 +3016,7 @@ coupler. Normally the ice fraction data is found in the same data files
 that provide SST data to the data ocean model. They are normally found 
 in the same file because the SST and ice fraction data are derived from the
 same observational data sets and are consistent with each other.
-Valid Values: prescribed,ssmi,ssmi_iaf,null </pre>
+Valid Values: prescribed,ssmi,ssmi_iaf,copyall,null </pre>
         </div>
     </td>
     <td>env_run.xml</td>
@@ -2492,7 +3072,7 @@ appropriate and is provided for testing and development purposes only.
 Users must create scientifically appropriate data for their particular
 application.  A tool is available to derive valid SOM forcing. 
 Default is prescribed.
-Valid Values: prescribed,som,null </pre>
+Valid Values: prescribed,som,copyall,null </pre>
         </div>
     </td>
     <td>env_run.xml</td>

@@ -25,9 +25,15 @@ foreach $line (@nlfile){
     my $bline = shift(@basenml) if($shiftbl);
     $shiftbl=1;
     next if($line eq $bline);
+    $bline=shift(@basenml) if(($bline =~ /^\s*[#!\[\/]/) or ($bline =~ /^\s*$/));
 
     next if(defined $baseid && $line =~ /$baseid/); 
-    next if($line =~ /^\s*[!#]/);
+#    next if($line =~ /^\s*#/);
+#    next if($line =~ /^\s*!/);
+#    next if($line =~ /^\s*\[/);
+#    next if($line =~ /^\s*[!\[\/]/);
+    next if($line =~ /^\s*[#!\[\/]/);
+    next if($line =~ /^\s*$/);
     next if($line =~ /runid/);    
     next if($line =~ /model_version/);
     next if($line =~ /logfile/);

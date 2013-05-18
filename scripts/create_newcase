@@ -1669,7 +1669,11 @@ sub set_compset
 		if ($desc_comp =~ m/$val/) {
 		    # do nothing
 		} else {
-		    $desc_comp = $desc_comp . " $val";
+		    if($val =~ /\n/){
+			$desc_comp = $desc_comp . "\n$val\n";
+		    }else{
+			$desc_comp = $desc_comp . " $val";
+		    }
 		}
 	    }
 	    # Make sure that there is a description match for each part of the compset_name

@@ -4,6 +4,42 @@ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk/ChangeLog $
 
 This file describes what tags were created and why
 ================================================================================
+Originator: erik
+Date: 09 May 2013
+Model: Machines
+Version: Machines_130509
+One-line: Fix DIN_LOC_ROOT_CLMFORC and set correctly it for frankfurt and janus
+
+The specific Qian subdirectory: atm_forcing.datm7.Qian.T62.c080727 was included
+in many instances of DIN_LOC_ROOT_CLMFORC and should NOT have been. Also added
+it for janus, and set it to /project/tss for frankfurt.
+
+M       config_machines.xml
+
+================================================================================
+Originator: santos
+Date: 06 May 2013
+Model: Machines
+Version: Machines_130506a
+One-line: Re-enable threading for WACCM-SE.
+
+M      config_pes.xml
+        - Remove recently added workaround for WACCM-SE memory leak, as it will
+          be fixed in CAM.
+
+================================================================================
+Originator: jedwards
+Date: 06 May 2013
+Model: Machines
+Version: Machines_130506
+One-line: Update bluewaters
+
+M      config_compilers.xml
+M      env_mach_specific.bluewaters
+M      mkbatch.bluewaters
+
+
+================================================================================
 Originator: jedwards
 Date: 02 May 2013
 Model: Machines

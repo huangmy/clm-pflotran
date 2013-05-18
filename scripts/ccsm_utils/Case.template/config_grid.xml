@@ -27,7 +27,6 @@ Each grid is associated with three names
 <GRID sname="1x1_brazil"          compset="DATM.+CLM">a%1x1_brazil_l%1x1_brazil_oi%1x1_brazil_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_smallvilleIA"    compset="DATM.+CLM">a%1x1_smallvilleIA_l%1x1_smallvilleIA_oi%1x1_smallvilleIA_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_camdenNJ"        compset="DATM.+CLM">a%1x1_camdenNJ_l%1x1_camdenNJ_oi%1x1_camdenNJ_r%null_m%reg_g%null_w%null</GRID>
-<GRID sname="1x1_asphaltjungleNJ" compset="DATM.+CLM">a%1x1_asphaltjungleNJ_l%1x1_asphaltjungleNJ_oi%1x1_asphaltjungleNJ_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_mexicocityMEX"   compset="DATM.+CLM">a%1x1_mexicocityMEX_l%1x1_mexicocityMEX_oi%1x1_mexicocityMEX_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_vancouverCAN"    compset="DATM.+CLM">a%1x1_vancouverCAN_l%1x1_vancouverCAN_oi%1x1_vancouverCAN_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_tropicAtl"       compset="DATM.+CLM">a%1x1_tropicAtl_l%1x1_tropicAtl_oi%1x1_tropicAtl_r%null_m%reg_g%null_w%null</GRID>
@@ -86,8 +85,8 @@ Each grid is associated with three names
 <GRID sname="ne120np4_0.9x1.25_gx1v6"    alias="ne120_f09_g16">a%ne120np4_l%0.9x1.25_oi%gx1v6r%r05_m%gx1v6_g%null_w%null</GRID>      
 <GRID sname="ne120np4_0.23x0.31_tx0.1v2" alias="ne120_f02_t12">a%ne120np4_l%0.23x0.31_oi%tx0.1v2r%r05_m%tx0.1v2_g%null_w%null</GRID> 
 <GRID sname="ne240np4_gx1v6"             alias="ne240_g16"    >a%ne240np4_l%ne240np4_oi%gx1v6_r%r01_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne240np4_0.23x0.31_gx1v6"   alias="ne240_f02_g16">a%ne240np4_l%ne240np4_oi%0.23x0.31_gx1v6_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne240np4_0.23x0.31_tx0.1v2" alias="ne240_f02_t12">a%ne240np4_l%ne240np4_oi%0.23x0.31_tx0.1v2_r%r05_m%tx0.1v2_g%null_w%null</GRID>
+<GRID sname="ne240np4_0.23x0.31_gx1v6"   alias="ne240_f02_g16">a%ne240np4_l%0.23x0.31_oi%gx1v6_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne240np4_0.23x0.31_tx0.1v2" alias="ne240_f02_t12">a%ne240np4_l%0.23x0.31_oi%tx0.1v2_r%r05_m%tx0.1v2_g%null_w%null</GRID>
 <GRID sname="ne240np4_tx0.1v2"           alias="ne240_t12"    >a%ne240np4_l%ne240np4_oi%tx0.1v2_r%r05_m%tx0.1v2_g%null_w%null</GRID>
 
 <GRID sname="ne16np4_ne16np4"       alias="ne16_ne16"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne16np4_l%ne16np4_oi%ne16np4_r%r05_m%gx3v7_g%null_w%null</GRID>
@@ -115,13 +114,13 @@ Each grid is associated with three names
 
 <!-- new runoff grids -->
 
-<GRID sname="T31_gx3v7_rx1"              alias="T31_g37_rx1"      compset="_DATM">a%T31_l%T31_oi%gx3v7_r%rx1_m%gx3v7_g%null_w%null</GRID> <!-- back compat -->
-<GRID sname="4x5_gx3v7_rx1"              alias="f45_g37_rx1"      compset="_DATM">a%4x5_l%4x5_oi%gx3v7_r%rx1_m%gx3v7_g%null_w%null</GRID> <!-- back compat -->
-<GRID sname="1.9x2.5_gx1v6_rx1"          alias="f19_g16_rx1"      compset="_DATM">a%1.9x2.5_l%1.9x2.5_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
-<GRID sname="0.9x1.25_gx1v6_rx1"         alias="f09_g16_rx1"      compset="_DATM">a%0.9x1.25_l%0.9x1.25_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
-<GRID sname="ne30np4_gx1v6_rx1"          alias="ne30_g16_rx1"     compset="_DATM">a%ne30np4_l%ne30np4_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
-<GRID sname="ne30np4_0.9x1.25_gx1v6_rx1" alias="ne30_f09_g16_rx1" compset="_DATM">a%ne30np4_l%0.9x1.25_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
-<GRID sname="ne30np4_1.9x2.5_gx1v6_rx1"  alias="ne30_f19_g16_rx1" compset="_DATM">a%ne30np4_l%1.9x2.5_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
+<GRID sname="T31_gx3v7_rx1"              alias="T31_g37_rx1"      compset="_DROF">a%T31_l%T31_oi%gx3v7_r%rx1_m%gx3v7_g%null_w%null</GRID> <!-- back compat -->
+<GRID sname="4x5_gx3v7_rx1"              alias="f45_g37_rx1"      compset="_DROF">a%4x5_l%4x5_oi%gx3v7_r%rx1_m%gx3v7_g%null_w%null</GRID> <!-- back compat -->
+<GRID sname="1.9x2.5_gx1v6_rx1"          alias="f19_g16_rx1"      compset="_DROF">a%1.9x2.5_l%1.9x2.5_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
+<GRID sname="0.9x1.25_gx1v6_rx1"         alias="f09_g16_rx1"      compset="_DROF">a%0.9x1.25_l%0.9x1.25_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
+<GRID sname="ne30np4_gx1v6_rx1"          alias="ne30_g16_rx1"     compset="_DROF">a%ne30np4_l%ne30np4_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID> <!-- back compat -->
+<GRID sname="ne30np4_0.9x1.25_gx1v6_rx1" alias="ne30_f09_g16_rx1" compset="_DROF">a%ne30np4_l%0.9x1.25_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
+<GRID sname="ne30np4_1.9x2.5_gx1v6_rx1"  alias="ne30_f19_g16_rx1" compset="_DROF">a%ne30np4_l%1.9x2.5_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
 
 <!-- wrf grids -->
 
@@ -179,11 +178,6 @@ Each grid is associated with three names
 <gridhorz name="1x1_camdenNJ">
   <nx>1</nx> <ny>1</ny>  
   <desc>1x1 Camden New Jersey -- only valid for DATM/CLM compset</desc>  
-</gridhorz>
-
-<gridhorz name="1x1_asphaltjungleNJ">
-  <nx>1</nx> <ny>1</ny>  
-  <desc>1x1 Asphalt Jungle New Jersey Test Case -- only valid for DATM/CLM compset</desc>  
 </gridhorz>
 
 <gridhorz name="1x1_mexicocityMEX">
@@ -443,7 +437,8 @@ use the T62_g16 resolution instead:
 <WAV2OCN_SMAPNAME>idmap</WAV2OCN_SMAPNAME>
 
 <!-- ===============================================
-  -- COMMENT OUT for now, in drv, tcraig 3/25/13 ---
+     COMMENT OUT for now, in drv, tcraig 3/25/13 
+-->
 
 <ATM2OCN_FMAPTYPE>X</ATM2OCN_FMAPTYPE>
 <ATM2OCN_SMAPTYPE>X</ATM2OCN_SMAPTYPE>
@@ -544,13 +539,6 @@ use the T62_g16 resolution instead:
 </griddom>
 
 <griddom grid="1x1_camdenNJ" mask="reg">
-  <ATM_DOMAIN_FILE>domain.lnd.1x1pt-camdenNJ_navy.111004.nc</ATM_DOMAIN_FILE>
-  <LND_DOMAIN_FILE>domain.lnd.1x1pt-camdenNJ_navy.111004.nc</LND_DOMAIN_FILE>  
-  <ATM_DOMAIN_PATH>$DIN_LOC_ROOT/share/domains/domain.clm</ATM_DOMAIN_PATH>  
-  <LND_DOMAIN_PATH>$DIN_LOC_ROOT/share/domains/domain.clm</LND_DOMAIN_PATH>  
-</griddom>
-
-<griddom grid="1x1_asphaltjungleNJ" mask="reg">
   <ATM_DOMAIN_FILE>domain.lnd.1x1pt-camdenNJ_navy.111004.nc</ATM_DOMAIN_FILE>
   <LND_DOMAIN_FILE>domain.lnd.1x1pt-camdenNJ_navy.111004.nc</LND_DOMAIN_FILE>  
   <ATM_DOMAIN_PATH>$DIN_LOC_ROOT/share/domains/domain.clm</ATM_DOMAIN_PATH>  
@@ -1226,7 +1214,7 @@ use the T62_g16 resolution instead:
 <!--- river to ocn area overlap -->
 <gridmap rof_grid="r05" ocn_grid="gx1v6" >
   <ROF2OCN_FMAPNAME>cpl/cpl6/map_r05_TO_g16_aave.120920.nc</ROF2OCN_FMAPNAME>
-</gridmap
+</gridmap>
 <XROF_FLOOD_MODE lnd_grid="1.9x2.5" rof_grid="r05" ocn_grid="gx1v6" >ACTIVE</XROF_FLOOD_MODE>
 
 <gridmap rof_grid="rx1" ocn_grid="gx3v7" >

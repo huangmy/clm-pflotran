@@ -202,7 +202,7 @@ $fh->close;
 #my $sysmod = 'xmllint --format temp.xml --output testlist_new.xml';
 #system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 
-my $sysmod = 'perl sort_file.pl -testlist temp.xml';
+my $sysmod = 'perl sort_xml_entries -testlist temp.xml';
 system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 
 unlink('temp.xml');
