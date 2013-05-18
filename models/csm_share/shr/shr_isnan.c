@@ -31,7 +31,11 @@ int FORT_NAME( shr_sisnan , SHR_SISNAN )(float *real )
 * Check if the input single precisioun float value is a NaN or not
 */
 {
+#if defined(__clang__)
+  return( isnan( *real ) );
+#else
   return( isnanf( *real ) );
+#endif
 }
 
 int FORT_NAME( shr_disnan , SHR_DISNAN )(double *real )
