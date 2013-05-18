@@ -1,0 +1,13 @@
+Notes for working with LBL clone of NCAR CLM
+
+update_clm_from_ncar.sh - In order to update tags from NCAR.
+Steps:
+- Update varible NEW_TAG in the update_clm_from_ncar.sh
+- Run the update_clm_from_ncar.sh outside the current clone.
+- After script finishes, cd clm_ncar_update_${NEW_TAG} run 'hg status | grep svn' to ensure no svn files are added. 
+- Do hg status to make sure everything looks Ok.
+- hg commit
+- hg push
+
+NOTE: All NCAR commits on 'ncar' branch and all non-NCAR related commits (ie "new science") should take place on seperate named branches.
+
