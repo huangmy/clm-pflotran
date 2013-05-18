@@ -6,8 +6,8 @@
 #define __PIO_FILE__ "pionfatt_mod.F90"
 !>
 !! @file 
-!! $Revision: 751 $
-!! $LastChangedDate: 2013-04-02 10:01:13 -0600 (Tue, 02 Apr 2013) $
+!! $Revision: 807 $
+!! $LastChangedDate: 2013-05-10 08:26:06 -0600 (Fri, 10 May 2013) $
 !! @brief NetCDF attribute interface to PIO
 !<
 module pionfatt_mod
@@ -113,14 +113,14 @@ contains
     ! Local variables
     !------------------
     character(len=*), parameter :: subName=modName//'::put_att_text'
-    integer :: iotype, mpierr, msg
-    integer ::  clen=1
+    integer :: iotype, mpierr, msg, itype
+    integer ::  clen=1, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
 
 #if (100 == TYPETEXT)
-    clen = len(value)
+    clen = len_trim(value)
 #else
     clen = 1
 #endif
@@ -130,9 +130,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(100,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 100
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen=len_trim(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (100 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -147,7 +149,6 @@ contains
 #ifdef _PNETCDF
        case(iotype_pnetcdf)
 #if (100 == TYPETEXT)
-          clen = len(value)
           ierr= nfmpi_put_att_text (File%fh,varid,name,int(clen,kind=PIO_OFFSET),value)
 #else
 
@@ -211,14 +212,14 @@ contains
     ! Local variables
     !------------------
     character(len=*), parameter :: subName=modName//'::put_att_real'
-    integer :: iotype, mpierr, msg
-    integer ::  clen=1
+    integer :: iotype, mpierr, msg, itype
+    integer ::  clen=1, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
 
 #if (101 == TYPETEXT)
-    clen = len(value)
+    clen = len_trim(value)
 #else
     clen = 1
 #endif
@@ -228,9 +229,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(101,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 101
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen=len_trim(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (101 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -245,7 +248,6 @@ contains
 #ifdef _PNETCDF
        case(iotype_pnetcdf)
 #if (101 == TYPETEXT)
-          clen = len(value)
           ierr= nfmpi_put_att_text (File%fh,varid,name,int(clen,kind=PIO_OFFSET),value)
 #else
 
@@ -309,14 +311,14 @@ contains
     ! Local variables
     !------------------
     character(len=*), parameter :: subName=modName//'::put_att_double'
-    integer :: iotype, mpierr, msg
-    integer ::  clen=1
+    integer :: iotype, mpierr, msg, itype
+    integer ::  clen=1, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
 
 #if (102 == TYPETEXT)
-    clen = len(value)
+    clen = len_trim(value)
 #else
     clen = 1
 #endif
@@ -326,9 +328,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(102,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 102
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen=len_trim(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (102 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -343,7 +347,6 @@ contains
 #ifdef _PNETCDF
        case(iotype_pnetcdf)
 #if (102 == TYPETEXT)
-          clen = len(value)
           ierr= nfmpi_put_att_text (File%fh,varid,name,int(clen,kind=PIO_OFFSET),value)
 #else
 
@@ -407,14 +410,14 @@ contains
     ! Local variables
     !------------------
     character(len=*), parameter :: subName=modName//'::put_att_int'
-    integer :: iotype, mpierr, msg
-    integer ::  clen=1
+    integer :: iotype, mpierr, msg, itype
+    integer ::  clen=1, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
 
 #if (103 == TYPETEXT)
-    clen = len(value)
+    clen = len_trim(value)
 #else
     clen = 1
 #endif
@@ -424,9 +427,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(103,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 103
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen=len_trim(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (103 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -441,7 +446,6 @@ contains
 #ifdef _PNETCDF
        case(iotype_pnetcdf)
 #if (103 == TYPETEXT)
-          clen = len(value)
           ierr= nfmpi_put_att_text (File%fh,varid,name,int(clen,kind=PIO_OFFSET),value)
 #else
 
@@ -488,7 +492,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 175 "pionfatt_mod.F90.in"
+# 176 "pionfatt_mod.F90.in"
   integer function put_att_1d_real (File, varid, name, value) result(ierr)
     use pio_msg_mod, only : pio_msg_putatt_1D
     type (File_desc_t), intent(inout) , target :: File
@@ -506,7 +510,7 @@ contains
 
     character(len=*), parameter :: subName=modName//'::put_att_1d_real'
     integer :: iotype, mpierr, msg
-    integer ::  clen
+    integer ::  clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -518,9 +522,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(101,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 101
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
     end if
     
@@ -578,7 +584,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 175 "pionfatt_mod.F90.in"
+# 176 "pionfatt_mod.F90.in"
   integer function put_att_1d_double (File, varid, name, value) result(ierr)
     use pio_msg_mod, only : pio_msg_putatt_1D
     type (File_desc_t), intent(inout) , target :: File
@@ -596,7 +602,7 @@ contains
 
     character(len=*), parameter :: subName=modName//'::put_att_1d_double'
     integer :: iotype, mpierr, msg
-    integer ::  clen
+    integer ::  clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -608,9 +614,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(102,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 102
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
     end if
     
@@ -668,7 +676,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 175 "pionfatt_mod.F90.in"
+# 176 "pionfatt_mod.F90.in"
   integer function put_att_1d_int (File, varid, name, value) result(ierr)
     use pio_msg_mod, only : pio_msg_putatt_1D
     type (File_desc_t), intent(inout) , target :: File
@@ -686,7 +694,7 @@ contains
 
     character(len=*), parameter :: subName=modName//'::put_att_1d_int'
     integer :: iotype, mpierr, msg
-    integer ::  clen
+    integer ::  clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -698,9 +706,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(103,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 103
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
     end if
     
@@ -757,7 +767,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 263 "pionfatt_mod.F90.in"
+# 266 "pionfatt_mod.F90.in"
   integer function put_att_desc_text (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -780,7 +790,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 263 "pionfatt_mod.F90.in"
+# 266 "pionfatt_mod.F90.in"
   integer function put_att_desc_real (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -803,7 +813,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 263 "pionfatt_mod.F90.in"
+# 266 "pionfatt_mod.F90.in"
   integer function put_att_desc_double (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -826,7 +836,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 263 "pionfatt_mod.F90.in"
+# 266 "pionfatt_mod.F90.in"
   integer function put_att_desc_int (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -850,7 +860,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 286 "pionfatt_mod.F90.in"
+# 289 "pionfatt_mod.F90.in"
   integer function put_att_desc_1d_real (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -876,7 +886,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 286 "pionfatt_mod.F90.in"
+# 289 "pionfatt_mod.F90.in"
   integer function put_att_desc_1d_int (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -902,7 +912,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 286 "pionfatt_mod.F90.in"
+# 289 "pionfatt_mod.F90.in"
   integer function put_att_desc_1d_double (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -928,7 +938,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 311 "pionfatt_mod.F90.in"
+# 314 "pionfatt_mod.F90.in"
   integer function get_att_desc_text (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -954,7 +964,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 311 "pionfatt_mod.F90.in"
+# 314 "pionfatt_mod.F90.in"
   integer function get_att_desc_real (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -980,7 +990,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 311 "pionfatt_mod.F90.in"
+# 314 "pionfatt_mod.F90.in"
   integer function get_att_desc_double (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -1006,7 +1016,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 311 "pionfatt_mod.F90.in"
+# 314 "pionfatt_mod.F90.in"
   integer function get_att_desc_int (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -1032,7 +1042,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 336 "pionfatt_mod.F90.in"
+# 339 "pionfatt_mod.F90.in"
   integer function get_att_desc_1d_real (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -1058,7 +1068,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 336 "pionfatt_mod.F90.in"
+# 339 "pionfatt_mod.F90.in"
   integer function get_att_desc_1d_int (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -1084,7 +1094,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 336 "pionfatt_mod.F90.in"
+# 339 "pionfatt_mod.F90.in"
   integer function get_att_desc_1d_double (File,varDesc,name,value) result(ierr)
 
     type (File_desc_t), intent(inout) , target :: File
@@ -1109,7 +1119,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 360 "pionfatt_mod.F90.in"
+# 363 "pionfatt_mod.F90.in"
   integer function get_att_text (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt	
     type (File_desc_t), intent(in) , target :: File
@@ -1122,7 +1132,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_text'
     integer :: iotype, mpierr, msg
-    integer :: clen=1
+    integer :: clen=1, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1136,9 +1146,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(100,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 100
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (100 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -1188,7 +1200,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 360 "pionfatt_mod.F90.in"
+# 363 "pionfatt_mod.F90.in"
   integer function get_att_real (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt	
     type (File_desc_t), intent(in) , target :: File
@@ -1201,7 +1213,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_real'
     integer :: iotype, mpierr, msg
-    integer :: clen=1
+    integer :: clen=1, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1215,9 +1227,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(101,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 101
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (101 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -1267,7 +1281,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 360 "pionfatt_mod.F90.in"
+# 363 "pionfatt_mod.F90.in"
   integer function get_att_double (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt	
     type (File_desc_t), intent(in) , target :: File
@@ -1280,7 +1294,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_double'
     integer :: iotype, mpierr, msg
-    integer :: clen=1
+    integer :: clen=1, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1294,9 +1308,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(102,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 102
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (102 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -1346,7 +1362,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 360 "pionfatt_mod.F90.in"
+# 363 "pionfatt_mod.F90.in"
   integer function get_att_int (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt	
     type (File_desc_t), intent(in) , target :: File
@@ -1359,7 +1375,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_int'
     integer :: iotype, mpierr, msg
-    integer :: clen=1
+    integer :: clen=1, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1373,9 +1389,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(103,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 103
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if (103 == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -1426,7 +1444,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 439 "pionfatt_mod.F90.in"
+# 444 "pionfatt_mod.F90.in"
   integer function get_att_1d_real (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt_1d
 
@@ -1440,7 +1458,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_1d_real'
     integer :: iotype, mpierr, msg
-    integer :: clen
+    integer :: clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1452,9 +1470,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(101,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 101
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
     end if
 
@@ -1505,7 +1525,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 439 "pionfatt_mod.F90.in"
+# 444 "pionfatt_mod.F90.in"
   integer function get_att_1d_int (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt_1d
 
@@ -1519,7 +1539,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_1d_int'
     integer :: iotype, mpierr, msg
-    integer :: clen
+    integer :: clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1531,9 +1551,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(103,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 103
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
     end if
 
@@ -1584,7 +1606,7 @@ contains
 !! @param value : The value for the netcdf attribute 
 !! @retval ierr @copydoc error_return
 !<
-# 439 "pionfatt_mod.F90.in"
+# 444 "pionfatt_mod.F90.in"
   integer function get_att_1d_double (File,varid,name,value) result(ierr)
     use pio_msg_mod, only : pio_msg_getatt_1d
 
@@ -1598,7 +1620,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_1d_double'
     integer :: iotype, mpierr, msg
-    integer :: clen
+    integer :: clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -1610,9 +1632,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(102,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = 102
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
     end if
 

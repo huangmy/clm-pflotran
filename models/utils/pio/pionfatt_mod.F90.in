@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfatt_mod.F90"
 !>
 !! @file 
-!! $Revision: 751 $
-!! $LastChangedDate: 2013-04-02 10:01:13 -0600 (Tue, 02 Apr 2013) $
+!! $Revision: 807 $
+!! $LastChangedDate: 2013-05-10 08:26:06 -0600 (Fri, 10 May 2013) $
 !! @brief NetCDF attribute interface to PIO
 !<
 module pionfatt_mod
@@ -90,14 +90,14 @@ contains
     ! Local variables
     !------------------
     character(len=*), parameter :: subName=modName//'::put_att_{TYPE}'
-    integer :: iotype, mpierr, msg
-    integer ::  clen=1
+    integer :: iotype, mpierr, msg, itype
+    integer ::  clen=1, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
 
 #if ({ITYPE} == TYPETEXT)
-    clen = len(value)
+    clen = len_trim(value)
 #else
     clen = 1
 #endif
@@ -107,9 +107,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST({ITYPE},1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = {ITYPE}
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen=len_trim(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if ({ITYPE} == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -124,7 +126,6 @@ contains
 #ifdef _PNETCDF
        case(iotype_pnetcdf)
 #if ({ITYPE} == TYPETEXT)
-          clen = len(value)
           ierr= nfmpi_put_att_text (File%fh,varid,name,int(clen,kind=PIO_OFFSET),value)
 #else
 
@@ -189,7 +190,7 @@ contains
 
     character(len=*), parameter :: subName=modName//'::put_att_1d_{TYPE}'
     integer :: iotype, mpierr, msg
-    integer ::  clen
+    integer ::  clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -201,9 +202,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST({ITYPE},1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = {ITYPE}
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
     end if
     
@@ -369,7 +372,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_{TYPE}'
     integer :: iotype, mpierr, msg
-    integer :: clen=1
+    integer :: clen=1, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -383,9 +386,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST({ITYPE},1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = {ITYPE}
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
 #if ({ITYPE} == TYPETEXT)	
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)	
 #endif
@@ -449,7 +454,7 @@ contains
     !------------------
     character(len=*), parameter :: subName=modName//'::get_att_1d_{TYPE}'
     integer :: iotype, mpierr, msg
-    integer :: clen
+    integer :: clen, itype, nlen
 
     iotype = File%iotype
     ierr=PIO_noerr
@@ -461,9 +466,11 @@ contains
        if(ios%comp_rank==0) call mpi_send(msg, 1, mpi_integer, ios%ioroot, 1, ios%union_comm, ierr)
        call MPI_BCAST(file%fh,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(varid,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST({ITYPE},1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(len(name),1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
-       call MPI_BCAST(name,len(name),MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
+       itype = {ITYPE}
+       call MPI_BCAST(itype,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       nlen = len(name)
+       call MPI_BCAST(nlen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
+       call MPI_BCAST(name,nlen,MPI_CHARACTER,ios%CompMaster, ios%my_comm , mpierr)
        call MPI_BCAST(clen,1,MPI_INTEGER,ios%CompMaster, ios%my_comm , mpierr)
     end if
 
