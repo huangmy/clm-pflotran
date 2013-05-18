@@ -7,7 +7,7 @@
 ;
 ;  Erik Kluzek
 ;  Mar/03/2010
-;  $Id: getco2_historical.ncl 44883 2013-03-15 19:41:38Z erik $
+;  $Id: getco2_historical.ncl 46863 2013-05-08 03:25:21Z sacks $
 ;  $HeadURL;
 ;
 begin
@@ -109,8 +109,8 @@ begin
    fileattdef ( nco, ncg );
    nco@history  = ldate+": Convert by getco2_historical.ncl";
    nco@source   = "Convert from:"+ghgfile;
-   nco@Version  = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_01/models/lnd/clm/tools/clm4_5/ncl_scripts/getco2_historical.ncl $";
-   nco@Revision = "$Id: getco2_historical.ncl 44883 2013-03-15 19:41:38Z erik $";
+   nco@Version  = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_02/models/lnd/clm/tools/shared/ncl_scripts/getco2_historical.ncl $";
+   nco@Revision = "$Id: getco2_historical.ncl 46863 2013-05-08 03:25:21Z sacks $";
    ;
    ; Set static variables
    ;
