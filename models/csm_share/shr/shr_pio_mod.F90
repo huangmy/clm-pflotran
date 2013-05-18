@@ -49,7 +49,7 @@ module shr_pio_mod
   integer :: io_comm
   logical :: pio_async_interface
   integer, allocatable :: io_compid(:)
-  integer :: pio_debug_level=0, pio_blocksize=0, pio_buffer_size_limit=0
+  integer :: pio_debug_level=0, pio_blocksize=0, pio_buffer_size_limit=-1
   integer :: total_comps=0
 contains
 !> 
@@ -135,7 +135,8 @@ contains
        end if
        call pio_setdebuglevel(pio_debug_level)
     endif
-    if(pio_buffer_size_limit>0) then
+    ! 0 is a valid value of pio_buffer_size_limit
+    if(pio_buffer_size_limit>=0) then
        if(comp_comm_iam(1)==0) then
           write(shr_log_unit,*) 'Setting pio_buffer_size_limit : ',pio_buffer_size_limit
        end if

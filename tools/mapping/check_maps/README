@@ -1,6 +1,6 @@
 ==========================================================================
-$Id: README 45575 2013-04-03 18:43:22Z mlevy@ucar.edu $
-$URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130403/check_maps/README $
+$Id: README 46158 2013-04-19 18:41:34Z mlevy@ucar.edu $
+$URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/check_maps/README $
 ==========================================================================
 
 
@@ -51,9 +51,6 @@ listed in FILELIST
   --help, -h        Output this usage information
 
 Notes:
-  1) Requires the ESMF librarys and the esmf.mk Makefile to build
-  2) On yellowstone, set the following environment variable:
-ESMFMKFILE=/glade/apps/opt/esmf/6.1.1-ncdfio/intel/12.1.5/lib/libO/Linux.intel.64.mpiuni.default/esmf.mk
-     (On other systems, ask whomever installed the ESMF tools where this file is located)
-  3) If -rc option is not enabled, -v flag is ignored and verbose / concise will
-     depend on previous compilation
+  1) For use on yellowstone, geyser, or caldera only!
+  2) Need to set ESMFMKFILE (see comments in Makefile) or compilation will fail
+  3) If -rc option is not enabled, -v flag is ignored and verbose / concise will depend on previous compilation

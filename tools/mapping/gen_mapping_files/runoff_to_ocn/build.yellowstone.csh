@@ -1,7 +1,7 @@
 #!/bin/csh
 #===============================================================================
-# SVN $Id: build.bluefire.csh 35698 2012-03-22 23:59:57Z kauff $
-# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk/gen_mapping_files/runoff_to_ocn/build.bluefire.csh $
+# SVN $Id: build.yellowstone.csh 46158 2013-04-19 18:41:34Z mlevy@ucar.edu $
+# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/runoff_to_ocn/build.yellowstone.csh $
 #===============================================================================
 # 
 # Notes:

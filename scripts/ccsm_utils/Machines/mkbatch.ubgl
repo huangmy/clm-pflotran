@@ -70,7 +70,7 @@ cat >> ${CASEROOT}/${CASE}.run << EOF1
 cd \$RUNDIR
 echo "`date` -- CSM EXECUTION BEGINS HERE"
 if (\$MPILIB != "mpi-serial") then
-   mpirun -verbose 1 -mode CO -np $tasks -env "HOME=\$RUNDIR LOGNAME=\$CCSMUSER BGL_APP_L1_WRITE_THROUGH=1" -exe \$EXEROOT/cesm.exe -cwd \$RUNDIR
+   mpirun -verbose 1 -mode CO -np $tasks -env "HOME=\$RUNDIR LOGNAME=\$CCSMUSER BGL_APP_L1_WRITE_THROUGH=1" -exe \$EXEROOT/cesm.exe -cwd \$RUNDIR >&! cesm.log.\$LID
 else
 
 endif

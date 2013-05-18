@@ -136,7 +136,7 @@ fi
 mv $* ${sta}/rest/${dname}
 
 set cpl.log.*;                                                                                                        dispose ifiles_n ${sta}/cpl/logs $*
-set ccsm*.log.*;                                                                                                      dispose ifiles_n ${sta}/cpl/logs $*
+set cesm*.log.*;                                                                                                      dispose ifiles_n ${sta}/cpl/logs $*
 set ${CASE}.cpl.r.*;         latest=`ls -rt $* 2> /dev/null | tail -1`; mv $latest ${sta}/rest/${dname} 2> /dev/null; dispose ifiles_y ${sta}/cpl/rest $*
 set ${CASE}.cpl.h* ;                                                                                                  dispose ifiles_n ${sta}/cpl/hist $*
 

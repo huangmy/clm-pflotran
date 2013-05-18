@@ -1,3 +1,29 @@
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glissade_velo.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!
+!   This file is part of Glimmer-CISM.
+!
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
+!
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
+!
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 !
 !TODO - Are all these includes needed?
 #ifdef HAVE_CONFIG_H 
@@ -18,13 +44,13 @@ module glissade_velo
     use glimmer_global, only : dp
     use glimmer_physcon, only: gn, scyr
     use glimmer_paramets, only: thk0, len0, vel0, vis0
-
-    use glam_strs2, only: glam_velo_solver, JFNK_velo_solver
-    use glissade_velo_higher, only: glissade_velo_higher_solve
-
+    use glimmer_log
     use glide_types
     use glide_grid_operators, only: stagvarb
     use glide_mask
+
+    use glam_strs2, only: glam_velo_solver, JFNK_velo_solver
+    use glissade_velo_higher, only: glissade_velo_higher_solve
 
     implicit none
     
@@ -96,7 +122,8 @@ contains
 
            if (model%options%which_ho_nonlinear == HO_NONLIN_PICARD ) then ! Picard (standard solver)
 
-             !TODO - Are all these options still supported?  Probably can remove periodic_ew/ns.
+             !TODO - Are all these options still supported?
+             !WHL - Removed periodic_ew, periodic_ns
 
              call t_startf('glam_velo_solver')
               call glam_velo_solver( model%general%ewn,       model%general%nsn,                 &
@@ -117,8 +144,6 @@ contains
                                      model%options%which_ho_resid,                               &
                                      model%options%which_ho_nonlinear,                           &
                                      model%options%which_ho_sparse,                              &
-                                     model%options%periodic_ew,                                  &
-                                     model%options%periodic_ns,                                  &
                                      model%velocity%beta,                                        & 
                                      model%velocity%uvel, model%velocity%vvel,                   &
                                      model%velocity%uflx, model%velocity%vflx,                   &
@@ -146,7 +171,6 @@ contains
           ! Thus we have grid cell dimensions and ice thickness in meters,
           !  velocity in m/s, and the rate factor in Pa^(-n) s(-1).
           !----------------------------------------------------------------
-          !TODO - Switch to SI elsewhere in the code?
 
            if (model%options%which_ho_nonlinear == HO_NONLIN_PICARD ) then ! Picard (standard solver)
 
@@ -210,11 +234,9 @@ contains
         ! Velocity-related computations that are independent of the solver
         !-------------------------------------------------------------------
 
-        ! compute the velocity norm
+        ! compute the velocity norm (for diagnostic output)
 
-!TODO - Since velnorm is strictly diagnostic, it probably could be computed only for I/O.
         model%velocity%velnorm = sqrt(model%velocity%uvel**2 + model%velocity%vvel**2)
-        model%velocity%is_velocity_valid = .true.
 
         ! WHL - Copy uvel and vvel to arrays uvel_icegrid and vvel_icegrid.
         !       These arrays have horizontal dimensions (nx,ny) instead of (nx-1,ny-1).
@@ -227,6 +249,7 @@ contains
 
         model%velocity%uvel_icegrid(:,:,:) = 0.d0
         model%velocity%vvel_icegrid(:,:,:) = 0.d0
+
         do j = 1, model%general%nsn-1
            do i = 1, model%general%ewn-1
               model%velocity%uvel_icegrid(:,i,j) = model%velocity%uvel(:,i,j)

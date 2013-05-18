@@ -1,8 +1,76 @@
 ================================================================================
-SVN $Id: ChangeLog 44207 2013-02-26 16:46:24Z santos@ucar.edu $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130226/ChangeLog $
+SVN $Id: ChangeLog 46241 2013-04-23 16:45:22Z santos@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130423/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+===========================
+Originator: santos
+Date: Apr 23, 2013
+Model: share
+Version: share3_130423
+One-line summary: Change to let SCAM set sno_present flag (also rof/flood).
+
+M     shr/shr_scam_mod.F90
+       - shr_scam_checkSurface sets sno, rof, and flood "_present" flags,
+         as well as lnd, ocn, and ice.
+       - shr_scam_checkSurface will only disable these flags; it will
+         never enable them.
+
+===========================
+Originator:jedwards 
+Date: Apr 16, 2013
+Model: share
+Version: share3_130416a
+One-line summary: fix issue with setting pio_buffer_size
+
+M     shr/shr_pio_mod.F90
+
+===========================
+Originator: santos
+Date: Apr 16, 2013
+Model: share
+Version: share3_130416
+One-line summary: Add shr_assert_mod
+
+A       shr/dtypes.h
+         - Defines CPP macros for genf90.pl code.
+
+A       shr/shr_assert_mod.F90.in
+A       shr/shr_assert_mod.F90
+         - Define two new "assert" subroutines.
+            - shr_assert takes a logical and optional error strings,
+              and aborts if that logical is .false.
+            - shr_assert_in_domain takes a number, optional error
+              strings, and arguments specifying a range of valid
+              values. If the numerical value does not lie in the
+              specified range, it aborts.
+         - There is a ".in" file that generates the other file as
+           genf90.pl code.
+         - The assert routines can operate on arrays.
+
+M       models/csm_share/shr/shr_infnan_mod.F90
+         - Add ability to generate quiet (non-signaling) NaN.
+
+M       models/csm_share/shr/shr_sys_mod.F90
+         - If shr_log_Unit is not 6, mirror abort messages to 6 so
+           that the reason for an abort can always be found in stdout
+           (this is also the CESM log).
+
+M       unit_testers/shr_assert_test/domain_tests.F90
+M       unit_testers/shr_assert_test/logical_tests.F90
+M       unit_testers/shr_assert_test/Makefile
+M       unit_testers/shr_assert_test/shr_sys_mod.F90
+M       unit_testers/shr_assert_test/test_shr_assert.F90
+M       unit_testers/shr_assert_test/test_utils.F90
+         - Unit test for shr_assert_mod.
+         - This has a separate Makefile because it was difficult to
+           integrate with the existing unit test builds.
+         - The test can be run by defining the COMPILER environment
+           variable (valid options are the same as for Machines,
+           uppercase) and running "make test".
+         - The test produces a file called test.log with the results.
+           The overall status (pass/fail) is at the bottom of this log.
+
 ===========================
 Originator: santos
 Date: Feb 26, 2013

@@ -59,7 +59,7 @@ echo "\`date\` -- CSM EXECUTION BEGINS HERE"
 setenv OMP_NUM_THREADS ${maxthrds}
 if (\$MPILIB != "mpi-serial") then
     if (\$COMPILER == "pgi") then
-       mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >$! cesm.log.\$LID
+       mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
     endif
     if (\$COMPILER == "intel") then
        mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID

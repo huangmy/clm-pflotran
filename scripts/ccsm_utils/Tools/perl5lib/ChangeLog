@@ -3,6 +3,14 @@
 ==============================================================
 
 ==============================================================
+Tag name:  perl5lib_130424
+Originator(s):  jshollen
+Date: Apr 19, 2013
+One-line Summary:  update SCAM iop dataset to atm/cam/scam/iop/arm0795v1.2.nc
+
+M       t/namelist_defaults_cam.xml
+
+==============================================================
 Tag name:  perl5lib_130419
 Originator(s):  fischer
 Date: Apr 19, 2013

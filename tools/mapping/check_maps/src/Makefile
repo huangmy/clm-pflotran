@@ -1,15 +1,19 @@
 #===============================================================================
-# $Id: Makefile 44122 2013-02-21 23:48:47Z mlevy@ucar.edu $
-# $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130403/check_maps/src/Makefile $
+# $Id: Makefile 46158 2013-04-19 18:41:34Z mlevy@ucar.edu $
+# $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/check_maps/src/Makefile $
 # 
 # This is the makefile for the RegridWeightGen application in ESMF
 # Altered for use with CESM's gen_atm_ocn_maps.sh tool
 #===============================================================================
 
 ################################################################################
-### Finding and including esmf.mk ##############################################
-### NOTE: On Bluefire, ESMFMKFILE=/contrib/esmf-5.2.0r-64-O/lib/esmf.mk ########
-###       Yellowstone, ESMFMKFILE=/glade/p/work/svasquez/install/esmf-6.1.0-O-netcdf4.2/lib/esmf.mk
+### Finding and including esmf.mk                                         ######
+### NOTE: On Yellowstone, ESMF is only available with the intel compilers ######
+###       And require running the following:                              ######
+###           $ module load esmf                                          ######
+###           $ module load esmf-6.1.1-ncdfio-uni-O                       ######
+###       The executable should run on the yellowstone login node         ######
+################################################################################
 
 ifneq ($(origin ESMFMKFILE), environment)
 $(error Environment variable ESMFMKFILE was not set.)

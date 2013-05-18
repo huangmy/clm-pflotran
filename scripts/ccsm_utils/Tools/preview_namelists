@@ -52,17 +52,19 @@ endif
 chmod +w $docdir/*
 
 cd $RUNDIR
-cp -p *_in                      $docdir/ >& /dev/null
-cp -p *_in_[0-9][0-9][0-9][0-9] $docdir/ >& /dev/null
-cp -p *streams*txt*             $docdir/ >& /dev/null
-cp -p *.stxt                    $docdir/ >& /dev/null
-cp -p *maps.rc                  $docdir/ >& /dev/null
-cp -p *modelio*nml              $docdir/ >& /dev/null
-cp -p cism.config*              $docdir/ >& /dev/null
+cp -p *_in_[0-9]*                     $docdir/ >& /dev/null
+cp -p *modelio*nml_[0-9]*      $docdir/ >& /dev/null
+cp -p *_in                               $docdir/ >& /dev/null
+cp -p *modelio*nml                $docdir/ >& /dev/null
+cp -p *streams*txt*                $docdir/ >& /dev/null
+cp -p *.stxt                            $docdir/ >& /dev/null
+cp -p *maps.rc                      $docdir/ >& /dev/null
+cp -p cism.config*                 $docdir/ >& /dev/null
 
 # copy over chemistry mechanism docs if they exist
-cp $CASEBUILD/camconf/chem_mech.* $docdir/ >& /dev/null
-
+if ( -e $CASEBUILD/camconf ) then
+  cp -p $CASEBUILD/camconf/chem_mech.* $docdir/ >& /dev/null
+endif
 chmod 444 $docdir/*
 
 

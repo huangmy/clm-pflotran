@@ -1,36 +1,28 @@
-!CLEANUP - glide_temp.F90 
-! Moved the contents of glide_temp_utils.F90 back to this module.
-! Decided it was easier to support two different versions of these routines
-!  rather than make one version work for both SIA and HO
-
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glide_temp.f90 - part of the GLIMMER ice model           +
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_temp.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -71,8 +63,8 @@ module glide_temp
 
   use glide_types
 
-!WHL - debug
-    use glimmer_paramets, only : oldglide
+  !TODO - Remove 'oldglide' logic when comparisons are complete  
+  use glimmer_paramets, only : oldglide
 
   implicit none
 
@@ -192,7 +184,7 @@ contains
 
     select case(model%options%whichbwat)
 
-       case(0)
+       case(BWATER_LOCAL)
           model%paramets%hydtim = tim0 / (model%paramets%hydtim * scyr)
           estimate = 0.2d0 / model%paramets%hydtim
           !EIB! following not in lanl glide_temp
@@ -201,111 +193,209 @@ contains
           model%tempwk%c = (/ model%tempwk%dt_wat, 1.0d0 - 0.5d0 * model%tempwk%dt_wat * model%paramets%hydtim, &
                1.0d0 + 0.5d0 * model%tempwk%dt_wat * model%paramets%hydtim, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0 /) 
 
-!TODO - This option is part of old glide.  Why was it removed?
-!       Option 1 is like option 0 (local basal water balance), but with constant horizontal flow
+       !TODO - Test this option.
 
-       case(1)
-          !EIB! not in lanl
-          !model%tempwk%watvel = model%paramets%hydtim * tim0 / (scyr * len0)
-          !estimate = (0.2d0 * model%tempwk%watvel) / min(model%numerics%dew,model%numerics%dns)
-          !call find_dt_wat(model%numerics%dttem,estimate,model%tempwk%dt_wat,model%tempwk%nwat) 
+       case(BWATER_FLUX)    ! steady-state routing using flux calculation
+
+          model%tempwk%watvel = model%paramets%hydtim * tim0 / (scyr * len0)
+          estimate = (0.2d0 * model%tempwk%watvel) / min(model%numerics%dew,model%numerics%dns)
+          call find_dt_wat(model%numerics%dttem,estimate,model%tempwk%dt_wat,model%tempwk%nwat) 
           
           !print *, model%numerics%dttem*tim0/scyr, model%tempwk%dt_wat*tim0/scyr, model%tempwk%nwat
 
-          !model%tempwk%c = (/ rhow * grav, rhoi * grav, 2.0d0 * model%numerics%dew, 2.0d0 * model%numerics%dns, &
-          !     0.25d0 * model%tempwk%dt_wat / model%numerics%dew, 0.25d0 * model%tempwk%dt_wat / model%numerics%dns, &
-          !     0.5d0 * model%tempwk%dt_wat / model%numerics%dew, 0.5d0 * model%tempwk%dt_wat / model%numerics%dns /)
+          model%tempwk%c = (/ rhow * grav, rhoi * grav, 2.0d0 * model%numerics%dew, 2.0d0 * model%numerics%dns, &
+               0.25d0 * model%tempwk%dt_wat / model%numerics%dew, 0.25d0 * model%tempwk%dt_wat / model%numerics%dns, &
+               0.5d0 * model%tempwk%dt_wat / model%numerics%dew, 0.5d0 * model%tempwk%dt_wat / model%numerics%dns /)
           
-       case(3)
+    end select
 
-          write(*,*)"ERROR: Current release does not support use of the basal processes module."
-          write(*,*)"       Re-run code with alternate option selected for 'whichbwat'."
-          stop
+    !==== Initialize ice temperature.============
 
-       end select
+    ! Five possibilities:
+    ! (1) Set ice temperature to 0 C everywhere in column (TEMP_INIT_ZERO)
+    ! (2) Set ice temperature to surface air temperature everywhere in column (TEMP_INIT_ARTM)
+    ! (3) Set up a linear temperature profile, with T = artm at the surface and T <= Tpmp
+    !     at the bed (TEMP_INIT_LINEAR). 
+    !     A parameter (pmpt_offset) controls how far below Tpmp the initial bed temp is set.
+    ! (4) Read ice temperature from an initial input file.
+    ! (5) Read ice temperature from a restart file.
+    !
+    ! If restarting, we always do (5).
+    ! If not restarting and the temperature field is present in the input file, we do (4).
+    ! If (4) or (5), then the temperature field should already have been read from a file,
+    !  and the rest of this subroutine will do nothing.
+    ! Otherwise, the initial temperature is controlled by model%options%temp_init,
+    !  which can be read from the config file.
+    !
+    !TODO - Remove halo parameters below, since uhalo = lhalo = 0 for glide.
+    !TODO - For reading from restart or input file, make sure that cells in
+    !       the Glide temperature halo are initialized to reasonable values
+    !       (preferably not -999).
 
-      !==== Initialize ice temperature.============
+    if (model%options%is_restart == RESTART_TRUE) then
 
-      !This block of code is similar to that in glissade_init_temp
-      !WHL - Old glide has this code in timeevoltemp
+       ! Temperature has already been initialized from a restart file. 
+       ! (Temperature is always a restart variable.)
 
-!TODO - Remove halo parameters below, since uhalo = lhalo = 0 for glide
+       call write_log('Initializing ice temperature from the restart file')
 
-      if (model%options%is_restart == 1) then
+    elseif ( minval(model%temper%temp(1:model%general%upn, &
+                    1+lhalo:model%general%ewn-lhalo, 1+uhalo:model%general%nsn-uhalo)) > &
+                    (-1.0d0 * trpt) ) then    ! trpt = 273.15 K
+                                              ! Default initial temps in glide_types are -999
 
-         ! If we are restarting, use the field from the restart input file. (Temp is always a restart variable.)
-          call write_log('Using temp values from restart file for temperature initial condition.')
+       ! Temperature has already been initialized from an input file.
+       ! (We know this because the default initial temps have been overwritten.)
 
-!TODO - For restart, make sure that values in the temperature halo are reasonable.
+       call write_log('Initializing ice temperature from an input file')
 
-      elseif ( minval(model%temper%temp(1:model%general%upn, &
-                  1+lhalo:model%general%ewn-lhalo, 1+uhalo:model%general%nsn-uhalo)) < &
-                  (-1.0d0 * trpt) ) then    ! trpt = 273.15 K
-                                            ! Default initial temps in glide_types are -999
+    else   ! not reading temperature from restart or input file, so initialize it here
 
-          ! If a temperature field was not provided on a cold start, then use the air temp.
-          ! (Check if any of -999.0 default values remain for temp in the physical domain now that the input file has been read.)
+       ! First set T = 0 C everywhere (including Glide temperature halo: ew = 0, ewn+1, ns = 0, nsn+1).
 
-!WHL - Previously, temps in the temperature halo cells were left at -999 after initialization.
-!      This doesn't seem like a good idea.
+       model%temper%temp(:,:,:) = 0.0d0                                              
+                                                    
+       if (model%options%temp_init == TEMP_INIT_ZERO) then
 
-          model%temper%temp(:,:,:) = 0.0d0  ! initialize to 0 
-                                            ! including temperature halo: ew = 0, ewn+1
-                                            !                             ns = 0, nsn+1   
+          ! Nothing else to do; just write to log
+          call write_log('Initializing ice temperature to 0 deg C')
 
-          ! Initialize ice temperature to air temperature (for each column). 
-          ! Loop over physical cells where artm should be defined (not temperature halo cells)
+       elseif (model%options%temp_init == TEMP_INIT_ARTM) then
 
-!WHL - Note: Old glide sets temp = artm everywhere without regard to whether ice exists in a column.
-!TODO - Verify that this makes no difference for model results.
+          ! Initialize ice column temperature to surface air temperature
+          ! If artm > 0 C, then set T = 0 C.
+          ! Loop over physical cells where artm is defined (not temperature halo cells).
 
-          call write_log('Initializing ice temperature to the air temperature.')
+          !Note: Old glide sets temp = artm everywhere without regard to whether ice exists in a column.
+          !TODO - Verify that this makes no difference for model results.
+          !TODO - Change dmin1 to min?
+
+          call write_log('Initializing ice temperature to the surface air temperature')
 
           do ns = 1, model%general%nsn
              do ew = 1, model%general%ewn
 
-               if (oldglide) then
-                model%temper%temp(:,ew,ns) = dmin1(0.0d0,dble(model%climate%artm(ew,ns)))  
-               else
-                if (model%geometry%thck(ew,ns) > 0.0d0) then  ! TODO should this be thin ice?
-                   ! initialize ice-covered areas to the min of artm and 0
-                   model%temper%temp(:,ew,ns) = dmin1(0.0d0,dble(model%climate%artm(ew,ns)))  
-                endif
-               endif   ! oldglide
+                call glide_init_temp_column(model%options%temp_init,         &
+                                            model%numerics%sigma(:),         &
+                                            dble(model%climate%artm(ew,ns)), &
+                                            model%geometry%thck(ew,ns),      &
+                                            model%temper%temp(:,ew,ns) )
              end do
           end do
 
-      else
+       elseif (model%options%temp_init == TEMP_INIT_LINEAR) then
 
-          ! If temp values have been included in the input file on a cold start, use them!
-          call write_log('Using temp values from input file for temperature initial condition.')
+          ! Initialize ice column temperature with a linear profile:
+          ! T = artm at the surface, and T <= Tpmp at the bed.
+          ! Loop over physical cells where artm is defined (not temperature halo cells)
 
-!TODO - For reading input file, make sure that values in the temperature halo are reasonable.
+          call write_log('Initializing ice temperature to a linear profile in each column')
 
-      endif
+          do ns = 1, model%general%nsn
+             do ew = 1, model%general%ewn
 
-      ! ====== Calculate initial value of flwa ==================
+                call glide_init_temp_column(model%options%temp_init,         &
+                                            model%numerics%sigma(:),         &
+                                            dble(model%climate%artm(ew,ns)), &
+                                            model%geometry%thck(ew,ns),      &
+                                            model%temper%temp(:,ew,ns) )
+             end do
+          end do
 
-      if (model%options%is_restart == 0) then
-         call write_log("Calculating initial flwa from temp and thk fields.")
+       endif ! model%options%temp_init
 
-         ! Calculate Glen's A --------------------------------------------------------   
+    endif    ! restart file, input file, or other options
 
-         call glide_calcflwa(model%numerics%sigma,        &
-                             model%numerics%thklim,       &
-                             model%temper%flwa,           &
-                             model%temper%temp(:,1:model%general%ewn,1:model%general%nsn), &
-                             model%geometry%thck,         &
-                             model%paramets%flow_factor,  &
-                             model%paramets%default_flwa, &
-                             model%options%whichflwa) 
-      else
-         call write_log("Using flwa values from restart file for flwa initial condition.") 
-      endif
+
+    ! ====== Calculate initial value of flwa ==================
+
+    if (model%options%is_restart == RESTART_FALSE) then
+       call write_log("Calculating initial flwa from temp and thk fields")
+
+       ! Calculate Glen's A --------------------------------------------------------   
+
+       call glide_calcflwa(model%numerics%sigma,        &
+                           model%numerics%thklim,       &
+                           model%temper%flwa,           &
+                           model%temper%temp(:,1:model%general%ewn,1:model%general%nsn), &
+                           model%geometry%thck,         &
+                           model%paramets%flow_factor,  &
+                           model%paramets%default_flwa, &
+                           model%options%whichflwa) 
+    else
+       call write_log("Using flwa values from restart file for flwa initial condition.") 
+    endif
 
   end subroutine glide_init_temp
 
 !****************************************************    
+
+  subroutine glide_init_temp_column(temp_init,                 &
+                                    sigma,       artm,         &
+                                    thck,        temp)
+
+  ! Initialize temperatures in a column based on the value of temp_temp
+  ! Threee possibilities:
+  ! (1) Set ice temperature in column to 0 C (TEMP_INIT_ZERO)
+  ! (2) Set ice temperature in column to surface air temperature (TEMP_INIT_ARTM)
+  ! (3) Set up a linear temperature profile, with T = artm at the surface and T <= Tpmp
+  !     at the bed (TEMP_INIT_LINEAR). 
+  !     A local parameter (pmpt_offset) controls how far below Tpmp the initial bed temp is set.
+
+  ! In/out arguments
+ 
+  integer, intent(in) :: temp_init         ! option for temperature initialization
+
+  real(dp), dimension(:), intent(in)    :: sigma  ! vertical coordinate
+  real(dp), intent(in)                  :: artm   ! surface air temperature (deg C)
+                                                  ! Note: artm should be passed in as double precision
+  real(dp), intent(in)                  :: thck   ! ice thickness
+  real(dp), dimension(:), intent(inout) :: temp   ! ice column temperature (deg C)
+
+  ! Local variables and parameters
+
+  real(dp) :: tbed                           ! initial temperature at bed
+  real(dp) :: pmptb                          ! pressure melting point temp at the bed
+  real(dp), dimension(size(sigma)) :: pmpt   ! pressure melting point temp thru the column
+
+  real(dp), parameter :: pmpt_offset = 2.d0  ! offset of initial Tbed from pressure melting point temperature (deg C)
+                                             ! Note: pmtp_offset is positive for T < Tpmp
+
+  ! Set the temperature in the column
+
+  select case(temp_init)
+
+  case(TEMP_INIT_ZERO)     ! set T = 0 C
+
+     temp(:) = 0.d0
+
+  case(TEMP_INIT_ARTM)     ! initialize ice-covered areas to the min of artm and 0 C
+
+     if (thck > 0.0d0) then
+        temp(:) = dmin1(0.0d0, artm)  !TODO - dmin1 --> min?
+     else
+        temp(:) = 0.d0
+     endif
+
+  case(TEMP_INIT_LINEAR)
+
+     ! Tsfc = artm, Tbed = Tpmp = pmpt_offset, linear profile in between 
+
+     call calcpmptb (pmptb, thck)
+     tbed = pmptb - pmpt_offset
+
+     temp(:) = artm + (tbed - artm)*sigma(:) 
+                               
+     ! Make sure T <= Tpmp - pmpt_offset throughout column
+     ! TODO: Change condition to T <= Tpmp?
+
+     call calcpmpt(pmpt(:), thck, sigma(:))
+     temp(:) = min(temp(:), pmpt(:) - pmpt_offset)
+
+  end select
+
+  end subroutine glide_init_temp_column
+
 
   subroutine glide_temp_driver(model,whichtemp)
 
@@ -316,6 +406,7 @@ contains
     use glimmer_global, only : dp
     use glimmer_paramets, only : thk0, GLC_DEBUG
     use glide_bwater
+    use glide_grid_operators, only: stagvarb
 
     !------------------------------------------------------------------------------------
     ! Subroutine arguments
@@ -341,7 +432,7 @@ contains
 
     real(dp), dimension(size(model%numerics%sigma)) :: weff
 
-!WHLdebug
+! debug
     integer :: j, k
     integer :: idiag, jdiag
     idiag = model%numerics%idiag_global
@@ -354,7 +445,7 @@ contains
 
     select case(whichtemp)
 
-    case(0) ! Set column to surface air temperature -------------------------------------
+    case(TEMP_SURFACE_AIR_TEMP)  ! Set column to surface air temperature ------------------
 
        do ns = 1,model%general%nsn
           do ew = 1,model%general%ewn
@@ -362,34 +453,18 @@ contains
           end do
        end do
 
-    case(1) ! Do full temperature solution as in Glimmer---------------------------------
+    case(TEMP_PROGNOSTIC)     ! Do full temperature solution as in standard Glide-------------
 
       ! Note: In older versions of Glimmer, the vertical velocity was computed here.
       !       It is now computed in glide_tstep_p3 to support exact restart.
-
-!WHL - debug
-!    print*, ' '
-!    print*, 'Starting glide_temp_driver'
-!    print*, ' '
-!    print*, 'basal uvel:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%velocity%uvel(model%general%upn,3:16,j)
-!    enddo
-!    print*, 'basal temp:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(model%general%upn,3:16,j)
-!    enddo
-!    print*, 'temp, k = 2:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(2,3:16,j)
-!    enddo
 
        model%tempwk%inittemp = 0.0d0
        model%tempwk%initadvt = 0.0d0
        !*MH model%tempwk%dissip   = 0.0d0  is also set to zero in finddisp
 
        ! ----------------------------------------------------------------------------------
-!TODO - I think efvs is not needed here
+       !TODO - I think efvs is not needed here
+
        call glide_finddisp(model,          &
                            model%geometry%thck,     &
                            model%options%which_disp,&
@@ -399,22 +474,8 @@ contains
                            model%geomderv%dusrfdns, &
                            model%temper%flwa)
 
-!WHLdebug
-!!       i = itest
-!!       j = jtest
-!!       write(6,*) ' '
-!!       write(6,*) 'i, j =', i, j
-!!       write(6,*) 'which_disp =', model%options%which_disp
-!!       write(6,*) ' '
-!!       write(6,*) 'efvs =',   model%stress%efvs(:,i,j)
-!!       write(6,*) ' '
-!!       write(6,*) 'flwa =',   model%temper%flwa(:,i,j)
-!!       write(6,*) ' '
-!!       write(6,*) 'dissip =', model%tempwk%dissip(:,i,j)
-!!       write(6,*) ' '
-    
-!LOOP: all scalar points except outer row
-!      Outer row of cells is omitted because velo points are not available at boundaries
+       ! Loop over all scalar points except outer row
+       ! Outer row of cells is omitted because velo points are not available at boundaries
 
        ! translate velo field
        do ns = 2,model%general%nsn-1
@@ -430,23 +491,16 @@ contains
                     model%temper%temp, &
                     model%geometry%thck)
 
-!WHL - debug
-!    print*, ' '
-!    print*, 'basal dissipation:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%tempwk%dissip(model%general%upn,3:16,j)
-!    enddo
-
        ! zeroth iteration
        iter = 0
        tempresid = 0.0d0
 
-!LOOP: all scalar points except outer row
-!      Note: temperature array has dimensions (upn, 0:ewn+1, 0:nsn+1)
+       ! Loop over all scalar points except outer row
+       ! Note: temperature array has dimensions (upn, 0:ewn+1, 0:nsn+1)
 
        do ns = 2,model%general%nsn-1
           do ew = 2,model%general%ewn-1
-             if(model%geometry%thck(ew,ns) > model%numerics%thklim) then
+             if (model%geometry%thck(ew,ns) > model%numerics%thklim) then
 
                 weff = model%velocity%wvel(:,ew,ns) - model%velocity%wgrd(:,ew,ns)
 
@@ -454,17 +508,6 @@ contains
                 if (maxval(abs(weff)) > model%tempwk%wmax) then
                    weff = 0.0d0
                 end if
-
-!WHL - debug
-!                if (ew == idiag .and. ns == jdiag) then
-!                   print*, ' ' 
-!                   print*, 'Before findvtri, i, j =', idiag, jdiag
-!                   print*, ' '
-!                   print*, 'iteradvt, diagadvt, temp:'
-!                   do k = 1, model%general%upn
-!                      write(6,'(5f16.7)') iteradvt(k), diagadvt(k), model%temper%temp(k,ew,ns)
-!                   enddo
-!                endif
 
                 call hadvpnt(iteradvt,                       &
                              diagadvt,                               &
@@ -476,17 +519,6 @@ contains
                 call findvtri(model,ew,ns,subd,diag,supd,diagadvt, &
                      weff, &
                      GLIDE_IS_FLOAT(model%geometry%thkmask(ew,ns)))
-
-!WHL - debug
-!                if (ew == idiag .and. ns == jdiag) then
-!                   print*, ' ' 
-!                   print*, 'After findvtri, i, j =', idiag, jdiag
-!                   print*, ' '
-!                   print*, 'subd, diag, supd, rhsd, new temp:'
-!                   do k = 1, model%general%upn
-!                      write(6,'(5f16.7)') subd(k), diag(k), supd(k), rhsd(k), model%temper%temp(k,ew,ns)
-!                   enddo
-!                endif
 
                 call findvtri_init(model,ew,ns,subd,diag,supd,weff,model%temper%temp(:,ew,ns), &
                      model%geometry%thck(ew,ns),GLIDE_IS_FLOAT(model%geometry%thkmask(ew,ns)))
@@ -510,45 +542,13 @@ contains
             
                 tempresid = max(tempresid,maxval(abs(model%temper%temp(:,ew,ns)-prevtemp(:))))
 
-!WHL - debug
-!                if (ew == idiag .and. ns == jdiag) then
-!                   print*, ' ' 
-!                   print*, 'After tridiag, i, j =', idiag, jdiag
-!                   print*, ' ' 
-!                   print*, 'hadv_u, hadv_v, weff:'
-!                   do k = 1, model%general%upn
-!                      write(6,'(3f16.7)') model%tempwk%hadv_u(k,ew,ns), model%tempwk%hadv_v(k,ew,ns), weff(k)
-!                   enddo
-!                   print*, ' '
-!                   print*, 'subd, diag, supd, rhsd, new temp:'
-!                   do k = 1, model%general%upn
-!                      write(6,'(5f16.7)') subd(k), diag(k), supd(k), rhsd(k), model%temper%temp(k,ew,ns)
-!                   enddo
-!                endif
-
-             endif
-          end do
-       end do
-
-!WHL - debug
-!    print*, ' '
-!    print*, 'After zeroth iteration:'
-!    print*, ' '
-!    print*, 'basal temp:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(model%general%upn,3:16,j)
-!    enddo
-!    print*, 'temp, k = 2:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(2,3:16,j)
-!    enddo
-
+             endif   ! thk > thklim
+          end do     ! ew
+       end do        ! ns
 
        do while (tempresid > tempthres .and. iter <= mxit)
 
           tempresid = 0.0d0
-
-!LOOP: all scalar points except outer row
 
           do ns = 2,model%general%nsn-1
              do ew = 2,model%general%ewn-1
@@ -588,30 +588,49 @@ contains
                                  model%numerics%sigma,           &
                                  model%general%upn)
 
-
                    tempresid = max(tempresid, maxval(abs(model%temper%temp(:,ew,ns)-prevtemp(:))))
 
-                endif
-             end do
-          end do
+                endif   ! temp > thklim
+             end do     ! ew
+          end do        ! ns
 
           iter = iter + 1
 
        end do   ! tempresid > tempthres .and. iter <= mxit
 
        model%temper%niter = max(model%temper%niter, iter)
-       
-       ! set temperature of thin ice to the air temperature and set ice free nodes to zero
+ 
+       ! Set temperature of thin ice based on model%options%temp_init
+       !   T = 0 for TEMP_INIT_ZERO
+       !   T = artm for TEMP_INIT_ARTM
+       !   Linear vertical profile for TEMP_INIT_LINEAR
+       ! Set T = 0 for ice-free cells
+       !
+       ! NOTE: Calling this subroutine will maintain a sensible temperature profile
+       !        for thin ice, but in general does *not* conserve energy.
+       !       To conserve energy, we need either thklim = 0, or some additional
+       !        energy accounting and correction.
+   
+       do ns = 1, model%general%nsn
+          do ew = 1, model%general%ewn
 
-!LOOP: all scalar points
-       do ns = 1,model%general%nsn
-          do ew = 1,model%general%ewn
              if (GLIDE_IS_THIN(model%geometry%thkmask(ew,ns))) then
+
+               !TODO - Remove 'oldglide' logic when comparisons are complete
+               if (oldglide) then
                 model%temper%temp(:,ew,ns) = min(0.0d0,dble(model%climate%artm(ew,ns)))
+               else
+                call glide_init_temp_column(model%options%temp_init,         &
+                                            model%numerics%sigma(:),         &
+                                            dble(model%climate%artm(ew,ns)), &
+                                            model%geometry%thck(ew,ns),      &
+                                            model%temper%temp(:,ew,ns) )
+               endif
+
              else if (GLIDE_NO_ICE(model%geometry%thkmask(ew,ns))) then
-                !JCC - one of these
-                !model%temper%temp(:,ew,ns) = min(0.0d0,dble(model%climate%artm(ew,ns)))
+
                 model%temper%temp(:,ew,ns) = 0.0d0
+
              end if
           end do
        end do
@@ -627,7 +646,6 @@ contains
        ! Calculate basal melt rate --------------------------------------------------
 
        call glide_calcbmlt(model, &
-                           model%options%which_bmelt, &
                            model%temper%temp, &
                            model%geometry%thck, &
                            model%geomderv%stagthck, &
@@ -651,12 +669,24 @@ contains
                      GLIDE_IS_FLOAT(model%geometry%thkmask), &
                      model%tempwk%wphi)
 
-!HALO - If bwat is computed only on local cells, do we need a halo update here?
+       ! Transform basal temperature and pressure melting point onto velocity grid
+       ! We need stagbpmp for one of the basal traction cases.
 
-    case(2) ! *sfp* stealing this un-used option ... 
+       call stagvarb(model%temper%temp(model%general%upn,1:model%general%ewn,1:model%general%nsn), &
+                     model%temper%stagbtemp ,&
+                     model%general%  ewn, &
+                     model%general%  nsn)
+       
+       call calcbpmp(model,model%geometry%thck,model%temper%bpmp)
+
+       call stagvarb(model%temper%bpmp, &
+                     model%temper%stagbpmp ,&
+                     model%general%  ewn, &
+                     model%general%  nsn)
+
+    case(TEMP_STEADY) ! *sfp* stealing this un-used option ... 
 
         ! DO NOTHING. That is, hold T const. at initially assigned value
-        !TODO whl - Should the do-nothing option have a different case number, such as 0 or -1? 
 
     end select   ! whichtemp
 
@@ -670,25 +700,6 @@ contains
                         model%paramets%flow_factor,  &
                         model%paramets%default_flwa, &
                         model%options%whichflwa) 
-
-!WHL - debug
-!    print*, ' '
-!    print*, 'Found new temps'
-!    print*, ' '
-!    print*, 'basal temp:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(model%general%upn,3:16,j)
-!    enddo
-!    print*, 'temp, k = 2:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14f12.7)') model%temper%temp(2,3:16,j)
-!    enddo
-!    print*, 'flwa, k = 2:'
-!    do j = model%general%nsn+1, 0, -1
-!       write(6,'(14e12.5)') model%temper%flwa(2,3:16,j)
-!    enddo
-
-
 
     ! Output some information ----------------------------------------------------
 
@@ -784,8 +795,6 @@ contains
 
     model%tempwk%initadvt = 0.0d0
 
-!LOOP: all scalar points except outer row
-
     do ns = 2,model%general%nsn-1
        do ew = 2,model%general%ewn-1
           if (thck(ew,ns) > model%numerics%thklim) then
@@ -816,11 +825,6 @@ contains
 
     real(dp) :: fact(3)  !TODO - fact(2)?
 
-!WHL - debug
-    integer :: idiag, jdiag, k
-    idiag = model%numerics%idiag_global
-    jdiag = model%numerics%jdiag_global
-
 ! These constants are precomputed:
 ! model%tempwk%cons(1) = 2.0d0 * tim0 * model%numerics%dttem * coni / (2.0d0 * rhoi * shci * thk0**2)
 ! model%tempwk%cons(2) = model%numerics%dttem / 2.0d0 
@@ -828,19 +832,6 @@ contains
     fact(1) = VERT_DIFF*model%tempwk%cons(1) / model%geometry%thck(ew,ns)**2
     fact(2) = VERT_ADV*model%tempwk%cons(2) / model%geometry%thck(ew,ns)    
     
-!WHL - debug
-!Note: dups will be different if sigma levels are different
-!    if (ew==idiag .and.	ns==jdiag) then
-!       print*, ' '
-!       print*, 'fact(1) =', fact(1)
-!       print*, 'fact(2) =', fact(2)
-!       print*, ' '
-!       print*, 'dups(1:3):'
-!       do k = 1, model%general%upn
-!          write(6,'(3f16.7)') model%tempwk%dups(k,1:3)
-!       enddo
-!    endif
-
     subd(2:model%general%upn-1) = fact(2) * weff(2:model%general%upn-1) * &
          model%tempwk%dups(2:model%general%upn-1,3)
 
@@ -977,25 +968,29 @@ contains
 
   end subroutine findvtri_rhs
 
-  !-----------------------------------------------------------------------
+!-------------------------------------------------------------------
 
-  subroutine glide_calcbmlt(model,whichbmelt,temp,thck,stagthck,dusrfdew,dusrfdns,ubas,vbas,bmlt,floater)
+  subroutine glide_calcbmlt(model,    temp,          &
+                            thck,     stagthck,      &
+                            dusrfdew, dusrfdns,      &
+                            ubas,     vbas,          &
+                            bmlt,     floater)
 
     use glimmer_global, only : dp 
 
     type(glide_global_type) :: model
     real(dp), dimension(:,0:,0:), intent(in) :: temp
     real(dp), dimension(:,:), intent(in) :: thck,  stagthck, dusrfdew, dusrfdns, ubas, vbas  
-    real(dp), dimension(:,:), intent(inout) :: bmlt
+    real(dp), dimension(:,:), intent(inout) :: bmlt   ! scaled basal melting, m/s * tim0/thk0
+                                                      ! > 0 for melting, < 0 for freeze-on
     logical, dimension(:,:), intent(in) :: floater
-    integer, intent(in) :: whichbmelt
 
     real(dp), dimension(size(model%numerics%sigma)) :: pmptemp
     real(dp) :: slterm, newmlt
  
     integer :: ewp, nsp, up, ew, ns
 
-!LOOP: all scalar points except outer row
+    !LOOP: all scalar points except outer row
 
     do ns = 2, model%general%nsn-1
        do ew = 2, model%general%ewn-1
@@ -1007,64 +1002,23 @@ contains
 
                 slterm = 0.0d0
 
-                select case( whichbmelt )    !*sfp* added for calculating differently based on model physics
+                ! 0-order SIA approx. --> Tau_d = Tau_b
 
-                case( SIA_BMELT )                   ! 0-order SIA approx. --> Tau_d = Tau_b                                     
+                do nsp = ns-1,ns
+                   do ewp = ew-1,ew
+                       slterm = slterm - stagthck(ewp,nsp) * &
+                                (dusrfdew(ewp,nsp) * ubas(ewp,nsp) + dusrfdns(ewp,nsp) * vbas(ewp,nsp))
+                   end do
+                end do
 
-                    do nsp = ns-1,ns
-                        do ewp = ew-1,ew
-                            slterm = slterm - stagthck(ewp,nsp) * &
-                            (dusrfdew(ewp,nsp) * ubas(ewp,nsp) + dusrfdns(ewp,nsp) * vbas(ewp,nsp))
-                        end do
-                    end do
-
-                    !*sfp* NOTE that multiplication by this term has been moved up from below
-                    slterm = model%tempwk%f(4) * slterm 
-
-!TODO - Remove this case.  Commenting out for now.
-
-!!                case( FIRSTORDER_BMELT )                   ! 1st-order SIA approx. (HO model)
-!!                    do nsp = ns-1,ns 
-!!                        do ewp = ew-1,ew
-!!                        !*sfp* Note that vel and stress arrays have diff vert dims (upn for vel, upn-1 for stress)
-!!                        ! so that for now, basal vel at upn is multiplied by basal stress at upn-1 to get frictional
-!!                        ! heating term. This may not be entirely correct ... 
-!!                             slterm = slterm - &
-                                
-!!                                !! NEW version: uses consistent basal tractions                
-!!                                ( -model%velocity%btraction(1,ewp,nsp) * &
-!!                                   model%velocity%uvel(model%general%upn,ewp,nsp)  &
-!!                                  -model%velocity%btraction(2,ewp,nsp) * &
-!!                                   model%velocity%vvel(model%general%upn,ewp,nsp) )
-                                
-!!                                !!!! OLD version: uses HO basal shear stress calc. from FD                
-!!                                !( model%stress%tau%xz(model%general%upn-1,ewp,nsp) * &
-!!                                !  model%stress%uvel(model%general%upn,ewp,nsp) + &
-!!                                !  model%stress%tau%yz(model%general%upn-1,ewp,nsp) * &
-!!                                !  model%stress%vvel(model%general%upn,ewp,nsp) )
-
-!!                        end do
-!!                    end do
-
-!!                    slterm = model%tempwk%f(5) * slterm
-
-!                case( SSA_BMELT )                  ! 1st-order, depth-integrated approx. (SSA) 
-!                                            ! NOTE: need to pass 2d basal shear stress arrays from SSA model
-!                   do nsp = ns-1,ns 
-!                         do ewp = ew-1,ew
-!                             slterm = slterm - &
-!                                 ( taubxs(upn,ewp,nsp) * ubas(ewp,nsp) + taubys(upn,ewp,nsp) * vbas(ewp,nsp))
-!                         end do
-!                   end do
-!
-!                   slterm = model%tempwk%f(5) * slterm
-
-                end select
+                !*sfp* NOTE that multiplication by this term has been moved up from below
+                slterm = model%tempwk%f(4) * slterm 
 
                 bmlt(ew,ns) = 0.0d0
 
                 !*sfp* changed this so that 'slterm' is multiplied by f(4) const. above ONLY for the 0-order SIA case,
                 ! since for the HO and SSA cases a diff. const. needs to be used
+                !TODO - Could go back to old version since HO case is no longer treated here
 
                 ! OLD version
 !                newmlt = model%tempwk%f(4) * slterm - model%tempwk%f(2)*model%temper%bheatflx(ew,ns) + model%tempwk%f(3) * &
@@ -1078,7 +1032,7 @@ contains
 
                 up = model%general%upn - 1
 
-!TODO - Change reals to DP
+                !TODO - Change reals to dp
                 do while (abs(temp(up,ew,ns)-pmptemp(up)) < 0.001 .and. up >= 3)
                    bmlt(ew,ns) = bmlt(ew,ns) + newmlt
                    newmlt = model%tempwk%f(3) * model%tempwk%dupc(up) * thck(ew,ns) * model%tempwk%dissip(up,ew,ns)
@@ -1165,8 +1119,6 @@ contains
 
     model%tempwk%dissip(:,:,:) = 0.0d0
 
-!LOOP: all scalar points except outer row
-
     do ns = 2, model%general%nsn-1
        do ew = 2, model%general%ewn-1
           if (thck(ew,ns) > model%numerics%thklim) then
@@ -1189,7 +1141,7 @@ contains
 
     case( FIRSTORDER_DISP )
 
-!TODO - Print an error message and exit gracefully
+        !TODO - Print an error message and exit gracefully
 
 !   case( SSA_DISP )     !!! Waiting for an SSA solver !!!
 !    !*sfp* 1st-order, depth-integrated case only (SSA model) 
@@ -1260,6 +1212,28 @@ contains
 
   end subroutine calcpmpt
 
+  !-----------------------------------------------------------------------
+
+  subroutine calcbpmp(model,thck,bpmp)
+
+    ! Calculate the pressure melting point at the base of the ice sheet
+
+    type(glide_global_type) :: model
+    real(dp), dimension(:,:), intent(in)  :: thck
+    real(dp), dimension(:,:), intent(out) :: bpmp
+
+    integer :: ew,ns
+
+    bpmp = 0.d0
+
+    do ns = 2, model%general%nsn-1
+       do ew = 2, model%general%ewn-1
+          call calcpmptb(bpmp(ew,ns),thck(ew,ns))
+       end do
+    end do
+
+  end subroutine calcbpmp
+
 !-------------------------------------------------------------------
 
   subroutine calcpmptb(pmptemp,thck)
@@ -1328,10 +1302,10 @@ contains
 
     !------------------------------------------------------------------------------------ 
    
-!WHL - Some notes:
-!      vis0 = 1.39E-032 Pa-3 s-1 for glam dycore (and here for glide)
+!      Some notes:
+!      vis0 = 1.39e-032 Pa-3 s-1 for glam dycore (and here for glide)
 !           = tau0**(-gn) * (vel0/len0) where tau0 = rhoi*grav*thk0
-!      vis0*scyr = 4.39E-025 Pa-2 yr-1
+!      vis0*scyr = 4.39e-025 Pa-2 yr-1
 !      For glam: default_flwa_arg = 1.0d-16 Pa-3 yr-1 by default
 !      Result is default_flwa =   227657117 (unitless) if flow factor = 1
 !        This is the value given to thin ice.

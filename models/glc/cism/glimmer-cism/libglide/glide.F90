@@ -8,34 +8,31 @@
 ! Moved higher-order computations to a new module, glissade.F90.
 ! Simplified glide.F90 to include only SIA computations.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glide.f90 - part of the Glimmer-CISM ice model           + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -52,7 +49,6 @@ module glide
   use glide_types
   use glide_stop
   use glide_io
-  use glide_lithot_io
   use glide_lithot
   use glide_profile
   use glimmer_config
@@ -97,12 +93,12 @@ contains
     call glide_readconfig (model,config)
     call glide_printconfig(model)
 
-    ! read alternate sigma levels from config file, if necessary
+    ! read sigma levels from config file, if present
     call glide_read_sigma(model,config)
 
-    ! read isostasy configuration file
-    call isos_readconfig(model%isos,config)
-    call isos_printconfig(model%isos)
+    !WHL - Moved isostasy configuration to glide_setup
+!    call isos_readconfig(model%isos,config)
+!    call isos_printconfig(model%isos)
 
     ! read mapping from config file
     ! **** Use of dew and dns here is an ugly fudge that
@@ -197,10 +193,18 @@ contains
     ! initialise bed softness to uniform parameter
     model%velocity%bed_softness = model%velowk%btrac_const
 
-    ! set uniform basal heat flux 
+    ! set uniform basal heat flux (positive down)
+    !NOTE: This value will be overridden if we read bheatflx from an input file 
+    !      (model%options%gthf = 1) or compute it (model%options%gthf = 2)
     model%temper%bheatflx = model%paramets%geot
 
-    ! load sigma file
+!WHL - debug
+!    print*, ' '
+!    print*, 'In glide_initialise, geot =:', model%paramets%geot
+!    print*, 'max, min bheatflx (W/m2)=', maxval(model%temper%bheatflx), minval(model%temper%bheatflx)
+
+    ! compute sigma levels or load from external file
+    ! (if not already read from config file)
     call glide_load_sigma(model,dummyunit)
 
     ! open all input files
@@ -211,20 +215,25 @@ contains
 
     ! write projection info to log
     call glimmap_printproj(model%projection)
-
+   
+    !WHL - Should have been read from glide_io_readall
     ! read lithot if required
-    if (model%options%gthf > 0) then
-       call glide_lithot_io_readall(model,model)
-    end if
+!!    if (model%options%gthf > 0) then
+!    if (model%options%gthf == GTHF_COMPUTE) then
+!       call glide_lithot_io_readall(model,model)
+!    end if
 
     ! handle relaxed/equilibrium topo
     ! Initialise isostasy first
     call init_isostasy(model)
 
+    !TODO - Should we do anything for default case 0?
     select case(model%options%whichrelaxed)
-    case(1) ! Supplied topography is relaxed
-       model%isos%relx = model%geometry%topg
-    case(2) ! Supplied topography is in equilibrium
+
+    case(RELAXED_TOPO_INPUT)   ! Supplied topography is relaxed
+       model%isostasy%relx = model%geometry%topg
+    case(RELAXED_TOPO_COMPUTE) ! Supplied topography is in equilibrium
+                               !TODO - test this case
        call isos_relaxed(model)
     end select
 
@@ -234,6 +243,36 @@ contains
     ! create glide variables
     call glide_io_createall(model)
 
+!WHL - debug
+!    print*, ' '
+!    print*, 'Created Glide variables'
+!    print*, 'max, min bheatflx (W/m2)=', maxval(model%temper%bheatflx), minval(model%temper%bheatflx)
+
+    ! If a 2D bheatflx field is present in the input file, it will have been written 
+    !  to model%temper%bheatflx.  For the case model%options%gthf = 0, we want to use
+    !  a uniform heat flux instead.
+    ! If no bheatflx field is present in the input file, then we default to the 
+    !  prescribed uniform value, model%paramets%geot.
+
+    if (model%options%gthf == GTHF_UNIFORM) then
+
+       ! Check to see if this flux was present in the input file
+       ! (by checking whether the flux is nonuniform over the domain)
+       if (abs(maxval(model%temper%bheatflx) - minval(model%temper%bheatflx)) > 1.d-6) then  
+          call write_log('Setting uniform prescribed geothermal flux')
+          call write_log('(Set gthf = 1 to read geothermal flux field from input file)')
+       endif
+
+       ! set uniform basal heat flux (positive down)
+       model%temper%bheatflx = model%paramets%geot
+
+!WHL - debug
+!       print*, ' '
+!       print*, 'Use uniform bheatflx'
+!       print*, 'max, min bheatflx (W/m2)=', maxval(model%temper%bheatflx), minval(model%temper%bheatflx)
+
+    endif
+ 
 !TODO - Change names to glide_init_velo, glide_init_thck
 
     ! initialise velocity calc
@@ -243,25 +282,34 @@ contains
 !      but does not set the temperature or compute flwa until later call to timeevoltemp
 !WHL - In old glide I added artm as a hotstart variable
 
-    ! initialize temperature field - this needs to happen after input file is
-    ! read so we can assign artm (which could possibly be read in) if temp has not been input.
+    ! Initialize temperature field - this needs to happen after input file is
+    !  read so we can assign artm (which could possibly be read in) if temp has not been input.
+    !
+    ! Note: If the temperature field has not been read already from an input or restart file, 
+    !        then temperature is initialized by this subroutine based on model%options%temp_init.  
+    !       If the temperature has been read already, this subroutine will *not* overwrite it.
+  
     call glide_init_temp(model)
 
     ! initialise thickness evolution calc
     call init_thck(model)
 
-    if (model%options%gthf > 0) then
-       call glide_lithot_io_createall(model)
+    if (model%options%gthf == GTHF_COMPUTE) then
+!!       call glide_lithot_io_createall(model)  !WHL - Variables should have been created by glide_io_createall
        call init_lithot(model)
     end if
 
-!WHL - old glide has this call in addition to init_temp, to compute flwa
+!WHL - This call will set the ice column temperature to artm as in old glide,
+!       regardless of the value of model%options%temp_init
+!      Commented out at least for now.  To reproduce results of old_glide, make sure
+!       model%options%temp_init = TEMP_INIT_ARTM.
+!!  if (oldglide) then
 !!    if (model%options%hotstart.ne.1) then
 !!       ! initialise Glen's flow parameter A using an isothermal temperature distribution
-!!       call timeevoltemp(model,0)
-!!    end if
-
-
+!!       call glide_temp_driver(model,0)
+!!    endif
+!!  endif  ! oldglide
+    
 !WHL - This option is disabled for now.
     ! *mb* added; initialization of basal proc. module
 !!    if (model%options%which_bproc == BAS_PROC_FULLCALC .or. &
@@ -335,11 +383,12 @@ contains
     ! This is analagous to glissade_diagnostic_variable_solve but is only 
     ! called from init.  The glide tstep routines take care of these calculations
     ! during time stepping.  
+    ! Note that none of this is needed on a restart - this code ensures a complete 
+    ! set of diagnostic output fields for the initial state.
 
     use glimmer_global, only : rk
     use glide_thck
     use glide_velo
-    use glide_setup
     use glide_temp
     use glide_mask
     use glimmer_paramets, only: tim0
@@ -354,42 +403,54 @@ contains
 
     type(glide_global_type), intent(inout) :: model     ! model instance
 
+
+    if (model%options%is_restart == RESTART_TRUE) then
+       ! On a restart, just assign the basal velocity from uvel/vvel (which are restart variables)
+       ! to ubas/vbas which are used by the temperature solver to calculate basal heating.
+       ! During time stepping ubas/vbas are calculated by slipvelo during thickness evolution or below on a cold start.
+       model%velocity%ubas = model%velocity%uvel(model%general%upn,:,:)
+       model%velocity%vbas = model%velocity%vvel(model%general%upn,:,:)
+
+    else
+       ! Only make the calculations on a cold start.
+
     ! ------------------------------------------------------------------------ 
     ! ***Part 1: Make geometry consistent with calving law, if necessary
     ! ------------------------------------------------------------------------       
-    ! ------------------------------------------------------------------------ 
-    ! Remove ice which is either floating, or is present below prescribed
-    ! depth, depending on value of whichmarn
-    ! ------------------------------------------------------------------------ 
 
-!TODO - Remove this call?  There is a call to glide_marinlim in glide_tstep_p2.
+            ! ------------------------------------------------------------------------ 
+            ! Remove ice which is either floating, or is present below prescribed
+            ! depth, depending on value of whichmarn
+            ! ------------------------------------------------------------------------ 
 
-    call glide_marinlim(model%options%whichmarn, &
-                        model%geometry%thck,      &
-                        model%isos%relx,      &
-                        model%geometry%topg,   &
-                        model%geometry%thkmask,    &
-                        model%numerics%mlimit,     &
-                        model%numerics%calving_fraction, &
-                        model%climate%eus,         &
-                        model%climate%calving,  &
-                        model%ground, &
-                        model%numerics%dew,    &
-                        model%numerics%dns, &
-                        model%general%nsn, &
-                        model%general%ewn)
+            !  On a cold start, marinlim needs the mask to be calculated, but a call to 
+            !  glide_set_mask occurs in glide_initialise, so we should be set here without calling it again.
 
-!TODO - There are two calls to glide_set_mask, one before and one after the call to glide_marinlim.
-!       Keep the second call here?
+       call glide_marinlim(model%options%whichmarn, &
+                                model%geometry%thck,      &
+                                model%isostasy%relx,      &
+                                model%geometry%topg,   &
+                                model%geometry%thkmask,    &
+                                model%numerics%mlimit,     &
+                                model%numerics%calving_fraction, &
+                                model%climate%eus,         &
+                                model%climate%calving,  &
+                                model%ground, &
+                                model%numerics%dew,    &
+                                model%numerics%dns, &
+                                model%general%nsn, &
+                                model%general%ewn)
 
-    call glide_set_mask(model%numerics,                                &
-                        model%geometry%thck,  model%geometry%topg,     &
-                        model%general%ewn,    model%general%nsn,       &
-                        model%climate%eus,    model%geometry%thkmask,  &
-                        model%geometry%iarea, model%geometry%ivol)
+            ! We now need to recalculate the mask because marinlim may have modified the geometry.
+       call glide_set_mask(model%numerics,                                &
+                                model%geometry%thck,  model%geometry%topg,     &
+                                model%general%ewn,    model%general%nsn,       &
+                                model%climate%eus,    model%geometry%thkmask,  &
+                                model%geometry%iarea, model%geometry%ivol)
+
 
 !TODO - Remove this call?
-    call calc_iareaf_iareag(model%numerics%dew,    model%numerics%dns,     &
+       call calc_iareaf_iareag(model%numerics%dew,    model%numerics%dns,     &
                             model%geometry%iarea,  model%geometry%thkmask, &
                             model%geometry%iareaf, model%geometry%iareag)
 
@@ -399,17 +460,16 @@ contains
     ! ------------------------------------------------------------------------    
 
 !TODO Update ice/water load here?
-
-!TODO Calculate isostasy here?
+!TODO Calculate isostasy here instead of in tstep_p3?
 
     ! ------------------------------------------------------------------------
     ! calculate upper and lower ice surface
     ! ------------------------------------------------------------------------
 
-    call glide_calclsrf(model%geometry%thck, model%geometry%topg, &
+       call glide_calclsrf(model%geometry%thck, model%geometry%topg, &
                         model%climate%eus,   model%geometry%lsrf)
 
-    model%geometry%usrf = max(0.d0,model%geometry%thck + model%geometry%lsrf)
+       model%geometry%usrf = max(0.d0,model%geometry%thck + model%geometry%lsrf)
 
     ! ------------------------------------------------------------------------ 
     ! Calculate various derivatives
@@ -418,13 +478,13 @@ contains
     ! the same way as in thck_lin_evolve/thck_nonlin_evolve
     ! ------------------------------------------------------------------------     
 
-    call glide_prof_start(model,model%glide_prof%geomderv)
+       call glide_prof_start(model,model%glide_prof%geomderv)
 
-    call glide_geometry_derivs(model)   ! stagvarb, geomders as in old Glide
+       call glide_geometry_derivs(model)   ! stagvarb, geomders as in old Glide
 
-    call glide_prof_stop(model,model%glide_prof%geomderv)
+       call glide_prof_stop(model,model%glide_prof%geomderv)
 
-    call glide_prof_start(model,model%glide_prof%ice_mask1)
+       call glide_prof_start(model,model%glide_prof%ice_mask1)
 
     !TREY This sets local values of dom, mask, totpts, and empty
     !EIB! call veries between lanl and gc2, this is lanl version
@@ -433,14 +493,15 @@ contains
 !WHL - Modified this subroutine so that ice can accumulate in regions with
 !      a small positive mass balance.
 
-    call glide_thck_index(model%geometry% thck,      &
+       call glide_thck_index(model%geometry% thck,      &
                           model%climate%  acab,      &
                           model%geometry% thck_index,  &
                           model%geometry% totpts,    &
                           .true.,                    &
                           model%geometry% empty)
 
-    call glide_prof_stop(model,model%glide_prof%ice_mask1)
+       call glide_prof_stop(model,model%glide_prof%ice_mask1)
+
 
     ! ------------------------------------------------------------------------ 
     ! Part 3: Solve velocity
@@ -449,11 +510,11 @@ contains
     ! initial value for flwa should already be calculated as part of glide_init_temp()
     ! calculate the part of the vertically averaged velocity field which solely depends on the temperature
 
-    call velo_integrate_flwa(model%velowk,model%geomderv%stagthck,model%temper%flwa)
+        call velo_integrate_flwa(model%velowk,model%geomderv%stagthck,model%temper%flwa)
 
     ! Calculate diffusivity
 
-    call velo_calc_diffu(model%velowk,model%geomderv%stagthck,model%geomderv%dusrfdew, &
+       call velo_calc_diffu(model%velowk,model%geomderv%stagthck,model%geomderv%dusrfdew, &
             model%geomderv%dusrfdns,model%velocity%diffu)
 
 !TODO - Remove the next two calls, assume bwat is in restart file.
@@ -463,51 +524,46 @@ contains
     ! supplied in the input file) to get an initial guess of sliding heating.
     ! We could iterate on this, but for simplicity that is not done.
 
-    call glide_calcbmlt(model, &
-                           model%options%which_bmelt, &
-                           model%temper%temp, &
-                           model%geometry%thck, &
-                           model%geomderv%stagthck, &
-                           model%geomderv%dusrfdew, &
-                           model%geomderv%dusrfdns, &
-                           model%velocity%ubas, &
-                           model%velocity%vbas, &
-                           model%temper%bmlt, &
-                           GLIDE_IS_FLOAT(model%geometry%thkmask))
+       call glide_calcbmlt(model, &
+!!                        model%options%which_bmelt, & 
+                        model%temper%temp, &
+                        model%geometry%thck, &
+                        model%geomderv%stagthck, &
+                        model%geomderv%dusrfdew, &
+                        model%geomderv%dusrfdns, &
+                        model%velocity%ubas, &
+                        model%velocity%vbas, &
+                        model%temper%bmlt, &
+                        GLIDE_IS_FLOAT(model%geometry%thkmask))
 
     ! Calculate basal water depth ------------------------------------------------
 
-    call calcbwat(model, &
-                     model%options%whichbwat, &
-                     model%temper%bmlt, &
-                     model%temper%bwat, &
-                     model%temper%bwatflx, &
-                     model%geometry%thck, &
-                     model%geometry%topg, &
-                     model%temper%temp(model%general%upn,:,:), &
-                     GLIDE_IS_FLOAT(model%geometry%thkmask), &
-                     model%tempwk%wphi)
+       call calcbwat(model, &
+                  model%options%whichbwat, &
+                  model%temper%bmlt, &
+                  model%temper%bwat, &
+                  model%temper%bwatflx, &
+                  model%geometry%thck, &
+                  model%geometry%topg, &
+                  model%temper%temp(model%general%upn,:,:), &
+                  GLIDE_IS_FLOAT(model%geometry%thkmask), &
+                  model%tempwk%wphi)
 
     ! ------------------------------------------------------------------------ 
     ! Calculate basal traction factor
     ! ------------------------------------------------------------------------ 
 
-    call calc_btrc(model,                    &
+       call calc_btrc(model,                    &
                    model%options%whichbtrc,  &
                    model%velocity%btrc)
 
-    call slipvelo(model,                &
+       call slipvelo(model,                &
                   0,                             &
                   model%velocity% btrc,          &
                   model%velocity% ubas,          &
                   model%velocity% vbas)
 
-    ! The evolution=0 (linear diffusion) option requires that uvel/vvel be restart variables.  So use input values if
-    ! that option is selected on a restart.  Otherwise calculate velocity now.
 
-    if ((model%options%is_restart == 1) .and. (model%options%whichevol == EVOL_PSEUDO_DIFF)) then
-       call write_log('Using restart file values for uvel and vvel for the initial time because evolution=0.')
-    else
        ! Calculate velocity
        call velo_calc_velo(model%velowk,            model%geomderv%stagthck,  &
                            model%geomderv%dusrfdew, model%geomderv%dusrfdns,  &
@@ -516,7 +572,13 @@ contains
                            model%velocity%uvel,     model%velocity%vvel,      &
                            model%velocity%uflx,     model%velocity%vflx,      &
                            model%velocity%velnorm)    
-    endif
+
+
+    endif  ! if a restart
+
+
+    ! MJH: I have left these calls outside of the restart if-construct so that there will
+    ! always be a velnorm field calculated, which can be helpful for debugging.
 
     ! ------------------------------------------------------------------------ 
     ! Part 4: Calculate other diagnostic fields that depend on velocity
@@ -546,7 +608,6 @@ contains
     use glimmer_global, only : dp
     use glide_thck
     use glide_velo
-    use glide_setup
     use glide_temp
     use glide_mask
     use glimmer_paramets, only: tim0
@@ -592,7 +653,7 @@ contains
     ! calculate geothermal heat flux
     ! ------------------------------------------------------------------------ 
 
-    if (model%options%gthf > 0) then
+    if (model%options%gthf == GTHF_COMPUTE) then
        call calc_lithot(model)
     end if
 
@@ -664,11 +725,9 @@ contains
 
     use glide_thck
     use glide_velo
-    use glide_setup
     use glide_temp
     use glide_mask
     use isostasy
-!!    use fo_upwind_advect, only: fo_upwind_advect_driver
     use glide_ground, only: glide_marinlim
 
     type(glide_global_type), intent(inout) :: model    ! model instance
@@ -729,7 +788,7 @@ contains
 
     call glide_marinlim(model%options%whichmarn, &
                         model%geometry%thck,      &
-                        model%isos%relx,      &
+                        model%isostasy%relx,      &
                         model%geometry%topg,   &
                         model%geometry%thkmask,    &
                         model%numerics%mlimit,     &
@@ -742,9 +801,8 @@ contains
                         model%general%nsn, &
                         model%general%ewn)
 
-!TODO - This call is not in old Glide.
-!TODO - Write a better comment here.  The mask needs to be recalculated after marinlim.
-    !issues with ice shelf, calling it again fixes the mask
+    ! Recalculate the mask following calving
+    ! Note - This call is not in old Glide (but should have been).
 
  if (.not. oldglide) then   ! recalculate the thickness mask after calving
     call glide_set_mask(model%numerics,                                &
@@ -768,11 +826,11 @@ contains
 
     call glide_prof_start(model,model%glide_prof%isos_water)
 
-    if (model%isos%do_isos) then
-       if (model%numerics%time >= model%isos%next_calc) then
-          model%isos%next_calc = model%isos%next_calc + model%isos%period
+    if (model%options%isostasy == ISOSTASY_COMPUTE) then
+       if (model%numerics%time >= model%isostasy%next_calc) then
+          model%isostasy%next_calc = model%isostasy%next_calc + model%isostasy%period
           call isos_icewaterload(model)
-          model%isos%new_load = .true.
+          model%isostasy%new_load = .true.
        end if
     end if
 
@@ -826,6 +884,7 @@ contains
     use isostasy
     use glide_setup
     use glide_velo, only: glide_velo_vertical
+    use glide_thck, only: glide_calclsrf
     implicit none
 
     type(glide_global_type), intent(inout) :: model     ! model instance
@@ -840,9 +899,11 @@ contains
     ! ------------------------------------------------------------------------ 
 
     call glide_prof_start(model,model%glide_prof%isos)
-    if (model%isos%do_isos) then
-       call isos_isostasy(model)
+
+    if (model%options%isostasy == ISOSTASY_COMPUTE) then
+       call isos_compute(model)
     end if
+
     call glide_prof_stop(model,model%glide_prof%isos)
 
     ! ------------------------------------------------------------------------
@@ -854,7 +915,7 @@ contains
 
     model%geometry%usrf = max(0.d0,model%geometry%thck + model%geometry%lsrf)
 
-!TODO - Is this the right place to increment the timecounter?  
+!TODO - Move timecounter to simple_glide/glint driver?
 !CESM Glimmer code has this after the netCDF write.
 
     ! increment time counter
@@ -877,45 +938,11 @@ contains
 
  endif  ! oldglide = F
 
-    !---------------------------------------------------------------------
-    ! write output to netCDF file
-    ! ------------------------------------------------------------------------
-    !TODO - Put the following code in a subroutine?
-
-!WHL - In old glide, this is done at the start of tstep_p2.
-!      Leave here for now, bearing in mind that netcdf output could be
-!       displaced by a timestep between old and new glide.
-
-    if (present(no_write)) then
-       nw = no_write
-    else
-       nw=.false.
-    end if
-   
-    if (.not. nw) then
-
-      call t_startf('glide_io_writeall')
-       call glide_io_writeall(model,model)
-      call t_stopf('glide_io_writeall')
-
-       if (model%options%gthf > 0) then
-         call t_startf('glide_lithot_io_writeall')
-          call glide_lithot_io_writeall(model,model)
-         call t_stopf('glide_lithot_io_writeall')
-       end if
-
-    end if
+!WHL - Moved netCDF output to simple_glide
+!      Might have to do the same for other drivers
+!!       call glide_io_writeall(model,model)
 
   end subroutine glide_tstep_p3
-
-!=======================================================================
-
-!WHL - Moved the code in this subroutine back to glide_tstep_p3 for 
-!      compatibility with most drivers.
-!      (simple_glide was calling this separately, but other drivers were not.)
-
-!!  subroutine glide_tstep_postp3(model, no_write)
-!!  end subroutine glide_tstep_postp3
 
 !=======================================================================
 

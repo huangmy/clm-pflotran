@@ -88,30 +88,32 @@ SetupTools::getxmlvars($caseroot, \%xmlvars);
 
 # Check that userdefine settings are specified before expanding variable
 my $fail_setup = 0;
+my $strmacros;
+my $strbuild;
+my $strrun;
 foreach my $attr (keys %xmlvars) {
     if ( $xmlvars{$attr} =~ m/USERDEFINED_required_macros/ ) {
-	print "ERROR: must set xml variable $attr to generate Macros file \n";
+	$strmacros.="ERROR: must set xml variable $attr to generate Macros file \n";
 	$fail_setup = 1;
     }
-}
-foreach my $attr (keys %xmlvars) {
     if ( $xmlvars{$attr} =~ m/USERDEFINED_required_build/ ) {
-	print "ERROR: must set xml variable $attr to build the model \n";
+	$strbuild.="ERROR: must set xml variable $attr to build the model \n";
 	$fail_setup = 1;
     }
-}
-foreach my $attr (keys %xmlvars) {
     if ( $xmlvars{$attr} =~ m/USERDEFINED_required_run/ ) {
-	print "ERROR: must set xml variable $attr to run the model \n";
+	$strrun.="ERROR: must set xml variable $attr to run the model \n";
 	$fail_setup = 1;
     }
-}
-if ($fail_setup) { 
-    die "Correct above and issue cesm_setup again \n";
-}
-foreach my $attr (keys %xmlvars) {
     $xmlvars{$attr} = SetupTools::expand_env_var($xmlvars{$attr}, \%xmlvars);
 }
+if ($fail_setup) { 
+    print "$strmacros" if(defined($strmacros));
+    print "$strbuild" if(defined($strbuild));
+    print "$strrun" if(defined($strrun));
+    die "Correct above and issue cesm_setup again \n";
+}
+
+
 
 #-----------------------------------------------------------------------------------------------
 # Create batch script 
@@ -130,6 +132,18 @@ if (! $clean ) {
     } else {
 	print "Macros script already created ...skipping$eol ";
     }
+    # Set tasks to 1 if mpi-serial library
+    if($xmlvars{MPILIB} eq "mpi-serial"){
+	foreach my $attr (keys %xmlvars){
+	    if($attr =~ /NTASKS_/){
+		$xmlvars{$attr}=1;
+		my $sysmod = "./xmlchange -file env_mach_pes.xml -id $attr -val 1";
+		system ($sysmod); if ($? == -1) {die "$sysmod failed: $!\n";}
+		
+	    }
+	}
+    }
+
 
     my $ninst_fail = 0;
     if ($xmlvars{NINST_ATM} > $xmlvars{NTASKS_ATM}) {

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #==============================================================================
-# $Id: check_map.sh 44122 2013-02-21 23:48:47Z mlevy@ucar.edu $
-# $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130403/check_maps/check_map.sh $
+# $Id: check_map.sh 46158 2013-04-19 18:41:34Z mlevy@ucar.edu $
+# $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/check_maps/check_map.sh $
 #
 # Use an updated ESMF tool to check the quality of a mapping file
 #
@@ -25,7 +25,7 @@ usage() {
 	echo '  --help, -h        Output this usage information'
 	echo ''
 	echo 'Notes:'
-	echo '  1) For use on bluefire, geyser, or caldera only!'
+	echo '  1) For use on yellowstone, geyser, or caldera only!'
 	echo '  2) Need to set ESMFMKFILE (see comments in Makefile)'\
 	          'or compilation will fail'
 	echo '  3) If -rc option is not enabled, -v flag is ignored and verbose /'\
@@ -74,43 +74,6 @@ if [ -z "$FileList" ]; then
 	exit 1
 fi
 
-hostname=`hostname`
-# Environment to run interactively (bluefire / geyser only)
-case $hostname in
-  ## bluefire
-  be*)
-    if [ ! -z "$MP_EUIDEVICE" ]; then
-    	# Disable MP_EUIDEVICE to avoid warning message
-    	MP_EUIDEVICE_tmp=$MP_EUIDEVICE
-    	unset MP_EUIDEVICE
-    fi
-
-    if [ ! -z "$MP_INSTANCES" ]; then
-    	# Disable MP_INSTANCES to avoid warning message
-    	MP_INSTANCES_tmp=$MP_INSTANCES
-    	unset MP_INSTANCES
-    fi
-  ;;
-  ## geyser (yellowstone in interactive mode)
-  geyser* | caldera*)
-  if [ -z "$MPIEXEC" ]; then
-	  MPIEXEC="mpirun.lsf"
-  fi
-  ;;
-esac
-
-
-export MP_PROCS=1
-export MP_EUILIB=ip
-
-echo $hostname > hostfile
-declare -i p=2
-until ((p>$MP_PROCS)); do
-	echo $hostname >> hostfile
-	p=p+1
-done
-export MP_HOSTFILE=hostfile
-
 if [ $compile == "TRUE" ]; then
 	echo "Building $EXE"
 	CURR_DIR=$PWD
@@ -132,19 +95,10 @@ do
 	if [ -e $MAP ]; then
 		n=n+1
 		echo "${n}: ${MAP}"
-		$MPIEXEC $EXE $MAP
+		$EXE $MAP
 		echo "-----"
 	else
 		echo "File not found: $MAP"
 	fi
 done
 
-if [ ! -z "$MP_EUIDEVICE_tmp" ]; then
-	# Re-enable MP_EUIDEVICE (if previously defined)
-	export MP_EUIDEVICE=$MP_EUIDEVICE_tmp
-fi
-
-if [ ! -z "$MP_INSTANCES_tmp" ]; then
-	# Re-enable MP_EUIDEVICE (if previously defined)
-	export MP_INSTANCES=$MP_INSTANCES_tmp
-fi

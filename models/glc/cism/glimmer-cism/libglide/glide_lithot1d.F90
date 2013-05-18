@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glide_lithot1d.f90 - part of the Glimmer-CISM ice model  + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_lithot1d.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -34,6 +31,9 @@
 #include "glide_mask.inc"
 
 ! module for 1D temperature calculations in the upper lithosphere
+
+!TODO - This is a local calculation and should be parallel-friendly,
+!       but has not yet been tested in parallel.
 
 module glide_lithot1d
 
@@ -81,6 +81,7 @@ contains
 
 !TODO - I think these loops can be left as is for parallel code.
 !       Local calculation, so no issues with computing in halo cells.
+
     ! loop over grid
     do j=1,model%general%nsn
        do i=1,model%general%ewn

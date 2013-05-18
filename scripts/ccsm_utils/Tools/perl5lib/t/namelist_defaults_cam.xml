@@ -305,7 +305,7 @@
 <soil_erod dyn="fv" res="1x1.25"  >atm/cam/dst/dst_1x1.25_c060901.nc</soil_erod>
 
 <!-- iop dataset for SCAM mode -->
-<iopfile dyn="eul">atm/cam/scam/iop/arm0795v1.2.nc</iopfile>
+<iopfile dyn="eul">atm/cam/scam/iop/ARM95_4scam.nc</iopfile>
 
 <!-- physics loadbalance -->
 <phys_loadbalance dyn="se">-1</phys_loadbalance>

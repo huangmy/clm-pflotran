@@ -1,7 +1,29 @@
-!CLEANUP - glam_strs2.F90
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glam_strs2.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! "glam_strs2.F90"
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
+!   This file is part of Glimmer-CISM.
+!
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
+!
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
+!
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 ! 3d velocity calculation based on Blatter/Pattyn, 1st-order equations, by Tony Payne (Univ.
 ! of Bristol) and Steve Price (Univ. of Bristol / Los Alamos Nat. Lab.). Boundary conditions
 ! available include periodic (lateral), free surface, zero slip at bed, specified basal 
@@ -11,7 +33,7 @@
 #include "glide_mask.inc"
 #include "config.inc"
 
-!TODO - Get rid of globalIDs option.
+!TODO - Get rid of the globalIDs option.
 !       Make it the default for Trilinos, else not used.
 
 !GlobalIDs are for distributed TRILINOS variable IDs
@@ -34,9 +56,8 @@ use iso_c_binding
 use glimmer_paramets, only : dp
 use glimmer_physcon,  only : gn, rhoi, rhoo, grav, pi, scyr
 
-!SCALING - What used to be called vis0_glam is now called vis0 and is used by both dycores.
+!TODO:     Remove scaling parameters tau0, vis0, evs0, etc. from this module.
 !          Note: if thk0 = 1, then tau0 = rhoi*grav
-!          It would not be hard to remove tau0, vis0, and evs0 from this module and elsewhere in the code.
           
 use glimmer_paramets, only : thk0, len0, vel0, vis0, tim0, evs0, tau0
 
@@ -65,7 +86,7 @@ implicit none
   ! NOTE: would be good to explore how small this really needs to be, as 
   ! code converges much better when this value is made larger.
 
-!SCALING - This corresponds to an effective min strain rate of 1.0d-20 s^(-1).
+  !SCALING - This corresponds to an effective min strain rate of 1.0d-20 s^(-1).
   real(dp), parameter :: effstrminsq = (1.0d-20 * tim0)**2
   real(dp) :: homotopy = 0.0
 
@@ -108,7 +129,6 @@ implicit none
   real(dp), dimension(:), allocatable :: pcgval, rhsd, rhsx
   integer, dimension(:), allocatable :: pcgcol, pcgrow
   integer, dimension(2) :: pcgsize
-!WHL - changed 'ct' to 'ct_nonzero'
   integer :: ct_nonzero  ! number of nonzero matrix entries
 
 !*SFP* NOTE: these redefined here so that they are "in scope" and can avoid being passed as args
@@ -189,9 +209,6 @@ subroutine glam_velo_init( ewn,   nsn,   upn,    &
     dup = (/ ( (sigma(2)-sigma(1)), up = 1, upn) /)
     dupm = - 0.25d0 / dup
 
-!whl - Moved stagsigma calculation to glide_setup module
-!!    stagsigma(1:upn-1) = (sigma(1:upn-1) + sigma(2:upn)) / 2.d0
-
     ! p1 = -1/n   - used with rate factor in eff. visc. def.
     ! p2 = (1-n)/2n   - used with eff. strain rate in eff. visc. def. 
     ! p3 = (1-n)/n   !TODO - Remove p3?  It is never used.
@@ -250,7 +267,6 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
                             whichresid,             &
                             whichnonlinear,         &
                             whichsparse,            &
-                            periodic_ew,periodic_ns,&
                             beta,                   &
                             uvel,     vvel,         &
                             uflx,     vflx,         &
@@ -265,7 +281,7 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
   integer, intent(in) :: ewn, nsn, upn
   integer, dimension(:,:),   intent(inout)  :: umask
 
-!TODO - Make umask intent in?
+  !TODO - Make umask intent in?
   ! NOTE: 'inout' status to 'umask' should be changed to 'in' at some point, 
   ! but for now this allows for some minor internal hacks to CISM-defined mask  
 
@@ -292,7 +308,6 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
   integer, intent(in) :: whichresid   ! options for method to use when calculating vel residul
   integer, intent(in) :: whichnonlinear  ! options for which method for doing elliptic solve
   integer, intent(in) :: whichsparse  ! options for which method for doing elliptic solve
-  logical, intent(in) :: periodic_ew, periodic_ns  ! options for applying periodic bcs or not
 
   real(dp), dimension(:,:,:), intent(inout) :: uvel, vvel  ! horiz vel components: u(z), v(z)
   real(dp), dimension(:,:),   intent(out) :: uflx, vflx  ! horiz fluxs: u_bar*H, v_bar*H
@@ -353,7 +368,7 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
 
 !!!!!!!!!! Boundary conditions HACKS section !!!!!!!!!!!!!
 
-!TODO - Replace these hacks with something more robust.
+!TODO - Remove this commented-out code if no longer needed.
 
 !! A hack of the boundary condition mask needed for the Ross Ice Shelf exp.
 !! The quick check of whether or not this is the Ross experiment is to look
@@ -456,7 +471,7 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
      print *, ' '
      print *, 'Running Payne/Price higher-order dynamics solver'
      print *, ' '
-     if( whichresid == 3 )then
+     if( whichresid == HO_RESID_L2NORM ) then
        print *, 'iter #     resid (L2 norm)       target resid'
      else
        print *, 'iter #     uvel resid         vvel resid       target resid'
@@ -485,12 +500,12 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
 
   ! choose outer loop stopping criterion
   if( counter > 1 )then
-    if( whichresid == 3 )then
+    if( whichresid == HO_RESID_L2NORM )then
       outer_it_criterion = L2norm
       outer_it_target = NL_target
     else
       outer_it_criterion = maxval(resid)
-      outer_it_target = minres   
+      outer_it_target = minres
     end if
   else
     outer_it_criterion = 1.0d10
@@ -513,9 +528,6 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
 
   !   ! call distributed_print("preefvs_ov"//Looptime//"_pic"//loopnum//"_tsk", efvs)
   ! end if
-
-!HALO - To avoid parallel halo calls for efvs within glam_strs2, we need to compute efvs in one layer of halo cells
-!       surrounding the locally owned velocity cells.
 
  call t_startf("PICARD_findefvsstr")
     ! calc effective viscosity using previously calc vel. field
@@ -559,7 +571,7 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
 ! jfl 20100412: residual for v comp: Fv= A(u^k-1,v^k-1)v^k-1 - b(u^k-1,v^k-1)  
 !==============================================================================
 
-!TODO - Is L2square summed correctly in res_vect?
+    !TODO - Is L2square summed correctly in res_vect?
     !JEFF - The multiplication Ax is done across all nodes, but Ax - b is only 
     !       computed locally, so L2square needs to be summed.
  call t_startf("PICARD_res_vect")
@@ -601,22 +613,6 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
     ! This is necessary since we have not yet solved for the x-comp of vel, which needs the
     ! old prev. guess as an input (NOT the new guess).
 
-!TODO - Can we eliminate the periodic option here?  Periodic BC should be handled automatically.
-
-! implement periodic boundary conditions in y (if flagged)
-! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( periodic_ns )then
-        call not_parallel(__FILE__, __LINE__)
-
-        tvel(:,:,nsn-1) = tvel(:,:,2)
-        tvel(:,:,1) = tvel(:,:,nsn-2)
-    end if
-    if( periodic_ew )then
-        call not_parallel(__FILE__, __LINE__)
-
-        tvel(:,ewn-1,:) = tvel(:,2,:)
-        tvel(:,1,:) = tvel(:,ewn-2,:)
-    end if
 ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
  call t_startf("PICARD_findcoefstr2")
@@ -751,30 +747,15 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
 
     !call dumpvels("After mindcrsh", uvel, vvel)
 
-!TODO - Remove periodic BC stuff?
-
-! implement periodic boundary conditions in x (if flagged)
-! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( periodic_ns )then
-        call not_parallel(__FILE__, __LINE__)
-
-        uvel(:,:,nsn-1) = uvel(:,:,2)
-        uvel(:,:,1) = uvel(:,:,nsn-2)
-    end if
-    if( periodic_ew )then
-        call not_parallel(__FILE__, __LINE__)
-
-        uvel(:,ewn-1,:) = uvel(:,2,:)
-        uvel(:,1,:) = uvel(:,ewn-2,:)
-    end if
-! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-!TODO - Does this comment still apply, or is parallel_single defunct?
     if (this_rank == 0) then
+
+        !TODO - Does this comment still apply, or is parallel_single defunct?
+
         ! Can't use main_task flag because main_task is true for all processors in case of parallel_single
         ! output the iteration status: iteration number, max residual, and location of max residual
         ! (send output to the screen or to the log file, per whichever line is commented out) 
-        if( whichresid == 3 )then
+
+        if( whichresid == HO_RESID_L2NORM ) then
             print '(i4,3g20.6)', counter, L2norm, NL_target    ! Output when using L2norm for convergence
             !print '(a,i4,3g20.6)', "sup-norm uvel, vvel=", counter, resid(1), resid(2), minres
             !write(message,'(i4,3g20.6)') counter, L2norm, NL_target
@@ -802,9 +783,8 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
   call ghost_postprocess( ewn, nsn, upn, uindx, uk_1, vk_1, &
                           ughost, vghost )
 
-!TODO - I don't think uflx and vflx are needed; they are not used by remapping subroutine.
+!TODO - I don't think uflx and vflx are needed; they are not used by the remapping subroutine.
 
-!LOOP - Locally owned velocity points
   do ns = 1+staggered_lhalo, size(umask,2)-staggered_uhalo
       do ew = 1+staggered_lhalo, size(umask,1)-staggered_uhalo
       ! calc. fluxes from converged vel. fields (needed for input to thickness evolution subroutine)
@@ -822,7 +802,7 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
   !call staggered_parallel_halo(uvel) (called earlier)
   !call staggered_parallel_halo(vvel) (called earlier)
 
-!HALO - Do we need halo updates for btraction and efvs?
+!TODO - Do we need halo updates for btraction and efvs?
 !       I think we don't need an update for efvs, because it is already computed in a layer of halo cells.
 !       And I think we don't need an update for btraction, because it is computed in bodyset for all
 !        locally owned velocity points.
@@ -830,10 +810,9 @@ subroutine glam_velo_solver(ewn,      nsn,    upn,  &
   call parallel_halo(efvs)
 !  call horiz_bcs_unstag_scalar(efvs)
 
-!WHL - changed btraction from parallel_halo to staggered_parallel_halo
   call staggered_parallel_halo(btraction)
 
-!HALO TODO - Pretty sure we don't need these updates; uflx and vflx are not used elsewhere.
+  !TODO - Pretty sure we don't need these updates; uflx and vflx are not used elsewhere.
   call staggered_parallel_halo(uflx)
 !  call horiz_bcs_stag_vector_ew(uflx)
 
@@ -874,8 +853,6 @@ end subroutine glam_velo_solver
 
 !***********************************************************************
 
-!TODO - Can we pass arguments explicitly instead of passing 'model'?
-
 subroutine JFNK_velo_solver  (model,umask)
 
   use parallel
@@ -889,7 +866,7 @@ subroutine JFNK_velo_solver  (model,umask)
 
   type(glide_global_type) ,target, intent(inout) :: model
 
-!TODO - Can we make the mask intent in?
+  !TODO - Can we make the mask intent in?
 
   integer, dimension(:,:),   intent(inout)  :: umask  !*SFP* replaces the prev., internally calc. mask
                                                       ! ... 'inout' status allows for a minor alteration
@@ -904,6 +881,7 @@ subroutine JFNK_velo_solver  (model,umask)
   integer ,dimension(:) ,allocatable :: gx_flag
 
 ! split off of derived types
+
 !TODO - Should the following be passed in explicitly?
 
 ! intent(in)
@@ -931,7 +909,6 @@ subroutine JFNK_velo_solver  (model,umask)
   integer :: whichresid
   integer :: whichsparse
   integer :: whichnonlinear
-  logical :: periodic_ew, periodic_ns
 
 !TODO - Should the following be passed out explicitly?
 ! intent(out)
@@ -984,8 +961,6 @@ subroutine JFNK_velo_solver  (model,umask)
   whichresid = model%options%which_ho_resid
   whichsparse = model%options%which_ho_sparse
   whichnonlinear = model%options%which_ho_nonlinear
-  periodic_ew = model%options%periodic_ew
-  periodic_ns = model%options%periodic_ns
   beta => model%velocity%beta(:,:)
 
   uvel => model%velocity%uvel(:,:,:)
@@ -1136,6 +1111,9 @@ end if
 ! k = 0
 
 #else
+
+!TODO Is the slapsolve code still used? 
+
 !==============================================================================
 ! SLAP JFNK loop: calculate F(u^k-1,v^k-1)
 !==============================================================================
@@ -1144,7 +1122,6 @@ end if
  call slapsolve(xk_1, xk_size, c_ptr_to_object, NL_tol, pcgsize)
  call t_stopf("JFNK_SLAP")
 
-!TODO remove since not needed?
 ! k = 1
 
 #endif  
@@ -1247,7 +1224,7 @@ end if
   deallocate(model%solver_data%d2usrfcross)
   deallocate(model%solver_data%gxf)
   
-!HALO - Not sure whether these are needed.  Where does JFNK do its parallel halo updates for uvel, vvel?
+!TODO - Not sure whether these are needed.  Where does JFNK do its parallel halo updates for uvel, vvel?
 
  !PW following are needed for glam_velo_fordsiapstr - putting here until can be convinced
  !   that they are not needed (or that they should be delayed until later)
@@ -1256,7 +1233,7 @@ end if
   call staggered_parallel_halo(vvel)
 !  call horiz_bcs_stag_vector_ns(vvel)
 
-!HALO - Not sure we need these two updates
+!TODO - Not sure we need these two updates
 !       I think we do not need an update for efvs, because it is already computed in a layer of halo cells.
 !       And I think we don't need an update for btraction, because it is computed in bodyset for all
 !        locally owned velocity points.
@@ -1264,10 +1241,9 @@ end if
   call parallel_halo(efvs)
 !  call horiz_bcs_unstag_scalar(efvs)
 
-!WHL - changed btraction from parallel_halo to staggered_parallel_halo
   call staggered_parallel_halo(btraction)
 
-!HALO - Probably do not need these two updates
+!TODO - Probably do not need these two updates
   call staggered_parallel_halo(uflx)
 !  call horiz_bcs_stag_vector_ew(uflx)
   call staggered_parallel_halo(vflx)
@@ -1299,7 +1275,6 @@ function indxvelostr(ewn,  nsn,  upn,  &
 
   pointno = 1
 
-!LOOP - Locally owned velocity points
   do ns = 1+staggered_lhalo, size(mask,2)-staggered_uhalo
      do ew = 1+staggered_lhalo, size(mask,1)-staggered_uhalo
         if ( GLIDE_HAS_ICE( mask(ew,ns) ) ) then
@@ -1375,12 +1350,11 @@ subroutine findefvsstr(ewn,  nsn, upn,       &
 !TODO - If we are not supporting glam_strs2 together with the old Glimmer temperature routines,
 !       then we can assume that temp and flwa live on the staggered vertical grid.
 
-!whl - If temp and flwa live on the staggered vertical grid (like the effective viscosity),
-!      then the size of flwa is (upn-1), and vertical averaging of flwa is not needed here.
-
      if (size(flwa,1)==upn-1) then   ! temperature and flwa live on staggered vertical grid
 
-!LOOP - all scalars except for outer layer
+        !Note: To avoid parallel halo calls for efvs within glam_strs2, we need to compute efvs in one layer of halo cells
+        !      surrounding the locally owned velocity cells.
+
         do ns = 2,nsn-1
         do ew = 2,ewn-1
            if (thck(ew,ns) > 0.d0) then
@@ -1395,7 +1369,6 @@ subroutine findefvsstr(ewn,  nsn, upn,       &
 
      else  ! size(flwa,1)=upn; temperature and flwa live on unstaggered vertical grid
 
-!LOOP - all scalars except for outer layer
        do ns = 2,nsn-1
        do ew = 2,ewn-1
           if (thck(ew,ns) > 0.d0) then
@@ -1412,9 +1385,38 @@ subroutine findefvsstr(ewn,  nsn, upn,       &
 
   select case(whichefvs)
 
-  case(0)       ! calculate eff. visc. using eff. strain rate
+  case(HO_EFVS_CONSTANT)       ! set the eff visc to a constant value
 
-!LOOP - all scalars except for outer layer
+   do ns = 2,nsn-1
+     do ew = 2,ewn-1
+        if (thck(ew,ns) > 0.d0) then
+           ! Steve recommends 10^6 to 10^7 Pa yr
+           efvs(1:upn-1,ew,ns) = 1.d7  * scyr/tim0 / tau0    ! tau0 = rhoi*grav*thk0   
+        else        
+           efvs(:,ew,ns) = effstrminsq ! if the point is associated w/ no ice, set to min value
+        endif
+     enddo
+   enddo
+
+  case(HO_EFVS_FLOWFACT)    ! set the eff visc to a value based on the flow rate factor 
+
+!   *SFP* changed default setting for linear viscosity so that the value of the rate
+!   factor is taken into account
+
+  do ns = 2,nsn-1
+      do ew = 2,ewn-1
+       if (thck(ew,ns) > 0.d0) then
+! KJE code used to have this
+!       efvs(1:upn-1,ew,ns) = 0.5d0 * flwa(1:upn-1,ew,ns)**(-1.d0)
+        efvs(1:upn-1,ew,ns) = flwafact(1:upn-1,ew,ns)
+        else
+           efvs(:,ew,ns) = effstrminsq ! if the point is associated w/ no ice, set to min value
+       end if
+      end do
+  end do
+
+  case(HO_EFVS_NONLINEAR)      ! calculate eff. visc. using eff. strain rate
+
 !TODO - This code may not work correctly if nhalo = 1.  
 !       In that case we would need a halo update of efvs to make sure we have the correct value
 !        in all neighbors of locally owned velocity cells.
@@ -1499,40 +1501,6 @@ subroutine findefvsstr(ewn,  nsn, upn,       &
        end do   ! end ew
    end do       ! end ns
 
-  case(1)       ! set the eff visc to a value based on the rate factor 
-
-!   *SFP* changed default setting for linear viscosity so that the value of the rate
-!   factor is taken into account
-
-!LOOP - all scalars except for outer layer
-  do ns = 2,nsn-1
-      do ew = 2,ewn-1
-       if (thck(ew,ns) > 0.d0) then
-! KJE code used to have this
-!       efvs(1:upn-1,ew,ns) = 0.5d0 * flwa(1:upn-1,ew,ns)**(-1.d0)
-        efvs(1:upn-1,ew,ns) = flwafact(1:upn-1,ew,ns)
-        else
-           efvs(:,ew,ns) = effstrminsq ! if the point is associated w/ no ice, set to min value
-       end if
-      end do
-  end do
-
-!WHL - added case(2)
-
-  case(2)       ! set the eff visc to a constant value
-
-!LOOP - all scalars except for outer layer
-   do ns = 2,nsn-1
-     do ew = 2,ewn-1
-        if (thck(ew,ns) > 0.d0) then
-           ! Steve recommends 10^6 to 10^7 Pa yr
-           efvs(1:upn-1,ew,ns) = 1.d7  * scyr/tim0 / tau0    ! tau0 = rhoi*grav*thk0   
-        else        
-           efvs(:,ew,ns) = effstrminsq ! if the point is associated w/ no ice, set to min value
-        endif
-     enddo
-   enddo
-
   end select
 
 ! JEFF Halo does NOT verify, because used a staggered array to hold unstaggered data.  
@@ -1612,9 +1580,8 @@ end function getlocrange
 
 !***********************************************************************
 
-!!WHL - debug
-!! Testing whether this function will work for single-processor parallel runs
-!! with solvers other than trilinos
+!! WHL - Testing whether this function will work for single-processor parallel runs
+!!       with solvers other than trilinos
 
 function getlocationarray(ewn, nsn, upn, mask, indxmask, return_global_IDs)
 !function getlocationarray(ewn, nsn, upn, mask, indxmask)
@@ -1687,7 +1654,6 @@ function getlocationarray(ewn, nsn, upn, mask, indxmask, return_global_IDs)
 
      ! Step through indxmask, but exclude halo
 
-!LOOP - locally owned velocity points
      do ns = 1+staggered_lhalo, size(indxmask,2)-staggered_uhalo
         do ew = 1+staggered_lhalo, size(indxmask,1)-staggered_uhalo
            if ( indxmask(ew,ns) /= 0 ) then
@@ -1705,7 +1671,6 @@ function getlocationarray(ewn, nsn, upn, mask, indxmask, return_global_IDs)
      temparray = 0
      getlocationarray = 0
 
-     !LOOP - locally owned velocity points
      do ns=1+staggered_lhalo, size(mask,2)-staggered_uhalo
         do ew=1+staggered_lhalo, size(mask,1)-staggered_uhalo
            if ( GLIDE_HAS_ICE( mask(ew,ns) ) ) then
@@ -1726,14 +1691,11 @@ function getlocationarray(ewn, nsn, upn, mask, indxmask, return_global_IDs)
 
 #else
 
-!  print*, 'In getlocationarray, no globalIDs'
-
   ! initialize to zero
   cumsum = 0
   temparray = 0
   getlocationarray = 0
 
-!LOOP - locally owned velocity points
   do ns=1+staggered_lhalo, size(mask,2)-staggered_uhalo
     do ew=1+staggered_lhalo, size(mask,1)-staggered_uhalo
       if ( GLIDE_HAS_ICE( mask(ew,ns) ) ) then
@@ -1843,7 +1805,6 @@ function slapsolvstr(ewn, nsn, upn, &
 
   deallocate(rwork,iwork)
 
-!LOOP TODO - Are loop bounds OK? Since this is for the serial SLAP solver, I think so.
   do ns = 1,nsn-1
   do ew = 1,ewn-1
      if (uindx(ew,ns) /= 0) then
@@ -1891,12 +1852,9 @@ subroutine solver_preprocess( ewn, nsn, upn, uindx, matrix, answer, vel )
   matrix%col = pcgcol
   matrix%val = pcgval
 
-!HALO - Not sure about the loops here.  Should be over locally owned velocity points?
-
   ! Initial estimate for vel. field; take from 3d array and put into
   ! the format of a solution vector.
 
-!LOOP - locally owned velocity points
   do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
    do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
         if (uindx(ew,ns) /= 0) then
@@ -1931,7 +1889,6 @@ subroutine solver_postprocess( ewn, nsn, upn, pt, uindx, answrapped, ansunwrappe
   integer, dimension(2) :: loc
   integer :: ew, ns
 
-!LOOP - locally owned velocity points
   do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
       do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
           if (uindx(ew,ns) /= 0) then
@@ -1967,7 +1924,6 @@ subroutine solver_postprocess_jfnk( ewn, nsn, upn, uindx, answrapped, ansunwrapp
    integer, dimension(2) :: loc
    integer :: ew, ns
 
-!LOOP - locally owned velocity points
    do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
        do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
            if (uindx(ew,ns) /= 0) then
@@ -2004,7 +1960,6 @@ subroutine resvect_postprocess_jfnk( ewn, nsn, upn, uindx, pcg1, answrapped, ans
    integer, dimension(2) :: loc
    integer :: ew, ns
 
-!LOOP - locally owned velocity points
    do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
        do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
            if (uindx(ew,ns) /= 0) then
@@ -2530,7 +2485,6 @@ subroutine ghost_preprocess( ewn, nsn, upn, uindx, ughost, vghost, &
 
   g_flag = 0
 
-!LOOP - locally owned velocity points
   do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
    do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
         if (uindx(ew,ns) /= 0) then
@@ -2575,7 +2529,6 @@ end subroutine ghost_preprocess
    
    gx_flag = 0
 
-!LOOP - locally owned velocity points   
    do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
     do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
          if (uindx(ew,ns) /= 0) then
@@ -2616,7 +2569,6 @@ subroutine ghost_postprocess( ewn, nsn, upn, uindx, uk_1, vk_1, &
   integer :: ew, ns
   integer, dimension(2) :: loc
 
-!LOOP - locally owned velocity points   
   do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
       do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
           if (uindx(ew,ns) /= 0) then
@@ -2655,7 +2607,6 @@ end subroutine ghost_postprocess
    integer :: ew, ns
    integer, dimension(2) :: loc
 
-!LOOP - locally owned velocity points      
    do ns = 1+staggered_lhalo, size(uindx,2)-staggered_uhalo
        do ew = 1+staggered_lhalo, size(uindx,1)-staggered_uhalo
            if (uindx(ew,ns) /= 0) then
@@ -2718,6 +2669,8 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
 
   ! RESIDUAL CALCULATION
 
+  !TODO - Remove hardwired numbers for whichresid (see glide_types.F90)
+
   select case (whichresid)
   ! options for residual calculation method, as specified in configuration file
   ! (see additional notes in "higher-order options" section of documentation)
@@ -2726,12 +2679,11 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
   ! case(2): use mean of abs( vel_old - vel ) / vel )
   ! case(3): use max of abs( vel_old - vel ) / vel ) (in addition to L2 norm calculated externally)
 
-   case(0)
+   case(HO_RESID_MAXU)
 
     ! resid = maxval( abs((usav(:,:,:,pt) - vel ) / vel ), MASK = vel /= 0.d0)
     resid = 0.d0
 
-!LOOP - locally owned velocity points      
     do ns = 1 + staggered_lhalo, size(vel,3) - staggered_uhalo
       do ew = 1 + staggered_lhalo, size(vel,2) - staggered_uhalo
         do nr = 1, size(vel, 1)
@@ -2746,12 +2698,11 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
     !locat is only used in diagnostic print statement below.
     !locat = maxloc( abs((usav(:,:,:,pt) - vel ) / vel ), MASK = vel /= 0.d0)
 
-   case(1)
+   case(HO_RESID_MAXU_NO_UBAS)
     ! nr = size( vel, dim=1 ) ! number of grid points in vertical ...
     ! resid = maxval( abs((usav(1:nr-1,:,:,pt) - vel(1:nr-1,:,:) ) / vel(1:nr-1,:,:) ), MASK = vel /= 0.d0)
     resid = 0.d0
 
-!LOOP - locally owned velocity points      
     do ns = 1 + staggered_lhalo, size(vel,3) - staggered_uhalo
       do ew = 1 + staggered_lhalo, size(vel,2) - staggered_uhalo
         do nr = 1, size(vel, 1) - 1
@@ -2766,7 +2717,7 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
     !locat = maxloc( abs((usav(1:nr-1,:,:,pt) - vel(1:nr-1,:,:) ) / vel(1:nr-1,:,:) ),  &
     !        MASK = vel /= 0.d0)
 
-   case(2)
+   case(HO_RESID_MEANU)
     call not_parallel(__FILE__, __LINE__)
     !JEFF This has not been translated to parallel.
     resid = 0.d0
@@ -2793,11 +2744,10 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
     !      since we are using the mean resid for convergence testing
     ! locat = maxloc( abs((usav(:,:,:,pt) - vel ) / vel ), MASK = vel /= 0.d0)
 
-   case(3)
+   case(HO_RESID_L2NORM)
     ! resid = maxval( abs((usav(:,:,:,pt) - vel ) / vel ), MASK = vel /= 0.d0)
     resid = 0.d0
 
-!LOOP - locally owned velocity points      
     do ns = 1 + staggered_lhalo, size(vel,3) - staggered_uhalo
       do ew = 1 + staggered_lhalo, size(vel,2) - staggered_uhalo
         do nr = 1, size(vel, 1)
@@ -2845,7 +2795,6 @@ subroutine mindcrshstr(pt,whichresid,vel,counter,resid)
 
     ! Replace where clause with explicit, owned variables for each processor.
 
-!LOOP - locally owned velocity points      
     do ns = 1 + staggered_lhalo, size(vel,3) - staggered_uhalo
       do ew = 1 + staggered_lhalo, size(vel,2) - staggered_uhalo
         do nr = 1, size(vel, 1)
@@ -2989,7 +2938,7 @@ function mindcrshstr2(pt,whichresid,vel,counter,resid)
   ! case(1): use max of abs( vel_old - vel ) / vel ) but ignore basal vels
   ! case(2): use mean of abs( vel_old - vel ) / vel )
 
-   case(0)
+   case(HO_RESID_MAXU)
     rel_diff = 0.d0
     vel_ne_0 = 0
     where ( mindcrshstr2 /= 0.d0 )
@@ -3008,7 +2957,7 @@ function mindcrshstr2(pt,whichresid,vel,counter,resid)
     !write(*,*) 'locat', locat
     !call write_xls('resid1.txt',abs((usav(1,:,:,pt) - mindcrshstr2(1,:,:)) / (mindcrshstr2(1,:,:) + 1e-20)))
 
-   case(1)
+   case(HO_RESID_MAXU_NO_UBAS)
     !**cvg*** should replace vel by mindcrshstr2 in the following lines, I belive
     nr = size( vel, dim=1 ) ! number of grid points in vertical ...
     resid = maxval( abs((usav(1:nr-1,:,:,pt) - vel(1:nr-1,:,:) ) / vel(1:nr-1,:,:) ),  &
@@ -3016,7 +2965,7 @@ function mindcrshstr2(pt,whichresid,vel,counter,resid)
     locat = maxloc( abs((usav(1:nr-1,:,:,pt) - vel(1:nr-1,:,:) ) / vel(1:nr-1,:,:) ),  &
             MASK = vel /= 0.d0)
 
-   case(2)
+   case(HO_RESID_MEANU)
     !**cvg*** should replace vel by mindcrshstr2 in the following lines, I believe
     nr = size( vel, dim=1 )
     vel_ne_0 = 0
@@ -3136,19 +3085,13 @@ subroutine findcoefstr(ewn,  nsn,   upn,            &
   ! Note loc2_array is defined only for non-halo ice grid points.
   ! JEFFLOC returns an array with starting indices into solution vector for each ice grid point.
  
-!WHL - debug
-!  print*, 'allocate loc2_array:'
-
   allocate(loc2_array(ewn,nsn,2))
 
-!WHL - debug - Try a different procedure depending on whether or not we are using trilinos.
-!              This is needed to avoid an error when using the SLAP solver in a
-!               single-processor parallel run.
+!WHL - Using a different procedure depending on whether or not we are using trilinos.
+!      This is needed to avoid an error when using the SLAP solver in a
+!        single-processor parallel run.
 !TODO: Find a more elegant solution?
                
-!WHL - debug
-!  print*, 'call function getlocationarray:'
-
   loc2_array = getlocationarray(ewn, nsn, upn, mask, uindx)
 
   if (whatsparse /= STANDALONE_TRILINOS_SOLVER) then
@@ -3178,10 +3121,7 @@ subroutine findcoefstr(ewn,  nsn,   upn,            &
   
   ! Note: With nhalo = 2, efvs has been computed in a layer of halo cells, 
   !       so we have its value in all neighbors of locally owned velocity points.
-  ! TODO: Test this subroutine for the case nhalo = 1.  
-  !       In that case, we may need a halo call for efvs before calling this subroutine.
 
-!LOOP - locally owned velocity points      
   do ns = 1+staggered_lhalo, size(mask,2)-staggered_uhalo
     do ew = 1+staggered_lhalo, size(mask,1)-staggered_uhalo
 
@@ -3458,10 +3398,12 @@ subroutine bodyset(ew,  ns,  up,           &
            slopex = -dusrfdew(ew,ns); slopey = -dusrfdns(ew,ns); nz = 1.d0
         else                             ! specify necessary variables and flags for basal bc
    
-           if( whichbabc == 6 )then
+           if( whichbabc == HO_BABC_NO_SLIP )then
                 bcflag = (/0,0/)             ! flag for u=v=0 at bed; doesn't work well so commented out here...
                                              ! better to specify very large value for betasquared below
-           elseif( whichbabc >=0 .and. whichbabc <= 5 )then
+           elseif( whichbabc == HO_BABC_CONSTANT     .or. whichbabc == HO_BABC_SIMPLE         .or.  &
+                   whichbabc == HO_BABC_YIELD_PICARD .or. whichbabc == HO_BABC_CIRCULAR_SHELF .or.  &
+                   whichbabc == HO_BABC_LARGE_BETA   .or. whichbabc == HO_BABC_EXTERNAL_BETA) then
                 bcflag = (/1,1/)              ! flag for specififed stress at bed: Tau_zx = betasquared * u_bed,
                                               ! where betasquared is MacAyeal-type traction parameter
            end if   
@@ -3597,6 +3539,7 @@ subroutine bodyset(ew,  ns,  up,           &
 
     ! put the coeff. for the b.c. equation in the same place as the prev. equation
     ! (w.r.t. cols), on a new row ...
+
 !TODO: is above comment correct or is this now just a normal scatter of coeffs. into the matrix?
     call fillsprsebndy( g, loc2plusup(1), loc_latbc, up, normal, pt )
 
@@ -3661,9 +3604,6 @@ subroutine bodyset(ew,  ns,  up,           &
 ! *********************************************************************************************
 ! higher-order sfc and bed boundary conditions in main body of ice sheet (NOT at lat. boundry)
 
-!TODO - whichbabc option numbers should not be hardwired.
-!       This code will break if we change the numbering.
-
   if(  ( up == upn  .or. up == 1 ) .and. .not. lateralboundry) then
 
         if( up == 1 )then                ! specify necessary variables and flags for free sfc
@@ -3672,10 +3612,13 @@ subroutine bodyset(ew,  ns,  up,           &
            slopex = -dusrfdew(ew,ns); slopey = -dusrfdns(ew,ns); nz = 1.d0
         else                             ! specify necessary variables and flags for basal bc
 
-           if( whichbabc == 6 )then
+           if( whichbabc == HO_BABC_NO_SLIP )then
                 bcflag = (/0,0/)             ! flag for u=v=0 at bed; doesn't work well so commented out here...
                                              ! better to specify very large value for betasquared below
-           elseif( whichbabc >=0 .and. whichbabc <= 5 )then
+
+           elseif( whichbabc == HO_BABC_CONSTANT     .or. whichbabc == HO_BABC_SIMPLE         .or.  &
+                   whichbabc == HO_BABC_YIELD_PICARD .or. whichbabc == HO_BABC_CIRCULAR_SHELF .or.  &
+                   whichbabc == HO_BABC_LARGE_BETA   .or. whichbabc == HO_BABC_EXTERNAL_BETA) then
                 bcflag = (/1,1/)              ! flag for specififed stress at bed: Tau_zx = betasquared * u_bed,
                                               ! where betasquared is MacAyeal-type traction parameter
            end if
@@ -5168,6 +5111,7 @@ function indshift( which, ew, ns, up, ewn, nsn, upn, loc_array, thck )
       upshift = 0
   end if
 
+  !TODO - Remove hardwiring of case numbers?
   select case(which)
 
       case(0)   !! internal to lateral boundaries; no shift to ew,ns indices
@@ -5242,6 +5186,7 @@ subroutine calcbetasquared (whichbabc,               &
 
   ! subroutine to calculate map of betasquared sliding parameter, based on 
   ! user input ("whichbabc" flag, from config file as "which_ho_babc").
+
   implicit none
 
   integer, intent(in) :: whichbabc
@@ -5272,12 +5217,12 @@ subroutine calcbetasquared (whichbabc,               &
 
   select case(whichbabc)
 
-    case(0)     ! constant value; useful for debugging and test cases
+    case(HO_BABC_CONSTANT)  ! constant value; useful for debugging and test cases
 
       betasquared(:,:) = 10.d0       ! Pa yr/m
 
-    case(1)     ! simple pattern; also useful for debugging and test cases
-                ! (here, a strip of weak bed surrounded by stronger bed to simulate an ice stream)
+    case(HO_BABC_SIMPLE)    ! simple pattern; also useful for debugging and test cases
+                            ! (here, a strip of weak bed surrounded by stronger bed to simulate an ice stream)
 
       betasquared(:,:) = 1.d4        ! Pa yr/m
 
@@ -5290,8 +5235,8 @@ subroutine calcbetasquared (whichbabc,               &
       end do
       end do
 
-    case(2)     ! take input value for till yield stress and force betasquared to be implemented such
-                ! that plastic-till sliding behavior is enforced (see additional notes in documentation).
+    case(HO_BABC_YIELD_PICARD)  ! take input value for till yield stress and force betasquared to be implemented such
+                                ! that plastic-till sliding behavior is enforced (see additional notes in documentation).
 
       !!! NOTE: Eventually, this option will provide the till yield stress as calculate from the basal processes
       !!! submodel. Currently, to enable sliding over plastic till, simple specify the value of "betasquared" as 
@@ -5301,18 +5246,17 @@ subroutine calcbetasquared (whichbabc,               &
       betasquared(:,:) = ( beta(:,:) * ( tau0 / vel0 / scyr ) ) &     ! Pa yr/m
                          / dsqrt( (thisvel(:,:)*vel0*scyr)**2 + (othervel(:,:)*vel0*scyr)**2 + (smallnum)**2 )
 
-    case(3)     ! circular ice shelf: set B^2 ~ 0 except for at center, where B^2 >> 0 to enforce u,v=0 there
+    case(HO_BABC_CIRCULAR_SHELF)  ! circular ice shelf: set B^2 ~ 0 except for at center, where B^2 >> 0 to enforce u,v=0 there
 
       betasquared(:,:) = 1.d-5       ! Pa yr/m
       betasquared( (ewn-1)/2:(ewn-1)/2+1, (nsn-1)/2:(nsn-1)/2+1 ) = 1.d10       ! Pa yr/m
 
-    case(4)    ! frozen (u=v=0) ice-bed interface
+    case(HO_BABC_LARGE_BETA)      ! frozen (u=v=0) ice-bed interface
 
       betasquared(:,:) = 1.d10       ! Pa yr/m
 
-    case(5)    ! use value passed in externally from CISM (NOTE not dimensional when passed in) 
+    case(HO_BABC_EXTERNAL_BETA)   ! use value passed in externally from CISM (NOTE not dimensional when passed in) 
 
-!TODO - Careful with scaling here.
       ! scale CISM input value to dimensional units of (Pa yr/m)
 
       betasquared(:,:) = beta(:,:) * ( tau0 / vel0 / scyr )
@@ -5320,7 +5264,6 @@ subroutine calcbetasquared (whichbabc,               &
       ! this is a check for NaNs, which indicate, and are replaced by no slip
       !TODO: Not sure I follow the logic of this ... keep/omit? Added by the UMT crew at some point
 
-!LOOP - all velocity points       
       do ns=1, nsn-1
       do ew=1, ewn-1 
         if( betasquared(ew,ns) /= betasquared(ew,ns) )then
@@ -5346,7 +5289,7 @@ subroutine calcbetasquared (whichbabc,               &
       end do
       end do
 
-    ! NOTE: cases (6) and (7) are handled external to this subroutine
+    ! NOTE: cases (HO_BABC_NO_SLIP) and (HO_BABC_YIELD_NEWTON) are handled external to this subroutine
 
   end select
 
@@ -5413,7 +5356,6 @@ subroutine geom2derscros(ewn,  nsn,   &
 
   opvrewns = ( ipvr(2:ewn,2:nsn) - ipvr(2:ewn,1:nsn-1) - ipvr(1:ewn-1,2:nsn) + ipvr(1:ewn-1,1:nsn-1) ) / dewdns
 
-!LOOP - all velocity points
   do ns = 1, nsn-1
       do ew = 1, ewn-1
         if (stagthck(ew,ns) == 0.d0) then
@@ -5650,7 +5592,7 @@ subroutine putpcgc(value,col,row,pt)
   integer, intent(in), optional :: pt
   real(dp), intent(in) :: value 
 
-   !*SFP*or now, ignoring the possibility of using JFNK w/ Trilinos ...
+   !*SFP*for now, ignoring the possibility of using JFNK w/ Trilinos ...
    if( nonlinear == HO_NONLIN_PICARD )then
 
     if (whatsparse /= STANDALONE_TRILINOS_SOLVER) then
@@ -5734,7 +5676,6 @@ end subroutine putpcgc
 !    SFP: debug line below
 !    print *, 'mySize = ', mySize
 
-!LOOP - locally owned velocity points      
       do ns = 1+staggered_lhalo, size(indxmask,2)-staggered_uhalo
          do ew = 1+staggered_lhalo, size(indxmask,1)-staggered_uhalo
                if ( indxmask(ew,ns) /= 0 ) then
@@ -5935,8 +5876,7 @@ subroutine assign_resid(model, uindx, umask, &
   real(dp)          ,intent(in) :: L2norm
   real(dp)          ,intent(in) :: d2thckdewdns(ewn-1,nsn-1), d2usrfdewdns(ewn-1,nsn-1)
   
-!LOOP - all velocity points
-!LOOP TODO: Would it be sufficient to loop over locally owned velocity points?      
+!LOOP TODO: Would it be sufficient to loop only over locally owned velocity points?      
 !LOOP TODO - Switch i and j to reduce strides?
 
   do i = 1, ewn-1 
@@ -5957,6 +5897,194 @@ subroutine assign_resid(model, uindx, umask, &
   model%solver_data%matrixC = matrixC
 
 end subroutine assign_resid
+
+!-------------------------------------------------------------------
+
+!  uvec is either u^k-1 or v^k-1 on input and Av-b or Cu-d on output
+
+subroutine res_vect ( matrix, uvec, bvec, nu, g_flag, L2square, whatsparse)
+
+use parallel
+
+use glimmer_paramets, only : dp
+use glimmer_sparse_type
+use glimmer_sparse
+use glide_mask
+use profile
+
+implicit none
+
+integer :: i, j, nu, nele, whatsparse ! nu: size of uvec and bvec
+integer, dimension(nu), intent(in) :: g_flag ! 0 :reg cell
+                                             ! 1 :top ghost, 2 :base ghost
+
+type(sparse_matrix_type),  intent(in) :: matrix
+
+real(dp), dimension(nu), intent(in) :: bvec
+real(dp), dimension(nu), intent(inout) :: uvec
+real(dp), dimension(nu) :: Au_b_wig
+real(dp), intent(out) :: L2square
+! 
+real(dp) :: scale_ghosts = 0.0d0
+
+! calculate residual vector of the u OR v component
+
+      Au_b_wig = 0d0 ! regular+ghost cells
+
+call t_startf("res_vect_matvec")
+      if (whatsparse /= STANDALONE_TRILINOS_SOLVER) then
+
+        do nele = 1, matrix%nonzeros 
+
+           i = matrix%row(nele)
+           j = matrix%col(nele)
+           Au_b_wig(i) = Au_b_wig(i) + matrix%val(nele) * uvec(j)
+
+        enddo
+
+#ifdef TRILINOS
+      else 
+        call matvecwithtrilinos(uvec, Au_b_wig);
+#endif
+      endif 
+call t_stopf("res_vect_matvec")
+
+      do i = 1, nu
+         Au_b_wig(i) = Au_b_wig(i) - bvec(i)
+      enddo
+
+      uvec = Au_b_wig
+
+! AGS: Residual norm includes scaling to decrease importance of ghost values
+! By calling it a redefinition of an inner product, it is kosher.
+      L2square = 0.d0
+      do i = 1, nu
+         if (g_flag(i) == 0) then
+            L2square = L2square + Au_b_wig(i) * Au_b_wig(i)
+         else
+            L2square = L2square + scale_ghosts * Au_b_wig(i) * Au_b_wig(i)
+         endif
+      end do
+
+      !JEFF Sum L2square across nodes
+call t_startf("res_vect_reduce")
+      L2square = parallel_reduce_sum(L2square)
+call t_stopf("res_vect_reduce")
+
+      return
+
+end subroutine res_vect
+
+!-------------------------------------------------------------------
+
+subroutine res_vect_jfnk ( matrixA, matrixC, uvec, bvec, nu1, nu2, g_flag, L2square, whatsparse)
+
+! similar to res_vect, but state vector uvec and rhs vector bvec are now both velocities 
+! A and C matrices are separate, but eventually could be combined
+
+use glimmer_paramets, only : dp
+use glimmer_sparse_type
+use glimmer_sparse
+use glide_mask
+
+implicit none
+
+integer :: i, j, nu1, nu2, nele, whatsparse ! nu2: size of uvec and bvec, size of u, v within
+
+type(sparse_matrix_type),  intent(in) :: matrixA, matrixC
+
+integer, dimension(nu2) :: g_flag  ! 0=reg cell, 1: top ghost, 2, base ghost
+real(dp), dimension(nu2), intent(in) :: bvec
+real(dp), dimension(nu2), intent(inout) :: uvec
+real(dp), dimension(nu1) :: Au_b_wig, Cv_d_wig
+real(dp), intent(out) :: L2square
+! 
+real(dp) :: scale_ghosts = 0.0d0
+
+! calculate residual vector of the u and v component
+
+      Au_b_wig = 0d0 ! regular+ghost cells
+      Cv_d_wig = 0d0 ! regular+ghost cells
+
+      if (whatsparse /= STANDALONE_TRILINOS_SOLVER) then
+
+        do nele = 1, matrixA%nonzeros
+
+           i = matrixA%row(nele)
+           j = matrixA%col(nele)
+           Au_b_wig(i) = Au_b_wig(i) + matrixA%val(nele) * uvec(j)
+
+        enddo
+
+        do nele = 1, matrixC%nonzeros
+
+           i = matrixC%row(nele)
+           j = matrixC%col(nele)
+           Cv_d_wig(i) = Cv_d_wig(i) + matrixC%val(nele) * uvec(nu1+j)
+
+        enddo
+
+#ifdef TRILINOS
+      else
+
+        call matvecwithtrilinos(uvec(1:nu1), Au_b_wig);
+        call matvecwithtrilinos(uvec(nu1+1:nu2), Cv_d_wig);
+#endif
+      endif
+
+      do i = 1, nu1
+
+         Au_b_wig(i) = Au_b_wig(i) - bvec(i)
+         Cv_d_wig(i) = Cv_d_wig(i) - bvec(nu1+i)
+
+      enddo
+
+! to do: combine A and C
+
+      do i = 1, nu1
+
+         uvec(i)    = Au_b_wig(i)
+         uvec(nu1+i) = Cv_d_wig(i)
+
+      enddo
+
+! AGS: Residual norm includes scaling to decrease importance of ghost values
+! By calling it a redefinition of an inner product, it is kosher.
+!      L2square = 0.0
+!      do i = 1, nu1
+!         if (g_flag(i) == 0) then
+!            L2square = L2square + Au_b_wig(i) * Au_b_wig(i)
+!         else
+!            L2square = L2square + scale_ghosts * Au_b_wig(i) * Au_b_wig(i)
+!         endif
+!      end do
+!
+!      do i = 1, nu1
+!         if (g_flag(nu1+i) == 0) then
+!            L2square = L2square + Cv_d_wig(i) * Cv_d_wig(i)
+!         else
+!            L2square = L2square + scale_ghosts * Cv_d_wig(i) * Cv_d_wig(i)
+!         endif
+!      end do
+! when the combined version is used, convergence wrong
+!TODO (KJE) what is the comment above. What is wrong?
+
+      do i = 1, nu2
+         if (g_flag(i) == 0) then
+            L2square = L2square + uvec(i) * uvec(i)
+         else
+            L2square = L2square + scale_ghosts * uvec(i) * uvec(i)
+         endif
+      end do
+
+
+      return
+
+end subroutine res_vect_jfnk
+
+!-------------------------------------------------------------------
+
+!TODO - Is this subroutine still needed?
 
 subroutine slapsolve(xk_1, xk_size, c_ptr_to_object, NL_tol, pcgsize)
 
@@ -6038,8 +6166,6 @@ subroutine slapsolve(xk_1, xk_size, c_ptr_to_object, NL_tol, pcgsize)
 
     icode = 0
 
-!TODO - Can we avoid GOTO and CONTINUE?  Very old-style Fortran.
-
  10 CONTINUE
 ! icode = 0 means that fgmres has finished and sol contains the app. solution
       
@@ -6083,7 +6209,6 @@ subroutine slapsolve(xk_1, xk_size, c_ptr_to_object, NL_tol, pcgsize)
 
  end do   ! k = 1, kmax 
 
-
   deallocate(dx, vectx, xk_1_plus)
   deallocate(F, F_plus, rhs)
   deallocate(wk1, wk2)
@@ -6091,6 +6216,297 @@ subroutine slapsolve(xk_1, xk_size, c_ptr_to_object, NL_tol, pcgsize)
 
 end subroutine slapsolve
 
+!-----------------------------------------------------------------------
+
+!TODO - Is this subroutine still needed?  It's called from slapsolve above.
+
+  subroutine fgmres (n,im,rhs,sol,i,vv,w,wk1, wk2, &
+                     eps,maxits,iout,icode,its) 
+
+! JFL to be removed
+
+!-----------------------------------------------------------------------
+! jfl Dec 1st 2006. We modified the routine so that it is double precison.
+! Here are the modifications:
+! 1) implicit real (a-h,o-z) becomes implicit real*8 (a-h,o-z) 
+! 2) real bocomes real*8
+! 3) subroutine scopy.f has been changed for dcopy.f
+! 4) subroutine saxpy.f has been changed for daxpy.f
+! 5) function sdot.f has been changed for ddot.f
+! 6) 1e-08 becomes 1d-08
+!
+! Be careful with the dcopy, daxpy and ddot code...there is a slight 
+! difference with the single precision versions (scopy, saxpy and sdot).
+! In the single precision versions, the array are declared sightly differently.
+! It is written for single precision:
+!
+! modified 12/3/93, array(1) declarations changed to array(*)
+!-----------------------------------------------------------------------
+
+      implicit double precision (a-h,o-z) !jfl modification
+      integer n, im, maxits, iout, icode
+      double precision rhs(*), sol(*), vv(n,im+1),w(n,im)
+      double precision wk1(n), wk2(n), eps
+!-----------------------------------------------------------------------
+! flexible GMRES routine. This is a version of GMRES which allows a 
+! a variable preconditioner. Implemented with a reverse communication 
+! protocole for flexibility -
+! DISTRIBUTED VERSION (USES DISTDOT FOR DDOT) 
+! explicit (exact) residual norms for restarts  
+! written by Y. Saad, modified by A. Malevsky, version February 1, 1995
+!-----------------------------------------------------------------------
+! This Is A Reverse Communication Implementation. 
+!------------------------------------------------- 
+! USAGE: (see also comments for icode below). FGMRES
+! should be put in a loop and the loop should be active for as
+! long as icode is not equal to 0. On return fgmres will
+!    1) either be requesting the new preconditioned vector applied
+!       to wk1 in case icode==1 (result should be put in wk2) 
+!    2) or be requesting the product of A applied to the vector wk1
+!       in case icode==2 (result should be put in wk2) 
+!    3) or be terminated in case icode == 0. 
+! on entry always set icode = 0. So icode should be set back to zero
+! upon convergence.
+!-----------------------------------------------------------------------
+! Here is a typical way of running fgmres: 
+!
+!      icode = 0
+! 1    continue
+!      call fgmres (n,im,rhs,sol,i,vv,w,wk1, wk2,eps,maxits,iout,icode)
+!
+!      if (icode == 1) then
+!         call  precon(n, wk1, wk2)    <--- user's variable preconditioning
+!         goto 1
+!      else if (icode >= 2) then
+!         call  matvec (n,wk1, wk2)    <--- user's matrix vector product. 
+!         goto 1
+!      else 
+!         ----- done ---- 
+!         .........
+!-----------------------------------------------------------------------
+! list of parameters 
+!------------------- 
+!
+! n     == integer. the dimension of the problem
+! im    == size of Krylov subspace:  should not exceed 50 in this
+!          version (can be reset in code. looking at comment below)
+! rhs   == vector of length n containing the right hand side
+! sol   == initial guess on input, approximate solution on output
+! vv    == work space of size n x (im+1)
+! w     == work space of length n x im 
+! wk1,
+! wk2,  == two work vectors of length n each used for the reverse
+!          communication protocole. When on return (icode \= 1)
+!          the user should call fgmres again with wk2 = precon * wk1
+!          and icode untouched. When icode==1 then it means that
+!          convergence has taken place.
+!          
+! eps   == tolerance for stopping criterion. process is stopped
+!          as soon as ( ||.|| is the euclidean norm):
+!          || current residual||/||initial residual|| <= eps
+!
+! maxits== maximum number of iterations allowed
+!
+! iout  == output unit number number for printing intermediate results
+!          if (iout <= 0) no statistics are printed.
+! 
+! icode = integer. indicator for the reverse communication protocole.
+!         ON ENTRY : icode should be set to icode = 0.
+!         ON RETURN: 
+!       * icode == 1 value means that fgmres has not finished
+!         and that it is requesting a preconditioned vector before
+!         continuing. The user must compute M**(-1) wk1, where M is
+!         the preconditioing  matrix (may vary at each call) and wk1 is
+!         the vector as provided by fgmres upun return, and put the 
+!         result in wk2. Then fgmres must be called again without
+!         changing any other argument. 
+!       * icode == 2 value means that fgmres has not finished
+!         and that it is requesting a matrix vector product before
+!         continuing. The user must compute  A * wk1, where A is the
+!         coefficient  matrix and wk1 is the vector provided by 
+!         upon return. The result of the operation is to be put in
+!         the vector wk2. Then fgmres must be called again without
+!         changing any other argument. 
+!       * icode == 0 means that fgmres has finished and sol contains 
+!         the approximate solution.
+!         comment: typically fgmres must be implemented in a loop
+!         with fgmres being called as long icode is returned with 
+!         a value \= 0. 
+!-----------------------------------------------------------------------
+!     local variables -- !jfl modif
+      double precision hh(201,200),c(200),s(200),rs(201),t,ro,ddot,sqrt 
+!
+!-------------------------------------------------------------
+!     arnoldi size should not exceed 50 in this version..
+!     to reset modify sizes of hh, c, s, rs       
+!-------------------------------------------------------------
+
+      save
+      data epsmac/1.d-16/
+
+      !WHL - added integer declarations
+      integer :: i, its, i1, ii, j, jj, k, k1, n1
+!     
+!     computed goto 
+!     
+      goto (100,200,300,11) icode +1
+ 100  continue
+      n1 = n + 1
+      its = 0
+!-------------------------------------------------------------
+!     **  outer loop starts here..
+!--------------compute initial residual vector --------------
+! 10   continue
+      call dcopy (n, sol, 1, wk1, 1) !jfl modification
+      icode = 3
+      return
+ 11   continue
+      do j=1,n
+         vv(j,1) = rhs(j) - wk2(j) 
+      enddo
+ 20   ro = ddot(n, vv, 1, vv,1) !jfl modification
+      ro = sqrt(ro)
+      if (ro == 0.0d0) goto 999 
+      t = 1.0d0/ ro 
+      do j=1, n
+         vv(j,1) = vv(j,1)*t 
+      enddo
+      if (its == 0) eps1=eps
+      if (its == 0) r0 = ro
+      if (iout > 0) write(*, 199) its, ro!&
+!           print *,'chau',its, ro !write(iout, 199) its, ro
+!     
+!     initialize 1-st term  of rhs of hessenberg system..
+!     
+      rs(1) = ro
+      i = 0
+ 4    i=i+1
+      its = its + 1
+      i1 = i + 1
+      do k=1, n
+         wk1(k) = vv(k,i) 
+      enddo
+!     
+!     return
+!     
+      icode = 1
+
+      return
+ 200  continue
+      do k=1, n
+         w(k,i) = wk2(k) 
+      enddo
+!     
+!     call matvec operation
+!     
+      icode = 2
+      call dcopy(n, wk2, 1, wk1, 1) !jfl modification
+!
+!     return
+!     
+      return
+ 300  continue
+!     
+!     first call to ope corresponds to intialization goto back to 11.
+!     
+!      if (icode == 3) goto 11
+      call  dcopy (n, wk2, 1, vv(1,i1), 1) !jfl modification
+!     
+!     modified gram - schmidt...
+!     
+      do j=1, i
+         t = ddot(n, vv(1,j), 1, vv(1,i1), 1) !jfl modification
+         hh(j,i) = t
+         call daxpy(n, -t, vv(1,j), 1, vv(1,i1), 1) !jfl modification
+      enddo
+      t = sqrt(ddot(n, vv(1,i1), 1, vv(1,i1), 1)) !jfl modification
+      hh(i1,i) = t
+      if (t == 0.0d0) goto 58
+      t = 1.0d0 / t
+      do k=1,n
+         vv(k,i1) = vv(k,i1)*t
+      enddo
+!     
+!     done with modified gram schimd and arnoldi step. 
+!     now  update factorization of hh
+!     
+ 58   if (i == 1) goto 121
+!     
+!     perfrom previous transformations  on i-th column of h
+!     
+      do k=2,i
+         k1 = k-1
+         t = hh(k1,i)
+         hh(k1,i) = c(k1)*t + s(k1)*hh(k,i)
+         hh(k,i) = -s(k1)*t + c(k1)*hh(k,i)
+      enddo
+ 121  gam = sqrt(hh(i,i)**2 + hh(i1,i)**2)
+      if (gam == 0.0d0) gam = epsmac
+!-----------#determine next plane rotation  #-------------------
+      c(i) = hh(i,i)/gam
+      s(i) = hh(i1,i)/gam
+      rs(i1) = -s(i)*rs(i)
+      rs(i) =  c(i)*rs(i)
+!     
+!     determine res. norm. and test for convergence-
+!     
+      hh(i,i) = c(i)*hh(i,i) + s(i)*hh(i1,i)
+      ro = abs(rs(i1))
+      if (iout > 0) &
+           write(*, 199) its, ro
+      if (i < im .and. (ro > eps1))  goto 4
+!     
+!     now compute solution. first solve upper triangular system.
+!     
+      rs(i) = rs(i)/hh(i,i)
+      do ii=2,i
+         k=i-ii+1
+         k1 = k+1
+         t=rs(k)
+         do j=k1,i
+            t = t-hh(k,j)*rs(j)
+         enddo
+         rs(k) = t/hh(k,k)
+      enddo
+!     
+!     done with back substitution..
+!     now form linear combination to get solution
+!     
+      do j=1, i
+         t = rs(j)
+         call daxpy(n, t, w(1,j), 1, sol,1) !jfl modification
+      enddo
+!     
+!     test for return 
+!     
+      if (ro <= eps1 .or. its >= maxits) goto 999
+!     
+!     else compute residual vector and continue..
+!     
+!       goto 10
+
+     do j=1,i
+        jj = i1-j+1
+        rs(jj-1) = -s(jj-1)*rs(jj)
+        rs(jj) = c(jj-1)*rs(jj)
+     enddo
+     do j=1,i1
+        t = rs(j)
+        if (j == 1)  t = t-1.0d0
+        call daxpy (n, t, vv(1,j), 1,  vv, 1)
+     enddo
+!     
+!     restart outer loop.
+!     
+     goto 20
+ 999  icode = 0
+
+ 199  format('   -- fmgres its =', i4, ' res. norm =', d26.16)
+!     
+      return 
+
+   end subroutine fgmres
+!-----------------------------------------------------------------------
 
 !***********************************************************************************************
 !BELOW here are deprecated boundary condition subroutines that have been replaced by newer 

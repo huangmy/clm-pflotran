@@ -106,7 +106,7 @@
 
 <entry id="COMP_OCN" 
  type="char"
- valid_values="pop2,docn,xocn,socn" 
+ valid_values="pop2,docn,xocn,socn,aquap" 
  value="pop2"  
  group="case_comp"
  sdesc="Name of ocean component"
@@ -227,14 +227,6 @@
 <!-- ======================================================================= -->
 <!-- env_build.xml - grid info                                               -->
 <!-- ======================================================================= -->
-
-<entry id="PTS_MODE" 
- type="logical"
- valid_values="TRUE,FALSE" 
- value="FALSE" 
- group="build_grid"
- sdesc="Operate on only a single point of the global grid  - DO NOT EDIT (for experts only)"
-></entry>
 
 <entry id="GRID" 
  type="char"
@@ -2803,12 +2795,20 @@ By default this is set to EXEROOT/../run.
 RUNDIR allows you to keep the run directory separate from the build directory."
 ></entry>
 
+<entry id="PTS_MODE" 
+ type="logical"
+ valid_values="TRUE,FALSE" 
+ value="FALSE" 
+ group="run_defpts"
+ sdesc="Operate on only a single point of the global grid  - DO NOT EDIT (for experts only)"
+></entry>
+
 <entry id="PTS_LAT" 
  type="real(1)"
  valid_values="" 
  value="-999.99" 
  group="run_defpts"
- sdesc="Latitude to find nearest points for points mode"
+ sdesc="Latitude to find nearest points for points mode (only used if PTS_MODE is TRUE)"
 ></entry>
 
 <entry id="PTS_LON" 
@@ -2816,7 +2816,7 @@ RUNDIR allows you to keep the run directory separate from the build directory."
  valid_values="" 
  value="-999.99" 
  group="run_defpts"
- sdesc="Longitude to find nearest points for points mode"
+ sdesc="Longitude to find nearest points for points mode (only used if PTS_MODE is TRUE)"
 ></entry>
 
 <entry id="CCSM_REPOTAG" 

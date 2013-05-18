@@ -15,6 +15,31 @@ if (-e $CASEROOT/user_nl_cpl) then
     $CASEROOT/user_nl_cpl -namelist_name cpl_inparm >! $CASEBUILD/cplconf/cesm_namelist 
 endif
 
+if ($?CAM_CONFIG_OPTS) then
+if ( "$CAM_CONFIG_OPTS" =~ *adiabatic* ) then
+cat >! $CASEBUILD/cplconf/cesm_namelist << EOF
+&drv_inparm
+atm_adiabatic = .true.
+/
+EOF
+endif
+if ( "$CAM_CONFIG_OPTS" =~ *ideal* ) then
+cat >! $CASEBUILD/cplconf/cesm_namelist << EOF
+&drv_inparm
+atm_ideal_phys = .true.
+/
+EOF
+endif
+if ( "$CAM_CONFIG_OPTS" =~ *aquaplanet* ) then
+cat >! $CASEBUILD/cplconf/cesm_namelist << EOF
+&drv_inparm
+aqua_planet     = .true.
+aqua_planet_sst = 1
+/
+EOF
+endif
+endif
+
 $CCSMROOT/models/drv/bld/build-namelist \
     -infile $CASEBUILD/cplconf/cesm_namelist \
     -caseroot $CASEROOT \

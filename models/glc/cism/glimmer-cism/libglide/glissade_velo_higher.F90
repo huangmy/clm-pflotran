@@ -1,7 +1,29 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
-! +                                                           + 
-! +  glissade_velo_higher.F90                                 + 
-! +                                                           + 
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glissade_velo_higher.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!
+!   This file is part of Glimmer-CISM.
+!
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
+!
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
+!
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
 !
 ! This module contains routines for computing the ice velocity
@@ -32,10 +54,12 @@
     use glimmer_global, only: sp, dp
     use glimmer_physcon, only: gn, rhoi, rhoo, grav, scyr
     use glimmer_paramets, only: thk0, len0, tim0, tau0, vel0   !TODO - remove these later
-    use glimmer_paramets, only: vel_scale, len_scale   ! used for whichefvs = 1
+    use glimmer_paramets, only: vel_scale, len_scale   ! used for whichefvs = HO_EFVS_FLOWFACT
     use glimmer_log, only: write_log
     use glimmer_sparse_type
     use glimmer_sparse
+     
+    use glide_types  ! for HO_EFVS and other options
 
     use cism_sparse_pcg, only: pcg_solver_structured
 
@@ -449,9 +473,6 @@
 
 !TODO - Something like this may be needed if building with Trilinos.
 !!    use glam_strs2, only: linearSolveTime, totalLinearSolveTime
-
-!TODO - Is this 'use' better than hardwiring the numbers?
-!!    use glide_types, only: HO_APPROX_SIA, HO_APPROX_SSA 
 
     !----------------------------------------------------------------
     ! Input-output arguments
@@ -913,9 +934,9 @@
        print *, ' '
        print *, 'Running Glissade higher-order dynamics solver'
        print *, ' '
-       if (whichresid == 3) then                 ! use L2 norm of residual
+       if (whichresid == HO_RESID_L2NORM) then  ! use L2 norm of residual
           print *, 'iter #     resid (L2 norm)       target resid'
-       else                                     ! use max value of residual
+       else                                     ! residual based on velocity
           print *, 'iter #     velo resid            target resid'
        end if
        print *, ' '
@@ -1442,7 +1463,7 @@
        ! "Can't use main_task flag because main_task is true for all processors in case of parallel_single"
 
        if (main_task) then
-          if (whichresid == 3 )then
+          if (whichresid == HO_RESID_L2NORM) then
              if (verbose) then
                 print*, ' '
                 print*, 'Using L2 norm convergence criterion'
@@ -1469,7 +1490,7 @@
        ! update the outer loop stopping criterion
        !---------------------------------------------------------------------------
 
-       if (whichresid == 3) then
+       if (whichresid == HO_RESID_L2NORM) then
           outer_it_criterion = L2_norm
           outer_it_target = L2_target      ! L2_target is currently set to 1.d-4 and held constant
        else
@@ -2918,7 +2939,33 @@
 
     select case(whichefvs)
 
-    case(0)      ! calculate effective viscosity based on effective strain rate
+!!    case(2)
+    case(HO_EFVS_CONSTANT)
+
+       efvs = 1.d7 * scyr   ! Steve Price recommends 10^6 to 10^7 Pa yr
+
+!WHL - This is the glam-type scaling
+!!       efvs = efvs * scyr/tim0 / tau0   ! tau0 = rhoi*grav*thk0
+
+       if (verbose .and. this_rank==rtest .and. i==itest .and. j==jtest .and. k==ktest) then
+          print*, 'Set efvs = constant:', efvs
+       endif
+
+!!    case(1)
+    case(HO_EFVS_FLOWFACT)      ! set the effective viscosity to a multiple of the flow factor, 0.5*A^(-1/n)
+                 
+                 !SCALING: Set the effective strain rate (s^{-1}) based on typical 
+                 !         velocity and length scales, to agree with GLAM.
+  
+       effstrain = vel_scale/len_scale   ! typical strain rate, s^{-1}  
+       efvs = flwafact * effstrain**p_effstr  
+
+       if (verbose .and. this_rank==rtest .and. i==itest .and. j==jtest .and. k==ktest) then
+          print*, 'flwafact, effstrain, efvs =', flwafact, effstrain, efvs       
+       endif
+
+!!    case(0)
+    case(HO_EFVS_NONLINEAR)    ! calculate effective viscosity based on effective strain rate, n = 3
 
        du_dx = 0.d0
        dv_dx = 0.d0
@@ -2968,31 +3015,6 @@
           print*, 'du/dx, du/dy, du/dz =', du_dx, du_dy, du_dz
           print*, 'dv/dx, dv/dy, dv/dz =', dv_dx, dv_dy, dv_dz
           print*, 'flwafact, effstrain (s-1), efvs (Pa s) =', flwafact, effstrain, efvs
-       endif
-
-    case(1)      ! set the effective viscosity to a multiple of the flow factor, 0.5*A^(-1/n)
-                 
-                 !SCALING: Set the effective strain rate (s^{-1}) based on typical 
-                 !         velocity and length scales, to agree with GLAM.
-  
-       effstrain = vel_scale/len_scale   ! typical strain rate, s^{-1}  
-       efvs = flwafact * effstrain**p_effstr  
-
-       if (verbose .and. this_rank==rtest .and. i==itest .and. j==jtest .and. k==ktest) then
-          print*, 'flwafact, effstrain, efvs =', flwafact, effstrain, efvs       
-       endif
-
-!WHL - adding an option to set viscosity to the same value everywhere
-
-    case(2)
-
-       efvs = 1.d7 * scyr   ! Steve Price recommends 10^6 to 10^7 Pa yr
-
-!WHL - This is the glam-type scaling
-!!       efvs = efvs * scyr/tim0 / tau0   ! tau0 = rhoi*grav*thk0
-
-       if (verbose .and. this_rank==rtest .and. i==itest .and. j==jtest .and. k==ktest) then
-          print*, 'Set efvs = constant:', efvs
        endif
 
     end select
@@ -3955,7 +3977,7 @@
 
     select case (whichresid)
 
-    case(1)   ! max speed difference, excluding the bed
+    case(HO_RESID_MAXU_NO_UBAS)   ! max speed difference, excluding the bed
 
        ! Loop over locally owned vertices
 
@@ -3980,7 +4002,7 @@
        ! take global max
        resid_velo = parallel_reduce_max(resid_velo)
 
-    case(2)   ! mean relative speed difference
+    case(HO_RESID_MEANU)   ! mean relative speed difference
 
        count = 0
 
@@ -4007,7 +4029,8 @@
        call not_parallel(__FILE__, __LINE__)
 
 
-   case default    ! max speed difference, including basal speeds  (case 0 or 3)
+   case default    ! max speed difference, including basal speeds
+                   ! (case HO_RESID_MAXU or HO_RESID_L2NORM)
 
        ! Loop over locally owned vertices
 

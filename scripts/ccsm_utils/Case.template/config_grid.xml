@@ -45,7 +45,7 @@ Each grid is associated with three names
 <GRID sname="T341_0.23x0.31_tx0.1v2" alias="T341_f02_t12">a%T85_l%0.23x0.31_oi%tx0.1v2_r%r05_m%gx1v6_g%null_w%null</GRID> 
 
 <GRID sname="T05_T05" alias="T05_T05" compset="(DOCN|XOCN|SOCN)">a%T05_l%T05_oi%T05_r%r05_m%gx3v7_g%null_w%null</GRID>
-<GRID sname="T21_T21" alias="T21_T21" compset="(DOCN|XOCN|SOCN)">a%T21_l%T21_oi%T21_r%r21_m%gx3v7_g%null_w%null</GRID>
+<GRID sname="T21_T21" alias="T21_T21" compset="(DOCN|XOCN|SOCN)">a%T21_l%T21_oi%T21_r%r05_m%gx3v7_g%null_w%null</GRID>
 <GRID sname="T31_T31" alias="T31_T31" compset="(DOCN|XOCN|SOCN)">a%T31_l%T31_oi%T31_r%r05_m%gx3v7_g%null_w%null</GRID>
 <GRID sname="T42_T42" alias="T42_T42" compset="(DOCN|XOCN|SOCN)">a%T42_l%T42_oi%T42_r%r05_m%usgs_g%null_w%null</GRID>
 
@@ -66,13 +66,13 @@ Each grid is associated with three names
 <GRID sname="4x5_gx3v7"         alias="f45_g37">a%4x5_l%4x5_oi%gx3v7_r%r05_m%gx3v7_g%null_w%null</GRID>
 <GRID sname="1.9x2.5_gx1v6_r01" alias="f19_g16_r01">a%1.9x2.5_l%1.9x2.5_oi%gx1v6_r%r01_m%gx1v6_g%null_w%null</GRID>
 
-<GRID sname="0.23x031_0.23x0.31"  alias="f02_f02" compset="(DOCN|XOCN|SOCN)">a%0.23x0.31_l%0.23x0.31_oi%0.23x0.31_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="0.47x0.63_0.47x0.63" alias="f05_f05" compset="(DOCN|XOCN|SOCN)">a%0.47x0.63_l%0.47x0.63_oi%0.47x0.63_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="0.9x1.25_0.9x1.25"   alias="f09_f09" compset="(DOCN|XOCN|SOCN)">a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="1.9x2.5_1.9x2.5"     alias="f19_f19" compset="(DOCN|XOCN|SOCN)">a%1.9x2.5_l%1.9x2.5_oi%1.9x2.5_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="2.5x3.33_2.5x3.33"   alias="f25_f25" compset="(DOCN|XOCN|SOCN)">a%2.5x3.33_l%2.5x3.33_oi%2.5x3.33_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="4x5_4x5"             alias="f45_f45" compset="(DOCN|XOCN|SOCN)">a%4x5_l%4x5_oi%4x5_r%r05_m%gx3v7_g%null_w%null</GRID>
-<GRID sname="10x15_10x15"         alias="f10_f10" compset="(DOCN|XOCN|SOCN)">a%10x15_l%10x15_oi%10x15_r%r05_m%usgs_g%null_w%null</GRID>
+<GRID sname="0.23x031_0.23x0.31"  alias="f02_f02" compset="(DOCN|XOCN|SOCN|AQUAP)">a%0.23x0.31_l%0.23x0.31_oi%0.23x0.31_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="0.47x0.63_0.47x0.63" alias="f05_f05" compset="(DOCN|XOCN|SOCN|AQUAP)">a%0.47x0.63_l%0.47x0.63_oi%0.47x0.63_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="0.9x1.25_0.9x1.25"   alias="f09_f09" compset="(DOCN|XOCN|SOCN|AQUAP)">a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="1.9x2.5_1.9x2.5"     alias="f19_f19" compset="(DOCN|XOCN|SOCN|AQUAP)">a%1.9x2.5_l%1.9x2.5_oi%1.9x2.5_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="2.5x3.33_2.5x3.33"   alias="f25_f25" compset="(DOCN|XOCN|SOCN|AQUAP)">a%2.5x3.33_l%2.5x3.33_oi%2.5x3.33_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="4x5_4x5"             alias="f45_f45" compset="(DOCN|XOCN|SOCN|AQUAP)">a%4x5_l%4x5_oi%4x5_r%r05_m%gx3v7_g%null_w%null</GRID>
+<GRID sname="10x15_10x15"         alias="f10_f10" compset="(DOCN|XOCN|SOCN|AQUAP)">a%10x15_l%10x15_oi%10x15_r%r05_m%usgs_g%null_w%null</GRID>
 
 <!--  spectral element grids -->
 
@@ -90,11 +90,11 @@ Each grid is associated with three names
 <GRID sname="ne240np4_0.23x0.31_tx0.1v2" alias="ne240_f02_t12">a%ne240np4_l%ne240np4_oi%0.23x0.31_tx0.1v2_r%r05_m%tx0.1v2_g%null_w%null</GRID>
 <GRID sname="ne240np4_tx0.1v2"           alias="ne240_t12"    >a%ne240np4_l%ne240np4_oi%tx0.1v2_r%r05_m%tx0.1v2_g%null_w%null</GRID>
 
-<GRID sname="ne16np4_ne16np4"       alias="ne16_ne16"    compset="(DOCN|XOCN|SOCN)">a%ne16np4_l%ne16np4_oi%ne16np4_r%r05_m%gx3v7_g%null_w%null</GRID>
-<GRID sname="ne30np4_ne30np4"       alias="ne30_ne30"    compset="(DOCN|XOCN|SOCN)">a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne60np4_ne60np4"       alias="ne60_ne60"    compset="(DOCN|XOCN|SOCN)">a%ne60np4_l%ne60np4_oi%ne60np4_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne120np4_ne120np4"     alias="ne120_ne120"  compset="(DOCN|XOCN|SOCN)">a%ne120np4_l%ne120np4_oi%ne120np4_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne240np4_ne240np4"     alias="ne240_ne240"  compset="(DOCN|XOCN|SOCN)">a%ne240np4_l%ne240np4_oi%ne240np4_r%r01_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne16np4_ne16np4"       alias="ne16_ne16"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne16np4_l%ne16np4_oi%ne16np4_r%r05_m%gx3v7_g%null_w%null</GRID>
+<GRID sname="ne30np4_ne30np4"       alias="ne30_ne30"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne60np4_ne60np4"       alias="ne60_ne60"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne60np4_l%ne60np4_oi%ne60np4_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne120np4_ne120np4"     alias="ne120_ne120"  compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne120np4_l%ne120np4_oi%ne120np4_r%r05_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne240np4_ne240np4"     alias="ne240_ne240"  compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne240np4_l%ne240np4_oi%ne240np4_r%r01_m%gx1v6_g%null_w%null</GRID>
 
 <!--- cism grids --> 
 

@@ -4,6 +4,129 @@ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk/ChangeLog $
 
 This file describes what tags were created and why
 ================================================================================
+Originator: jedwards
+Date: 02 May 2013
+Model: Machines
+Version: Machines_130502
+One-line: Update bluewaters, remove bluefire
+	
+M            config_compilers.xml
+D            mkbatch.bluefire
+D            env_mach_specific.bluefire
+M            env_mach_specific.bluewaters
+M            config_machines.xml
+
+
+================================================================================
+Originator: santos
+Date: 01 May 2013
+Model: Machines
+Version: Machines_130501b
+One-line: Disable threading by default for WACCM-SE on yellowstone.
+
+M  config_pes.xml
+    - For WACCM on ne30np4, use CAM F case default settings, except disable
+      threading due to memory leak.
+
+================================================================================
+Originator: jedwards
+Date: 01 May 2013
+Model: Machines
+Version: Machines_130501a
+One-line: Updates for yellowstone
+
+M  env_mach_specific.yellowstone
+
+
+================================================================================
+Originator: mickelso
+Date: 01 May 2013
+Model: Machines
+Version: Machines_130501
+One-line: Port to Mira
+
+M       config_machines.xml
+	- Set correct Mira paths
+
+M       config_pes.xml
+	- Modified Mira PE layouts
+
+================================================================================
+Originator: santos
+Date: 26 Apr 2013
+Model: Machines
+Version: Machines_130426b
+One-line: Add cesm.log to batch scripts that didn't have it.
+
+M       mkbatch.ubgl
+M       mkbatch.intrepid
+         - Add cesm.log.
+
+M       mkbatch.frankfurt
+         - Correct typo in redirect for PGI.
+
+================================================================================
+Originator: jedwards
+Date: 26 Apr 2013
+Model: Machines
+Version: Machines_130426a
+One-line: Correct accidental overwrite of 130425 tag with 130426
+
+M               config_compilers.xml
+
+================================================================================
+Originator: jedwards
+Date: 26 Apr 2013
+Model: Machines
+Version: Machines_130426
+One-line: Port to Mira
+
+M               config_compilers.xml
+M               mkbatch.mira
+M               config_pes.xml
+M               config_machines.xml
+
+================================================================================
+Originator: jedwards
+Date: 25 Apr 2013
+Model: Machines
+Version: Machines_130425
+One-line:  Update gnu compiler on yellowstone, forces netcdf for io (pnetcdf has problems)
+
+M       env_mach_specific.yellowstone
+
+================================================================================
+Originator: fischer
+Date: 19 Apr 2013
+Model: Machines
+Version: Machines_130419
+One-line: Disable threading for CLUBB
+
+M       config_pes.xml
+
+================================================================================
+Originator: fvitt
+Date: 17 Apr 2013
+Model: Machines
+Version: Machines_130417a
+One-line: Remove workaround for SC-WACCM threading problem
+
+M       config_pes.xml
+
+================================================================================
+Originator: jedwards
+Date: 17 Apr 2013
+Model: Machines
+Version: Machines_130417
+One-line: Updates for yellowstone (nano timers, ocean threading)
+
+M              config_compilers.xml
+M              env_mach_specific.yellowstone
+M              mkbatch.yellowstone
+M              config_pes.xml
+
+
+================================================================================
 Originator: santos
 Date: 12 Apr 2013
 Model: Machines

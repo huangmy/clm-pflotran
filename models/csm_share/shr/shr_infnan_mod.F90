@@ -8,7 +8,7 @@
 module shr_infnan_mod
 !---------------------------------------------------------------------
 ! Module to test for IEEE Inf and NaN values, which also provides a
-! method of setting +/-Inf and signalling NaN.
+! method of setting +/-Inf and signaling or quiet NaN.
 !
 ! All functions are elemental, and thus work on arrays.
 !---------------------------------------------------------------------
@@ -103,10 +103,8 @@ public :: shr_infnan_inf_type
 public :: assignment(=)
 
 ! Type representing Not A Number.
-! Dummy component is to deal with Lahey; in F2003
-! a type should be able to have 0 components?
 type :: shr_infnan_nan_type
-   logical :: dummy = .false.
+   logical :: quiet = .false.
 end type shr_infnan_nan_type
 
 ! Type representing +/-Infinity.
@@ -122,10 +120,18 @@ interface assignment(=)
    module procedure set_r8_inf
 end interface
 
-! Initialize objects of NaN/Inf type for
-! other modules to use.
+! Initialize objects of NaN/Inf type for other modules to use.
+
+! Default NaN is signaling, but also provide snan and qnan to choose
+! explicitly.
 type(shr_infnan_nan_type), public, parameter :: shr_infnan_nan = &
+     shr_infnan_nan_type(.false.)
+type(shr_infnan_nan_type), public, parameter :: shr_infnan_snan = &
+     shr_infnan_nan_type(.false.)
+type(shr_infnan_nan_type), public, parameter :: shr_infnan_qnan = &
      shr_infnan_nan_type(.true.)
+
+! Default Inf is positive, but provide posinf to go with neginf.
 type(shr_infnan_inf_type), public, parameter :: shr_infnan_inf = &
      shr_infnan_inf_type(.true.)
 type(shr_infnan_inf_type), public, parameter :: shr_infnan_posinf = &
@@ -222,10 +228,11 @@ end function shr_infnan_isneginf_r8
 !---------------------------------------------------------------------
 ! GENERATION FUNCTIONS
 !---------------------------------------------------------------------
-! Two approaches for generation of signaling NaN and Inf values:
+! Two approaches for generation of NaN and Inf values:
 !   1. With Fortran 2003, use the ieee_value intrinsic to get a value
 !      from the corresponding class. These are:
 !       - ieee_signaling_nan
+!       - ieee_quiet_nan
 !       - ieee_positive_inf
 !       - ieee_negative_inf
 !   2. Without Fortran 2003, set the IEEE bit patterns directly.
@@ -238,17 +245,27 @@ elemental subroutine set_r4_nan(output, nan)
 #ifdef HAVE_IEEE_ARITHMETIC
   use, intrinsic :: ieee_arithmetic, only: &
        ieee_signaling_nan, &
+       ieee_quiet_nan, &
        ieee_value
 #else
-  integer, parameter :: snan_pat = Z'7FC00000'
+  integer, parameter :: ssnan_pat = Z'7FA00000'
+  integer, parameter :: sqnan_pat = Z'7FC00000'
 #endif
   real(r4), intent(out) :: output
   type(shr_infnan_nan_type), intent(in) :: nan
 
 #ifdef HAVE_IEEE_ARITHMETIC
-  output = ieee_value(output,ieee_signaling_nan)
+  if (nan%quiet) then
+     output = ieee_value(output,ieee_quiet_nan)
+  else
+     output = ieee_value(output,ieee_signaling_nan)
+  end if
 #else
-  output = transfer(snan_pat, output)
+  if (nan%quiet) then
+     output = transfer(sqnan_pat, output)
+  else
+     output = transfer(ssnan_pat, output)
+  end if
 #endif
 
 end subroutine set_r4_nan
@@ -286,19 +303,29 @@ elemental subroutine set_r8_nan(output, nan)
 #ifdef HAVE_IEEE_ARITHMETIC
   use, intrinsic :: ieee_arithmetic, only: &
        ieee_signaling_nan, &
+       ieee_quiet_nan, &
        ieee_value
 #else
   use shr_kind_mod, only: &
        i8 => shr_kind_i8
-  integer(i8), parameter :: dnan_pat = Z'7FF8000000000000'
+  integer(i8), parameter :: dsnan_pat = Z'7FF4000000000000'
+  integer(i8), parameter :: dqnan_pat = Z'7FF8000000000000'
 #endif
   real(r8), intent(out) :: output
   type(shr_infnan_nan_type), intent(in) :: nan
 
 #ifdef HAVE_IEEE_ARITHMETIC
-  output = ieee_value(output,ieee_signaling_nan)
+  if (nan%quiet) then
+     output = ieee_value(output,ieee_quiet_nan)
+  else
+     output = ieee_value(output,ieee_signaling_nan)
+  end if
 #else
-  output = transfer(dnan_pat, output)
+  if (nan%quiet) then
+     output = transfer(dqnan_pat, output)
+  else
+     output = transfer(dsnan_pat, output)
+  end if
 #endif
 
 end subroutine set_r8_nan

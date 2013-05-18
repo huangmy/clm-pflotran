@@ -93,6 +93,8 @@ print *,"In gtd_init, dycore_model_index = ",dycore_model_index
 !    print *,'thck ndims,shape = ',size(shape(model%geometry%thck)),shape(model%geometry%thck)
 !    print *,'topg ndims,shape = ',size(shape(model%geometry%topg)),shape(model%geometry%topg)
 
+!    print *,'usrf ndims,shape = ',size(shape(model%geometry%usrf)),shape(model%geometry%usrf)
+
     dtype_name = 'geometry'//char(0)
      
     var_name = 'thck'//char(0)
@@ -102,6 +104,11 @@ print *,"In gtd_init, dycore_model_index = ",dycore_model_index
     var_name = 'topg'//char(0)
     !call gtd_set_dim_info(shape(model%geometry%topg),dim_info)
     call dycore_set_ptr_double_var(model%geometry%topg,var_name,dtype_name,dycore_model_index)
+
+    var_name = 'usrf'//char(0)
+    !call gtd_set_dim_info(shape(model%geometry%usrf),dim_info)
+    call dycore_set_ptr_double_var(model%geometry%usrf,var_name,dtype_name,dycore_model_index)
+
 
     print *,"this_rank, ewlb, ewub, nslb, nsub", this_rank,  ewlb, ewub, nslb, nsub
  
@@ -161,9 +168,11 @@ print *,"In gtd_init, dycore_model_index = ",dycore_model_index
 
     dtype_name = 'velocity'//char(0)
 
-!    print *,'uvel ndims,shape = ',size(shape(model%velocity%uvel)),shape(model%velocity%uvel)
+    print *,'uvel ndims,shape = ',size(shape(model%velocity%uvel)),shape(model%velocity%uvel)
 
-!    print *,'vvel ndims,shape = ',size(shape(model%velocity%vvel)),shape(model%velocity%vvel)
+    print *,'vvel ndims,shape = ',size(shape(model%velocity%vvel)),shape(model%velocity%vvel)
+
+    print *,'wvel ndims,shape = ',size(shape(model%velocity%wvel)),shape(model%velocity%wvel)
 
 
     var_name = 'uvel'//char(0)       
@@ -226,8 +235,18 @@ print *,"In gtd_init, dycore_model_index = ",dycore_model_index
 
     var_name = 'temp'//char(0)       
     call dycore_set_ptr_double_var(model%temper%temp,var_name,dtype_name,dycore_model_index)
+
+    var_name = 'bheatflx'//char(0)       
+    call dycore_set_ptr_double_var(model%temper%bheatflx,var_name,dtype_name,dycore_model_index)
+
+    var_name = 'bmlt'//char(0)       
+    call dycore_set_ptr_double_var(model%temper%bmlt,var_name,dtype_name,dycore_model_index)
       
-    !print *,'temp ndims,shape = ',size(shape(model%temper%temp)),shape(model%temper%temp)
+    print *,'temp ndims,shape = ',size(shape(model%temper%temp)),shape(model%temper%temp)
+
+    print *,'bheatflx ndims,shape = ',size(shape(model%temper%bheatflx)),shape(model%temper%bheatflx)
+
+    print *,'bmlt ndims,shape = ',size(shape(model%temper%bmlt)),shape(model%temper%bmlt)
 
     call gtd_set_dim_info(shape(model%temper%temp),dim_info)
 

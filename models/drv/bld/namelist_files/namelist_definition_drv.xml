@@ -146,6 +146,38 @@ Modify user_nl_cpl to edit this.
 <!-- =========================== -->
 
 <entry 
+id="atm_adiabatic"     
+type="logical"
+category="expdef" 
+group="seq_infodata_inparm">
+true => turn on adiabatic mode in cam
+</entry>
+
+<entry 
+id="atm_ideal_phys"     
+type="logical"
+category="expdef" 
+group="seq_infodata_inparm">
+true => turn on ideal physics mode in cam
+</entry>
+
+<entry 
+id="aqua_planet"     
+type="logical"
+category="expdef" 
+group="seq_infodata_inparm">
+true => turn on aquaplanet mode in cam
+</entry>
+
+<entry 
+id="aqua_planet_sst"     
+type="integer"
+category="expdef" 
+group="seq_infodata_inparm">
+1 => default sst mode for aquaplanet in cam
+</entry>
+
+<entry 
 id="case_name"     
 type="char*128"
 category="expdef" 

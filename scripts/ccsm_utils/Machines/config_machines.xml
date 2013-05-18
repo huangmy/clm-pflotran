@@ -50,40 +50,18 @@
         <MAX_TASKS_PER_NODE>USERDEFINED_required_build</MAX_TASKS_PER_NODE>
 </machine>
 
-
-<machine MACH="bluefire">
-         <DESC>NCAR IBM p6, os is AIX, 32 pes/node, batch system is LSF</DESC>
-         <OS>AIX</OS>
-	 <COMPILERS>ibm</COMPILERS>
-	 <MPILIBS>ibm,mpi-serial</MPILIBS>
-         <RUNDIR>/ptmp/$CCSMUSER/$CASE/run</RUNDIR>
-         <EXEROOT>/ptmp/$CCSMUSER/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/glade/proj3/cseg/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/glade/proj2/cgd/tss</DIN_LOC_ROOT_CLMFORC>
-         <DOUT_S_ROOT>/ptmp/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
-         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-         <CCSM_BASELINE>/glade/proj3/cseg/ccsm_baselines</CCSM_BASELINE>
-         <CCSM_CPRNC>/glade/proj3/cseg/tools/cprnc/cprnc</CCSM_CPRNC>
-         <BATCHQUERY>bjobs -w</BATCHQUERY>
-         <BATCHSUBMIT>bsub &lt;</BATCHSUBMIT>
-         <SUPPORTED_BY>cseg</SUPPORTED_BY>
-         <GMAKE_J>32</GMAKE_J>
-         <MAX_TASKS_PER_NODE>64</MAX_TASKS_PER_NODE>
-         <PES_PER_NODE>32</PES_PER_NODE>
-</machine>
-
 <machine MACH="bluewaters">
          <DESC>ORNL XE6, os is CNL, 32 pes/node, batch system is PBS</DESC>
 	 <COMPILERS>pgi,cray,gnu</COMPILERS>
 	 <MPILIBS>mpich,mpi-serial</MPILIBS>
          <RUNDIR>/scratch/sciteam/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/scratch/sciteam/$CCSMUSER/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/scratch/sciteam/truesdal/cesm/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/scratch/sciteam/truesdal/cesm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DIN_LOC_ROOT>/projects/sciteam/jng/cesm/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/projects/sciteam/jng/cesm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
          <DOUT_S_ROOT>/scratch/sciteam/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-         <CCSM_BASELINE>/scratch/sciteam/jedwards/cesm/ccsm_baselines</CCSM_BASELINE>
-         <CCSM_CPRNC>/scratch/sciteam/jedwards/cesm/tools/ccsm_cprnc/cprnc</CCSM_CPRNC>
+         <CCSM_BASELINE>/projects/sciteam/jng/cesm/ccsm_baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>/projects/sciteam/jng/cesm/tools/ccsm_cprnc/cprnc</CCSM_CPRNC>
          <OS>CNL</OS>
          <BATCHQUERY>qstat -f</BATCHQUERY>
          <BATCHSUBMIT>qsub</BATCHSUBMIT>
@@ -342,13 +320,14 @@
          <DESC>ANL IBM BG/Q, os is BGP, 16 pes/node, batch system is cobalt</DESC>
          <COMPILERS>ibm</COMPILERS>
          <MPILIBS>ibm</MPILIBS>
-         <RUNDIR>/gpfs/vesta_scratch/projects/CCESDev/$CCSMUSER/scratch/exe/$CASE/run</RUNDIR>
-         <EXEROOT>/gpfs/vesta_scratch/projects/CCESDev/$CCSMUSER/scratch/exe/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/gpfs/vesta_scratch/projects/CCESDev/mickelso/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/gpfs/vesta_scratch/projects/CCESDev/mickelso/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
-         <DOUT_S_ROOT>/gpfs/vesta_scratch/projects/CCESDev/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
-         <DOUT_L_MSROOT>/gpfs/vesta_scratch/projects/CCESDev/$CCSMUSER/csm/$CASE/</DOUT_L_MSROOT>
-         <CCSM_BASELINE>/gpfs/vesta_scratch/projects/CCESDev/$CCSMUSER/ccsm_baselines</CCSM_BASELINE>
+         <RUNDIR>/gpfs/mira-fs0/projects/ClimEndStation/$CCSMUSER/scratch/exe/$CASE/run</RUNDIR>
+         <EXEROOT>/gpfs/mira-fs0/projects/ClimEndStation/$CCSMUSER/scratch/exe/$CASE/bld</EXEROOT>
+         <DIN_LOC_ROOT>/gpfs/mira-fs0/projects/ccsm/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/gpfs/mira-fs0/projects/ccsm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>/gpfs/mira-fs0/projects/ClimEndStation/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>/home/$CCSMUSER/csm/$CASE/</DOUT_L_MSROOT>
+         <CCSM_BASELINE>/gpfs/mira-fs0/projects/ccsm/ccsm_baselines/</CCSM_BASELINE>
+	 <CCSM_CPRNC>/gpfs/mira-fs0/projects/ccsm/tools/cprnc/cprnc</CCSM_CPRNC>
          <OS>BGQ</OS>
          <BATCHQUERY>qstat</BATCHQUERY>
          <BATCHSUBMIT>csh</BATCHSUBMIT>

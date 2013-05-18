@@ -3,9 +3,9 @@
 #
 # Batch script to submit to create ESMF mapping file
 #
-# Set up for bluefire
+# Set up for yellowstone
 # 
-# Bluefire specific batch commands:
+# yellowstone-specific batch commands:
 #BSUB -P P00000000        # project number
 #BSUB -n 16               # number of processors
 #BSUB -R "span[ptile=16]" 

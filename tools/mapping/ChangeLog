@@ -1,8 +1,80 @@
 ================================================================================
-SVN $Id: ChangeLog 45575 2013-04-03 18:43:22Z mlevy@ucar.edu $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130403/ChangeLog $
+SVN $Id: ChangeLog 46423 2013-04-26 18:11:07Z mlevy@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: mlevy
+Date: Apr 26 2013
+Model: mapping
+Version: mapping_130426b
+One-line summary: Improve metadata in create_ESMF_map.sh
+
+Modified files:
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+================================================================================
+Originator: mlevy
+Date: Apr 26 2013
+Model: mapping
+Version: mapping_130426
+One-line summary: create_ESMF_map.sh didn't work when launched from tcsh because
+                  of an issue with running module through a bash script. The
+                  CISL helpdesk showed me what to load to make it work.
+
+Modified files:
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+================================================================================
+Originator: mlevy
+Date: Apr 19 2013
+Model: mapping
+Version: mapping_130419
+One-line summary: Cleaning up references to bluefire through directory.
+
+Modified files:
+M       map_field/INSTALL
+M       map_field/README
+M       gen_domain_files/INSTALL
+D       gen_mapping_files/runoff_to_ocn/src/Macros.bluefire
+D       gen_mapping_files/runoff_to_ocn/ChangeLog
+D       gen_mapping_files/runoff_to_ocn/build.bluefire.csh
+D       gen_mapping_files/runoff_to_ocn/runoff.bluefire.run
+MM      gen_mapping_files/runoff_to_ocn/build.yellowstone.csh
+D       gen_mapping_files/regridbatch.bluefire.sh
+M       gen_mapping_files/gen_cesm_maps.sh
+M       gen_mapping_files/regridbatch.yellowstone.sh
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+D       gen_mapping_files/gen_ESMF_mapping_file/regridbatch.bluefire.sh
+M       gen_mapping_files/gen_ESMF_mapping_file/regridbatch.yellowstone.sh
+M       check_maps/check_map.sh
+M       check_maps/INSTALL
+M       check_maps/src/Makefile
+M       check_maps/README
+================================================================================
+Originator: mlevy
+Date: Apr 10 2013
+Model: mapping
+Version: mapping_130410
+One-line summary: Lots of updates to create_ESMF_map.sh to make it more robust.
+                  Hopefully these changes will let CLM use this tool instead
+                  of pointing directly to ESMF tools itself.
+                  1) geyser is supported again
+                  2) Bilinear interpolation available via "bilin" instead of
+                     just "blin"
+                  3) The CLM naming convention can be envoked via the
+                     "--clm_name" flag.
+                  4) Flags can be passed directly to ESMF_RegridWeightGen with
+                     --pass2esmf option
+                  5) The serial ESMF tools can be used on yellowstone, geyser,
+                     or caldera via the "--serial" flag
+                  6) You can specify what machine you are running on with the
+                     "-mach" flag (if omitted, same logic as before determines
+                     machine from hostname)
+                  7) Bluefire is no longer supported by the tool
+
+Modified files:
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+M       gen_mapping_files/gen_ESMF_mapping_file/README
+M       gen_mapping_files/README
 ================================================================================
 Originator: mlevy
 Date: Apr 03 2013

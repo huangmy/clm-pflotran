@@ -315,14 +315,10 @@ sub write_file
                     run_coupling run_mpi run_pio run_flags
                     run_cplhist run_mach run_din run_dout 
                     run_component run_sstice run_cesm run_domain 
-                    run_dirderv); 
+                    run_dirderv run_defpts); 
     } elsif ($filename =~ "env_test") {
        @groups = qw(case_test);
     }
-       if ( $self->get("PTS_MODE") eq "TRUE" ) {
-          push( @groups, "run_defpts" );
-       }
-    
 
     my $fh;
     if ( -f $filename ) { unlink( $filename ); }
@@ -781,6 +777,7 @@ EOD
 	}
         $var =~ s/\&apos\;/\'/g;
         $var =~ s/\&lt\;/\</g;
+        $var =~ s/\*/\\*/g;
 	if ($group eq $self->{$id}->{'group'}) {
 	    my $comment;
 	    if ($self->{$id}->{'valid_values'}) {

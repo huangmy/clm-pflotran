@@ -1,8 +1,299 @@
 ================================================================================
-SVN $Id: ChangeLog 46188 2013-04-22 14:49:35Z jedwards $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130422/ChangeLog $
+SVN $Id: ChangeLog 46664 2013-05-02 17:22:59Z jshollen $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130502/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+
+================================================================================
+
+Originator: jshollen
+Date: May 2 2013
+Model: scripts
+Version: scripts4_130502
+One-line: create_test: fix bugs found in 130501e
+
+M       create_test
+
+================================================================================
+
+Originator: jshollen
+Date: May 1 2013
+Model: scripts
+Version: scripts4_130501e
+One-line: create_test: update documentation, fix bugs
+
+M       create_test
+
+================================================================================
+
+Originator: jedwards
+Date: May 1 2013
+Model: scripts
+Version: scripts4_130501d
+One-line: fix preview_namelist script again
+
+M ccsm_utils/Tools/preview_namelists
+
+===================================================================================
+
+Originator: jedwards
+Date: May 1 2013
+Model: scripts
+Version: scripts4_130501c
+One-line: fix preview_namelist script for multiinstance cases
+
+M ccsm_utils/Tools/preview_namelists
+
+
+================================================================================
+
+Originator: erik
+Date: May 1 2013
+Model: scripts
+Version: scripts4_130501b
+One-line: Move aux_clm_int tests to aux_clm for NAG, remove many tests that fail
+
+Remove the anoxia_wt tests and remove setting of shape_fluxprof as it was removed.
+Remove all but one PET_PT test for CLM45 as it's known NOT to work with threading.
+Change aux_clm_int tests to aux_clm for NAG compiler.
+Change ERS_Ln48 tests to either SMS or ERS_Ld3.
+
+M       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set2_ciso/user_nl_clm
+M       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set3_pftroot/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/anoxia_wtsat
+D       ccsm_utils/Testlistxml/nl_dirs/clm/anoxia_wtsat/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+
+Originator: jedwards
+Date: May 1 2013
+Model: scripts
+Version: scripts4_130501
+One-line: add performance tests to testlist.xml, add outputlist option to query_tests, update add_xml_entries to sort and format output
+
+M      ccsm_utils/Testlistxml/add_xml_entries
+M      ccsm_utils/Testlistxml/testlist.xml
+M      query_tests
+
+================================================================================
+
+Originator: jedwards
+Date: Apr 30 2013
+Model: scripts
+Version: scripts4_130430b
+One-line: add build and tests for cam aquaplanet cases
+
+M           ccsm_utils/Case.template/config_compsets.xml
+M           ccsm_utils/Case.template/config_grid.xml
+M           ccsm_utils/Case.template/config_definition.xml
+M           ccsm_utils/Testlistxml/testlist.xml
+
+
+
+================================================================================
+
+Originator: mvertens
+Date: Apr 30 2013
+Model: scripts
+Version: scripts4_130430a
+One-line: updated query for testlists
+
+D       query_testlist
+A  +    query_tests
+
+================================================================================
+	
+Originator: mvertens
+Date: Apr 30 2013
+Model: scripts
+Version: scripts4_130430
+One-line: changes for cam ideal physics and adiabatic
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+M       create_newcase
+	
+================================================================================
+	
+Originator: jshollen
+Date: Apr 26 2013
+Model: scripts
+Version: scripts4_130426b
+One-line: create_test compare namelist compare bug fix.  
+
+M       create_test
+
+================================================================================
+
+Originator: santos
+Date: Apr 26 2013
+Model: scripts
+Version: scripts4_130426a
+One-line: Change error message mentioning "cpl.log" to one mentioning "cesm.log"
+
+M       ccsm_utils/Tools/cesm_postrun_setup
+         - Check cpl.log to see if a case ran, but mention cesm.log in error
+           messages.
+
+================================================================================
+Originator: jedwards
+Date: Apr 26 2013
+Model: scripts
+Version: scripts4_130426
+One-line: remove IOP.T31 tests, fix some compset parsing 
+
+M              ccsm_utils/Case.template/config_compsets.xml
+M              ccsm_utils/Case.template/ConfigCase.pm
+M              ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jedwards
+Date: Apr 25 2013
+Model: scripts
+Version: scripts4_130425
+One-line: fix scam use_case in config_compsets.xml
+
+M      config_compsets.xml
+
+
+================================================================================
+Originator: jshollen
+Date: Apr 24 2013
+Model: scripts
+Version: scripts4_130424b
+One-line: Jim's compset fixes, update SCAM iop dataset. 
+
+M       SVN_EXTERNAL_DIRECTORIES
+M       ccsm_utils/Case.template/config_compsets.xml
+M       create_newcase
+
+================================================================================
+Originator: sacks
+Date: Apr 24 2013
+Model: scripts
+Version: scripts4_130424a
+One-line: Removed unneeded section from cism namelist documentation
+
+M       doc/modelnl/nldef2html_cism
+	
+================================================================================
+Originator: jedwards
+Date: Apr 24 2013
+Model: scripts
+Version: scripts4_130424
+One-line: Fixed SCAM (FARM95) test inputfile, check compset longnames against def
+	     remove some unsupported tests, fix a bad compset name
+	
+M               ccsm_utils/Tools/cesm_postrun_setup
+M               ccsm_utils/Case.template/config_compsets.xml
+M               ccsm_utils/Testlistxml/testlist.xml
+M               create_newcase
+
+
+================================================================================
+Originator: mvertens
+Date: Apr 23 2013
+Model: scripts
+Version: scripts4_130423a
+One-line: Fixed SCAM (FARM95) test and added it to pre-alpha test for yellowstone
+
+M       ccsm_utils/Tools/cesm_setup
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       ccsm_utils/Case.template/config_definition.xml
+	  - above are all fixes for SCAM to work
+	
+M       ccsm_utils/Testlistxml/testlist.xml
+  	  - new prelpha yellowstone test for FARM95 
+	
+M       create_newcase
+	  - help comments just slightly changed
+	
+================================================================================
+Originator: jshollen
+Date: Apr 23 2013
+Model: scripts
+Version: scripts4_130423
+One-line: Update test list, namelist compare log file for test suite runs, 
+create_test bug fix. 
+
+M       create_test
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: mvertens
+Date: Apr 23 2013
+Model: scripts
+Version: scripts4_130423
+One-line: Fixed SCAM (FARM95) test and added it to pre-alpha test for yellowstone
+
+M       ccsm_utils/Tools/cesm_setup
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       ccsm_utils/Case.template/config_definition.xml
+	  - above are all fixes for SCAM to work
+	
+M       ccsm_utils/Testlistxml/testlist.xml
+  	  - new prelpha yellowstone test for FARM95 
+	
+M       create_newcase
+	  - help comments just slightly changed
+	
+================================================================================
+Originator: mvertens
+Date: Apr 22 2013
+Model: scripts
+Version: scripts4_130422b
+One-line: Update test list 
+
+M       query_testlist
+M       ccsm_utils/Testlistxml/add_xml_entries
+M       ccsm_utils/Testlistxml/make_xml_entries
+	   - added more functionality to add_xml_entries, make_xml_entries and 
+   	     query_testlist  - call each of these with the help flag for more 
+ 	     documentation
+	
+M       ccsm_utils/Case.template/config_compsets.xml
+	   - added new case for BGCDV 
+	
+M       ccsm_utils/Case.template/config_grid.xml
+	   - fixed bug for T21_T21
+	
+M       ccsm_utils/Testlistxml/nl_dirs/clm/monthly/user_nl_cpl
+A       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial
+A       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial/user_nl_clm
+A       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial/user_nl_cpl
+M       ccsm_utils/Testlistxml/testlist.xml
+           -  added the following tests
+        ERS_Ly5.f10_f10.I20TRCLM45CN4Me.yellowstone_intel.clm/monthly_noinitial	
+        SMS_D.f09_g16.TG.yellowstone_intel
+        SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel
+        ERI.f19_f19.FC5PM.yellowstone_intel
+        ERS.f19_g16.BNUKE_C4WBC_L40CN.yellowstone_intel
+        ERS.f19_f19.FGEOS_C4WSF_L40CN.yellowstone_intel
+        ERI.f19_f19.F1850C5PM.yellowstone_intel
+        ERI.f19_f19.FSSOA.yellowstone_intel
+        ERI.f19_f19.FC5CLUBB.yellowstone_intel
+
+
+	
+================================================================================
+Originator: santos
+Date: Apr 22 2013
+Model: scripts
+Version: scripts4_130422a
+One-line: Fix SCAM compset, add references to cesm.log file
+
+M       ccsm_utils/Tools/st_archive.sh
+         - Change ccsm.log to cesm.log
+
+M       ccsm_utils/Tools/cesm_postrun_setup
+         - Users are referred to cesm.log rather than cpl.log in case of error.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+         - Change F_ARM95_CAM5 to CAM4, since we only have a CAM4 use_case.
 
 ================================================================================
 Originator: jedwards

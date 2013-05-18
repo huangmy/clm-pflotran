@@ -1,37 +1,36 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glide_stop.f90 - part of the Glimmer-CISM ice model      + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_stop.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
 #endif
 
 module glide_stop
+
+  !TODO - Put model registration subroutines elsewhere?
 
   use glide_types
   use glimmer_log
@@ -41,7 +40,6 @@ module glide_stop
   !*FD module containing finalisation of glide
   !*FD this subroutine had to be split out from glide.f90 to avoid circular dependencies
 
-!TODO - Put model registration elsewhere?
   !*FD Updated by Tim Bocek to allow for several models to be
   !*FD registered and finalized with a single call without needing
   !*FD the model at call time
@@ -61,6 +59,7 @@ module glide_stop
 contains
 
 !EIB! register and finalise_all not present in gc2, are present in lanl, therefore added here
+
   subroutine register_model(model)
     !*FD Registers a model, ensuring that it is finalised in the case of an error
     type(glide_global_type), target :: model
@@ -90,7 +89,9 @@ contains
     end if
   end subroutine
 
-!TODO - Currently, this subroutine is never called.
+  !TODO - Currently, glide_finalise_all is never called.
+  !       (glide_finalise is called from simple_glide) 
+
   subroutine glide_finalise_all(crash_arg)
     !*FD Finalises all models in the model registry
     logical, optional :: crash_arg
@@ -111,17 +112,17 @@ contains
     end do 
   end subroutine
 
-!TODO - Write a glissade_finalise routine
-!     - Does it need a glissade_io_writeall subroutine?
 
   subroutine glide_finalise(model,crash)
 
     !*FD finalise GLIDE model instance
+    !TODO - Make sure this subroutine does what's needed to
+    !       finalize the HO dycores
+
     use glimmer_ncio
     use glimmer_log
     use glide_types
     use glide_io
-    use glide_lithot_io
     use profile
     implicit none
     type(glide_global_type) :: model        !*FD model instance
@@ -132,21 +133,12 @@ contains
     if (present(crash)) then
        if (crash) then
           call glide_io_writeall(model,model,.true.)
-          !EIB! from gc2, not sure necessary
-          if (model%options%gthf > 0) then
-             call glide_lithot_io_writeall(model,model,.true.)
-          end if
-          !EIB!
        end if
     end if
 
     call closeall_in(model)
     call closeall_out(model)
 
-!TODO - Has this been done yet?
-    ! *sfp* Note that a finalization routine, "glam_velo_fordsiapstr_final", for the PP HO core needs 
-    ! to be written, added to "glam_strs2.F90", and called from "glide_stop".
-  
     call glide_deallocarr(model)
     call deregister_model(model)
 

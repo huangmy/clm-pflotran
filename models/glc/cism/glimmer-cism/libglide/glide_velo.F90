@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_velo.f90 - part of the Glimmer-CISM ice model    + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_velo.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -56,7 +53,9 @@ module glide_velo
 
 contains
 
-!TODO - Pretty sure that none of the arrays in this subroutine are needed for HO.
+!TODO - Pretty sure that none of the arrays in this subroutine are needed for HO,
+!        so we may not need to call this subroutine from glissade_initialise.
+
 !       Some velowk arrays are used in wvelintg, but not hard to rewrite wvelintg without these arrays.
 
   subroutine init_velo(model)
@@ -140,7 +139,6 @@ contains
           !Compute everything inside the exponentiation
           !(we factor out -rhoi*g*H*\sigma so it's only computed once
 !TODO - Where is g defined as the gravitational constant?  Should be grav.
-!TODO - There is no 'implicit none' in this subroutine or at the top of the module.
           zx = -rhoi*g*sigma(i)*stagthck(j,k)
           zy = zx*dusrfdns(j,k)
           zx = zx*dusrfdew(j,k)
@@ -162,7 +160,8 @@ contains
     end do
   end subroutine
 
-!TODO - This subroutine is not called either.  
+!TODO - This subroutine is not called.  Remove it?
+  
   !*FD Integrates the strain rates to compute both the 3d velocity fields and the
   !*FD vertically averaged velocities
 
@@ -182,9 +181,6 @@ contains
   end subroutine velo_integrate_strain
 #endif
   
-!TODO - The rest of the subroutines in this module are needed for SIA only?
-!       Currently, the HO solver calls gridwvel, wvelintg, and chckwvel, but not sure these calls are needed.
-
   !*****************************************************************************
   ! new velo functions come here
   !*****************************************************************************
@@ -301,9 +297,10 @@ contains
 
     upn=size(flwa,1) ; ewn=size(stagthck,1) ; nsn=size(stagthck,2)
     
-!LOOP: All velocity points
 !      Note: Here (confusingly), nsn = size(stagthck,2) = model%general%nsn-1
 !                                ewn = size(stagthck,1) = model%general%ewn-1
+!TODO - Change loop limits to nsn-1, ewn-1
+!       (provided ewn = size(stagthck,1)-1, etc.)
 
     do ns = 1,nsn
        do ew = 1,ewn
@@ -629,7 +626,7 @@ contains
 
      ! Compute the ice vertical velocity
 
-     !WHL - This is a new subroutine created by combining calls to several existing subroutines.
+     ! This is a new subroutine created by combining calls to several existing subroutines.
 
      ! Note: It is now called at the end of glide_tstep_p3, so that exact restart is easier.
      !       In older versions of Glimmer the vertical velocity was computed at the start of 
@@ -665,7 +662,7 @@ contains
 
      select case(model%options%whichwvel)
 
-     case(0)     ! Usual vertical integration
+     case(VERTINT_STANDARD)     ! Usual vertical integration
 
         call wvelintg(model%velocity%uvel,                        &
                       model%velocity%vvel,                        &
@@ -677,7 +674,7 @@ contains
                       model%temper%bmlt,                          &
                       model%velocity%wvel)
 
-     case(1)     ! Vertical integration constrained so kinematic upper BC obeyed.
+     case(VERTINT_KINEMATIC_BC)     ! Vertical integration constrained so kinematic upper BC obeyed.
 
         call wvelintg(model%velocity%uvel,                        &
                       model%velocity%vvel,                        &
@@ -708,7 +705,6 @@ contains
   end subroutine glide_velo_vertical
 
 !---------------------------------------------------------------
-!WHL - Moved this subroutine from glide_thck.F90 to glide_velo.F90.
 
   subroutine timeders(thckwk,ipvr,opvr,mask,time,which)
 
@@ -736,8 +732,6 @@ contains
     else
        factor = 1.d0/factor
        where (mask /= 0)
-!WHL - Replaced conv with tim0/scyr (not used anywhere else in code)
-!!!          opvr = conv * (ipvr - thckwk%olds(:,:,which)) * factor
           opvr = (tim0/scyr) * (ipvr - thckwk%olds(:,:,which)) * factor
        elsewhere
           opvr = 0.0d0
@@ -819,16 +813,13 @@ contains
       end do
     end do
 
-!TODO - I think wgrd is needed only for the old temperature code, which is not supported in parallel.
+!TODO - Remove halo call? wgrd is needed only for the old temperature code, which is not supported in parallel.
     call parallel_halo(wgrd)
 !    call horiz_bcs_unstag_scalar(wgrd)
 
   end subroutine gridwvel
 
 !------------------------------------------------------------------------------------------
-
-!TODO - Eliminate velowk from the argument list if we are going to call this from HO code.
-!       Currently use velowk%suvel, svvel, dupsw, depthw; would need to allocate and define here.
 
   subroutine wvelintg(uvel,vvel,geomderv,numerics,velowk,wgrd,thck,bmlt,wvel)
 
@@ -940,7 +931,7 @@ contains
       end do
     end do
 
-!TODO - I think wvel is needed only for the old temperature code, which is not supported in parallel.
+!TODO - Remove halo call? wvel is needed only for the old temperature code, which is not supported in parallel.
     call parallel_halo(wvel)
 !    call horiz_bcs_unstag_scalar(wvel)
 
@@ -1023,7 +1014,7 @@ contains
       end do
     end do
 
-!TODO - I think wvel is needed only for the old temperature code, which is not supported in parallel.
+!TODO - Remove halo call?  wvel is needed only for the old temperature code, which is not supported in parallel.
     call parallel_halo(wvel)
 !    call horiz_bcs_unstag_scalar(wvel)
 
@@ -1033,7 +1024,7 @@ contains
 ! PRIVATE subroutines
 !------------------------------------------------------------------------------------------
 
-!TODO - Note: There is a copy of this function in glam_strs2.  
+!TODO - Note: There is another copy of this function in glam_strs2.  
 !       Maybe better to move this subroutine to another module to avoid duplication.
  
   function vertintg(velowk,in)
@@ -1093,7 +1084,7 @@ contains
     ! Internal variables
     !------------------------------------------------------------------------------------
 
-    real(dp) :: stagbwat 
+    real(dp) :: stagbwat, stagbmlt 
     integer :: ew,ns,nsn,ewn
     real :: Asl = 1.8d-10 !in units N^-3 yr^-1 m^8 for case(5)
     real :: Z !accounts for reduced basal traction due to pressure of
@@ -1109,14 +1100,19 @@ contains
     nsn=model%general%nsn
 
     !------------------------------------------------------------------------------------
-    Asl = model%climate%slidconst
+
     select case(flag)
-    case(1)
+
+    case(BTRC_CONSTANT)
        ! constant everywhere
+       ! This option is used for EISMINT-2 experiment G
        btrc = model%velocity%bed_softness
-    case(2)
-       ! constant where basal melt water is present
-!LOOP - all velocity points
+
+    case(BTRC_CONSTANT_BWAT)
+       ! constant where basal melt water is present, else = 0
+       ! This option can be used for EISMINT-2 experiment H, provided that 
+       ! basal water is present where T = Tpmp (e.g., BWATER_LOCAL)
+
        do ns = 1,nsn-1
           do ew = 1,ewn-1
              if (0.0d0 < model%temper%stagbwat(ew,ns)) then
@@ -1126,9 +1122,42 @@ contains
              end if
           end do
        end do
-    case(3)
-       ! function of basal water depth
-!LOOP - all velocity points
+
+    case(BTRC_CONSTANT_TPMP)
+       ! constant where basal temperature equal to pressure melting point, else = 0
+       ! This is the actual condition for EISMINT-2 experiment H, which may not be 
+       ! the same as case BTRC_CONSTANT_BWAT above, depending on the hydrology
+
+       do ns = 1,nsn-1
+          do ew = 1,ewn-1
+             if (abs(model%temper%stagbpmp(ew,ns) - model%temper%stagbtemp(ew,ns))<0.001) then
+                btrc(ew,ns) = model%velocity%bed_softness(ew,ns)
+             else
+                btrc(ew,ns) = 0.0d0
+             end if
+          end do
+       end do
+
+    case(BTRC_LINEAR_BMLT)
+       ! linear function of basal melt rate
+
+       do ns = 1,nsn-1
+          do ew = 1,ewn-1
+             stagbmlt = 0.25d0*sum(model%temper%bmlt(ew:ew+1,ns:ns+1))
+             
+             if (stagbmlt > 0.0d0) then
+                btrc(ew,ns) = min(model%velowk%btrac_max, &
+                                  model%velocity%bed_softness(ew,ns) + model%velowk%btrac_slope*stagbmlt)
+             else
+                btrc(ew,ns) = 0.0d0
+             end if
+          end do
+       end do
+
+    case(BTRC_TANH_BWAT)
+       ! tanh function of basal water depth
+       ! The 'velowk%c' parameters are derived above from the 5-part parameter bpar
+
        do ns = 1,nsn-1
           do ew = 1,ewn-1
              if (0.0d0 < model%temper%stagbwat(ew,ns)) then
@@ -1136,7 +1165,7 @@ contains
                 btrc(ew,ns) = model%velowk%c(1) + model%velowk%c(2) * tanh(model%velowk%c(3) * &
                      model%temper%stagbwat(ew,ns) - model%velowk%c(4))
                 
-                if (0.0d0 > sum(model%isos%relx(ew:ew+1,ns:ns+1))) then
+                if (0.0d0 > sum(model%isostasy%relx(ew:ew+1,ns:ns+1))) then
                    btrc(ew,ns) = btrc(ew,ns) * model%velowk%marine  
                 end if
              else
@@ -1144,57 +1173,42 @@ contains
              end if
           end do
        end do
-    case(4)
-       ! linear function of basal melt rate
-!LOOP - all velocity points
-       do ns = 1,nsn-1
-          do ew = 1,ewn-1
-             stagbwat = 0.25d0*sum(model%temper%bmlt(ew:ew+1,ns:ns+1))
-             
-             if (stagbwat > 0.0d0) then
-                btrc(ew,ns) = min(model%velowk%btrac_max, &
-                                  model%velocity%bed_softness(ew,ns)+model%velowk%btrac_slope*stagbwat)
-             else
-                btrc(ew,ns) = 0.0d0
-             end if
-          end do
-       end do
-    case(5)
-       ! constant where basal temperature equal to pressure melting point
-       ! This is the actual EISMINT condition, which may not be the same
-       ! as case(2) above, depending on the hydrology
 
-       ! increases with the third power of the basal shear stress, from
-       ! Huybrechts
-!LOOP - all velocity points
-       do ns = 1, nsn-1
-         do ew = 1, ewn-1
+!WHL - I'm not aware of anyone using this parameterization. Commented out for now.
+!!    case(6)
+!!       ! increases with the third power of the basal shear stress, from Huybrechts
+
+!!       Asl = model%climate%slidconst
+!!       do ns = 1, nsn-1
+!!         do ew = 1, ewn-1
 !TODO - Scaling looks wrong here: stagthck and thklim should have the same scaling.
-           if ((model%geomderv%stagthck(ew,ns)*thk0) > model%numerics%thklim) then 
-             if((model%geomderv%stagtopg(ew,ns)*thk0) > (model%climate%eus*thk0)) then
-               Z = model%geomderv%stagthck(ew,ns)*thk0
-             else
-               Z = model%geomderv%stagthck(ew,ns)*thk0 + rhoi*((model%geomderv%stagtopg(ew,ns) *thk0 &
-                   - model%climate%eus*thk0)/ rhoo)
-   
-             end if 
+!!           if ((model%geomderv%stagthck(ew,ns)*thk0) > model%numerics%thklim) then 
+!!             if((model%geomderv%stagtopg(ew,ns)*thk0) > (model%climate%eus*thk0)) then
+!!               Z = model%geomderv%stagthck(ew,ns)*thk0
+!!             else
+!!               Z = model%geomderv%stagthck(ew,ns)*thk0 + rhoi*((model%geomderv%stagtopg(ew,ns) *thk0 &
+!!                   - model%climate%eus*thk0)/ rhoo)   
+!!             end if 
               
-            if(Z <= model%numerics%thklim) then !avoid division by zero
-                Z = model%numerics%thklim
-            end if 
+!!            if(Z <= model%numerics%thklim) then !avoid division by zero
+!!                Z = model%numerics%thklim
+!!            end if 
             
-             tau = ((tau_factor*model%stress%tau_x(ew,ns))**2 +&
-             (model%stress%tau_y(ew,ns)*tau_factor)**2)**(0.5d0)
+!!             tau = ((tau_factor*model%stress%tau_x(ew,ns))**2 +&
+!!             (model%stress%tau_y(ew,ns)*tau_factor)**2)**(0.5d0)
              
-             btrc(ew,ns) = (Asl*(tau)**2)/Z !assuming that that btrc is later
-                                             !multiplied again by the basal shear stress
+!!             btrc(ew,ns) = (Asl*(tau)**2)/Z !assuming that that btrc is later
+!!                                             !multiplied again by the basal shear stress
        
-           end if  
-          end do
-       end do
-    case default
+!!           end if  
+!!          end do
+!!       end do
+
+    case default   ! includes BTRC_ZERO
        ! zero everywhere
+       ! This is used for EISMINT-2 experiments A to F
        btrc = 0.0d0
+
     end select
 
   end subroutine calc_btrc
@@ -1226,7 +1240,6 @@ contains
     real(dp),dimension(:,:),intent(out) :: tau_x
     real(dp),dimension(:,:),intent(out) :: tau_y
 
-!LOOP - all velocity points 
     tau_x(:,:) = -rhoi*grav*stagthck(:,:)
     tau_y(:,:) = tau_x * dusrfdns(:,:)
     tau_x(:,:) = tau_x * dusrfdew(:,:)

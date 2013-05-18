@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glint_main.f90 - part of the Glimmer-CISM ice model      + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glint_main.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -41,13 +38,8 @@ module glint_main
   use glint_global_grid
   use glint_constants
   use glimmer_anomcouple
-  use glide_diagnostics
 
-!TODO - Do not use the hard-coded idiag and jdiag; use model%numerics%idiag/jdiag instead
-!       Also, change the names of itest and jtest to make it clear these are on the global (CLM) grid.
-  use glimmer_paramets, only: itest, jtest, jjtest, stdout, GLC_DEBUG
-
-  use glide_diagnostics
+  use glimmer_paramets, only: stdout, GLC_DEBUG
 
   implicit none
 
@@ -55,6 +47,9 @@ module glint_main
   ! GLIMMER_PARAMS derived type definition
   ! This is where default values are set.
   ! ------------------------------------------------------------
+
+  !TODO - Move this definition to glint_type?
+  !       Create a simpler type (glint_params_gcm) for GCM coupling?
 
   type glint_params 
 
@@ -141,13 +136,13 @@ module glint_main
   ! Private names -----------------------------------------------
 
   private glint_allocate_arrays
-  private glint_readconfig,calc_bounds,check_init_args
+  private glint_readconfig, calc_bounds, check_init_args
 
     !---------------------------------------------------------------------------------------
     ! Some notes on coupling to the Community Earth System Model (CESM).  These may be applicable
     ! for coupling to other GCMs:
     !
-    ! If gcm_smb is true, then Glint receives three fields from the CESM coupler on a global grid
+    ! When coupled to CESM, Glint receives three fields from the coupler on a global grid
     ! in each of several elevation classes:
     !   qsmb = surface mass balance (kg/m^2/s)
     !   tsfc = surface ground temperature (deg C)
@@ -162,20 +157,24 @@ module glint_main
     ! The land model has the option to update its ice coverage and surface elevation, given
     ! the fields returned from Glint.
     !
-    ! If gcm_smb is false, then the CESM wrapper that calls Glint receives three fields of the same name
-    ! from the coupler, but the meanings of qsmb and tsfc are different:
-    !   qsmb = net precipitation (kg/m^2/s)
-    !   tsfc = 2-m air temperature (deg C)
-    !   topo = surface elevation (m)
-    ! These fields are received for a single elevation class.  The precip and 2-m temperature are
-    ! sent to Glint as inputs to a daily PDD scheme.  Glint does not return values for gfrac, 
-    ! gtopo, etc., and the land model will not update its ice coverage and surface elevation.
-    ! 
-    ! Glimmer-CISM will normally be coupled to CESM with gcm_smb = T.
-    ! The PDD option is included for comparison to other models with PDD schemes.
+    ! There are two driver subroutines in this module for CESM coupling: 
+    !  initialise_glint_gcm (for initialization) and glint_gcm (for timestepping).
+    ! These drivers loop over the ice sheet model instances (just Greenland for now,
+    !  but will simulate Antarctica and other ice sheets later).
+    !  
+    ! The other driver subroutines, based on the original Glint code in Glimmer version 1,
+    !  are initialise_glint and glint.
+    ! These subroutines are usually run with temp (= 2-m air temperature) and precip as input.
+    !  The surface mass balance is computed using a daily or annual PDD scheme.
+    ! It would be possible to call these subroutines from CESM and use the PDD scheme,
+    !  but this option has not been tested.
+    !
     !---------------------------------------------------------------------------------------
 
 contains
+
+  !TODO - Try calling this subroutine from CESM to estimate SMB in PDD mode?
+  !       We would have only one elevation class per grid cell and would not return upscaled fields.
 
   subroutine initialise_glint(params,                         &
                               lats,         longs,            &
@@ -190,10 +189,7 @@ contains
                               output_flag,  daysinyear,       &
                               snow_model,   ice_dt,           &
                               extraconfigs, start_time,       &
-                              gcm_nec,      gcm_smb,          &
-                              gfrac,        gtopo,            &
-                              grofi,        grofl,            &
-                              ghflx,        gmask,            &
+                              gmask,                          &
                               gcm_restart,  gcm_restart_file, &
                               gcm_debug,    gcm_fileunit)
 
@@ -206,6 +202,7 @@ contains
     use glint_initialise
     use glimmer_log
     use glimmer_filenames
+    use glint_timestep, only: get_i_upscaled_fields
     use parallel, only: main_task
     implicit none
 
@@ -243,13 +240,6 @@ contains
     type(ConfigData),dimension(:),optional ::  extraconfigs !*FD Additional configuration information - overwrites
                                                                   !*FD config data read from files
     integer,                optional,intent(in)    :: start_time  !*FD Time of first call to glint (hours)
-    integer,                  optional,intent(in)  :: gcm_nec     !*FD number of elevation classes for GCM input
-    logical,                  optional,intent(in)  :: gcm_smb     !*FD true if getting sfc mass balance from a GCM
-    real(rk),dimension(:,:,:),optional,intent(out) :: gfrac       !*FD ice fractional area [0,1]
-    real(rk),dimension(:,:,:),optional,intent(out) :: gtopo       !*FD surface elevation (m)
-    real(rk),dimension(:,:,:),optional,intent(out) :: grofi       !*FD ice runoff (kg/m^2/s = mm H2O/s)
-    real(rk),dimension(:,:,:),optional,intent(out) :: grofl       !*FD liquid runoff (kg/m^2/s = mm H2O/s)
-    real(rk),dimension(:,:,:),optional,intent(out) :: ghflx       !*FD heat flux (W/m^2, positive down)
     integer, dimension(:,:),  optional,intent(in)  :: gmask       !*FD mask = 1 where global data are valid
     logical,                  optional,intent(in)  :: gcm_restart ! logical flag to restart from a GCM restart file
     character(*),             optional, intent(in) :: gcm_restart_file ! restart filename for a GCM restart
@@ -263,20 +253,11 @@ contains
     character(len=100) :: message                                            ! For log-writing
     character(fname_length),dimension(:),pointer :: config_fnames=>null()    ! array of config filenames
     type(ConfigSection), pointer :: econf
-    integer :: i
+    integer :: i, j, n
     real(rk),dimension(:,:),allocatable :: orog_temp, if_temp, vf_temp, sif_temp,  &
                                            svf_temp,  sd_temp, alb_temp      ! Temporary output arrays
     integer,dimension(:),allocatable :: mbts,idts ! Array of mass-balance and ice dynamics timesteps
     logical :: anomaly_check ! Set if we've already initialised anomaly coupling
-!WHLTSTEP - Changed timeyr to dp
-!    real(rk) :: timeyr       ! time in years
-    real(dp) :: timeyr       ! time in years
-
-    real(rk),dimension(:,:,:),allocatable ::   &
-               gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp    ! Temporary output arrays
-    integer :: n
-    integer :: nec       ! number of elevation classes
-    integer :: j, ii, jj
 
     if (present(gcm_debug)) then
        GLC_DEBUG = gcm_debug
@@ -299,13 +280,8 @@ contains
 
     params%next_av_start = params%start_time
 
-    ! Initialisation for runs where the surface mass balance is received from a GCM
+    ! Initialisation for runs coupled to a GCM
  
-    params%gcm_smb = .false.
-    if (present(gcm_smb)) then
-       params%gcm_smb = gcm_smb
-    endif
-
     params%gcm_restart = .false.
     if (present(gcm_restart)) then
        params%gcm_restart = gcm_restart
@@ -321,10 +297,10 @@ contains
        params%gcm_fileunit = gcm_fileunit
     endif
 
-    nec = 1
-    if (present(gcm_nec)) then
-       nec = gcm_nec
-    endif
+!    nec = 1
+!    if (present(gcm_nec)) then
+!       nec = gcm_nec
+!    endif
 
     if (GLC_DEBUG .and. main_task) then
        write(stdout,*) 'time_step =', params%time_step
@@ -346,9 +322,9 @@ contains
     ! Initialise main global grid --------------------------------------------------------------
 
     if (present(gmask)) then
-       call new_global_grid(params%g_grid, longs, lats, lonb=lonb, latb=latb, nec=nec, mask=gmask)
+       call new_global_grid(params%g_grid, longs, lats, lonb=lonb, latb=latb, mask=gmask)
     else
-       call new_global_grid(params%g_grid, longs, lats, lonb=lonb, latb=latb, nec=nec)
+       call new_global_grid(params%g_grid, longs, lats, lonb=lonb, latb=latb)
     endif
 
     if (GLC_DEBUG .and. main_task) then
@@ -385,10 +361,7 @@ contains
 
     ! Allocate arrays -----------------------------------------------
 
-!lipscomb - TO DO - The following arrays may not be needed for gcm_smb runs
     call glint_allocate_arrays(params)
-
-    if (params%gcm_smb) call glint_allocate_arrays_gcm(params)
 
     ! Initialise arrays ---------------------------------------------
 
@@ -403,12 +376,6 @@ contains
     params%g_av_lwdown  = 0.0
     params%g_av_swdown  = 0.0
     params%g_av_airpress = 0.0
-
-    if (params%gcm_smb) then
-       params%g_av_qsmb    = 0.0
-       params%g_av_tsfc    = 0.0
-       params%g_av_topo    = 0.0
-    endif
 
     ! ---------------------------------------------------------------
     ! Zero coverage maps and normalisation fields for main grid and
@@ -448,6 +415,7 @@ contains
        write(stdout,*) 'Number of instances =', params%ninstances
        write(stdout,*) 'Read config files and initialize each instance'
     end if
+
     ! ---------------------------------------------------------------
     ! Read config files, and initialise instances accordingly
     ! ---------------------------------------------------------------
@@ -455,9 +423,9 @@ contains
     call write_log('Reading instance configurations')
     call write_log('-------------------------------')
 
-    anomaly_check=.false.
+    anomaly_check = .false.
 
-    do i=1,params%ninstances
+    do i = 1, params%ninstances
 
        call ConfigRead(process_path(config_fnames(i)),instance_config, params%gcm_fileunit)
        if (present(extraconfigs)) then
@@ -465,8 +433,8 @@ contains
              call ConfigCombine(instance_config,extraconfigs(i))
           end if
        end if
- 
-      call glint_i_initialise(instance_config,     params%instances(i),     &
+
+       call glint_i_initialise(instance_config,    params%instances(i),     &
                                params%g_grid,      params%g_grid_orog,      &
                                mbts(i),            idts(i),                 &
                                params%need_winds,  params%enmabal,          &
@@ -479,18 +447,6 @@ contains
 
        where (params%total_coverage > 0.0) params%cov_normalise = params%cov_normalise + 1.0
        where (params%total_cov_orog > 0.0) params%cov_norm_orog = params%cov_norm_orog + 1.0
-
-       ! Write initial diagnostics for this instance
-!WHLTSTEP - Changed timeyr to dp
-!       timeyr = real(params%start_time/8760.)
-       timeyr = params%start_time/8760.d0
-       ! WJS: I think the glide_write_diag call is meant to be done by all tasks
-       if (GLC_DEBUG) then
-          write(stdout,*) 'Write model diagnostics, time =', timeyr
-          call glide_write_diag(params%instances(i)%model, timeyr,  &
-                                params%instances(i)%model%numerics%idiag_global,  &
-                                params%instances(i)%model%numerics%jdiag_global)
-       end if
 
        ! Initialise anomaly coupling
        if (.not.anomaly_check) then 
@@ -545,12 +501,6 @@ contains
     if (present(snowveg_frac)) snowveg_frac = 0.0
     if (present(snow_depth)) snow_depth = 0.0
 
-    if (present(gfrac)) gfrac = 0.0
-    if (present(gtopo)) gtopo = 0.0
-    if (present(grofi)) grofi = 0.0
-    if (present(grofl)) grofl = 0.0
-    if (present(ghflx)) ghflx = 0.0
-
     ! Allocate arrays
 
     allocate(orog_temp(params%g_grid_orog%nx, params%g_grid_orog%ny))
@@ -560,14 +510,6 @@ contains
     allocate(sif_temp (params%g_grid%nx, params%g_grid%ny))
     allocate(svf_temp (params%g_grid%nx, params%g_grid%ny))
     allocate(sd_temp  (params%g_grid%nx, params%g_grid%ny))
-
-    if (params%gcm_smb) then
-       allocate(gfrac_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-       allocate(gtopo_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-       allocate(grofi_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-       allocate(grofl_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-       allocate(ghflx_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-    endif
 
     if (GLC_DEBUG .and. main_task) then
        write(stdout,*) 'Upscale and splice the initial fields'
@@ -617,65 +559,11 @@ contains
 
        end if
 
-       if (params%gcm_smb) then
-
-!lipscomb - TO DO - These temp arrays are not currently upscaled correctly
-          call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec,  &
-                                         params%instances(i)%lgrid%size%pt(1),    &
-                                         params%instances(i)%lgrid%size%pt(2),    &
-                                         params%g_grid%nx,    params%g_grid%ny,   &
-                                         gfrac_temp,          gtopo_temp,         &
-                                         grofi_temp,          grofl_temp,         &
-                                         ghflx_temp)
-
-          ! Add this contribution to the global output
-          ! Only the main task has valid values for the global output fields
-          if (main_task) then
-
-             do n = 1, params%g_grid%nec
-
-                if (present(gfrac))    &
-                   gfrac(:,:,n) = splice_field(gfrac(:,:,n),                      &
-                                               gfrac_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(gtopo))    &
-                   gtopo(:,:,n) = splice_field(gtopo(:,:,n),                      &
-                                               gtopo_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(grofi))    &
-                   grofi(:,:,n) = splice_field(grofi(:,:,n),                      &
-                                               grofi_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(grofl))    &
-                   grofl(:,:,n) = splice_field(grofl(:,:,n),                      &
-                                               grofl_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(ghflx))    &
-                   ghflx(:,:,n) = splice_field(ghflx(:,:,n),                      &
-                                               ghflx_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-             enddo  ! nec
-
-          endif  ! main_task
-
-       endif     ! gcm_smb
-
-    end do
+    end do  ! ninstances
 
     ! Deallocate
 
     deallocate(orog_temp, alb_temp, if_temp, vf_temp, sif_temp, svf_temp,sd_temp)
-    if (params%gcm_smb) deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
 
     ! Sort out snow_model flag
 
@@ -694,16 +582,12 @@ contains
 
   !================================================================================
 
-!WHL - New subroutine for GCM initialization
-!TODO - Test this subroutine.
-
   subroutine initialise_glint_gcm(params,                         &
                                   lats,         longs,            &
                                   time_step,    paramfile,        &
-!!                                  latb,         lonb,             &   ! are these needed?
                                   daysinyear,   start_time,       &
-                                  ice_dt,                         &
-                                  gcm_nec,      gcm_smb,          &
+                                  ice_dt,       output_flag,      &
+                                  glc_nec,                        &
                                   gfrac,        gtopo,            &
                                   grofi,        grofl,            &
                                   ghflx,        gmask,            &
@@ -719,6 +603,7 @@ contains
     use glint_initialise
     use glimmer_log
     use glimmer_filenames
+    use glint_timestep, only: get_i_upscaled_fields_gcm
     use parallel, only: main_task
 
     implicit none
@@ -730,16 +615,11 @@ contains
                                                                   !*FD in global data.
     integer,                         intent(in)    :: time_step   !*FD Timestep of calling model (hours)
     character(*),dimension(:),       intent(in)    :: paramfile   !*FD array of configuration filenames.
-
-!!    real(rk),dimension(:),  optional,intent(in)    :: latb        !*FD Locations of the latitudinal 
-!!                                                                  !*FD boundaries of the grid-boxes.
-!!    real(rk),dimension(:),  optional,intent(in)    :: lonb        !*FD Locations of the longitudinal
-!!                                                                  !*FD boundaries of the grid-boxes.
     integer,                optional,intent(in)    :: daysinyear  !*FD Number of days in the year
     integer,                optional,intent(in)    :: start_time  !*FD Time of first call to glint (hours)
     integer,                optional,intent(out)   :: ice_dt      !*FD Ice dynamics time-step in hours
-    integer,                  optional,intent(in)  :: gcm_nec     !*FD number of elevation classes for GCM input
-    logical,                  optional,intent(in)  :: gcm_smb     !*FD true if getting sfc mass balance from a GCM
+    logical,                optional,intent(out)   :: output_flag !*FD Flag to show output set (provided for consistency)
+    integer,                  optional,intent(in)  :: glc_nec     !*FD number of elevation classes for GCM input
     real(rk),dimension(:,:,:),optional,intent(out) :: gfrac       !*FD ice fractional area [0,1]
     real(rk),dimension(:,:,:),optional,intent(out) :: gtopo       !*FD surface elevation (m)
     real(rk),dimension(:,:,:),optional,intent(out) :: grofi       !*FD ice runoff (kg/m^2/s = mm H2O/s)
@@ -763,14 +643,7 @@ contains
 
     integer :: i
 
-!!    real(rk),dimension(:,:),allocatable :: orog_temp, if_temp, vf_temp, sif_temp,  &
-!!                                           svf_temp,  sd_temp, alb_temp      ! Temporary output arrays
-
     integer,dimension(:),allocatable :: mbts,idts ! Array of mass-balance and ice dynamics timesteps
-
-!!    logical :: anomaly_check ! Set if we've already initialised anomaly coupling
-
-    real(dp) :: timeyr       ! time in years
 
     real(rk),dimension(:,:,:),allocatable ::   &
                gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp    ! Temporary output arrays
@@ -803,13 +676,6 @@ contains
 
     params%next_av_start = params%start_time
 
-    ! Initialisation for runs where the surface mass balance is received from a GCM
- 
-    params%gcm_smb = .false.
-    if (present(gcm_smb)) then
-       params%gcm_smb = gcm_smb
-    endif
-
     params%gcm_restart = .false.
     if (present(gcm_restart)) then
        params%gcm_restart = gcm_restart
@@ -826,8 +692,8 @@ contains
     endif
 
     nec = 1
-    if (present(gcm_nec)) then
-       nec = gcm_nec
+    if (present(glc_nec)) then
+       nec = glc_nec
     endif
 
     if (GLC_DEBUG .and. main_task) then
@@ -848,14 +714,11 @@ contains
 
     ! Initialise main global grid --------------------------------------------------------------
 
-!WHL - Make sure this works without latb, long
-!      Will gmask always be present for GCM runs?
+    !TODO - Will gmask always be present for GCM runs?
 
     if (present(gmask)) then
-!!       call new_global_grid(params%g_grid, longs, lats, nec=nec, mask=gmask)
        call new_global_grid(params%g_grid, longs, lats, nec=nec, mask=gmask)
     else
-!!       call new_global_grid(params%g_grid, longs, lats, lonb=lonb, latb=latb, nec=nec)
        call new_global_grid(params%g_grid, longs, lats, nec=nec)
     endif
 
@@ -880,56 +743,29 @@ contains
        enddo
     end if
 
-    ! Initialise orography grid ------------------------------------
-
-!!    call check_init_args(orog_lats, orog_longs, orog_latb, orog_lonb)
-
-!!    if (present(orog_lats) .and. present(orog_longs)) then
-!!       call new_global_grid(params%g_grid_orog, orog_longs, orog_lats,  &
-!!                            lonb=orog_lonb, latb=orog_latb)
-!!    else
-!!       call copy_global_grid(params%g_grid, params%g_grid_orog)
-!!    end if
-
     ! Allocate arrays -----------------------------------------------
 
-!!    call glint_allocate_arrays(params)
-!!    if (params%gcm_smb) call glint_allocate_arrays_gcm(params)
+    allocate(params%total_coverage(params%g_grid%nx, params%g_grid%ny))
+    allocate(params%cov_normalise (params%g_grid%nx, params%g_grid%ny))
 
-    call glint_allocate_arrays_gcm(params)
+    allocate(params%g_av_qsmb (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(params%g_av_tsfc (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(params%g_av_topo (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
 
     ! Initialise arrays ---------------------------------------------
 
-!WHL - Make these arrays dp?
-
-!!    params%g_av_precip  = 0.0
-!!    params%g_av_temp    = 0.0
-!!    params%g_max_temp   = -1000.0
-!!    params%g_min_temp   = 1000.0
-!!    params%g_temp_range = 0.0
-!!    params%g_av_zonwind = 0.0
-!!    params%g_av_merwind = 0.0
-!!    params%g_av_humid   = 0.0
-!!    params%g_av_lwdown  = 0.0
-!!    params%g_av_swdown  = 0.0
-!!    params%g_av_airpress = 0.0
-
-!!    if (params%gcm_smb) then
-       params%g_av_qsmb    = 0.0
-       params%g_av_tsfc    = 0.0
-       params%g_av_topo    = 0.0
-!!    endif
+    !TODO - Make these arrays dp
+    params%g_av_qsmb    = 0.0
+    params%g_av_tsfc    = 0.0
+    params%g_av_topo    = 0.0
 
     ! ---------------------------------------------------------------
-    ! Zero coverage maps and normalisation fields for main grid and
-    ! orography grid
+    ! Zero coverage maps and normalisation fields for main grid
+    ! (Not using orography grid for GCM coupling)
     ! ---------------------------------------------------------------
 
-!!    params%total_coverage = 0.0
-!!    params%total_cov_orog = 0.0
-
-!!    params%cov_normalise = 0.0
-!!    params%cov_norm_orog = 0.0
+    params%total_coverage = 0.0
+    params%cov_normalise = 0.0
 
     if (GLC_DEBUG .and. main_task) then
        write(stdout,*) 'Read paramfile'
@@ -940,9 +776,6 @@ contains
     ! Determine how many instances there are, according to what
     ! configuration files we've been provided with
     ! ---------------------------------------------------------------
-
-!TODO - glint_readconfig goes elsewhere?
-!       Needs to be accessible to glint_main and glint_main_gcm
 
     if (size(paramfile) == 1) then
        ! Load the configuration file into the linked list
@@ -970,65 +803,26 @@ contains
     call write_log('Reading instance configurations')
     call write_log('-------------------------------')
 
-!!    anomaly_check=.false.
-
     do i=1,params%ninstances
 
        call ConfigRead(process_path(config_fnames(i)),instance_config, params%gcm_fileunit)
 
+         !WHL - I don't think this will be needed; commented out for now
 !!       if (present(extraconfigs)) then
 !!          if (size(extraconfigs)>=i) then
 !!             call ConfigCombine(instance_config,extraconfigs(i))
 !!          end if
 !!       end if
  
-!!      call glint_i_initialise(instance_config,     params%instances(i),     &
-!!                               params%g_grid,      params%g_grid_orog,      &
-!!                               mbts(i),            idts(i),                 &
-!!                               params%need_winds,  params%enmabal,          &
-!!                               params%start_time,  params%time_step,        &
-!!                               params%gcm_restart, params%gcm_restart_file, &
-!!                               params%gcm_fileunit )
-
-      call glint_i_initialise_gcm(instance_config,     params%instances(i),     &
-                                  params%g_grid,                               &
-                                  mbts(i),            idts(i),                 &
-                                  params%start_time,  params%time_step,        &
-                                  params%gcm_restart, params%gcm_restart_file, &
-                                  params%gcm_fileunit )
+       call glint_i_initialise_gcm(instance_config,     params%instances(i),     &
+                                   params%g_grid,                                &
+                                   mbts(i),             idts(i),                 &
+                                   params%start_time,   params%time_step,        &
+                                   params%gcm_restart,  params%gcm_restart_file, &
+                                   params%gcm_fileunit )
 
        params%total_coverage = params%total_coverage + params%instances(i)%frac_coverage
-!!       params%total_cov_orog = params%total_cov_orog + params%instances(i)%frac_cov_orog
-
        where (params%total_coverage > 0.0) params%cov_normalise = params%cov_normalise + 1.0
-!!       where (params%total_cov_orog > 0.0) params%cov_norm_orog = params%cov_norm_orog + 1.0
-
-       ! Write initial diagnostics for this instance
-
-       timeyr = params%start_time/8760.d0
-
-       ! WJS: I think the glide_write_diag call is meant to be done by all tasks
-       ! WHL: That is correct
-
-!WHL - Do this always, not just if (GLC_DEBUG)?
-       if (GLC_DEBUG) then
-          write(stdout,*) 'Write model diagnostics, time =', timeyr
-          call glide_write_diag(params%instances(i)%model, timeyr,  &
-                                params%instances(i)%model%numerics%idiag_global,  &
-                                params%instances(i)%model%numerics%jdiag_global)
-       end if
-
-       ! Initialise anomaly coupling
-!!       if (.not.anomaly_check) then 
-!!          call anomaly_init(params%anomaly_params, instance_config)
-!!          if (params%anomaly_params%enabled .and. &
-!!               (params%anomaly_params%nx/=params%g_grid%nx .or. &
-!!                params%anomaly_params%ny/=params%g_grid%ny) ) then
-!!             call write_log("Anomaly coupling grids have different "// &
-!!                  "sizes to GLINT coupling grids",GM_FATAL,__FILE__,__LINE__)
-!!          end if
-!!          if (params%anomaly_params%enabled) anomaly_check=.true.
-!!       end if
 
     end do    ! ninstances
 
@@ -1055,23 +849,14 @@ contains
                        GM_FATAL,__FILE__,__LINE__)
     end if
 
-    ! Check we don't have coverage greater than one at any point.
+    ! Make sure we don't have coverage greater than one at any point.
 
-!!    where (params%total_coverage > 1.0) params%total_coverage = 1.0
-!!    where (params%total_cov_orog > 1.0) params%total_cov_orog = 1.0
-!!    params%coverage_calculated=.true.
+    where (params%total_coverage > 1.0) params%total_coverage = 1.0
+    params%coverage_calculated = .true.
 
     ! Zero optional outputs, if present
 
-!!    if (present(orog)) orog = 0.0
-!!    if (present(albedo)) albedo = 0.0
-!!    if (present(ice_frac)) ice_frac = 0.0
-!!    if (present(veg_frac)) veg_frac = 0.0
-!!    if (present(snowice_frac)) snowice_frac = 0.0
-!!    if (present(snowveg_frac)) snowveg_frac = 0.0
-!!    if (present(snow_depth)) snow_depth = 0.0
-
-!WHL - Double precision?
+    !TODO - Change to dp
     if (present(gfrac)) gfrac = 0.0
     if (present(gtopo)) gtopo = 0.0
     if (present(grofi)) grofi = 0.0
@@ -1080,21 +865,11 @@ contains
 
     ! Allocate arrays
 
-!!    allocate(orog_temp(params%g_grid_orog%nx, params%g_grid_orog%ny))
-!!    allocate(alb_temp (params%g_grid%nx, params%g_grid%ny))
-!!    allocate(if_temp  (params%g_grid%nx, params%g_grid%ny))
-!!    allocate(vf_temp  (params%g_grid%nx, params%g_grid%ny))
-!!    allocate(sif_temp (params%g_grid%nx, params%g_grid%ny))
-!!    allocate(svf_temp (params%g_grid%nx, params%g_grid%ny))
-!!    allocate(sd_temp  (params%g_grid%nx, params%g_grid%ny))
-
-!!    if (params%gcm_smb) then
-       allocate(gfrac_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-       allocate(gtopo_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-       allocate(grofi_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-       allocate(grofl_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-       allocate(ghflx_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-!!    endif
+    allocate(gfrac_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(gtopo_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(grofi_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(grofl_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+    allocate(ghflx_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
 
     if (GLC_DEBUG .and. main_task) then
        write(stdout,*) 'Upscale and splice the initial fields'
@@ -1102,126 +877,40 @@ contains
 
     ! Get initial fields from instances, splice together and return
 
-    do i=1,params%ninstances
+    do i = 1, params%ninstances
 
-!!       call get_i_upscaled_fields(params%instances(i),   &
-!!                                  orog_temp,   alb_temp, &
-!!                                  if_temp,     vf_temp,  &
-!!                                  sif_temp,    svf_temp, &
-!!                                  sd_temp)
+       !TODO - These *_temp arrays are not yet upscaled correctly
 
-       ! Add this contribution to the global output
-       ! Only the main task has valid values for the global output fields
-!!       if (main_task) then
-!!          
-!!          if (present(orog)) &
-!!               orog = splice_field(orog, orog_temp, params%instances(i)%frac_cov_orog, &
-!!               params%cov_norm_orog)
-!!
-!!          if (present(albedo)) &
-!!               albedo = splice_field(albedo, alb_temp, params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!          if (present(ice_frac)) &
-!!               ice_frac = splice_field(ice_frac, if_temp, params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!          if (present(veg_frac)) &
-!!               veg_frac = splice_field(veg_frac, vf_temp, params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!          if (present(snowice_frac)) &
-!!               snowice_frac = splice_field(snowice_frac,sif_temp,params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!          if (present(snowveg_frac)) &
-!!               snowveg_frac = splice_field(snowveg_frac,svf_temp,params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!          if (present(snow_depth)) &
-!!               snow_depth = splice_field(snow_depth,sd_temp,params%instances(i)%frac_coverage, &
-!!               params%cov_normalise)
-!!
-!!       end if
+       ! Upscale the output fields for this instance
 
-!!       if (params%gcm_smb) then
+       call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec,  &
+                                      params%instances(i)%lgrid%size%pt(1),    &
+                                      params%instances(i)%lgrid%size%pt(2),    &
+                                      params%g_grid%nx,    params%g_grid%ny,   &
+                                      gfrac_temp,          gtopo_temp,         &
+                                      grofi_temp,          grofl_temp,         &
+                                      ghflx_temp)
 
-!TODO - These temp arrays are not currently upscaled correctly
-!TODO - Encapsulate the following into one subroutine?
-!       Note code repeated below in subroutine glint..
+       ! Splice together with the global output
 
-          call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec,  &
-                                         params%instances(i)%lgrid%size%pt(1),    &
-                                         params%instances(i)%lgrid%size%pt(2),    &
-                                         params%g_grid%nx,    params%g_grid%ny,   &
-                                         gfrac_temp,          gtopo_temp,         &
-                                         grofi_temp,          grofl_temp,         &
-                                         ghflx_temp)
-
-          ! Add this contribution to the global output
-          ! Only the main task has valid values for the global output fields
-
-          if (main_task) then
-
-             do n = 1, params%g_grid%nec
-
-                if (present(gfrac))    &
-                   gfrac(:,:,n) = splice_field(gfrac(:,:,n),                      &
-                                               gfrac_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(gtopo))    &
-                   gtopo(:,:,n) = splice_field(gtopo(:,:,n),                      &
-                                               gtopo_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(grofi))    &
-                   grofi(:,:,n) = splice_field(grofi(:,:,n),                      &
-                                               grofi_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(grofl))    &
-                   grofl(:,:,n) = splice_field(grofl(:,:,n),                      &
-                                               grofl_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                if (present(ghflx))    &
-                   ghflx(:,:,n) = splice_field(ghflx(:,:,n),                      &
-                                               ghflx_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-             enddo  ! nec
-
-          endif  ! main_task
-
-!!       endif     ! gcm_smb
+       call splice_fields_gcm(gfrac_temp, gtopo_temp,    &
+                              grofi_temp, grofl_temp,    &
+                              ghflx_temp,                &
+                              gfrac,      gtopo,         &
+                              grofi,      grofl,         &
+                              ghflx,                     &
+                              params%g_grid%nec,         &
+                              params%instances(i)%frac_coverage, &
+                              params%cov_normalise)
 
     end do       ! ninstances
 
     ! Deallocate
 
-!!    deallocate(orog_temp, alb_temp, if_temp, vf_temp, sif_temp, svf_temp,sd_temp)
-!!    if (params%gcm_smb) deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
-
     deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
 
-    ! Sort out snow_model flag
-
-!!    if (present(snow_model)) then
-!!       snow_model = .false.
-!!       do i=1, params%ninstances
-!!          snow_model = (snow_model .or. glint_has_snow_model(params%instances(i)))
-!!       end do
-!!    end if
-
-    ! Set output flag
-
-!!    if (present(output_flag)) output_flag = .true.
+    ! Set output flag       !TODO - Is this ever used?
+    if (present(output_flag)) output_flag = .true.
 
   end subroutine initialise_glint_gcm
 
@@ -1240,11 +929,7 @@ contains
                    snow_depth,                      &
                    water_in,       water_out,       &
                    total_water_in, total_water_out, &
-                   ice_volume,     ice_tstep,       &
-                   qsmb,           tsfc,            &
-                   topo,           gfrac,           &
-                   gtopo,          grofi,           &
-                   grofl,          ghflx)
+                   ice_volume,     ice_tstep)
 
     !*FD Main Glint subroutine.
     !*FD
@@ -1270,6 +955,7 @@ contains
     use glint_interp
     use glint_timestep
     use glimmer_log
+    use glimmer_paramets, only: scyr
     use parallel, only: main_task, tasks
     implicit none
 
@@ -1301,14 +987,6 @@ contains
     real(rk),               optional,intent(inout) :: ice_volume      !*FD Total ice volume (m$^3$)
     logical,                optional,intent(out)   :: ice_tstep       !*FD Set when an ice-timestep has been done, and
                                                                       !*FD water balance information is available
-    real(rk),dimension(:,:,:),optional,intent(in)    :: qsmb          ! flux of glacier ice (kg/m^2/s)
-    real(rk),dimension(:,:,:),optional,intent(in)    :: tsfc          ! surface ground temperature (deg C)
-    real(rk),dimension(:,:,:),optional,intent(in)    :: topo          ! surface elevation (m)
-    real(rk),dimension(:,:,:),optional,intent(inout) :: gfrac         ! ice fractional area [0,1]
-    real(rk),dimension(:,:,:),optional,intent(inout) :: gtopo         ! surface elevation (m)
-    real(rk),dimension(:,:,:),optional,intent(inout) :: grofi         ! ice runoff (kg/m^2/s = mm H2O/s)
-    real(rk),dimension(:,:,:),optional,intent(inout) :: grofl         ! liquid runoff (kg/m^2/s = mm H2O/s)
-    real(rk),dimension(:,:,:),optional,intent(inout) :: ghflx         ! heat flux (W/m^2, positive down)
 
     ! Internal variables ----------------------------------------------------------------------------
 
@@ -1324,17 +1002,7 @@ contains
     real(rk),dimension(:,:),pointer :: precip
     real(rk),dimension(:,:),pointer :: temp
     real(rk) :: yearfrac
-!WHLTSTEP - Changed timeyr to dp
-!    real(rk) :: timeyr   ! time in years
-    real(dp) :: timeyr   ! time in years
     integer :: j, ig, jg
-
-    real(rk), dimension(:,:,:), allocatable ::   &
-       gfrac_temp    ,&! gfrac for a single instance
-       gtopo_temp    ,&! gtopo for a single instance
-       grofi_temp    ,&! grofi for a single instance
-       grofl_temp    ,&! grofl for a single instance
-       ghflx_temp      ! ghflx for a single instance
 
     if (GLC_DEBUG .and. main_task) then
 !       write (stdout,*) 'In subroutine glint, current time (hr) =', time
@@ -1355,7 +1023,7 @@ contains
           call write_log(message,GM_FATAL,__FILE__,__LINE__)
        end if
     else
-       if (mod(time-params%av_start_time,params%time_step)/=0) then
+       if (mod(time-params%av_start_time,params%time_step) /= 0) then
           write(message,*) 'Unexpected calling of GLINT at time ', time
           call write_log(message,GM_FATAL,__FILE__,__LINE__)
        end if
@@ -1390,8 +1058,6 @@ contains
                              humid,   lwdown,  &
                              swdown,  airpress)
 
-    if (params%gcm_smb) call accumulate_averages_gcm(params, qsmb, tsfc, topo)
-
     ! Increment step counter
 
     params%av_steps = params%av_steps + 1
@@ -1401,13 +1067,13 @@ contains
     ! for each model instance
     ! ---------------------------------------------------------
 
-    if (time-params%av_start_time+params%time_step > params%tstep_mbal) then
+    if (time - params%av_start_time + params%time_step > params%tstep_mbal) then
 
        write(message,*) &
             'Incomplete forcing of GLINT mass-balance time-step detected at time ', time
        call write_log(message,GM_FATAL,__FILE__,__LINE__)
 
-    else if (time-params%av_start_time+params%time_step == params%tstep_mbal) then
+    else if (time - params%av_start_time + params%time_step == params%tstep_mbal) then
 
        ! Set output_flag
 
@@ -1432,13 +1098,6 @@ contains
        allocate(sd_temp(size(orog,1),size(orog,2)))
        allocate(wout_temp(size(orog,1),size(orog,2)))
        allocate(win_temp(size(orog,1),size(orog,2)))
-       if (params%gcm_smb) then
-          allocate(gfrac_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-          allocate(gtopo_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-          allocate(grofi_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-          allocate(grofl_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-          allocate(ghflx_temp(params%g_grid%nx,params%g_grid%ny,params%g_grid%nec))
-       endif
 
        ! Populate output flag derived type
 
@@ -1466,17 +1125,10 @@ contains
        if (present(total_water_out)) total_water_out = 0.0
        if (present(ice_volume))      ice_volume      = 0.0
 
-       if (present(gfrac)) gfrac = 0.0
-       if (present(gtopo)) gtopo = 0.0
-       if (present(grofi)) grofi = 0.0
-       if (present(grofl)) grofl = 0.0
-       if (present(ghflx)) ghflx = 0.0
-
        ! Calculate averages by dividing by number of steps elapsed
        ! since last model timestep.
 
        call calculate_averages(params)
-       if (params%gcm_smb) call calculate_averages_gcm(params)
 
        ! Calculate total accumulated precipitation - multiply
        ! by time since last model timestep
@@ -1485,84 +1137,39 @@ contains
 
        ! Calculate temperature half-range
 
-       params%g_temp_range=(params%g_max_temp-params%g_min_temp)/2.0
+       params%g_temp_range = (params%g_max_temp-params%g_min_temp)/2.0
 
        if (GLC_DEBUG .and. main_task) then
-          i = itest
-          j = jjtest
+          i = params%instances(1)%model%numerics%idiag_global
+          j = params%instances(1)%model%numerics%jdiag_global
+          write(stdout,*) ' '
           write(stdout,*) 'Take a mass balance timestep, time (hr) =', time
           write(stdout,*) 'av_steps =', real(params%av_steps,rk)
           write(stdout,*) 'tstep_mbal (hr) =', params%tstep_mbal
           write(stdout,*) 'i, j =', i, j
-          if (params%gcm_smb) then
-             do n = 1, params%g_grid%nec
-                write (stdout,*) ' '
-                write (stdout,*) 'n =', n
-                write (stdout,*) 'g_av_qsmb (kg m-2 s-1) =', params%g_av_qsmb(i,j,n)
-                write (stdout,*) 'g_av_tsfc (Celsius) =',    params%g_av_tsfc(i,j,n)
-                write (stdout,*) 'g_av_topo (m) =',          params%g_av_topo(i,j,n)
-             enddo
-          endif
           write(stdout,*) 'call glint_i_tstep'
        end if
 
-       ! Calculate total surface mass balance - multiply by time since last model timestep
-       ! Note on units: We want g_av_qsmb to have units of m per time step.
-       ! Divide by 1000 to convert from mm to m.
-       ! Multiply by 3600 to convert from 1/s to 1/hr.  (tstep_mbal has units of hours)
-
-       if (params%gcm_smb) &
-          params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) * params%tstep_mbal * hours2seconds / 1000._rk
-
        ! Do a timestep for each instance
 
-       do i=1,params%ninstances
+       do i = 1,params%ninstances
           
-          if (params%gcm_smb) then
+          call glint_i_tstep(time,                    params%instances(i),       &
+                             params%g_av_temp,        params%g_temp_range,       &
+                             params%g_av_precip,      params%g_av_zonwind,       &
+                             params%g_av_merwind,     params%g_av_humid,         &
+                             params%g_av_lwdown,      params%g_av_swdown,        &
+                             params%g_av_airpress,                               &
+                             orog,                    orog_out_temp,             &
+                             albedo_temp,             if_temp,                   &
+                             vf_temp,                 sif_temp,                  &
+                             svf_temp,                sd_temp,                   &
+                             win_temp,                wout_temp,                 &
+                             twin_temp,               twout_temp,                &
+                             icevol_temp,             out_f,                     &
+                             .true.,                  icets)
 
-             !lipscomb - TO DO - Make some of these arguments optional?
-
-             call glint_i_tstep(time,      params%instances(i),          &
-                  params%g_av_temp,        params%g_temp_range,          &
-                  params%g_av_precip,      params%g_av_zonwind,          &
-                  params%g_av_merwind,     params%g_av_humid,            &
-                  params%g_av_lwdown,      params%g_av_swdown,           &
-                  params%g_av_airpress,                                  &
-                  orog,                    orog_out_temp,                &
-                  albedo_temp,             if_temp,                      &
-                  vf_temp,                 sif_temp,                     &
-                  svf_temp,                sd_temp,                      &
-                  win_temp,                wout_temp,                    &
-                  twin_temp,               twout_temp,                   &
-                  icevol_temp,             out_f,                        &
-                  .true.,                  icets,                        &
-                  gcm_smb_in = params%gcm_smb,                           &
-                  qsmb_g = params%g_av_qsmb, tsfc_g = params%g_av_tsfc,  &
-                  topo_g = params%g_av_topo, gmask  = params%g_grid%mask,&
-                  gfrac  = gfrac_temp,       gtopo  = gtopo_temp,        &
-                  grofi  = grofi_temp,       grofl  = grofl_temp,        &
-                  ghflx  = ghflx_temp  )
-
-          else 
-
-             call glint_i_tstep(time,                    params%instances(i),       &
-                                params%g_av_temp,        params%g_temp_range,       &
-                                params%g_av_precip,      params%g_av_zonwind,       &
-                                params%g_av_merwind,     params%g_av_humid,         &
-                                params%g_av_lwdown,      params%g_av_swdown,        &
-                                params%g_av_airpress,                               &
-                                orog,                    orog_out_temp,             &
-                                albedo_temp,             if_temp,                   &
-                                vf_temp,                 sif_temp,                  &
-                                svf_temp,                sd_temp,                   &
-                                win_temp,                wout_temp,                 &
-                                twin_temp,               twout_temp,                &
-                                icevol_temp,             out_f,                     &
-                                .true.,                  icets)
-
-           endif
-
-           if (GLC_DEBUG .and. main_task) then
+          if (GLC_DEBUG .and. main_task) then
              write(stdout,*) 'Finished glc_glint_ice tstep, instance =', i
              write(stdout,*) 'Upscale fields to global grid'
           end if
@@ -1631,90 +1238,6 @@ contains
              ice_tstep = (ice_tstep .or. icets)
           end if
 
-          ! Upscale the output to elevation classes on the global grid
-
-          if (params%gcm_smb) then
-
-             call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec, &
-                                            params%instances(i)%lgrid%size%pt(1),   &
-                                            params%instances(i)%lgrid%size%pt(2),   &
-                                            params%g_grid%nx,    params%g_grid%ny,  &
-                                            gfrac_temp,          gtopo_temp,        &
-                                            grofi_temp,          grofl_temp,        &
-                                            ghflx_temp )
-
-             if (GLC_DEBUG .and. main_task) then
-                ig = itest
-                jg = jjtest
-                write(stdout,*) ' '
-                write(stdout,*) 'After upscaling:'
-                do n = 1, params%g_grid%nec
-                  write(stdout,*) ' '
-                  write(stdout,*) 'n =', n
-                  write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
-                  write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
-!!                  write(stdout,*) 'grofi(n) =', grofi(ig,jg,n)
-!!                  write(stdout,*) 'grofl(n) =', grofl(ig,jg,n)
-!!                  write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
-                enddo
-             end if
-
-             ! Add this contribution to the global output
-             ! Only the main task has valid values for the global output fields
-             if (main_task) then
-
-                do n = 1, params%g_grid%nec
-
-                   gfrac(:,:,n) = splice_field(gfrac(:,:,n),                      &
-                                               gfrac_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   gtopo(:,:,n) = splice_field(gtopo(:,:,n),                      &
-                                               gtopo_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   grofi(:,:,n) = splice_field(grofi(:,:,n),                      &
-                                               grofi_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   grofl(:,:,n) = splice_field(grofl(:,:,n),                      &
-                                               grofl_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   ghflx(:,:,n) = splice_field(ghflx(:,:,n),                      &
-                                               ghflx_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                enddo   ! nec
-
-             endif  ! main_task
-
-          endif   ! gcm_smb
-
-          ! write ice sheet diagnostics
-!TODO - This will not write diagnostics every ice dynamics timestep if timesteps are < 1 yr
-!       Move to Glide?
-
-          if (mod(params%instances(i)%model%numerics%timecounter,  &
-                  params%instances(i)%model%numerics%ndiag)==0)  then
-!WHLTSTEP - Write Glide time instead of Glint time.
-!             timeyr = time / (days_in_year*24.d0) 
-             timeyr = params%instances(i)%model%numerics%time
-             
-             ! WJS: I think the glide_write_diag call is meant to be done by all tasks
-             if (GLC_DEBUG) then
-                write(stdout,*) 'Write diagnostics, time (yr)=', timeyr     
-                call glide_write_diag(params%instances(i)%model, timeyr,  &
-                                      params%instances(i)%model%numerics%idiag_global,  &
-                                      params%instances(i)%model%numerics%jdiag_global)
-             end if
-          endif
-
        enddo    ! ninstances
 
        ! Scale output water fluxes to be in mm/s
@@ -1740,61 +1263,23 @@ contains
        params%g_temp_range = 0.0
        params%g_max_temp   = -1000.0
        params%g_min_temp   = 1000.0
-       if (params%gcm_smb) then
-          params%g_av_qsmb    = 0.0
-          params%g_av_tsfc    = 0.0
-          params%g_av_topo    = 0.0
-       endif
 
        params%av_steps      = 0
        params%new_av        = .true.
        params%next_av_start = time+params%time_step
 
        deallocate(albedo_temp,if_temp,vf_temp,sif_temp,svf_temp,sd_temp,wout_temp,win_temp,orog_out_temp)
-       if (params%gcm_smb) deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
 
-    endif
+    endif    ! time - params%av_start_time + params%time_step > params%tstep_mbal
 
   end subroutine glint
 
   !===================================================================
 
-!!  subroutine glint(params,         time,            &
-!!                   rawtemp,        rawprecip,       &
-!!                   orog,                            &
-!!                   zonwind,        merwind,         &
-!!                   humid,          lwdown,          &
-!!                   swdown,         airpress,        &
-!!                   output_flag,                     &
-!!                   orog_out,       albedo,          &
-!!                   ice_frac,       veg_frac,        &
-!!                   snowice_frac,   snowveg_frac,    &
-!!                   snow_depth,                      &
-!!                   water_in,       water_out,       &
-!!                   total_water_in, total_water_out, &
-!!                   ice_volume,     ice_tstep,       &
-!!                   qsmb,           tsfc,            &
-!!                   topo,           gfrac,           &
-!!                   gtopo,          grofi,           &
-!!                   grofl,          ghflx)
-
   subroutine glint_gcm(params,         time,            &
-!!                       rawtemp,        rawprecip,       &
-!!                       orog,                            &
-!!                       zonwind,        merwind,         &
-!!                       humid,          lwdown,          &
-!!                       swdown,         airpress,        &
-!!                       output_flag,                     &
-!!                       orog_out,       albedo,          &
-!!                       ice_frac,       veg_frac,        &
-!!                       snowice_frac,   snowveg_frac,    &
-!!                       snow_depth,                      &
-!!                       water_in,       water_out,       &
-!!                       total_water_in, total_water_out, &
-!!                       ice_volume,     
-                       output_flag,    ice_tstep,       &
                        qsmb,           tsfc,            &
                        topo,                            &
+                       output_flag,    ice_tstep,       &
                        gfrac,          gtopo,           &
                        grofi,          grofl,           &
                        ghflx)
@@ -1815,6 +1300,7 @@ contains
     use glint_interp
     use glint_timestep
     use glimmer_log
+    use glimmer_paramets, only: scyr
     use parallel, only: main_task, tasks
 
     implicit none
@@ -1823,33 +1309,16 @@ contains
 
     type(glint_params),              intent(inout) :: params          !*FD parameters for this run
     integer,                         intent(in)    :: time            !*FD Current model time        (hours)
-!!    real(rk),dimension(:,:),target,  intent(in)    :: rawtemp         !*FD Surface temperature field (deg C)
-!!    real(rk),dimension(:,:),target,  intent(in)    :: rawprecip       !*FD Precipitation rate        (mm/s)
-!!    real(rk),dimension(:,:),         intent(in)    :: orog            !*FD The large-scale orography (m)
-!!    real(rk),dimension(:,:),optional,intent(in)    :: zonwind,merwind !*FD Zonal and meridional components 
-                                                                      !*FD of the wind field         (m/s)
-!!    real(rk),dimension(:,:),optional,intent(in)    :: humid           !*FD Surface humidity (%)
-!!    real(rk),dimension(:,:),optional,intent(in)    :: lwdown          !*FD Downwelling longwave (W/m$^2$)
-!!    real(rk),dimension(:,:),optional,intent(in)    :: swdown          !*FD Downwelling shortwave (W/m$^2$)
-!!    real(rk),dimension(:,:),optional,intent(in)    :: airpress        !*FD surface air pressure (Pa)
-    logical,                optional,intent(out)   :: output_flag     !*FD Set true if outputs set
-!!    real(rk),dimension(:,:),optional,intent(inout) :: orog_out        !*FD The fed-back, output orography (m)
-!!    real(rk),dimension(:,:),optional,intent(inout) :: albedo          !*FD surface albedo
-!!    real(rk),dimension(:,:),optional,intent(inout) :: ice_frac        !*FD grid-box ice-fraction
-!!    real(rk),dimension(:,:),optional,intent(inout) :: veg_frac        !*FD grid-box veg-fraction
-!!    real(rk),dimension(:,:),optional,intent(inout) :: snowice_frac    !*FD grid-box snow-covered ice fraction
-!!    real(rk),dimension(:,:),optional,intent(inout) :: snowveg_frac    !*FD grid-box snow-covered veg fraction
-!!    real(rk),dimension(:,:),optional,intent(inout) :: snow_depth      !*FD grid-box mean snow depth (m water equivalent)
-!!    real(rk),dimension(:,:),optional,intent(inout) :: water_in        !*FD Input water flux          (mm)
-!!    real(rk),dimension(:,:),optional,intent(inout) :: water_out       !*FD Output water flux         (mm)
-!!    real(rk),               optional,intent(inout) :: total_water_in  !*FD Area-integrated water flux in (kg)
-!!    real(rk),               optional,intent(inout) :: total_water_out !*FD Area-integrated water flux out (kg)
-!!    real(rk),               optional,intent(inout) :: ice_volume      !*FD Total ice volume (m$^3$)
+
+    real(rk),dimension(:,:,:),intent(in)    :: qsmb          ! input surface mass balance of glacier ice (kg/m^2/s)
+    real(rk),dimension(:,:,:),intent(in)    :: tsfc          ! input surface ground temperature (deg C)
+    real(rk),dimension(:,:,:),intent(in)    :: topo          ! input surface elevation (m)
+
+    !TODO - Do we need both of these?
+    logical,                optional,intent(out)   :: output_flag     ! Set true if outputs are set
     logical,                optional,intent(out)   :: ice_tstep       ! Set when an ice dynamic timestep has been done
                                                                       !  and new output is available
-    real(rk),dimension(:,:,:),optional,intent(in)    :: qsmb          ! input surface mass balance of glacier ice (kg/m^2/s)
-    real(rk),dimension(:,:,:),optional,intent(in)    :: tsfc          ! input surface ground temperature (deg C)
-    real(rk),dimension(:,:,:),optional,intent(in)    :: topo          ! input surface elevation (m)
+
     real(rk),dimension(:,:,:),optional,intent(inout) :: gfrac         ! output ice fractional area [0,1]
     real(rk),dimension(:,:,:),optional,intent(inout) :: gtopo         ! output surface elevation (m)
     real(rk),dimension(:,:,:),optional,intent(inout) :: grofi         ! output ice runoff (kg/m^2/s = mm H2O/s)
@@ -1858,25 +1327,10 @@ contains
 
     ! Internal variables ----------------------------------------------------------------------------
 
-    integer :: i, n
-
-!!    real(rk),dimension(:,:),allocatable :: albedo_temp, if_temp, vf_temp, sif_temp, svf_temp,  &
-!!                                           sd_temp, wout_temp, orog_out_temp, win_temp
-!!    real(rk) :: twin_temp,twout_temp,icevol_temp
-!!    type(output_flags) :: out_f
+    integer :: i, j, ig, jg, n
 
     logical :: icets
     character(250) :: message
-
-!!    real(rk),dimension(size(rawprecip,1),size(rawprecip,2)),target :: anomprecip
-!!    real(rk),dimension(size(rawtemp,1),  size(rawtemp,2)),  target :: anomtemp
-!!    real(rk),dimension(:,:),pointer :: precip
-!!    real(rk),dimension(:,:),pointer :: temp
-    real(rk) :: yearfrac
-
-    real(dp) :: timeyr   ! time in years
-
-    integer :: j, ig, jg
 
     real(rk), dimension(:,:,:), allocatable ::   &
        gfrac_temp    ,&! gfrac for a single instance
@@ -1886,7 +1340,7 @@ contains
        ghflx_temp      ! ghflx for a single instance
 
     if (GLC_DEBUG .and. main_task) then
-!       write (stdout,*) 'In subroutine glint, current time (hr) =', time
+!       write (stdout,*) 'In subroutine glint_gcm, current time (hr) =', time
 !       write (stdout,*) 'av_start_time =', params%av_start_time
 !       write (stdout,*) 'next_av_start =', params%next_av_start
 !       write (stdout,*) 'new_av =', params%new_av
@@ -1912,34 +1366,12 @@ contains
 
     ! Check input fields are correct ----------------------------------------------------------------
 
-!!    call check_input_fields(params, humid, lwdown, swdown, airpress, zonwind, merwind)
-
     ! Reset output flag
 
     if (present(output_flag)) output_flag = .false.
     if (present(ice_tstep))   ice_tstep = .false.
 
-    ! Sort out anomaly coupling
-
-!!    if (params%anomaly_params%enabled) then
-!!       yearfrac = real(mod(time,days_in_year),rk)/real(days_in_year,rk)
-!!       call anomaly_calc(params%anomaly_params, yearfrac, rawtemp, rawprecip, anomtemp, anomprecip)
-!!       precip => anomprecip
-!!       temp   => anomtemp
-!!    else
-!!       precip => rawprecip
-!!       temp   => rawtemp
-!!    end if
-
-    ! Do averaging and so on...
-
-!!    call accumulate_averages(params,           &
-!!                             temp,    precip,  &
-!!                             zonwind, merwind, &
-!!                             humid,   lwdown,  &
-!!                             swdown,  airpress)
-
-!!    if (params%gcm_smb) call accumulate_averages_gcm(params, qsmb, tsfc, topo)
+    ! Accumulate input fields for later averaging
 
     call accumulate_averages_gcm(params, qsmb, tsfc, topo)
 
@@ -1969,54 +1401,18 @@ contains
        if (present(output_flag)) output_flag = .true.
 
        ! Allocate output fields
+       ! Each *_temp field contains the output for one ice sheet instance.
+       ! If there are multiple instances, the various *_temp fields are spliced together.
 
-!!       if (present(orog_out)) then
-!!          allocate(orog_out_temp(size(orog_out,1),size(orog_out,2)))
-!!       else
-!!          allocate(orog_out_temp(params%g_grid_orog%nx, params%g_grid_orog%ny))
-!!       end if
-!!       allocate(albedo_temp(size(orog,1),size(orog,2)))
-!!       allocate(if_temp(size(orog,1),size(orog,2)))
-!!       allocate(vf_temp(size(orog,1),size(orog,2)))
-!!       allocate(sif_temp(size(orog,1),size(orog,2)))
-!!       allocate(svf_temp(size(orog,1),size(orog,2)))
-!!       allocate(sd_temp(size(orog,1),size(orog,2)))
-!!       allocate(wout_temp(size(orog,1),size(orog,2)))
-!!       allocate(win_temp(size(orog,1),size(orog,2)))
-!!       if (params%gcm_smb) then
-          allocate(gfrac_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-          allocate(gtopo_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-          allocate(grofi_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-          allocate(grofl_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-          allocate(ghflx_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-!!       endif
+       allocate(gfrac_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+       allocate(gtopo_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+       allocate(grofi_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+       allocate(grofl_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+       allocate(ghflx_temp(params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
 
-       ! Populate output flag derived type
+       ! Zero global outputs if present
 
-!!       call populate_output_flags(out_f,                           &
-!!                                  orog_out,       albedo,          &
-!!                                  ice_frac,       veg_frac,        &
-!!                                  snowice_frac,   snowveg_frac,    &
-!!                                  snow_depth,                      &
-!!                                  water_in,       water_out,       &
-!!                                  total_water_in, total_water_out, &
-!!                                  ice_volume)
-
-       ! Zero outputs if present
-
-!!       if (present(orog_out))        orog_out        = 0.0
-!!       if (present(albedo))          albedo          = 0.0
-!!       if (present(ice_frac))        ice_frac        = 0.0
-!!       if (present(veg_frac))        veg_frac        = 0.0
-!!       if (present(snowice_frac))    snowice_frac    = 0.0
-!!       if (present(snowveg_frac))    snowveg_frac    = 0.0
-!!       if (present(snow_depth))      snow_depth      = 0.0
-!!       if (present(water_out))       water_out       = 0.0
-!!       if (present(water_in))        water_in        = 0.0
-!!       if (present(total_water_in))  total_water_in  = 0.0
-!!       if (present(total_water_out)) total_water_out = 0.0
-!!       if (present(ice_volume))      ice_volume      = 0.0
-
+       !TODO - Change to dp
        if (present(gfrac)) gfrac = 0.0
        if (present(gtopo)) gtopo = 0.0
        if (present(grofi)) grofi = 0.0
@@ -2026,23 +1422,11 @@ contains
        ! Calculate averages by dividing by number of steps elapsed
        ! since last model timestep.
 
-!!       call calculate_averages(params)
-!!       if (params%gcm_smb) call calculate_averages_gcm(params)
-
        call calculate_averages_gcm(params)
 
-       ! Calculate total accumulated precipitation - multiply
-       ! by time since last model timestep
-
-!!       params%g_av_precip = params%g_av_precip*params%tstep_mbal*hours2seconds
-
-       ! Calculate temperature half-range
-
-!!       params%g_temp_range=(params%g_max_temp-params%g_min_temp)/2.0
-
        if (GLC_DEBUG .and. main_task) then
-          i = itest
-          j = jjtest
+          i = params%instances(1)%model%numerics%idiag_global
+          j = params%instances(1)%model%numerics%jdiag_global
           write(stdout,*) 'Take a mass balance timestep, time (hr) =', time
           write(stdout,*) 'av_steps =', real(params%av_steps,rk)
           write(stdout,*) 'tstep_mbal (hr) =', params%tstep_mbal
@@ -2051,9 +1435,10 @@ contains
              do n = 1, params%g_grid%nec
                 write (stdout,*) ' '
                 write (stdout,*) 'n =', n
-                write (stdout,*) 'g_av_qsmb (kg m-2 s-1) =', params%g_av_qsmb(i,j,n)
-                write (stdout,*) 'g_av_tsfc (Celsius) =',    params%g_av_tsfc(i,j,n)
-                write (stdout,*) 'g_av_topo (m) =',          params%g_av_topo(i,j,n)
+                write (stdout,*) 'g_av_topo (m)    =', params%g_av_topo(i,j,n)
+                write (stdout,*) 'g_av_tsfc (degC) =', params%g_av_tsfc(i,j,n)
+                write (stdout,*) 'g_av_qsmb (m/yr) =', params%g_av_qsmb(i,j,n)*scyr/1000.d0
+!                write (stdout,*) 'g_av_qsmb (kg/m2/s) =', params%g_av_qsmb(i,j,n)
              enddo
           endif
           write(stdout,*) 'call glint_i_tstep'
@@ -2062,122 +1447,31 @@ contains
        ! Calculate total surface mass balance - multiply by time since last model timestep
        ! Note on units: We want g_av_qsmb to have units of m per time step.
        ! Divide by 1000 to convert from mm to m.
-       ! Multiply by 3600 to convert from 1/s to 1/hr.  (tstep_mbal has units of hours)
+       ! Multiply by hours2seconds = 3600 to convert from 1/s to 1/hr.  (tstep_mbal has units of hours)
 
-!!       if (params%gcm_smb) &
-          params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) * params%tstep_mbal * hours2seconds / 1000._rk
+       params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) * params%tstep_mbal * hours2seconds / 1000._rk
 
        ! Do a timestep for each instance
 
-       do i=1,params%ninstances
+       do i = 1, params%ninstances
           
-!!          if (params%gcm_smb) then
+          call glint_i_tstep_gcm(time,                  &
+                                 params%instances(i),   &
+                                 icets,                 &
+                                 params%g_av_qsmb,      &
+                                 params%g_av_tsfc,      &
+                                 params%g_av_topo,      &
+                                 gmask  = params%g_grid%mask,    &
+                                 gfrac  = gfrac_temp,            &
+                                 gtopo  = gtopo_temp,            &
+                                 grofi  = grofi_temp,            &
+                                 grofl  = grofl_temp,            &
+                                 ghflx  = ghflx_temp  )
 
-             !TODO - Modify glint_i_tstep interface for gcm
-
-             call glint_i_tstep_gcm(time,      params%instances(i),          &
-!!                  params%g_av_temp,        params%g_temp_range,          &
-!!                  params%g_av_precip,      params%g_av_zonwind,          &
-!!                  params%g_av_merwind,     params%g_av_humid,            &
-!!                  params%g_av_lwdown,      params%g_av_swdown,           &
-!!                  params%g_av_airpress,                                  &
-!!                  orog,                    orog_out_temp,                &
-!!                  albedo_temp,             if_temp,                      &
-!!                  vf_temp,                 sif_temp,                     &
-!!                  svf_temp,                sd_temp,                      &
-!!                  win_temp,                wout_temp,                    &
-!!                  twin_temp,               twout_temp,                   &
-!!                  icevol_temp,             out_f,                        &
-!!                  .true.,                  
-                  icets,                        &
-                  qsmb_g = params%g_av_qsmb, tsfc_g = params%g_av_tsfc,  &
-                  topo_g = params%g_av_topo, gmask  = params%g_grid%mask,&
-                  gfrac  = gfrac_temp,       gtopo  = gtopo_temp,        &
-                  grofi  = grofi_temp,       grofl  = grofl_temp,        &
-                  ghflx  = ghflx_temp  )
-
-!!          else 
-!!
-!!             call glint_i_tstep(time,                    params%instances(i),       &
-!!                                params%g_av_temp,        params%g_temp_range,       &
-!!                                params%g_av_precip,      params%g_av_zonwind,       &
-!!                                params%g_av_merwind,     params%g_av_humid,         &
-!!                                params%g_av_lwdown,      params%g_av_swdown,        &
-!!                                params%g_av_airpress,                               &
-!!                                orog,                    orog_out_temp,             &
-!!                                albedo_temp,             if_temp,                   &
-!!                                vf_temp,                 sif_temp,                  &
-!!                                svf_temp,                sd_temp,                   &
-!!                                win_temp,                wout_temp,                 &
-!!                                twin_temp,               twout_temp,                &
-!!                                icevol_temp,             out_f,                     &
-!!                                .true.,                  icets)
-!!
-!!           endif
-
-           if (GLC_DEBUG .and. main_task) then
+          if (GLC_DEBUG .and. main_task) then
              write(stdout,*) 'Finished glc_glint_ice tstep, instance =', i
              write(stdout,*) 'Upscale fields to global grid'
           end if
-
-          ! Add this contribution to the global output
-          ! Only the main task has valid values for the global output fields
-!!          if (main_task) then
-!!             
-!!             if (present(orog_out)) orog_out=splice_field(orog_out,orog_out_temp, &
-!!                  params%instances(i)%frac_cov_orog,params%cov_norm_orog)
-!!
-!!             if (present(albedo)) albedo=splice_field(albedo,albedo_temp, &
-!!                  params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(ice_frac)) ice_frac=splice_field(ice_frac,if_temp, &
-!!                  params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(veg_frac)) veg_frac=splice_field(veg_frac,vf_temp, &
-!!                  params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(snowice_frac))snowice_frac=splice_field(snowice_frac,sif_temp, &
-!!                  params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(snowveg_frac)) snowveg_frac=splice_field(snowveg_frac, &
-!!                  svf_temp,params%instances(i)%frac_coverage, params%cov_normalise)
-!!
-!!             if (present(snow_depth)) snow_depth=splice_field(snow_depth, &
-!!                  sd_temp,params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(water_in)) water_in=splice_field(water_in,win_temp, &
-!!                  params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!             if (present(water_out)) water_out=splice_field(water_out, &
-!!                  wout_temp, params%instances(i)%frac_coverage,params%cov_normalise)
-!!
-!!          end if
-
-          ! Add total water variables to running totals
-          ! WJS (1-15-13): These fields are only valid in single-task runs; multi-task
-          ! runs should generate an error in glint_i_tstep if you try to compute any of
-          ! these. But to be safe, we check here, too
-
-!!          if (present(total_water_in))  then
-!!             if (tasks > 1) call write_log('total_water_in is only valid when running with a single task', &
-!!                                           GM_FATAL, __FILE__, __LINE__)
-!!
-!!             total_water_in  = total_water_in  + twin_temp
-!!          end if
-!!
-!!          if (present(total_water_out)) then
-!!             if (tasks > 1) call write_log('total_water_out is only valid when running with a single task', &
-!!                                           GM_FATAL, __FILE__, __LINE__)
-!!
-!!             total_water_out = total_water_out + twout_temp
-!!          end if
-!!
-!!          if (present(ice_volume)) then
-!!             if (tasks > 1) call write_log('ice_volume is only valid when running with a single task', &
-!!                                           GM_FATAL, __FILE__, __LINE__)
-!!
-!!             ice_volume      = ice_volume      + icevol_temp
-!!          end if
 
           ! Set flag
           if (present(ice_tstep)) then
@@ -2186,132 +1480,60 @@ contains
 
           ! Upscale the output to elevation classes on the global grid
 
-!!          if (params%gcm_smb) then
+          call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec, &
+                                         params%instances(i)%lgrid%size%pt(1),   &
+                                         params%instances(i)%lgrid%size%pt(2),   &
+                                         params%g_grid%nx,    params%g_grid%ny,  &
+                                         gfrac_temp,          gtopo_temp,        &
+                                         grofi_temp,          grofl_temp,        &
+                                         ghflx_temp )
 
-             call get_i_upscaled_fields_gcm(params%instances(i), params%g_grid%nec, &
-                                            params%instances(i)%lgrid%size%pt(1),   &
-                                            params%instances(i)%lgrid%size%pt(2),   &
-                                            params%g_grid%nx,    params%g_grid%ny,  &
-                                            gfrac_temp,          gtopo_temp,        &
-                                            grofi_temp,          grofl_temp,        &
-                                            ghflx_temp )
-
-             if (GLC_DEBUG .and. main_task) then
-                ig = itest
-                jg = jjtest
+          if (GLC_DEBUG .and. main_task) then
+             ig = iglint_global  ! in glint_type; make sure values there are appropriate
+             jg = jglint_global
+             write(stdout,*) ' '
+             write(stdout,*) 'After upscaling, instance', i
+             do n = 1, params%g_grid%nec
                 write(stdout,*) ' '
-                write(stdout,*) 'After upscaling:'
-                do n = 1, params%g_grid%nec
-                  write(stdout,*) ' '
-                  write(stdout,*) 'n =', n
-                  write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
-                  write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
-!!                  write(stdout,*) 'grofi(n) =', grofi(ig,jg,n)
-!!                  write(stdout,*) 'grofl(n) =', grofl(ig,jg,n)
-!!                  write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
-                enddo
-             end if
+                write(stdout,*) 'n =', n
+                write(stdout,*) 'gfrac_temp(n) =', gfrac_temp(ig,jg,n)
+                write(stdout,*) 'gtopo_temp(n) =', gtopo_temp(ig,jg,n)
+                write(stdout,*) 'grofi_temp(n) =', grofi_temp(ig,jg,n)
+                write(stdout,*) 'grofl_temp(n) =', grofl_temp(ig,jg,n)
+                write(stdout,*) 'ghflx_temp(n) =', ghflx_temp(ig,jg,n)
+             enddo
+          end if
 
-             ! Add this contribution to the global output
-             ! Only the main task has valid values for the global output fields
-             if (main_task) then
+          ! Add this contribution to the global output
 
-                do n = 1, params%g_grid%nec
-
-                   gfrac(:,:,n) = splice_field(gfrac(:,:,n),                      &
-                                               gfrac_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   gtopo(:,:,n) = splice_field(gtopo(:,:,n),                      &
-                                               gtopo_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   grofi(:,:,n) = splice_field(grofi(:,:,n),                      &
-                                               grofi_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   grofl(:,:,n) = splice_field(grofl(:,:,n),                      &
-                                               grofl_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                   ghflx(:,:,n) = splice_field(ghflx(:,:,n),                      &
-                                               ghflx_temp(:,:,n),                 &
-                                               params%instances(i)%frac_coverage, &
-                                               params%cov_normalise)
-
-                enddo   ! nec
-
-             endif  ! main_task
-
-!!          endif   ! gcm_smb
-
-          ! write ice sheet diagnostics
-
-!TODO - This will not write diagnostics every ice dynamics timestep if timesteps are < 1 yr
-!       Move to Glide?
-
-          if (mod(params%instances(i)%model%numerics%timecounter,  &
-                  params%instances(i)%model%numerics%ndiag)==0)  then
-
-!WHLTSTEP - Write Glide time instead of Glint time.
-!             timeyr = time / (days_in_year*24.d0) 
-             timeyr = params%instances(i)%model%numerics%time
-             
-             ! WJS: I think the glide_write_diag call is meant to be done by all tasks
-             ! WHL: Yes
-             if (GLC_DEBUG) then
-                write(stdout,*) 'Write diagnostics, time (yr)=', timeyr     
-                call glide_write_diag(params%instances(i)%model, timeyr,  &
-                                      params%instances(i)%model%numerics%idiag_global,  &
-                                      params%instances(i)%model%numerics%jdiag_global)
-             end if
-          endif
-
+          call splice_fields_gcm(gfrac_temp, gtopo_temp,    &
+                                 grofi_temp, grofl_temp,    &
+                                 ghflx_temp,                &
+                                 gfrac,      gtopo,         &
+                                 grofi,      grofl,         &
+                                 ghflx,                     &
+                                 params%g_grid%nec,         &
+                                 params%instances(i)%frac_coverage, &
+                                 params%cov_normalise)
+                         
        enddo    ! ninstances
-
-       ! Scale output water fluxes to be in mm/s
-
-!!       if (present(water_in))  water_in  = water_in/ &
-!!                                           (params%tstep_mbal*hours2seconds)
-!!
-!!       if (present(water_out)) water_out = water_out/ &
-!!                                           (params%tstep_mbal*hours2seconds)
 
        ! ---------------------------------------------------------
        ! Reset averaging fields, flags and counters
        ! ---------------------------------------------------------
 
-!!       params%g_av_temp    = 0.0
-!!       params%g_av_precip  = 0.0
-!!       params%g_av_zonwind = 0.0
-!!       params%g_av_merwind = 0.0
-!!       params%g_av_humid   = 0.0
-!!       params%g_av_lwdown  = 0.0
-!!       params%g_av_swdown  = 0.0
-!!       params%g_av_airpress = 0.0
-!!       params%g_temp_range = 0.0
-!!       params%g_max_temp   = -1000.0
-!!       params%g_min_temp   = 1000.0
-!!       if (params%gcm_smb) then
-          params%g_av_qsmb    = 0.0
-          params%g_av_tsfc    = 0.0
-          params%g_av_topo    = 0.0
-!!       endif
+       !TODO - Change to dp
+       params%g_av_qsmb    = 0.0
+       params%g_av_tsfc    = 0.0
+       params%g_av_topo    = 0.0
 
        params%av_steps      = 0
        params%new_av        = .true.
        params%next_av_start = time + params%time_step
 
-!!       deallocate(albedo_temp,if_temp,vf_temp,sif_temp,svf_temp,sd_temp,wout_temp,win_temp,orog_out_temp)
-!!       if (params%gcm_smb) deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
-
        deallocate(gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp)
 
-    endif
+    endif    ! time - params%av_start_time + params%time_step > params%tstep_mbal
 
   end subroutine glint_gcm
 
@@ -2319,7 +1541,7 @@ contains
 
   subroutine end_glint(params,close_logfile)
 
-    !*FD perform tidying-up operations for glimmer
+    !*FD tidy-up operations for Glint
     use glint_initialise
     use glimmer_log
     implicit none
@@ -2327,19 +1549,18 @@ contains
     type(glint_params),intent(inout) :: params          ! parameters for this run
     logical, intent(in), optional    :: close_logfile   ! if true, then close the log file
                                                         ! (GCM may do this elsewhere)                                  
-
-    integer i
+    integer :: i
 
     ! end individual instances
 
-    do i=1,params%ninstances
+    do i = 1, params%ninstances
        call glint_i_end(params%instances(i))
     enddo
 
     if (present(close_logfile)) then
        if (close_logfile) call close_log
     else
-          call close_log
+       call close_log
     endif
 
   end subroutine end_glint
@@ -2348,8 +1569,8 @@ contains
 
   integer function glint_coverage_map(params, coverage, cov_orog)
 
-    !*FD Retrieve ice model fractional 
-    !*FD coverage map. This function is provided so that glimmer may
+    !*FD Retrieve ice model fractional coverage map. 
+    !*FD This function is provided so that glimmer may
     !*FD be restructured without altering the interface.
     !*FD This is currently only valid on the main task.
     !*RV Three return values are possible:
@@ -2361,11 +1582,11 @@ contains
 
     implicit none
 
-    type(glint_params),intent(in) :: params         !*FD ice model parameters
-    real(rk),dimension(:,:),intent(out) :: coverage !*FD array to hold coverage map
-    real(rk),dimension(:,:),intent(out) :: cov_orog !*FD Orography coverage
+    type(glint_params),intent(in) :: params                  !*FD ice model parameters
+    real(rk),dimension(:,:),intent(out) :: coverage          !*FD array to hold coverage map
+    real(rk),dimension(:,:),intent(out),optional :: cov_orog !*FD Orography coverage
 
-    if (.not.params%coverage_calculated) then
+    if (.not. params%coverage_calculated) then
        glint_coverage_map = 1
        return
     endif
@@ -2378,7 +1599,7 @@ contains
 
     glint_coverage_map = 0
     coverage = params%total_coverage
-    cov_orog = params%total_cov_orog
+    if (present(cov_orog)) cov_orog = params%total_cov_orog
 
   end function glint_coverage_map
 
@@ -2417,21 +1638,76 @@ contains
 
   !========================================================
 
-  subroutine glint_allocate_arrays_gcm(params)
+  subroutine splice_fields_gcm(gfrac_temp, gtopo_temp,    &
+                               grofi_temp, grofl_temp,    &
+                               ghflx_temp,                &
+                               gfrac,      gtopo,         &
+                               grofi,      grofl,         &
+                               ghflx,                     &
+                               nec,                       &
+                               frac_coverage,             &
+                               cov_normalise)
 
-    !*FD allocates glimmer arrays for GCM input fields
+     use parallel, only: main_task
 
-    implicit none
+     ! Add the output for this instance to the global output
 
-    type(glint_params),intent(inout) :: params !*FD ice model parameters
+     real(rk), dimension(:,:,:), intent(in) :: gfrac_temp  ! output fields for this instance
+     real(rk), dimension(:,:,:), intent(in) :: gtopo_temp  ! output fields for this instance
+     real(rk), dimension(:,:,:), intent(in) :: grofi_temp  ! output fields for this instance
+     real(rk), dimension(:,:,:), intent(in) :: grofl_temp  ! output fields for this instance
+     real(rk), dimension(:,:,:), intent(in) :: ghflx_temp  ! output fields for this instance
 
-    ! input fields from GCM
+     real(rk), dimension(:,:,:), intent(inout) :: gfrac    ! spliced global output field
+     real(rk), dimension(:,:,:), intent(inout) :: gtopo    ! spliced global output field
+     real(rk), dimension(:,:,:), intent(inout) :: grofi    ! spliced global output field
+     real(rk), dimension(:,:,:), intent(inout) :: grofl    ! spliced global output field
+     real(rk), dimension(:,:,:), intent(inout) :: ghflx    ! spliced global output field
 
-    allocate(params%g_av_qsmb (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-    allocate(params%g_av_tsfc (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
-    allocate(params%g_av_topo (params%g_grid%nx, params%g_grid%ny, params%g_grid%nec))
+     integer, intent(in) :: nec   ! number of elevation classes
 
-  end subroutine glint_allocate_arrays_gcm
+     real(rk), dimension(:,:), intent(in) :: frac_coverage  ! map of fractional coverage of global gridcells
+                                                ! by local gridcells
+     real(rk), dimension(:,:), intent(in) :: cov_normalise  ! normalisation values
+     
+     integer :: n
+
+     ! Only the main task has valid values for the global output fields
+
+     if (main_task) then
+
+        do n = 1, nec
+
+           gfrac(:,:,n) = splice_field(gfrac(:,:,n),            &
+                                       gfrac_temp(:,:,n),       &
+                                       frac_coverage,           &
+                                       cov_normalise)
+
+           gtopo(:,:,n) = splice_field(gtopo(:,:,n),            &
+                                       gtopo_temp(:,:,n),       &
+                                       frac_coverage,           &
+                                       cov_normalise)
+
+           grofi(:,:,n) = splice_field(grofi(:,:,n),            &
+                                       grofi_temp(:,:,n),       &
+                                       frac_coverage,           &
+                                       cov_normalise)
+
+           grofl(:,:,n) = splice_field(grofl(:,:,n),            &
+                                       grofl_temp(:,:,n),       &
+                                       frac_coverage,           &
+                                       cov_normalise)
+
+           ghflx(:,:,n) = splice_field(ghflx(:,:,n),            &
+                                       ghflx_temp(:,:,n),       &
+                                       frac_coverage,           &
+                                       cov_normalise)
+
+        enddo   ! nec
+
+     endif  ! main_task
+
+  end subroutine splice_fields_gcm
 
   !========================================================
 
@@ -2446,15 +1722,17 @@ contains
 
     real(rk),dimension(size(global,1),size(global,2)) :: splice_field
 
-    where (coverage==0.0)
-       splice_field=global
+    where (coverage == 0.0)
+       splice_field = global
     elsewhere
-       splice_field=(global*(1-coverage/normalise))+(local*coverage/normalise)
+       splice_field = (global*(1.0-coverage/normalise)) + (local*coverage/normalise)
     end where
 
   end function splice_field
 
   !========================================================
+
+  !TODO - Move this subroutine to a glint_setup module?
 
   subroutine glint_readconfig(config, ninstances, fnames, infnames)
 
@@ -2566,7 +1844,6 @@ contains
     enddo
 
   end subroutine calc_bounds
-
 
   !========================================================
 
@@ -2700,16 +1977,17 @@ contains
 
   subroutine accumulate_averages_gcm(params, qsmb, tsfc, topo)
 
-    type(glint_params),              intent(inout) :: params   !*FD parameters for this run
-    real(rk),dimension(:,:,:),optional,intent(in)  :: qsmb     ! flux of glacier ice (kg/m^2/s)
-    real(rk),dimension(:,:,:),optional,intent(in)  :: tsfc     ! surface ground temperature (C)
-    real(rk),dimension(:,:,:),optional,intent(in)  :: topo     ! surface elevation (m)
+    type(glint_params), intent(inout)   :: params     ! model parameters
+    real(rk),dimension(:,:,:),intent(in)  :: qsmb     ! flux of glacier ice (kg/m^2/s)
+    real(rk),dimension(:,:,:),intent(in)  :: tsfc     ! surface ground temperature (C)
+    real(rk),dimension(:,:,:),intent(in)  :: topo     ! surface elevation (m)
 
-    if (present(qsmb)) params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) + qsmb(:,:,:)
-    if (present(tsfc)) params%g_av_tsfc(:,:,:) = params%g_av_tsfc(:,:,:) + tsfc(:,:,:)
-    if (present(topo)) params%g_av_topo(:,:,:) = params%g_av_topo(:,:,:) + topo(:,:,:)
+    params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) + qsmb(:,:,:)
+    params%g_av_tsfc(:,:,:) = params%g_av_tsfc(:,:,:) + tsfc(:,:,:)
+    params%g_av_topo(:,:,:) = params%g_av_topo(:,:,:) + topo(:,:,:)
 
-!lipscomb - TO DO - No need to accumulate topo?
+    !TODO - No need to accumulate and average topo?
+    !       topo should not change during a mass balance timestep.
 
   end subroutine accumulate_averages_gcm
 
@@ -2738,7 +2016,7 @@ contains
 
     type(glint_params),              intent(inout) :: params   !*FD parameters for this run
 
-!lipscomb - TO DO - Do not average topo?  Remove 'rk' here?
+    !TODO - Do not average topo?
     params%g_av_qsmb(:,:,:) = params%g_av_qsmb(:,:,:) / real(params%av_steps,rk)
     params%g_av_tsfc(:,:,:) = params%g_av_tsfc(:,:,:) / real(params%av_steps,rk)
     params%g_av_topo(:,:,:) = params%g_av_topo(:,:,:) / real(params%av_steps,rk)
@@ -2747,5 +2025,48 @@ contains
 
   !========================================================
 
+  subroutine populate_output_flags(out_f,                     &
+                                   orog_out,       albedo,    &
+                                   ice_frac,       veg_frac,  &
+                                   snowice_frac,   snowveg_frac,  &
+                                   snow_depth,                &
+                                   water_in,       water_out, &
+                                   total_water_in, total_water_out, &
+                                   ice_volume)
+
+    type(output_flags),intent(inout) :: out_f
+
+    real(rk),dimension(:,:),optional,intent(inout) :: orog_out        !*FD The fed-back, output orography (m)
+    real(rk),dimension(:,:),optional,intent(inout) :: albedo          !*FD surface albedo
+    real(rk),dimension(:,:),optional,intent(inout) :: ice_frac        !*FD grid-box ice-fraction
+    real(rk),dimension(:,:),optional,intent(inout) :: veg_frac        !*FD grid-box veg-fraction
+    real(rk),dimension(:,:),optional,intent(inout) :: snowice_frac    !*FD grid-box snow-covered ice fraction
+    real(rk),dimension(:,:),optional,intent(inout) :: snowveg_frac    !*FD grid-box snow-covered veg fraction
+    real(rk),dimension(:,:),optional,intent(inout) :: snow_depth      !*FD grid-box mean snow depth (m water equivalent)
+    real(rk),dimension(:,:),optional,intent(inout) :: water_in        !*FD Input water flux          (mm)
+    real(rk),dimension(:,:),optional,intent(inout) :: water_out       !*FD Output water flux         (mm)
+    real(rk),               optional,intent(inout) :: total_water_in  !*FD Area-integrated water flux in (kg)
+    real(rk),               optional,intent(inout) :: total_water_out !*FD Area-integrated water flux out (kg)
+    real(rk),               optional,intent(inout) :: ice_volume      !*FD Total ice volume (m$^3$)
+
+
+    out_f%orog         = present(orog_out)
+    out_f%albedo       = present(albedo)
+    out_f%ice_frac     = present(ice_frac)
+    out_f%veg_frac     = present(veg_frac)
+    out_f%snowice_frac = present(snowice_frac)
+    out_f%snowveg_frac = present(snowveg_frac)
+    out_f%snow_depth   = present(snow_depth)
+    out_f%water_out    = present(water_out)
+    out_f%water_in     = present(water_in)
+    out_f%total_win    = present(total_water_in)
+    out_f%total_wout   = present(total_water_out)
+    out_f%ice_vol      = present(ice_volume)
+
+  end subroutine populate_output_flags
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 end module glint_main
 
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -4,34 +4,31 @@
 @PROCESS OPT(0)
 #endif
 
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_thck.f90 - part of the Glimmer-CISM ice model    + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_thck.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -48,16 +45,15 @@ module glide_thck
   !DEBUG only
 !!  use xls
 
-!WHL - debug
+  !TODO - Remove oldglide when code comparisons are complete
   use glimmer_paramets, only: oldglide
 
   implicit none
 
   private
 
-!TODO - Move or remove subroutines that are not used by the Glide dycore
-
-  public :: init_thck, thck_nonlin_evolve, thck_lin_evolve, stagleapthck, glide_thck_index
+  public :: init_thck, thck_nonlin_evolve, thck_lin_evolve, stagleapthck, &
+            glide_thck_index, glide_calclsrf
 
   ! debugging Picard iteration
   integer, private, parameter :: picard_unit=101
@@ -74,7 +70,7 @@ contains
     implicit none
     type(glide_global_type) :: model
 
-!WHL - Removed this array
+      ! Removed this messy array
 !!    model%solver_data%fc2 = (/ model%numerics%alpha * model%numerics%dt / (2.0d0 * model%numerics%dew * model%numerics%dew), &
 !!                               model%numerics%dt,                                   &
 !!                               (1.0d0 - model%numerics%alpha) / model%numerics%alpha, &
@@ -93,7 +89,7 @@ contains
 
     ! allocate memory for ADI scheme
 
-    if (model%options%whichevol==1) then
+    if (model%options%whichevol == EVOL_ADI) then
        allocate(model%thckwk%alpha(max(model%general%ewn, model%general%nsn)))
        allocate(model%thckwk%beta (max(model%general%ewn, model%general%nsn)))
        allocate(model%thckwk%gamma(max(model%general%ewn, model%general%nsn)))
@@ -113,17 +109,11 @@ contains
     use glimmer_paramets, only: GLC_DEBUG
     use glide_grid_operators, only: glide_geometry_derivs
 
-!WHL - debug
-    use glimmer_paramets, only: tim0, scyr
-
     implicit none
 
     ! subroutine arguments
     type(glide_global_type) :: model
     logical, intent(in) :: newtemps                     !*FD true when we should recalculate Glen's A
-
-!WHL - debug
-    integer :: j
 
     if (model%geometry%empty) then
 
@@ -168,33 +158,12 @@ contains
                             model%geomderv%dusrfdew, model%geomderv%dusrfdns,  &
                             model%velocity%diffu)
 
-!WHL - debug
-       print*, 'call thck_evolve'
-
-    print*, ' '
-    print*, 'mask:'
-    do j = model%general%nsn, 1, -1
-       write(6,'(28i4)') model%geometry%thck_index(4:31,j)
-    enddo
-
-    print*, ' '
-    print*, 'acab *dt :'
-    do j = model%general%nsn, 1, -1
-       write(6,'(28f6.2)') thk0 * model%climate%acab(4:31,j) * model%numerics%dt
-    enddo
-
         ! get new thicknesses
 
         call thck_evolve(model,    &
                          model%velocity%diffu, model%velocity%diffu, &
                          .true.,   &
                          model%geometry%thck,  model%geometry%thck)
-
-    print*, ' '
-    print*, 'thck:'
-    do j = model%general%nsn, 1, -1
-       write(6,'(28f6.2)') thk0 * model%geometry%thck(4:31,j)
-    enddo
 
 !--- MJH: Since the linear evolution uses a diffusivity based on the old geometry, the
 !    velocity calculated here will also be based on the old geometry.  If it is
@@ -317,14 +286,6 @@ contains
        model%thckwk%oldthck2 = model%geometry%thck
 
        do p = 1, pmax
-          !EIB moved! model%thckwk%oldthck2 = model%geometry%thck
-
-!WHL: Here I replaced a call to geometry_derivs (used by the glam dycore)
-!      with a call to glide_geometry derivs, which in turn calls
-!      stagvarb and geomders as in the old Glide code.
-!     Note that stagvarb includes zero thickness values in ice-free cells
-!      when computing averages, but stagthickness (used by glam) does not.
-!     Answers are now in agreement with old Glide.
 
           ! update stagthck, dusrfdew/dns, dthckdew/dns
 
@@ -448,7 +409,6 @@ contains
     !*FD set up sparse matrix and solve matrix equation to find new ice thickness distribution
     !*FD this routine does not override the old thickness distribution
 
-    use glide_setup, only: glide_calclsrf
     use glimmer_global, only : dp
     use glimmer_log
     use glimmer_paramets, only: vel0, thk0, GLC_DEBUG
@@ -495,7 +455,7 @@ contains
 
     ! Boundary Conditions ---------------------------------------------------------------
 
-!LOOP - BCs are for scalar points in outer layer of cells
+    ! BCs are for scalar points in outer layer of cells
 
     ! north and south BC
 
@@ -524,8 +484,6 @@ contains
        end if
 
     end do
-
-!TODO - Remove periodic option?
 
     ! east and west BC
 
@@ -576,8 +534,6 @@ contains
     end if   ! periodic_ew
 
     ! ice interior -------------------------------------------------------------------------
-
-!LOOP - all scalars except for outer layer
 
     do ns = 2,model%general%nsn-1
        do ew = 2,model%general%ewn-1
@@ -673,10 +629,6 @@ contains
                                              + model%geometry%lsrf(ew,nsp) * sumd(4)) &
             + model%climate%acab(ew,ns) * model%numerics%dt
 
-!WHL - This piece of code was inadvertently removed from the LANL/seacism branch a while ago. 
-!TODO - Run a test (EISMINT-2?) with this option turned on.  
-!       The default is basal_mbal = 0 (basal melt rate not included in continuity equation).
-
          if (model%options%basal_mbal==1) then   ! basal melt rate included in continuity equation
              model%solver_data%rhsd(model%geometry%thck_index(ew,ns)) =                     &
                    model%solver_data%rhsd(model%geometry%thck_index(ew,ns))                 &
@@ -737,8 +689,6 @@ contains
 
 !WHL - This subroutine used to be called glide_maskthck and located in its own module, 
 !       but I put it in glide_thck.F90 since it is used only for the glide thickness calculation. 
-!      Removed thklim from the argument list (best to have threshold of 0.0)
-!      Removed dom from argument list (not used anywhere)
 
   subroutine glide_thck_index(thck,             acab,  &
                               thck_index,       totpts,  &
@@ -834,9 +784,6 @@ contains
       real(dp),dimension(:,:),intent(in) :: ca 
       real(sp),               intent(in) :: cb
 
-!WHL - As in old glide, use 0.0 rather than thklim as the threshold.  
-!      With thklim > 0, we will prevent ice from accumulating in regions with 
-!       a small positive mass balance.
 
 !TODO - Is there any case in which we would not want to include adjacent cells
 !       in the mask for the thickness calculation?
@@ -846,7 +793,6 @@ contains
         ! Include only points with ice in the mask
         ! ca(2,2) corresponds to the current (ew,ns)
  
-!!        if ( ca(2,2) > thklim .or. cb > thklim) then
         if ( ca(2,2) > 0.d0 .or. cb > 0.d0) then
           thckcrit = .true.
         else
@@ -860,7 +806,6 @@ contains
         ! This means that the mask includes points that have no
         ! ice but are adjacent to points that do have ice
 
-!!        if ( any((ca(:,:) > thklim)) .or. cb > thklim ) then
         if ( any((ca(:,:) > 0.d0)) .or. cb > 0.d0 ) then
           thckcrit = .true.
         else
@@ -873,72 +818,6 @@ contains
 
   end subroutine glide_thck_index
 
-!---------------------------------------------------------------------------------
-
-!TODO - This subroutine is not used.  Remove it?
-
-  subroutine filterthck(thck,ewn,nsn)
-
-    use glimmer_global, only : dp ! ew, ewn, ns, nsn
-
-    implicit none
-
-    real(dp), dimension(:,:), intent(inout) :: thck
-    real(dp), dimension(:,:), allocatable :: smth
-    integer :: ewn,nsn
-
-    real(dp), parameter :: f = 0.1d0 / 16.0d0
-    integer :: count
-    integer :: ns,ew
-
-    allocate(smth(ewn,nsn))
-    count = 1
-
-    do ns = 3,nsn-2
-      do ew = 3,ewn-2
-
-        if (all((thck(ew-2:ew+2,ns) > 0.0d0)) .and. all((thck(ew,ns-2:ns+2) > 0.0d0))) then
-          smth(ew,ns) =  thck(ew,ns) + f * &
-                        (thck(ew-2,ns) - 4.0d0 * thck(ew-1,ns) + 12.0d0 * thck(ew,ns) - &
-                         4.0d0 * thck(ew+1,ns) + thck(ew+2,ns) + &
-                         thck(ew,ns-2) - 4.0d0 * thck(ew,ns-1) - &
-                         4.0d0 * thck(ew,ns+1) + thck(ew,ns+2))
-          count = count + 1
-        else
-          smth(ew,ns) = thck(ew,ns)
-        end if
-
-      end do
-    end do
-
-    thck(3:ewn-2,3:nsn-2) = smth(3:ewn-2,3:nsn-2)
-    print *, count
-
-    deallocate(smth)            
-
-  end subroutine filterthck
-
-!----------------------------------------------------------------------
-
-!TODO - This subroutine is not used.  Remove it?
-
-  subroutine swapbndh(bc,a,b,c,d)
-
-    use glimmer_global, only : dp
-
-    implicit none
-
-    real(dp), intent(out), dimension(:) :: a, c
-    real(dp), intent(in), dimension(:) :: b, d
-    integer, intent(in) :: bc
-
-    if (bc == 0) then
-      a = b
-      c = d
-    end if
-
-  end subroutine swapbndh
-
   !-----------------------------------------------------------------------------
   ! ADI routines
   !-----------------------------------------------------------------------------
@@ -949,9 +828,7 @@ contains
     !*FD diffusivities are updated for each half time step
 
     !TODO The ADI scheme has not been checked for consistency with the new time-stepping convention.  
-    !     If it is retained, that should be done.
 
-    use glide_setup, only: glide_calclsrf
     use glide_velo
     use glimmer_utils, only: tridiag
     use glimmer_paramets, only: GLC_DEBUG
@@ -1162,9 +1039,101 @@ contains
 
   end subroutine adi_tri
 
+!-------------------------------------------------------------------------
+
+  subroutine glide_calclsrf(thck,topg,eus,lsrf)
+
+    ! Calculates the elevation of the lower surface of the ice, 
+    ! by considering whether it is floating or not.
+    !
+    ! NOTE: This subroutine computes over all grid cells, not just locally owned.
+    !       Halos should be updated before it is called.
+
+    use glimmer_global, only : dp
+    use glimmer_physcon, only : rhoi, rhoo
+
+    implicit none
+
+    real(dp), intent(in),  dimension(:,:) :: thck !*FD Ice thickness
+    real(dp), intent(in),  dimension(:,:) :: topg !*FD Bedrock topography elevation
+    real, intent(in)                      :: eus  !*FD global sea level
+    real(dp), intent(out), dimension(:,:) :: lsrf !*FD Lower ice surface elevation
+
+    real(dp), parameter :: con = - rhoi / rhoo
+
+    where (topg - eus < con * thck)
+       lsrf = con * thck
+    elsewhere
+       lsrf = topg
+    end where
+
+  end subroutine glide_calclsrf
+
 !---------------------------------------------------------------------------------
 
-!WHL - Removed subroutine geometry_derivs_unstag, which is no longer used.
+!TODO - This subroutine is not used.  Remove it?
+
+  subroutine filterthck(thck,ewn,nsn)
+
+    use glimmer_global, only : dp ! ew, ewn, ns, nsn
+
+    implicit none
+
+    real(dp), dimension(:,:), intent(inout) :: thck
+    real(dp), dimension(:,:), allocatable :: smth
+    integer :: ewn,nsn
+
+    real(dp), parameter :: f = 0.1d0 / 16.0d0
+    integer :: count
+    integer :: ns,ew
+
+    allocate(smth(ewn,nsn))
+    count = 1
+
+    do ns = 3,nsn-2
+      do ew = 3,ewn-2
+
+        if (all((thck(ew-2:ew+2,ns) > 0.0d0)) .and. all((thck(ew,ns-2:ns+2) > 0.0d0))) then
+          smth(ew,ns) =  thck(ew,ns) + f * &
+                        (thck(ew-2,ns) - 4.0d0 * thck(ew-1,ns) + 12.0d0 * thck(ew,ns) - &
+                         4.0d0 * thck(ew+1,ns) + thck(ew+2,ns) + &
+                         thck(ew,ns-2) - 4.0d0 * thck(ew,ns-1) - &
+                         4.0d0 * thck(ew,ns+1) + thck(ew,ns+2))
+          count = count + 1
+        else
+          smth(ew,ns) = thck(ew,ns)
+        end if
+
+      end do
+    end do
+
+    thck(3:ewn-2,3:nsn-2) = smth(3:ewn-2,3:nsn-2)
+    print *, count
+
+    deallocate(smth)            
+
+  end subroutine filterthck
+
+!----------------------------------------------------------------------
+
+!TODO - This subroutine is not used.  Remove it?
+
+  subroutine swapbndh(bc,a,b,c,d)
+
+    use glimmer_global, only : dp
+
+    implicit none
+
+    real(dp), intent(out), dimension(:) :: a, c
+    real(dp), intent(in), dimension(:) :: b, d
+    integer, intent(in) :: bc
+
+    if (bc == 0) then
+      a = b
+      c = d
+    end if
+
+  end subroutine swapbndh
 
 !---------------------------------------------------------------------------------
 

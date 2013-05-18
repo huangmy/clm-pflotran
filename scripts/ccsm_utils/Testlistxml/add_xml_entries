@@ -25,8 +25,8 @@ my %opts = (
     );
 
 GetOptions(
-    "newlist=s"  => \$opts{'newlist'},
-    "h|help"     => \$opts{'help'},
+    "file=s" => \$opts{'file'},
+    "h|help" => \$opts{'help'},
     );
 
 if (@ARGV) {
@@ -41,7 +41,7 @@ usage() if $opts{'help'};
 # Parse the newlist file and add those entries to testlist.xml
 my $parser = XML::LibXML->new;
 
-my $newlist = $parser->parse_file("$opts{'newlist'}");
+my $newlist = $parser->parse_file("$opts{'file'}");
 my $rootnew = $newlist->getDocumentElement();
 
 my $testlist = $parser->parse_file("testlist.xml");
@@ -199,10 +199,16 @@ my $fh = IO::File->new('temp.xml', '>' ) or die "can't open file: temp.xml\n";
 print $fh $testlist->toString;
 $fh->close;
 
-my $sysmod = 'xmllint --format temp.xml --output testlist_new.xml';
+#my $sysmod = 'xmllint --format temp.xml --output testlist_new.xml';
+#system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
+
+my $sysmod = 'perl sort_file.pl -testlist temp.xml';
 system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 
 unlink('temp.xml');
+
+print " Successfully created new file testlistnew.xml \n";
+print " Examine this file - and if it looks acceptable overwrite the testlist.xml file with this file \n";
 
 exit 0;
 
@@ -226,8 +232,8 @@ OPTIONS
      or double leading dashes.  A consequence of this is that single letter options may
      NOT be bundled.
 
-     -newlist  <name>    New list of xml tests that will be merged with "testlist.xml"
-     -help [or -h]       Print usage to STDOUT (optional).
+     -file  <name>    New list of xml tests that will be merged with "testlist.xml"
+     -help [or -h]    Print usage to STDOUT (optional).
 EOF
 }
 

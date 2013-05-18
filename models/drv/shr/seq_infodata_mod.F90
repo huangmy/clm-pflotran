@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_infodata_mod.F90 45596 2013-04-03 23:20:00Z mlevy@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_29/shr/seq_infodata_mod.F90 $
+! SVN $Id: seq_infodata_mod.F90 46244 2013-04-23 16:51:27Z santos@ucar.edu $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/shr/seq_infodata_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -532,13 +532,8 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
 
        infodata%atm_present = .true.
        infodata%lnd_present = .true.
-       if (single_column) then
-          infodata%rof_present = .false.
-          infodata%flood_present = .false.
-       else
-          infodata%rof_present = .true.
-          infodata%flood_present = .true.
-       end if 
+       infodata%rof_present = .true.
+       infodata%flood_present = .true.
        infodata%ocn_present = .true.
        infodata%ice_present = .true.
        infodata%glc_present = .true.

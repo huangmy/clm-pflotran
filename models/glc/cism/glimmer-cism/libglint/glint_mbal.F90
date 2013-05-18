@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glint_mbal.f90 - part of the Glimmer-CISM ice model      + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glint_mbal.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -33,14 +30,14 @@
 
 module glint_mbal
 
-  use glimmer_pdd
-  use glimmer_daily_pdd
   use glimmer_global
+  use glint_pdd
+  use glint_daily_pdd
 
-#ifdef USE_ENMABAL
-  use smb_mecons
+#ifdef USE_ENMABAL  ! This option is *not* suppported
+  use smb_mecons       ! might exist somewhere, but not part of a Glint release
 #else
-  use smb_dummy
+  use glint_ebm        ! dummy wrapper
 #endif
 
   implicit none
@@ -48,9 +45,9 @@ module glint_mbal
   !*FD Unified wrapper for different mass-balance codes
 
   type glint_mbal_params
-     type(glimmer_pdd_params),      pointer :: annual_pdd => null() !*FD Pointer to annual PDD params
-     type(glimmer_daily_pdd_params),pointer :: daily_pdd => null()  !*FD Pointer to daily PDD params
-     type(smb_params),              pointer :: smb => null()        !*FD Pointer to SMB params
+     type(glint_pdd_params),      pointer :: annual_pdd => null() !*FD Pointer to annual PDD params
+     type(glint_daily_pdd_params),pointer :: daily_pdd => null()  !*FD Pointer to daily PDD params
+     type(ebm_params),            pointer :: ebm => null()        !*FD Pointer to EBM params
      integer :: which !*FD Flag for chosen mass-balance type
      integer :: tstep !*FD Timestep of mass-balance scheme in hours
   end type glint_mbal_params
@@ -68,8 +65,8 @@ contains
     type(glint_mbal_params)      :: params !*FD parameters to be initialised
     type(ConfigSection), pointer :: config !*FD structure holding sections of configuration file
     integer,intent(in)           :: which  !*FD selector for pdd type
-    integer                      :: nx,ny  !*FD grid dimensions (for SMB)
-    real(rk)                     :: dxr    !* Grid length (for SMB)
+    integer                      :: nx,ny  !*FD grid dimensions (for EBM)
+    real(rk)                     :: dxr    !* Grid length (for EBM)
 
     ! Copy selector
 
@@ -79,29 +76,28 @@ contains
 
     if (associated(params%annual_pdd)) deallocate(params%annual_pdd)
     if (associated(params%daily_pdd))  deallocate(params%daily_pdd)
-    if (associated(params%smb))        deallocate(params%smb)
+    if (associated(params%ebm))        deallocate(params%ebm)
 
     ! Allocate desired type and initialise
     ! Also check we have a valid value of which
 
     select case(which)
     ! Note: Mass balance timestep and accum time are typically assumed to be one year.
-!lipscomb - TO DO - Allow mbal accum time to be set in config file, so we can do 5-day smoke tests.
     case(0)
        params%tstep=years2hours   ! mbal tstep = 1 year
     case(1)
        allocate(params%annual_pdd)
-       call glimmer_pdd_init(params%annual_pdd,config)
+       call glint_pdd_init(params%annual_pdd,config)
        params%tstep=years2hours
     case(2)
        params%tstep=years2hours
     case(3)
-       allocate(params%smb)
+       allocate(params%ebm)
        params%tstep=6
-       call SMBInitWrapper(params%smb,nx,ny,nint(dxr),params%tstep*60,'/data/ggdagw/src/smb/smb_config/online')
+       call EBMInitWrapper(params%ebm,nx,ny,nint(dxr),params%tstep*60,'/data/ggdagw/src/ebm/ebm_config/online')
     case(4)
        allocate(params%daily_pdd)
-       call glimmer_daily_pdd_init(params%daily_pdd,config)
+       call glint_daily_pdd_init(params%daily_pdd,config)
        params%tstep=days2hours
     case default
        call write_log('Invalid value of whichacab',GM_FATAL,__FILE__,__LINE__)
@@ -137,13 +133,13 @@ contains
 
     select case(params%which)
     case(1)
-       call glimmer_pdd_mbal(params%annual_pdd,artm,arng,prcp,ablt,acab,landsea) 
+       call glint_pdd_mbal(params%annual_pdd,artm,arng,prcp,ablt,acab,landsea) 
     case(2) 
        acab = prcp
     case(3)
        ! The energy-balance model will go here...
        ! NB SLM will be thickness array...
-       call SMBStepWrapper(params%smb,acab_temp,thck,real(artm,rk),real(prcp*1000.0,rk),U10m,V10m,humidity,SWdown,LWdown,Psurf)
+       call EBMStepWrapper(params%ebm,acab_temp,thck,real(artm,rk),real(prcp*1000.0,rk),U10m,V10m,humidity,SWdown,LWdown,Psurf)
        acab=acab_temp
        acab=acab/1000.0  ! Convert to metres
        ablt=prcp-acab    ! Construct ablation field (in m)
@@ -155,10 +151,12 @@ contains
           siced=0.0
        end where
     case(4)
-       call glimmer_daily_pdd_mbal(params%daily_pdd,artm,arng,prcp,snowd,siced,ablt,acab,landsea)
+       call glint_daily_pdd_mbal(params%daily_pdd,artm,arng,prcp,snowd,siced,ablt,acab,landsea)
     end select
 
   end subroutine glint_mbal_calc
+
+  !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   logical function mbal_has_snow_model(params)
 
@@ -171,5 +169,7 @@ contains
     end if
 
   end function mbal_has_snow_model
+
+  !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 end module glint_mbal

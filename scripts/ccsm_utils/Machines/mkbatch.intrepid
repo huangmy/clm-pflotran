@@ -125,7 +125,7 @@ echo "mode   = \${mode}"
 
 cd \$RUNDIR
 echo "\`date\` -- CSM EXECUTION BEGINS HERE"
-cobalt-mpirun -np  \${ntasks} -mode \${mode} -verbose 2 -cwd \`pwd\` -env "XLSMPOPTS=stack=64000000 OMP_NUM_THREADS=\${mthrds} DCMF_COLLECTIVES=1 BG_MAPPING=TXYZ LOGNAME=\$USER" \$EXEROOT/cesm.exe
+cobalt-mpirun -np  \${ntasks} -mode \${mode} -verbose 2 -cwd \`pwd\` -env "XLSMPOPTS=stack=64000000 OMP_NUM_THREADS=\${mthrds} DCMF_COLLECTIVES=1 BG_MAPPING=TXYZ LOGNAME=\$USER" \$EXEROOT/cesm.exe >&! cesm.log.\$LID
 echo "\`date\` -- CSM EXECUTION HAS FINISHED" 
 
 unsetenv COBALT_JOBID 

@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_scales.f90 - part of the Glimmer-CISM ice model  + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glimmer_scales.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -42,14 +39,20 @@ module glimmer_scales
   real(dp) :: scale_uvel, scale_uflx, scale_diffu, scale_acab, scale_wvel, scale_btrc 
   real(dp) :: scale_beta, scale_flwa, scale_tau, scale_efvs
 
+  !WHL - Added this factor simply to flip the sign of bheatflx.  Typically, this flux has
+  !      a sign convention of positive up in input data, but the Glimmer-CISM convention
+  !      is positive down.
+  !TODO - Change the sign convention of bheatflx to positive up?
+  !       This would require changes in several modules.
+
+  real(dp) :: scale_bflx
+ 
 contains
 
-!SCALING - Removed the scale factors that were not used and renamed the rest.
-!          Can simplify these if thk0, etc. are removed from code.
-!          If code is entirely in SI units, then the scale factor scyr
-!           will convert m/s to m/yr, etc.
-!TODO    - Use the same scale for btrc (SIA) and beta (HO)?
-!          Consolidate scale_acab and scale_wvel into a single scale?
+!TODO - CCan simplify these if thk0, etc. are removed from code.
+!       If the dycore variables are stricly in SI units, we will probably
+!        want to retain the scale factor scyr to convert m/s to m/yr, etc.
+!TODO - Use the same scale for btrc (SIA) and beta (HO)?
 
   subroutine glimmer_init_scales
 
@@ -76,8 +79,9 @@ contains
     scale_flwa  = scyr * vis0                     ! flwa
     scale_tau   = tau0                            ! tauf, tauxz, btractx
     scale_efvs  = evs0 / scyr                     ! efvs
-
+    scale_bflx  = -1.d0                           ! bheatflx (Glimmer-CISM sign convention is positive down,
+                                                  !           whereas input data usually assumes positive up)
+ 
   end subroutine glimmer_init_scales
 
 end module glimmer_scales
-

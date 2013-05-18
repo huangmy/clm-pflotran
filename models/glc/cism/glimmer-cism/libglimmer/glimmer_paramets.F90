@@ -1,32 +1,29 @@
 
-! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                            +
-! +  glimmer_paramets.f90 - part of the Glimmer-CISM ice model + 
-! +                                                            +
-! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glimmer_paramets.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -43,10 +40,12 @@ module glimmer_paramets
 
 !WHL - logical parameter for code testing
 !      If oldglide = T, the glide dycore will reproduce
-!      (within single-precision roundoff) the results
+!      (within roundoff error) the results
 !      of Glimmer 1.0.18 for the dome and EISMINT-2 test cases.
 
+  !TODO - Remove this parameter when comparisons are done
   logical, parameter :: oldglide = .false.
+!  logical, parameter :: oldglide = .true.
 
 !TODO - redundant output units  
 !           It is redundant to define both stdout (which is public) and 
@@ -58,27 +57,17 @@ module glimmer_paramets
 
   integer :: stdout = 6
 
-!TODO - Make the diagnostic points parallel-friendly.
-!       E.g., choose desired global indices on standard Greenland 5-km grid,
-!        and convert to local indices on a particular processor at run-time.
-
-! some parameters for debugging and diagnostics
-   integer, parameter ::   &
-      itest = 133, jtest = 84,  &          ! in Greenland (FV2), lat 67.3 N, lon 330 E
-                  jjtest = 97 - jtest,  &  ! reversed for N to S indexing (FV2, ny = 96)
-      itest_local = 60, jtest_local = 54   ! Greenland 20 deg grid, initial usrf = 491 m
-
 ! logical flag to turn on special DEBUG output (related to test points), false by default
-   logical :: GLC_DEBUG = .false.
 
-!SCALING - I removed the no_rescale option.
-!          Now the basic parameters are set to the no_rescale values by default.
-!
-!          Further simplification is possible.  
-!          If tau0 is redefined in the code in terms of rhoi and grav,
+  logical :: GLC_DEBUG = .false.
+
+!TODO: Remove these scaling parameters, here and elsewhere in the code.
+!      Would like to have all dycore variables and parameters in SI units.
+
+!          Note: If tau0 is redefined in the code in terms of rhoi and grav,
 !          then all the scaling parameters can be written in terms of scyr.
 !
-!          If we are willing to have velocity units of m/s instead of m/y, 
+!          If we have velocity units of m/s instead of m/y, 
 !          we can get rid of scyr too and set all parameters to 1.0, then 
 !          remove them from the code.
 !          
@@ -88,23 +77,18 @@ module glimmer_paramets
 
 ! The fundamental scaling parameters are thk0, len0, and vel0. The others are derived from these.
 
-!SCALING - WHL, 10 June 2012 - Reverted to the old values of thk0, len0, vel0 for now.
-! To use the new scaling parameters, simply comment out the old values and uncomment the new.
-
 !SCALING - DFM, 2, Oct 2012 - made scaled vs. unscaled values for thk0, len0, 
 ! and vel0 switchable by the reconstituted NO_RESCALE compilation flag. 
 ! (necessary to be compatible with alternate dycores) 
 
 #ifndef NO_RESCALE
-! The following are the old Glimmer scaling parameters. These are now deprecated.
+! The following are the old Glimmer scaling parameters. These are to be deprecated.
   real(dp), parameter :: thk0 = 2000.0d0        ! m 
   real(dp), parameter :: len0 = 200.0d3         ! m 
   real(dp), parameter :: vel0 = 500.0 / scyr    ! m yr^{-1} converted to S.I. units
 !!  real(dp), parameter :: vis0 = 5.70d-18 / scyr  ! yr^{-1} Pa^{-3} converted to S.I. units
 #else
 ! (no rescaling)
-! The following are the new Glimmer-CISM scaling parameters:
-
   real(dp), parameter :: thk0 = 1.d0        ! no scaling of thickness
   real(dp), parameter :: len0 = 1.d0        ! no scaling of length
   real(dp), parameter :: vel0 = 1.d0 / scyr ! yr * s^{-1}  
@@ -116,7 +100,7 @@ module glimmer_paramets
   !Note: Both the SIA and HO solvers fail unless tim0 = len0/vel0. Not sure if this can be changed.
   !      With the above scaling, tim0 = scyr.
   real(dp), parameter :: tim0 = len0 / vel0          ! s
-  real(dp), parameter :: acc0 = thk0 * vel0 / len0   ! same units as velo
+  real(dp), parameter :: acc0 = thk0 * vel0 / len0   ! m s^{-1}
 
 !TODO - With thk0 = 1, can replace tau0 by rhoi*grav in code and remove stress scaling.
 !       Similarly can redefine vis0 and evs0
@@ -126,10 +110,7 @@ module glimmer_paramets
   real(dp), parameter :: evs0 = tau0 / (vel0/len0)          ! eff. visc. scale in GLAM ( Pa s )
   real(dp), parameter :: vis0 = tau0**(-gn) * (vel0/len0)   ! rate factor scale in GLAM ( Pa^-3 s^-1 )
 
-!SCALING - Looking ahead, it would be possible to use the following set of scaling parameters.
-!          If tau0 were replaced by rhoi*grav, all parameters would be defined in terms of scyr.
-!          I.e., we would rescale seconds to years and leave everything else in original units. 
-!          We could remove these scaling parameters from the code and replace them with scyr as appropriate.
+!SCALING - This is the scaling we would use if we had velocity in m/yr and thk0 = len0 = 0.
 !  real(dp), parameter :: thk0 = 1.d0
 !  real(dp), parameter :: len0 = 1.d0
 !  real(dp), parameter :: vel0 = 1.d0 / scyr

@@ -564,7 +564,9 @@ end subroutine shr_scam_getCloseLatLonFile
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, lnd_present, ocn_present, ice_present)
+subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, &
+     lnd_present, sno_present, ocn_present, ice_present, &
+     rof_present, flood_present)
 
 ! !USES:
    use shr_dmodel_mod    ! shr data model stuff
@@ -578,9 +580,12 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, lnd_pre
    real(R8),                     intent(in)  :: scmlon,scmlat ! single column lat lon
    integer(IN),                  intent(in)  :: ocn_compid   ! id for ocean model  
    integer(IN),                  intent(in)  :: ocn_mpicom   ! mpi communicator for ocean  
-   logical,            optional, intent(out) :: lnd_present  ! land point
-   logical,            optional, intent(out) :: ice_present  ! ice point
-   logical,            optional, intent(out) :: ocn_present  ! ocean point
+   logical,            optional, intent(inout) :: lnd_present  ! land point
+   logical,            optional, intent(inout) :: sno_present  ! land doing sno
+   logical,            optional, intent(inout) :: ice_present  ! ice point
+   logical,            optional, intent(inout) :: ocn_present  ! ocean point
+   logical,            optional, intent(inout) :: rof_present  ! land point with rof
+   logical,            optional, intent(inout) :: flood_present  ! rof doing flood
 
 !EOP
 
@@ -603,8 +608,10 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, lnd_pre
    logical                 :: docn_exists           ! flag if file exists locally
    logical                 :: ocn_exists            ! flag if file exists locally
    logical                 :: exists            ! flag if file exists locally
-   logical                 :: aqua_planet      ! flags
-   logical                 :: single_column    ! flags
+
+   ! Whether the grid point is over ocn or land (or both).
+   logical                 :: ocn_point
+   logical                 :: lnd_point
 
    !----- formats -----
    character(*),parameter :: subname = "(shr_scam_checkSurface) "
@@ -659,10 +666,9 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, lnd_pre
       end if
 
       !--- Set the appropriate surface flags based on ocean fraction.
-   
-      if ( present(ocn_present)      )                      ocn_present=(ocn_frac(1,1).gt.0.)
-      if ( present(ocn_present).and.present(ice_present))   ice_present=ocn_present
-      if ( present(lnd_present))                            lnd_present=(ocn_frac(1,1).lt.1.)
+
+      ocn_point = (ocn_frac(1,1) > 0._r8)
+      lnd_point = (ocn_frac(1,1) < 1._r8)
    else if (docn_exists) then
       !--- read in the ocn_in namelist to get name for focndomain file
 
@@ -682,17 +688,28 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, lnd_pre
            SCAMSDAT%domainfile, ocn_compid, ocn_mpicom, '1d', readfrac=.true., &
            scmmode=.true.,scmlon=scmlon,scmlat=scmlat)
       nfrac = mct_aVect_indexRA(SCAMSDAT%grid%data,'frac')
-      if ( present(ocn_present)      )                      ocn_present=(SCAMSDAT%grid%data%rAttr(nfrac,1).gt.0.)
-      if ( present(ocn_present).and.present(ice_present))   ice_present=ocn_present
-      if ( present(lnd_present))                            lnd_present=(SCAMSDAT%grid%data%rAttr(nfrac,1).lt.1.)
+
+      ocn_point = (SCAMSDAT%grid%data%rAttr(nfrac,1) > 0._r8)
+      lnd_point = (SCAMSDAT%grid%data%rAttr(nfrac,1) < 1._r8)
       call mct_ggrid_clean(SCAMSDAT%grid)
       call mct_gsmap_clean(SCAMSDAT%gsmap)
    else
    ! Exit early if no ocn component
-      if ( present(ocn_present) ) ocn_present=.false.
-      if ( present(ice_present) ) ice_present=.false.
-      if ( present(lnd_present) ) lnd_present=.true.
+      ocn_point = .false.
+      lnd_point = .true.
    end if
+
+   ! If land is on but point is not over land, turn it off.
+   if (present(lnd_present))   lnd_present   = lnd_present .and. lnd_point
+   if (present(sno_present))   sno_present   = sno_present .and. lnd_point
+
+   ! If ocean is on but point is not over ocean, turn it off.
+   if (present(ocn_present))   ocn_present   = ocn_present .and. ocn_point
+   if (present(ice_present))   ice_present   = ice_present .and. ocn_point
+
+   ! Always turn rof off.
+   if (present(rof_present))   rof_present   = .false.
+   if (present(flood_present)) flood_present = .false.
 
 end subroutine shr_scam_checkSurface
 

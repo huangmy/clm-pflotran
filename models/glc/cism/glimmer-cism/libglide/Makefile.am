@@ -2,30 +2,31 @@ lib_LTLIBRARIES = libglide.la
 bin_PROGRAMS  =  
 check_PROGRAMS = test_setup
 
-variable_DATA = glide_vars.def glide_lithot_vars.def time_vars.def
+variable_DATA = glide_vars.def time_vars.def
 variabledir = $(pkgdatadir)
 dist_variable_DATA = $(variable_DATA)
 
 nodist_include_HEADERS := $(wildcard *.mod)
 EXTRA_DIST = f90_dep.mak $(RESTART_INC_INS)
-BUILT_SOURCES = glide_io.F90  glide_lithot_io.F90
+BUILT_SOURCES = glide_io.F90
 CLEANFILES = $(BUILT_SOURCES) f90_dep.mak $(wildcard *.mod)
 
-libglide_la_SOURCES = glide.F90 glide_setup.F90 glide_types.F90 res_vect.F90 \
+libglide_la_SOURCES = glide.F90 glide_types.F90 glide_setup.F90 \
                       glide_temp.F90 glide_thck.F90 glide_velo.F90 \
-		      glide_grid_operators.F90 glide_mask.F90 \
-                      glide_stop.F90 glide_io.F90 glide_lithot_io.F90 glide_nc_custom.F90 \
-                      isostasy.F90 isostasy_el.F90 isostasy_setup.F90 \
-                      isostasy_types.F90 glide_lithot.F90 glide_lithot3d.F90 \
-                      glide_lithot1d.F90 glide_profile.F90 glide_diagnostics.F90 \
-                      glimmer_routing.F90 glimmer_ncio.F90 glimmer_ncparams.F90 \
-		      glam_strs2.F90 glam_grid_operators.F90 glide_mask.F90 glide_nonlin.F90 \
-                      glide_stress.F90 glide_ground.F90 glide_vertint.F90 xls.f90 \
-		      glide_mask.inc glide_nan.inc glide_bwater.F90 \
+		      glide_grid_operators.F90 glide_mask.F90 glide_nonlin.F90 \
+                      glide_stop.F90 glide_profile.F90 glide_diagnostics.F90 \
+                      glide_nc_custom.F90 glimmer_ncio.F90 glimmer_ncparams.F90 \
+                      glide_io.F90 \
+                      glide_lithot.F90 glide_lithot3d.F90 glide_lithot1d.F90 \
+                      isostasy.F90 isostasy_elastic.F90 \
+                      glide_bwater.F90 glide_ground.F90 \
+		      glam_strs2.F90 glam_grid_operators.F90 \
+                      glide_stress.F90 glide_vertint.F90 xls.f90 \
+		      glide_mask.inc glide_nan.inc \
                       glimmer_restart_gcm.F90 \
                       glissade.F90 glissade_velo.F90 glissade_temp.F90 \
                       glissade_remap.F90 glissade_transport.F90 \
-                      glissade_velo_higher.F90 fgmresD.f90
+                      glissade_velo_higher.F90 
 
 libglide_la_LDFLAGS=-all-static
 

@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: smooth_mod.F90 44128 2013-02-22 15:43:14Z mlevy@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130403/gen_mapping_files/runoff_to_ocn/src/smooth_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/runoff_to_ocn/src/smooth_mod.F90 $
 !===============================================================================
 
 MODULE smooth_mod

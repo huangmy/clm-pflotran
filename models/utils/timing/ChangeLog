@@ -1,8 +1,10 @@
+timing_130417: Made nano time the default timer if available.
+timing_130316: Changed declarations of functions used in qsort in gptl.c, to eliminate
+	       error with Cray compiler (and warnings from other compilers)
+               [Patrick Worley]
 timing_130214: NAG port: Put mpif.h include before "save", and don't use
 	       "abort" and "flush" extensions for NAG. [Sean Patrick Santos]
 timing_120921: Add code for cmake build, should not have any affect otherwise
-timing_120803: Bug fix in setting timing_detail_limit default.
-               [Patrick Worley]
 timing_120731: Correction in Makefile for serial build [Jim Edwards]
 timing_120728: Replace process subset optional parameter in t_prf with 
 	       outpe_thispe optional parameter. Change def_perf_outpe_num to 0. 

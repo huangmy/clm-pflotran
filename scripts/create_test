@@ -20,11 +20,10 @@ use Data::Dumper;
 #-----------------------------------------------------------------------------------------------
 my $ProgName = basename($0);
 my $ProgDir = $1;
-my $cwd;
+my $cwd = getcwd;
 my $cfgdir;
 my $scriptsroot;
 my $ccsmroot;
-my $testlistsubdir;
 my $testlistsubdirxml;
 my $testlid; 
 my $suitemode = 0;
@@ -46,7 +45,7 @@ SYNOPSIS
 
     Options:
       [-autosubmit        on|off]
-      [-baselineroot      on|off]
+      [-baselineroot      path to baslineroot]
       [-cesmroot          alternate_cesmroot]
       [-clean             on|off]
       [-compiler          compiler]
@@ -62,26 +61,40 @@ SYNOPSIS
       [-pes_file          specified_pes_file]
       [-reruntests        are_tests_rerunnable ]
       [-testroot          root_directory_for_testsuite]
-      [-testid            testid]
+      [-testid            unique_identifier_for_tests]
       [-testname          name_of_single_test]
       [-user_nl_dir       user_namelist_directories]
       [-verbose           verbose]
-      [-xml_list          list_of_tests (new xml format)]
+      [-xml_list          list_of_tests (new xml format), default is $scriptsroot/ccsm_utils/Testlistxml/testlist.xml]
       [-xml_mach          target machine for xml list of tests]
       [-xml_compiler      target compiler for xml list of tests]
       [-xml_category      one of prealpha,prebeta or prerelease]
 
 REQUIRED ARGUMENTS:
 
-      -input_list <file>    File name of a list of tests to be run.
-                            If the full path is not given, the test 
-                            list will be searched for in $testlistsubdir.
-                            If not found there, then the current working
-                            directory will be searched for the test list. 
-  
+      If creating a single test:
+
       -testname <TESTNAME>  The name of the single test to be created. 
                             Should be in the form of TESTNAME_[TESTOPTIONS].grid.compset[.machine[_compiler]]
 
+      If creating a test suite, the following options MUST be specified:
+      
+      For using the xml-based test lists: 
+
+      -xml_mach     <MACHINE>   The name of the machine the test suite is to be run on. 
+								To run tests for EVERY machine in testlist.xml, 'all'
+                                can be specified. 
+
+      -xml_compiler <COMPILER>  The name of the compiler that the suite is to be built with.  
+
+      -xml_category <CATEGORY>  The 'category' of the test suite being run.  Usually something like
+								prealpha, prebeta, prerelease, aux_clm, etc. 
+
+      For using the legacy text-based test lists:
+   
+      -input_list <textfile>    A text file with lists of tests, one on each line. We no longer provide 
+								text-based test lists, and users are encouraged to use the xml-based test 
+                                system. 
 OPTIONS:
 
       -autosubmit [on|off]  Flag that controls whether the tests are automatically submitted to the batch queueing system. 
@@ -106,17 +119,21 @@ OPTIONS:
 
       -generate <name>     Specify the directory under baselineroot where baselines will be stored.  
 
-      -input_list <name>   Specify a list of tests to be run.  This list can be in the current working directory, 
-                           in $scriptsroot/ccsm_utils/Testlists, or a full path 
-                           can be specified.  
+      -input_list <name>   Specify a list of tests to be run.  This is to be used with the legacy text-based test lists. 
+						   This list can be in the current working directory, in $scriptsroot/ccsm_utils/Testlists, 
+ 						   or a full path can be specified.  
 
       -mach  <name>        Specify the name of the machine.  If the machine name is in a format such as
                            yellowstone_intel, then this means that the machine and compiler have been specified
       
-      -nlcompareonly       Create a test to compare namelists only 
+      -nlcompareonly       Create a suite of Smoke Build Namelist tests, or a single test.
+                           This is used for internal testing to compare namelists against a set 
+                           of baseline namelists generated using a previous tag.  
 
-      -xml_list <name>     Specify an xml list of tests to be run. This list can ben in the current directory, 
-                           or a full path may be specified. 
+      -xml_list <name>     Specify an xml list of tests to be run. The default test list is 
+                           $scriptsroot/ccsm_utils/Testlistxml/testlist.xml
+						   If desired, an alternate xml-based test list may be specified. 
+                           
 
       -xml_mach <name>     Specify an machine name to parse the xml_list with
  
@@ -129,10 +146,10 @@ OPTIONS:
       -nobatch  [on|off]   Run the tests interactively instead of to the batch queuing system. 
 
       -nobuild  [on|off]   Do not automatically build the tests after creating the test suite. 
-
+      
       -pes_file  <file>    Specify a pes file when creating a single test. 
 
-      -reruntests [on|off] Whether or not the test suite is re-runnable. 
+      -reruntests [on|off] Whether or not the test suite is re-runnable. This is not yet implemented. 
   
       -testroot <dir>      Specify the root directory for a suite of tests.  
 
@@ -151,7 +168,8 @@ OPTIONS:
                            ERS_PT.f19_g16.B1850
                            ERS_PT.f19_g16.B1850.yellowstone_intel
 
-      -user_nl_dir <dir>   For a single test, specify a directory containing user namelists 
+      -user_nl_dir <dir>   Specify a directory containing user namelists, intended for use with single tests.  
+                           For use with test suites, see $scriptsroot/ccsm_utils/Testlistxml/testlist.xml for examples.   
 
       
       This script generates single tests or test suites.  It is the result of merging the functionality of 
@@ -163,22 +181,29 @@ EXAMPLES
    
       Creating test suites: 
 
-      1. create_test -input_list yellowstone_intel.prebeta -testroot ~/yellowstoneprebeta-autosubmit off -nobuild off
+      1. create_test -xml_mach yellowstone -xml_compiler intel -xml_category prelpha -testroot /path/to/testroot -testid alpha01a
 
-      Creates a suite of tests using \$scriptsroot/ccsm_utils/Testlists/yellowstone_intel.prebeta as the test list, 
-      using ~/yellowstoneprebeta.  The machine and compiler are taken from the test list. 
+      Creates a suite of tests configured for Yellowstone, using the Intel compiler, using the prealpha category, 
+	  using /path/to/testroot as the test root, and using alpha01a as the test id. 
 
-      2. create_test -input_list yellowstone_intel.prebeta -testroot ~/yellowstoneprebeta -baselineroot /glade/p/cesm/baselines 
-      -generate cesm1_2_alpha02a -compare cesm1_2_alpha01b 
+      2. create_test -xml_mach yellowstone -xml_compiler intel -xml_category prerelease -testroot /glade/scratch/\$user/releasetests \
+         -baselineroot /glade/scratch/cesm/baselineroot -generate cesm1_2_alpha08a -compare cesm1_2_alpha07c 
 
-      Creates a suite of tests just like the above, but instructs the test scripts to use /glade/p/cesm/baselines as the 
-      baseline root.  Baselines will be generated under the baselineroot in the directory cesm1_2_alpha02a, and compared    
-      against the baselines stored in cesm1_2_alpha01b
+	  Creates a suite of tests on Yellowstone with the Intel compiler, using the prerelease tests, additionally generating baselines for
+      the cesm1_2_alpha08a tag, and comparing against the cesm1_2_alpha07c baselines.  
 
-      3. create_test -input_list yellowstone_intel.prebeta -testroot ~/yellowstoneprebeta -baselineroot /glade/p/cesm/baselines 
-      -generate cesm1_2_alpha02a -compare cesm1_2_alpha01b -autosubmit off -nobuild off
+      3. create_test xml_mach yellowstone -xml_compiler pgi -xml_category prealpha -testroot /path/to/testroot -nobuild on -autosubmit off
 
-      Does the same thing as 2, but will not build or submit the tests after generating them.  
+      Creates a suite of Yellowstone pgi prealpha tests, similar to 1, but disabling the automatic test build and submission.  Sometimes
+      useful if one wants to see if cases are generating successfully.  
+ 
+      4. create_test xml_mach yellowstone -xml_compiler pgi -xml_category prealpha -testroot /path/to/testroot -autosubmit off
+       
+      Just like 3, but the tests will be built.  Useful if one wants to check that the mode builds for the specified test suite, or to 
+      build a test suite to be run later.  
+
+      Creates a suite of Yellowstone pgi prealpha tests, similar to 1, but disabling the automatic test build and submission.  Sometimes
+      useful if one wants to see if cases are generating successfully.  
 
 
       Creating single tests:
@@ -222,7 +247,6 @@ sub initialize()
       die "** Cannot find scriptsroot directory \"$scriptsroot\" **";
   }
 
-  $testlistsubdir = "$scriptsroot/ccsm_utils/Testlists/";
   $testlistsubdirxml = "$scriptsroot/ccsm_utils/Testlistxml/";
   $testlid = `date +%H%M%S`;
   chomp $testlid;
@@ -251,13 +275,13 @@ sub initialize()
            dryrun               => undef,
            guessmach            => undef,
            input_list           => undef,
-           xml_list             => undef,
+           xml_list             => abs_path( "$scriptsroot/ccsm_utils/Testlistxml/testlist.xml"),
            xml_mach             => undef,
            xml_compiler         => undef,
            xml_category         => undef,
            mach_dir             => undef,
            mach                 => undef,
-           nlcompareonly        => 0,
+           nlcompareonly        => undef,
            nobatch              => 'off',
            nobuild              => 'off',
            pes_file             => undef,
@@ -282,7 +306,7 @@ sub options
                "compiler=s"        => \$opts{'compiler'},
                "compset_file=s"    => \$opts{'compset_file'},
                "debug"             => \$opts{'debug'},  
-	       "dryrun"            => \$opts{'dryrun'},
+	           "dryrun"            => \$opts{'dryrun'},
                "generate=s"        => \$opts{'generate'},
                "h|help"            => \$opts{'help'},  
                "input_list=s"      => \$opts{'input_list'},
@@ -326,31 +350,37 @@ sub checkOptions
       &Debug("opts input_list: $opts{'input_list'}");
       $suitemode = 1;
   }
-  elsif (defined $opts{'xml_list'})
-  {
-      if ( ! defined $opts{'xml_mach'})
-      {
-	  my $errmsg = "You must specify xml_mach along with the xml_list argument\n";
-	  print $errmsg;
-	  exit(1);
-      }
-      if ( ! defined $opts{'xml_category'})
-      {
-	  my $errmsg = "You must specify xml_category along with the xml_list argument\n";
-	  print $errmsg;
-	  exit(1);
-      }
-      &Debug("opts xml_list: $opts{'xml_list'}");
-      &Debug("opts xml_mach: $opts{'xml_mach'}");
-      &Debug("opts xml_category: $opts{'xml_category'}");
-      $suitemode = 1;
-      $xmlmode = 1;
-  }
-  # 
-  #Otherwise, we're creating a single test. 
+  # We're creating a single test. 
   elsif (defined $opts{'testname'})
   {
     $suitemode = 0;
+  }
+  else
+  {
+      if ( ! defined $opts{'xml_mach'} || length($opts{'xml_mach'}) == 0)
+      {
+	  my $errmsg = "You must specify a valid xml_mach argument\n";
+	  print $errmsg;
+	  exit(1);
+      }
+      if ( ! defined $opts{'xml_category'} || length($opts{'xml_category'}) == 0)
+      {
+	  my $errmsg = "You must specify a valid xml_category argument\n";
+	  print $errmsg;
+	  exit(1);
+      }
+      if ( ! defined $opts{'xml_compiler'} || length($opts{'xml_compiler'}) == 0)
+      {
+      my $errmsg = "you must specify a valid xml_compiler argument\n";
+      print $errmsg;
+      exit(1);
+      }
+      &Debug("opts xml_list: $opts{'xml_list'}");
+      &Debug("opts xml_mach: $opts{'xml_mach'}");
+      &Debug("opts xml_compiler: $opts{'xml_compiler'}");
+      &Debug("opts xml_category: $opts{'xml_category'}");
+      $suitemode = 1;
+      $xmlmode = 1;
   }
 
   # If both input_list and testname are given as options, 
@@ -391,6 +421,17 @@ sub checkOptions
     }
   }
 
+  # if testroot is defined, make sure we get the absolute path. 
+  if(defined $opts{'testroot'})
+  {
+    $opts{'testroot'} = abs_path($opts{'testroot'});
+  }
+  # if testroot is not defined, set it to the current working directory. 
+  if( ! defined $opts{'testroot'})
+  {
+    $opts{'testroot'} = getcwd;
+  }
+
   # if testroot doesn't exist, create it. 
   if( ! -d $opts{'testroot'})
   {
@@ -428,11 +469,12 @@ sub checkOptions
 
   # If the nlcompareonly option was invoked, we only want to generate a test suite, compare the namelist
   # et al to a set of namelist baselines. 
-  if( $opts{'nlcompareonly'} != 0)
+  if( defined $opts{'nlcompareonly'} )
   {
-    if(!defined $opts{'generate'} && ! defined $opts{'compare'} )
+    if(! defined $opts{'compare'} || ! defined $opts{'baselineroot'})
     {
       print "$ProgName: to use the 'nlcompareonly' option, the -generate or -compare options must be set\n";
+      print "and the -baselineroot option must be set\n";
       exit(1);
     }
     print "----------------------------------------------------------------------------\n";
@@ -450,6 +492,7 @@ sub checkOptions
 # Check options specific to creating a test suite. 
 sub checkTestSuiteOptions
 {
+
   if(defined $opts{'mach'})
   {
     if($opts{'mach'} =~ /^([a-zA-Z0-9_-]+?)_([a-zA-Z0-9-]+)$/)
@@ -514,23 +557,17 @@ sub checkSingleTestOptions
 
 sub ExpandXmlList
 {
-  my $testlistdir = shift;
-  my $testlist = shift;
+
+  my $testlistfile = shift;
   my $testmach = shift;
   my $testcategory = shift;
   my $testcompiler = shift;
 
-  Debug( "testlistdir $testlistdir\n");
-  Debug( "testlist $testlist\n");
+  Debug( "testlist file  $testlistfile\n");
   my $cwd = getcwd();
-  my $testlistfile;
-  if( -e "$cwd/$testlist")
+  if( -e "$cwd/$testlistfile")
   {
-    $testlistfile = "$cwd/$testlist";
-  }
-  else
-  {
-    $testlistfile = "$testlistdir/$testlist";
+    $testlistfile = "$cwd/$testlistfile";
   }
 
   my @actualtests;
@@ -1076,7 +1113,7 @@ sub writeEnvTestXML
   }
   else
   {
-    $cfg_ref->set('GENERATE_BASELINE', "TRUE");
+    $cfg_ref->set('GENERATE_BASELINE', "FALSE");
   }
   if(defined $opts{'compare'})
   {
@@ -1084,7 +1121,7 @@ sub writeEnvTestXML
   }
   else
   {
-    $cfg_ref->set('COMPARE_BASELINE', "TRUE");
+    $cfg_ref->set('COMPARE_BASELINE', "FALSE");
   }
   $cfg_ref->write_file("$caseroot/env_test.xml");
   
@@ -1153,21 +1190,12 @@ sub testcaseSetup
 # remove the duplicates from the testlists.
 sub ExpandTestList
 {
-  my $testlistdir = shift;
   my $testlist = shift;
-  Debug( "testlistdir $testlistdir\n");
   Debug( "testlist $testlist\n");
   my $cwd = getcwd();
   my $testlistfile;
-  if( -e "$cwd/$testlist")
-  {
-    $testlistfile = "$cwd/$testlist";
-  }
-  else
-  {
-    $testlistfile = "$testlistdir/$testlist";
-  }
   my @actualtests;
+  $testlistfile = abs_path($testlist);
   
   my $fh = new IO::File;
   $fh->open("< $testlistfile") or die "$testlistfile doesn't exist";
@@ -1203,14 +1231,14 @@ sub ExpandTestList
         my $tlist = $test;
         chomp $tlist;
         next if $tlist eq ""; 
-        if(! -e "$tlist" && -e "$testlistdir/$tlist" )
+        if(! -e "$tlist" && -e "tlist" )
         {
-          my @subtests = &ExpandTestList ($testlistdir, $tlist);
+          my @subtests = &ExpandTestList ($tlist);
           push(@actualtests, @subtests);
         }  
         elsif(-e $tlist)
         {
-          my @subtests = &ExpandTestList($testlistdir, $tlist);
+          my @subtests = &ExpandTestList($tlist);
           push(@actualtests, @subtests);
         }
         else
@@ -1296,10 +1324,7 @@ sub testBuildSubmit
   chmod 0755, "$opts{'testroot'}/$csstatus";
   chdir("$opts{'testroot'}");
 
-  print "now running $cssubmit\n";
   exec("./$cssubmit");
-  
-  
 }
 
 # compare baseline namelists against the current test suite's namelists.
@@ -1329,6 +1354,7 @@ sub namelistCompareSuite
 sub namelistCompare
 {
     my ($test,$basename, $status) = @_;
+    my $nlcomparelog= "$opts{'testroot'}/namelistcompare.$opts{'testid'}.$opts{'mach'}.log";
 
     my $testpath = "$opts{'testroot'}/$test";
     &Debug("testpath: $testpath\n");
@@ -1442,6 +1468,19 @@ sub namelistCompare
 	}
 	close $STATUS;
 	close $STATUSCOMP;
+
+        # print the compare_namelist output to namelistcompare.$testid.$mach.log
+	# only if we're running a suite. 
+        if( $suitemode != 0 || $xmlmode != 0)
+	{
+	    my $nlcomparelog= "$opts{'testroot'}/namelistcompare.$opts{'testid'}.$opts{'mach'}.log";
+	    open my $NLCMPLOG, ">>", "$nlcomparelog" or die $!;
+	    print $NLCMPLOG "---------------------------------------------------------------------\n";
+	    print $NLCMPLOG "$cprstatus $test\n";
+	    print $NLCMPLOG $nlcompoutput;
+	    print $NLCMPLOG "---------------------------------------------------------------------\n";
+	    close $NLCMPLOG;
+        }
 	
 	print $cprstatus;
     }
@@ -1509,8 +1548,6 @@ sub doonetest{
 #-----------------------------------------------------------------------------------------------
 sub main
 {
-
-
     initialize();
     options();
     checkOptions();
@@ -1526,12 +1563,11 @@ sub main
 	my @testspec;
 
 	if($xmlmode){
-	    @testlist = ExpandXmlList($testlistsubdirxml, 
-				      $opts{'xml_list'}, $opts{'xml_mach'}, 
+	    @testlist = ExpandXmlList( $opts{'xml_list'}, $opts{'xml_mach'}, 
 				      $opts{'xml_category'}, $opts{'xml_compiler'});
 	}else{
 	    checkTestSuiteOptions();
-	    @testlist = ExpandTestList($testlistsubdir, $opts{'input_list'});
+	    @testlist = ExpandTestList($opts{'input_list'});
 	}
 	foreach my $testname(@testlist)
 	{

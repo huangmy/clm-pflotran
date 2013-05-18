@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glide_mask.f90 - part of the Glimmer-CISM ice model      + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_mask.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -72,7 +69,7 @@ contains
     real(dp), parameter :: con = - rhoi / rhoo
     logical :: exec_serial_flag
 
-!HALO - This array may not be needed, at least in parallel.
+!TODO - This array may not be needed, at least in parallel.
 
     ! Create an array to "fake" the boundaries of the mask so that boundary
     ! finding can work even on the boundaries of the real mask.
@@ -123,8 +120,8 @@ contains
 !       Could get by with fewer masks in the code by removing some combinations
 !       Could remove *BITS
 
-!LOOP TODO - Combine the following into one do loop with ifs?
-!            Probably should loop over locally owned cells only.
+!TODO - Combine the following into one do loop with ifs?
+!       Probably should loop over locally owned cells only, then do a halo update.
 
     !Identify points with any ice
     where (thck > 0.d0)
@@ -147,7 +144,7 @@ contains
         call get_area_vol(thck, numerics%dew, numerics%dns, numerics%thklim, iarea, ivol, exec_serial_flag)
     end if
 
-!HALO - The following could be accomplished by a halo call for 'mask' with appropriate global BC.
+!TODO - The following could be accomplished by a halo call for 'mask' with appropriate global BC.
 !       
     maskWithBounds = 0
     maskWithBounds(1:ewn, 1:nsn) = MASK
@@ -162,7 +159,7 @@ contains
 
     ! finding boundaries
 
-!LOOP - For parallel glissade code, this loop should be only over locally owned scalars.
+!TODO - For parallel glissade code, this loop should be only over locally owned scalars.
 !       If halo cells are present, maskWithBounds array may not be needed; can replace with mask array.
 !TODO - Not sure what happens here when we're computing a mask on the velocity grid.
 
@@ -188,7 +185,7 @@ contains
              MASK(ew,ns) = ior(MASK(ew,ns),GLIDE_MASK_MARGIN)
           end if
 
-!HALO - Not sure if this will be needed when global boundaries are handled correctly.
+!TODO - Not sure if this will be needed when global boundaries are handled correctly.
 !       The GLIDE_MASK_COMP_DOMAIN_BND condition is currently used in glam_strs2.F90.
 
          !Mark domain boundaries
@@ -200,7 +197,7 @@ contains
        end do
     end do
 
-!HALO - This halo update should be moved to the driver level.
+!TODO - This halo update should be moved to a higher level.
 
     !JEFF Don't call halo update if running in serial mode
     if (.NOT. exec_serial_flag) then
@@ -244,7 +241,6 @@ contains
 
     integer :: i,j
 
-!LOOP - locally owned scalars
     do i = 1+lhalo, size(thck,1)-uhalo
         do j = 1+lhalo, size(thck,2)-uhalo
             if (thck(i,j) > thklim ) then
@@ -270,7 +266,7 @@ contains
   subroutine calc_iareaf_iareag(dew, dns, iarea, mask, iareaf, iareag, exec_serial)
     
     use parallel
-!TODO - remove iarea from the call since it is not used!
+    !TODO - remove iarea from the call since it is not used
 
     implicit none
     real(dp), intent(in) :: dew, dns
@@ -283,7 +279,7 @@ contains
     logical :: exec_serial_flag
     real(dp) :: sum(2)
  
-!TODO - Is this exec_serial option needed?
+    !TODO - Is this exec_serial option needed?
     ! Handle exec_serial optional parameter
     if ( present(exec_serial) ) then
       exec_serial_flag = exec_serial
@@ -295,7 +291,7 @@ contains
     iareaf = 0.d0
     iareag = 0.d0 
 
-!LOOP - Locally owned scalars
+    !loop over locally owned scalars
     do j = 1+lhalo, size(mask,2)-uhalo
       do i = 1+lhalo, size(mask,1)-uhalo
         if (GLIDE_IS_FLOAT(mask(i,j))) then
@@ -305,8 +301,6 @@ contains
         end if
       end do
     end do
-
-!TODO - Move the global sum to the driver level?
 
     if (.NOT. exec_serial_flag) then
        sum(1) = iareaf
@@ -320,7 +314,7 @@ contains
 
     subroutine glide_marine_margin_normal(thck, mask, marine_bc_normal, exec_serial)
 
-!TODO - Steve thinks this is a PBJ routine that could be removed.
+      !TODO - Steve thinks this is a PBJ routine that could be removed.
 
       use parallel
         use glimmer_physcon, only:pi
@@ -412,7 +406,7 @@ contains
         endif
     end subroutine
 
-!HALO - This is a PBJ function and could be removed.
+    !TODO - This is a PBJ function and could be removed.
     function calc_normal_45deg(thck3x3)
         use glimmer_physcon, only: pi
         
@@ -503,13 +497,14 @@ contains
 
     end function
 
-!HALO - This subroutine may not be needed.
-!       It is called from glide_thck.F90 in subroutine geometry_derivs_unstag
+!TODO - This subroutine may not be needed.
+!       It is not currently called from anywhere.
 
     !Fills a field of differencing directions suitable to give a field
     !derivative routine.  Uses centered differencing everywhere except for the
     !marine ice margin, where upwinding and downwinding is used to avoid
     !differencing across the boundary.
+
     subroutine upwind_from_mask(mask, direction_x, direction_y, exec_serial)
       use parallel
 !!        use glimmer_horiz_bcs, only: horiz_bcs_unstag_scalar
@@ -530,9 +525,6 @@ contains
 
         direction_x = 0
         direction_y = 0
-
-!HALO - Could this loop be over local cells only?
-!       Does not matter if we remove the subroutine entirely.
 
         !Detect locations of the marine margin
         do i = 1, size(mask,1)
@@ -608,6 +600,6 @@ contains
             call parallel_halo(direction_y)
 !            call horiz_bcs_unstag_scalar(direction_y)
         endif
-    end subroutine
+    end subroutine upwind_from_mask
 
 end module glide_mask

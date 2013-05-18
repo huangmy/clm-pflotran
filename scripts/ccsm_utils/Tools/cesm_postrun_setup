@@ -5,12 +5,17 @@
 set sdate = `date +"%Y-%m-%d %H:%M:%S"`
 
 cd $RUNDIR
-set CplLogFile = `ls -1t cpl.log* | head -1` 
-if ($CplLogFile == "") then
-  echo "Model did not complete - no cpl.log file present - exiting"
+set CESMLogFile = `ls -1t cesm.log* | head -1` 
+if ($CESMLogFile == "") then
+  echo "Model did not complete - no cesm.log file present - exiting"
   exit -1
 endif
-grep 'SUCCESSFUL TERMINATION' $CplLogFile  || echo "Model did not complete - see $RUNDIR/$CplLogFile" && echo "run FAILED $sdate" >>& $CASEROOT/CaseStatus && exit -1
+set CPLLogFile = `echo $CESMLogFile | sed -e 's/cesm/cpl/'`
+if ($CPLLogFile == "") then
+  echo "Model did not complete - no cpl.log file corresponding to most recent CESM log ($RUNDIR/$CESMLogFile)"
+  exit -1
+endif
+grep 'SUCCESSFUL TERMINATION' $CPLLogFile  || echo "Model did not complete - see $RUNDIR/$CESMLogFile" && echo "run FAILED $sdate" >>& $CASEROOT/CaseStatus && exit -1
 
 echo "run SUCCESSFUL $sdate" >>& $CASEROOT/CaseStatus
 

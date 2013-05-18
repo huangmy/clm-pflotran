@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: shr_flux_mod.F90 26627 2011-02-01 18:09:17Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130226/shr/shr_flux_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130423/shr/shr_flux_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !

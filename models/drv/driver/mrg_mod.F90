@@ -325,7 +325,7 @@ contains
     type(seq_cdata),intent(in) :: cdata_r
     type(mct_aVect),intent(in) :: l2x_r
     type(mct_aVect),intent(in) :: fractions_r
-    type(mct_aVect),intent(out):: x2r_r
+    type(mct_aVect),intent(inout):: x2r_r
     !
     ! Local variables
     !

@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_ncio.f90 - part of the Glimmer-CISM ice model    + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glimmer_ncio.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -114,8 +111,6 @@ contains
 
     ! local variables
     integer :: status,timedimid,ntime,timeid
-!WHLTSTEP - changed last_time to dp
-!    real(sp),dimension(1) :: last_time
     real(dp),dimension(1) :: last_time
     character(len=msglen) :: message
 
@@ -235,15 +230,13 @@ contains
     type(glimmer_nc_output), pointer :: outfile    
     type(glide_global_type) :: model
     logical forcewrite
-!WHLTSTEP - Changed time to dp
-!    real(sp),optional :: time
     real(dp),optional :: time
 
     character(len=msglen) :: message
     integer status
-!WHLTSTEP - Changed sub_time to dp
-!    real(sp) :: sub_time
     real(dp) :: sub_time
+
+    real(dp), parameter :: eps = 1.d-11
 
     ! Check for optional time argument
     if (present(time)) then
@@ -269,13 +262,16 @@ contains
           NCO%just_processed = .FALSE.
        end if
     end if
-    if (sub_time >= outfile%next_write .or. (forcewrite.and.sub_time > outfile%next_write-outfile%freq)) then
+
+    !WHL - Allow for small roundoff error in computing the time
+!!    if (sub_time >= outfile%next_write .or. (forcewrite .and. sub_time > outfile%next_write-outfile%freq)) then  ! prone to roundoff error
+    if (sub_time + eps >= outfile%next_write .or. (forcewrite .and. sub_time > outfile%next_write-outfile%freq)) then
        if (sub_time <= outfile%end_write .and. .not.NCO%just_processed) then
           call write_log_div
           write(message,*) 'Writing to file ', trim(process_path(NCO%filename)), ' at time ', sub_time
           call write_log(trim(message))
           ! increase next_write
-          outfile%next_write=outfile%next_write+outfile%freq
+          outfile%next_write = outfile%next_write + outfile%freq
           NCO%processsed_time = sub_time
           ! write time
           status = parallel_put_var(NCO%id,NCO%timevar,sub_time,(/outfile%timecounter/))
@@ -283,6 +279,7 @@ contains
           NCO%just_processed = .TRUE.         
        end if
     end if
+
   end subroutine glimmer_nc_checkwrite
 
   !*****************************************************************************
@@ -487,30 +484,21 @@ contains
     use glide_types
     use glimmer_filenames
     implicit none
-    type(glimmer_nc_input), pointer :: infile
-    !*FD structure containg output netCDF descriptor
-    type(glide_global_type) :: model
-    !*FD the model instance
-!WHLTSTEP - Changed time to dp
-!    real(sp),optional :: time
-    real(dp),optional :: time
-    !*FD Optional alternative time
+    type(glimmer_nc_input), pointer :: infile  !*FD structure containg output netCDF descriptor
+    type(glide_global_type) :: model    !*FD the model instance
+    real(dp),optional :: time           !*FD Optional alternative time
 
     character(len=msglen) :: message
-!WHLTSTEP - Changed sub_time to dp
-!    real(sp) :: sub_time
     real(dp) :: sub_time
 
     integer :: pos  ! to identify restart files
 
-!WHLTSTEP - Changed restart_time to dp
-!    real(rk) :: restart_time   ! time of restart (yr)
     real(dp) :: restart_time   ! time of restart (yr)
 
     if (present(time)) then
-       sub_time=time
+       sub_time = time
     else
-       sub_time=model%numerics%time
+       sub_time = model%numerics%time
     end if
 
     if (infile%current_time <= infile%nt) then
@@ -522,8 +510,6 @@ contains
           call write_log(message)
           pos = index(infile%nc%filename,'.r.')  ! use CESM naming convention for restart files
           if (pos /= 0) then   ! get the start time based on the current time slice
-!WHLTSTEP - Changed restart_time to dp
-!             restart_time = real(infile%times(infile%current_time))  ! years
              restart_time = infile%times(infile%current_time)      ! years
              model%numerics%tstart = restart_time
              model%numerics%time = restart_time
@@ -538,6 +524,7 @@ contains
           NCI%processsed_time = sub_time
        end if
     end if
+
     if (sub_time > NCI%processsed_time) then
        if (NCI%just_processed) then
           ! finished reading during last time step, need to increase counter...
@@ -545,7 +532,82 @@ contains
           NCI%just_processed = .FALSE.
        end if
     end if
+
   end subroutine glimmer_nc_checkread
+
+!------------------------------------------------------------------------------
+
+    subroutine check_for_tempstag(whichdycore, nc)
+      ! Check for the need to output tempstag and update the output variables if needed.
+      !
+      ! For the glam/glissade dycore, the vertical temperature grid has an extra level.
+      ! In that case, the netCDF output file should include a variable
+      ! called tempstag(0:nz) instead of temp(1:nz). This subroutine is added for
+      ! convenience to allow the variable "temp" to be specified in the config
+      ! file in all cases and have it converted to "tempstag" when appropriate.
+      ! MJH
+
+      use glimmer_log
+      use glide_types
+
+      implicit none
+      integer, intent(in) :: whichdycore
+      type(glimmer_nc_stat) :: nc
+
+      ! Locals
+      integer :: i
+
+      ! Check if tempstag should be output
+
+      ! TODO If both temp and tempstag are specified, should one be removed?
+      ! TODO Modify this to work if multiple output files are specified?
+
+      !print *, "Original varstring:", varstring
+
+      if (whichdycore==DYCORE_GLAM .or. whichdycore==DYCORE_GLISSADE) then 
+          ! We want temp to become tempstag
+          i = index(nc%vars, " temp ")
+          if (i > 0) then
+            ! temp was specified - change it to tempstag
+            ! If temp is listed more than once, this just changes the first instance
+            nc%vars = nc%vars(1:i-1) // " tempstag " // nc%vars(i+6:len(nc%vars))
+            call write_log('Temperature remapping option uses temperature on a staggered grid.' // &
+              '  The netCDF output variable "temp" has been changed to "tempstag".' )
+          endif
+          ! Now check if flwa needs to be changed to flwastag
+          i = index(nc%vars, " flwa ") ! Look for flwa
+          if (i > 0) then
+            ! flwa was specified - change to flwastag
+            nc%vars = nc%vars(1:i-1) // " flwastag " // nc%vars(i+6:len(nc%vars))
+            call write_log('Temperature remapping option uses flwa on a staggered grid.' // &
+            '  The netCDF output variable "flwa" has been changed to "flwastag".' )
+          endif
+      else  ! glide dycore
+          ! We want tempstag to become temp
+          i = index(nc%vars, " tempstag ")
+          if (i > 0) then
+            !Change tempstag to temp
+            nc%vars = nc%vars(1:i-1) // " temp " // nc%vars(i+10:len(nc%vars))
+            call write_log('The netCDF output variable "tempstag" should only be used when remapping temperature.' // &
+              '  The netCDF output variable "tempstag" has been changed to "temp".' )
+          endif
+          ! We want flwastag to become flwa
+          i = index(nc%vars, " flwastag ")
+          if (i > 0) then
+            !Change flwastag to flwa
+            nc%vars = nc%vars(1:i-1) // " flwa " // nc%vars(i+10:len(nc%vars))
+            call write_log('The netCDF output variable "flwastag" should only be used when remapping temperature.' // &
+              '  The netCDF output variable "flwastag" has been changed to "flwa".' )
+          endif
+      endif  ! whichdycore
+
+      ! Copy any changes to vars_copy
+      nc%vars_copy = nc%vars
+
+    end subroutine check_for_tempstag
+
+!------------------------------------------------------------------------------
 
 end module glimmer_ncio
 
+!------------------------------------------------------------------------------

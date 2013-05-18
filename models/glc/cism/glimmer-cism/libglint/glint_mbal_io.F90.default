@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! WARNING: this file was automatically generated on
-! Mon, 01 Apr 2013 22:20:05 +0000
+! Wed, 24 Apr 2013 18:24:59 +0000
 ! from ncdf_template.F90.in
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -10,34 +10,31 @@
 @PROCESS OPT(0)
 #endif
 
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  ncdf_template.f90 - part of the Glimmer_CISM ice model   + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2006, 2007, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   ncdf_template.F90.in - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #define NCO outfile%nc
 #define NCI infile%nc
@@ -100,9 +97,6 @@ contains
     type(glide_global_type) :: model
     logical, optional :: atend
     type(glimmer_nc_output),optional,pointer :: outfiles
-!WHLTSTEP - Changed time to dp
-!           This change affects all the *_io.F90 files
-!    real(sp),optional :: time
     real(dp),optional :: time
 
     ! local variables
@@ -144,6 +138,7 @@ contains
     use glide_types
     use glint_type
     use glimmer_ncdf
+    use glimmer_ncio
     use glimmer_map_types
     use glimmer_log
     use glimmer_paramets
@@ -156,8 +151,6 @@ contains
 
     integer status,varid,pos
 
-    integer :: level_dimid
-    integer :: lithoz_dimid
     integer :: time_dimid
     integer :: x0_dimid
     integer :: x1_dimid
@@ -165,18 +158,6 @@ contains
     integer :: y1_dimid
 
     ! defining dimensions
-    if (.not.outfile%append) then
-       status = parallel_def_dim(NCO%id,'level',model%general%upn,level_dimid)
-    else
-       status = parallel_inq_dimid(NCO%id,'level',level_dimid)
-    endif
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    if (.not.outfile%append) then
-       status = parallel_def_dim(NCO%id,'lithoz',model%lithot%nlayer,lithoz_dimid)
-    else
-       status = parallel_inq_dimid(NCO%id,'lithoz',lithoz_dimid)
-    endif
-    call nc_errorhandle(__FILE__,__LINE__,status)
     status = parallel_inq_dimid(NCO%id,'time',time_dimid)
     call nc_errorhandle(__FILE__,__LINE__,status)
     if (.not.outfile%append) then
@@ -234,7 +215,7 @@ contains
 
     ! Convert temp and flwa to versions on stag grid, if needed
     ! Note: this check must occur after restart variables are expanded which happens in glimmer_nc_readparams
-    call check_for_tempstag(model%options%whichtemp,NCO)
+    call check_for_tempstag(model%options%whichdycore,NCO)
 
     ! checking if we need to handle time averages
     pos = index(NCO%vars,"_tavg")
@@ -249,26 +230,6 @@ contains
        call write_log('The list of output variables is too long for file ' // NCO%filename, GM_FATAL)
     endif
 
-
-    !     level -- sigma layers
-    if (.not.outfile%append) then
-       call write_log('Creating variable level')
-       status = parallel_def_var(NCO%id,'level',get_xtype(outfile,NF90_FLOAT),(/level_dimid/),varid)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = parallel_put_att(NCO%id, varid, 'formula_terms', 'sigma: level topo: topg thick: thk')
-       status = parallel_put_att(NCO%id, varid, 'long_name', 'sigma layers')
-       status = parallel_put_att(NCO%id, varid, 'standard_name', 'land_ice_sigma_coordinate')
-       status = parallel_put_att(NCO%id, varid, 'units', '1')
-     end if
-
-    !     lithoz -- vertical coordinate of lithosphere layer
-    if (.not.outfile%append) then
-       call write_log('Creating variable lithoz')
-       status = parallel_def_var(NCO%id,'lithoz',get_xtype(outfile,NF90_FLOAT),(/lithoz_dimid/),varid)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = parallel_put_att(NCO%id, varid, 'long_name', 'vertical coordinate of lithosphere layer')
-       status = parallel_put_att(NCO%id, varid, 'units', 'meter')
-     end if
 
     !     x0 -- Cartesian x-coordinate, velocity grid
     if (.not.outfile%append) then
@@ -541,16 +502,11 @@ contains
     !*FD the model instance
 
     ! local variables
-!WHLTSTEP - Changed tavgf to dp
-!    real tavgf
     real(dp) :: tavgf
     integer status, varid
     integer up
      
     tavgf = outfile%total_time
-!WHLTSTEP - Changed tavgf to dp
-!    if (tavgf.ne.0.) then
-!       tavgf = 1./tavgf
     if (tavgf.ne.0.d0) then
        tavgf = 1.d0/tavgf
     end if
@@ -681,8 +637,8 @@ contains
     !*FD read from netCDF file
     use glint_type
     use glide_types
-    use glimmer_ncio
     use glimmer_ncdf
+    use glimmer_ncio
     implicit none
     type(glint_instance) :: data
     type(glide_global_type) :: model
@@ -739,24 +695,6 @@ contains
     character(len=150) message
 
     ! check dimensions
-    status = parallel_inq_dimid(NCI%id,'level',dimid)
-    if (dimid.gt.0) then
-       status = parallel_inquire_dimension(NCI%id,dimid,len=dimsize)
-       if (dimsize.ne.model%general%upn) then
-          write(message,*) 'Error, reading file ',trim(NCI%filename),' size level does not match: ', &
-               model%general%upn
-          call write_log(message,GM_FATAL)
-       end if
-    end if
-    status = parallel_inq_dimid(NCI%id,'lithoz',dimid)
-    if (dimid.gt.0) then
-       status = parallel_inquire_dimension(NCI%id,dimid,len=dimsize)
-       if (dimsize.ne.model%lithot%nlayer) then
-          write(message,*) 'Error, reading file ',trim(NCI%filename),' size lithoz does not match: ', &
-               model%lithot%nlayer
-          call write_log(message,GM_FATAL)
-       end if
-    end if
     status = parallel_inq_dimid(NCI%id,'x0',dimid)
     if (dimid.gt.0) then
        status = parallel_inquire_dimension(NCI%id,dimid,len=dimsize)
@@ -811,8 +749,6 @@ contains
     type(glint_instance) :: data
 
     ! local variables
-!WHLTSTEP - Changed factor to dp
-!    real :: factor
     real(dp) :: factor
     integer status, varid
 
@@ -835,9 +771,7 @@ contains
     integer status, varid
 
     ! reset total time
-!WHLTSTEP - Change to dp
-    outfile%total_time = 0.
-!    outfile%total_time = 0.d0
+    outfile%total_time = 0.d0
 
   end subroutine glint_mbal_avg_reset
 #endif

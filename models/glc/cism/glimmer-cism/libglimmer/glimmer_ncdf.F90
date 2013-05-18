@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_ncdf.f90 - part of the Glimmer-CISM ice model    + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glimmer_ncdf.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -78,7 +75,10 @@ module glimmer_ncdf
      !*FD id of time dimension
      integer timevar
      !*FD id of time variable 
-     ! TODO Create a variable for vars length so it can be made longer - apply it here for vars, vars_copy and to restart_variable_list in glimmer_ncparams.F90
+
+     ! TODO - Create a variable for vars length so it can be made longer
+     !        Apply it here for vars, vars_copy and to restart_variable_list in glimmer_ncparams.F90
+
      character(len=310) vars
      !*FD string containing variables to be processed
      logical :: restartfile = .false.
@@ -111,18 +111,14 @@ module glimmer_ncdf
      !NO_RESTART previous
 
      type(glimmer_nc_stat) :: nc                          !< structure containg file info
-!WHLTSTEP - Changed freq, next_write, end_write and total_time to dp
-!     real :: freq = 1000                                  !< frequency at which data is written to file
-!     real :: next_write=0                                 !< next time step at which data is dumped
-!     real :: end_write=glimmer_nc_max_time                !< stop writing after this year
      real(dp) :: freq = 1000.d0                           !< frequency at which data is written to file
      real(dp) :: next_write = 0.d0                        !< next time step at which data is dumped
      real(dp) :: end_write = glimmer_nc_max_time          !< stop writing after this year
      integer :: timecounter = 1                           !< time counter
-!     real :: total_time = 0.0                             !< accumulate time steps (used for taking time averages)
      real(dp) :: total_time = 0.d0                        !< accumulate time steps (used for taking time averages)
 
-!TODO - I'd like to understand how the default xtype is overridden
+     !TODO - Change default_xtype to dp?
+     !       I'm unclear on how the default xtype is overridden
      integer :: default_xtype = NF90_REAL                 !< the default external type for storing flointing point values
      logical :: do_averages = .false.                     !< set to .true. if we need to handle averages
 
@@ -142,8 +138,6 @@ module glimmer_ncdf
      !NO_RESTART previous
      type(glimmer_nc_stat) :: nc
      !*FD structure containg file info
-!WHLTSTEP - Changed times pointer to real(dp)
-!     integer, pointer, dimension(:) :: times => NULL()     
      real(dp), pointer, dimension(:) :: times => NULL()     
      !*FD pointer to array holding times
      integer                        :: nt, current_time=1
@@ -410,74 +404,6 @@ contains
             call write_log(nf90_strerror(status),type=GM_FATAL,file=file,line=line)
         end if
     end subroutine nc_errorhandle
-
-!TODO - The convention now is that we have unstaggered temps for dycore = 0 (glide)
-!       and staggered temps for dycore = 1 (glissade).
-
-    subroutine check_for_tempstag(whichtemp,nc)
-      !*FD check for the need to output tempstag and update the output variables if needed.
-      ! When IR is used to evolve temperature, the temperature grid has an extra
-      ! layer.  In that case, the netCDF output file should include a variable
-      ! called tempstag(0:nz) instead of temp(1:nz). This subroutine is added for
-      ! convenience to allow the variable "temp" to be specified in the config
-      ! file in all cases and have it converted to "tempstag" when appropriate.
-      ! MJH Nov. 2010
-
-      use glimmer_log
-
-      implicit none
-      integer, intent(in) :: whichtemp
-      type(glimmer_nc_stat) :: nc 
-
-      ! Locals
-      integer :: i
-
-      ! Check if tempstag should be output
-      ! TODO If both temp and tempstag are specfied, should one be removed?
-      ! TODO Modify this to work if multiple output files are specified?
-
-!TODO - Change from 'whichtemp' to 'whichdycore'?  At any rate, do not hardwire the whichtemp index
-      !print *, "Original varstring:", varstring
-      if (whichtemp == 3) then !3) then !3) then !TEMP_REMAP_ADV) then
-          ! We want temp to become tempstag 
-          i = index(nc%vars, " temp ")
-          if (i > 0) then
-            ! temp was specified - change it to tempstag
-            ! If temp is listed more than once, this just changes the first instance
-            nc%vars = nc%vars(1:i-1) // " tempstag " // nc%vars(i+6:len(nc%vars))
-            call write_log('Temperature remapping option uses temperature on a staggered grid.' // &
-              '  The netCDF output variable "temp" has been changed to "tempstag".' )
-          endif
-          ! Now check if flwa needs to be changed to flwastag
-          i = index(nc%vars, " flwa ") ! Look for flwa
-          if (i > 0) then
-            ! flwa was specified - change to flwastag
-            nc%vars = nc%vars(1:i-1) // " flwastag " // nc%vars(i+6:len(nc%vars))
-            call write_log('Temperature remapping option uses flwa on a staggered grid.' // &
-            '  The netCDF output variable "flwa" has been changed to "flwastag".' )
-          endif
-      else  ! whichtemp is not IR
-          ! We want tempstag to become temp
-          i = index(nc%vars, " tempstag ")
-          if (i > 0) then
-            !Change tempstag to temp
-            nc%vars = nc%vars(1:i-1) // " temp " // nc%vars(i+10:len(nc%vars))
-            call write_log('The netCDF output variable "tempstag" should only be used when remapping temperature.' // &
-              '  The netCDF output variable "tempstag" has been changed to "temp".' )
-          endif
-          ! We want flwastag to become flwa
-          i = index(nc%vars, " flwastag ")
-          if (i > 0) then
-            !Change flwastag to flwa
-            nc%vars = nc%vars(1:i-1) // " flwa " // nc%vars(i+10:len(nc%vars))
-            call write_log('The netCDF output variable "flwastag" should only be used when remapping temperature.' // &
-              '  The netCDF output variable "flwastag" has been changed to "flwa".' )
-          endif
-      endif  !whichtemp == 3
-      ! Copy any changes to vars_copy
-      nc%vars_copy = nc%vars
-    end subroutine check_for_tempstag
-
 
 end module glimmer_ncdf
 

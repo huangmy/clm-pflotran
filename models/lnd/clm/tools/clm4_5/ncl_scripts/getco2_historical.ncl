@@ -109,7 +109,7 @@ begin
    fileattdef ( nco, ncg );
    nco@history  = ldate+": Convert by getco2_historical.ncl";
    nco@source   = "Convert from:"+ghgfile;
-   nco@Version  = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_00/models/lnd/clm/tools/clm4_5/ncl_scripts/getco2_historical.ncl $";
+   nco@Version  = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_01/models/lnd/clm/tools/clm4_5/ncl_scripts/getco2_historical.ncl $";
    nco@Revision = "$Id: getco2_historical.ncl 44883 2013-03-15 19:41:38Z erik $";
    ;
    ; Set static variables

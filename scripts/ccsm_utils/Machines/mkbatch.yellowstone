@@ -110,7 +110,7 @@ cat >! $file << EOF1
 #BSUB -J $CASE
 #BSUB -W ${time_limit}
 #BSUB -P ${account_name}
-#BSUB -R "select[scratch_ok > 0]"
+
 setenv OMP_NUM_THREADS $maxthrds
 if($maxthrds>1) then
   setenv MP_TASK_AFFINITY core:$maxthrds

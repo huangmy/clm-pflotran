@@ -1,32 +1,29 @@
 
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  glimmer_utils.f90 - part of the Glimmer-CISM ice model   + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glimmer_utils.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -40,12 +37,12 @@ module glimmer_utils
 
   implicit none
 
-!TODO - Remove these array_bcs functions?  I can't find where they are used
+  !TODO - Remove these array_bcs functions?  I can't find where they are used
   interface array_bcs
     module procedure array_bcs1d,array_bcs2d
   end interface
 
-!TODO - Move check_conformal to glint?  Used by glint_interp only.
+  !TODO - Move check_conformal to glint?  Used by glint_interp only.
   interface check_conformal
     module procedure check_conformal_2d_real
   end interface
@@ -176,11 +173,12 @@ contains
 
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-!TODO - Move to glint?  Used by glint_interp only.
-  !> Adjusts array location indices
-  !! so that they fall within the domain.
+  !TODO - Move to glint?  Used by glint_interp only.
+
   subroutine fix_bcs2d(i,j,nx,ny)
 
+  !> Adjusts array location indices
+  !! so that they fall within the domain.
 
     integer,intent(inout) :: i !< The location of interest
     integer,intent(inout) :: j !< The location of interest
@@ -211,11 +209,11 @@ contains
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  !> Checks that two arrays are of the same size.
   subroutine check_conformal_2d_real(array1,array2,label)
 
-    use glimmer_log
+  !> Checks that two arrays are of the same size.
 
+    use glimmer_log
 
     real(rk),dimension(:,:),intent(in) :: array1 !< The array 1 to be checked
     real(rk),dimension(:,:),intent(in) :: array2 !< The array 2 to be checked
@@ -260,7 +258,7 @@ contains
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-!TODO - Move lsum to glint?  Used by glint_interp only.
+  !TODO - Move lsum to glint?  Used by glint_interp only.
   !> Calculates the sum of a given two-dimensional field along one axis.
   !! Within GLIMMER, this function calculates the mean vertical profile
   !! in a 2D vertical slice. 
@@ -268,6 +266,7 @@ contains
   !! A one-dimensional array of the same size as the first dimension of
   !! inp is returned, containing the sum of inp for 
   !! each row.
+
   function lsum(inp)
 
 
@@ -284,6 +283,7 @@ contains
 
   !> Tridiagonal solver. All input/output arrays should have the 
   !! same number of elements.
+
   subroutine tridiag(a,b,c,x,y)
 
 

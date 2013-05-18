@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! WARNING: this file was automatically generated on
-! Mon, 01 Apr 2013 22:20:05 +0000
+! Wed, 24 Apr 2013 18:24:59 +0000
 ! from ncdf_template.F90.in
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -10,34 +10,31 @@
 @PROCESS OPT(0)
 #endif
 
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  ncdf_template.f90 - part of the Glimmer_CISM ice model   + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2006, 2007, 2009, 2010
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   ncdf_template.F90.in - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #define NCO outfile%nc
 #define NCI infile%nc
@@ -101,9 +98,6 @@ contains
     type(glide_global_type) :: model
     logical, optional :: atend
     type(glimmer_nc_output),optional,pointer :: outfiles
-!WHLTSTEP - Changed time to dp
-!           This change affects all the *_io.F90 files
-!    real(sp),optional :: time
     real(dp),optional :: time
 
     ! local variables
@@ -145,6 +139,7 @@ contains
     use glide_types
     use glide_types
     use glimmer_ncdf
+    use glimmer_ncio
     use glimmer_map_types
     use glimmer_log
     use glimmer_paramets
@@ -249,7 +244,7 @@ contains
 
     ! Convert temp and flwa to versions on stag grid, if needed
     ! Note: this check must occur after restart variables are expanded which happens in glimmer_nc_readparams
-    call check_for_tempstag(model%options%whichtemp,NCO)
+    call check_for_tempstag(model%options%whichdycore,NCO)
 
     ! checking if we need to handle time averages
     pos = index(NCO%vars,"_tavg")
@@ -447,7 +442,7 @@ contains
        end if
      end if
 
-    !     bheatflx -- basal heat flux
+    !     bheatflx -- upward basal heat flux
     pos = index(NCO%vars,' bheatflx ')
     status = parallel_inq_varid(NCO%id,'bheatflx',varid)
     if (pos.ne.0) then
@@ -457,7 +452,8 @@ contains
        call write_log('Creating variable bheatflx')
        status = parallel_def_var(NCO%id,'bheatflx',get_xtype(outfile,NF90_FLOAT),(/x1_dimid, y1_dimid, time_dimid/),varid)
        call nc_errorhandle(__FILE__,__LINE__,status)
-       status = parallel_put_att(NCO%id, varid, 'long_name', 'basal heat flux')
+       status = parallel_put_att(NCO%id, varid, 'scale_factor',(scale_bflx))
+       status = parallel_put_att(NCO%id, varid, 'long_name', 'upward basal heat flux')
        status = parallel_put_att(NCO%id, varid, 'units', 'watt/meter2')
        if (glimmap_allocated(model%projection)) then
           status = parallel_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
@@ -1607,16 +1603,11 @@ contains
     !*FD the model instance
 
     ! local variables
-!WHLTSTEP - Changed tavgf to dp
-!    real tavgf
     real(dp) :: tavgf
     integer status, varid
     integer up
      
     tavgf = outfile%total_time
-!WHLTSTEP - Changed tavgf to dp
-!    if (tavgf.ne.0.) then
-!       tavgf = 1./tavgf
     if (tavgf.ne.0.d0) then
        tavgf = 1.d0/tavgf
     end if
@@ -1892,14 +1883,14 @@ contains
     status = parallel_inq_varid(NCO%id,'relx',varid)
     if (status .eq. nf90_noerr) then
        status = distributed_put_var(NCO%id, varid, &
-            data%isos%relx, (/1,1,outfile%timecounter/))
+            data%isostasy%relx, (/1,1,outfile%timecounter/))
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
     status = parallel_inq_varid(NCO%id,'slc',varid)
     if (status .eq. nf90_noerr) then
        status = distributed_put_var(NCO%id, varid, &
-            data%isos%relx-data%geometry%topg, (/1,1,outfile%timecounter/))
+            data%isostasy%relx - data%geometry%topg, (/1,1,outfile%timecounter/))
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
@@ -2155,8 +2146,8 @@ contains
     !*FD read from netCDF file
     use glide_types
     use glide_types
-    use glimmer_ncio
     use glimmer_ncdf
+    use glimmer_ncio
     implicit none
     type(glide_global_type) :: data
     type(glide_global_type) :: model
@@ -2286,7 +2277,9 @@ contains
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = parallel_get_att(NCI%id, varid,'scale_factor',scaling_factor)
        if (status.ne.NF90_NOERR) then
-          scaling_factor = 1.0d0
+          scaling_factor = 1.0d0/(scale_bflx)
+       else
+          scaling_factor = scaling_factor/(scale_bflx)
        end if
        if (abs(scaling_factor-1.0d0).gt.1.d-17) then
           call write_log("scaling bheatflx",GM_DIAGNOSTIC)
@@ -2418,6 +2411,22 @@ contains
        end if
     end if
 
+    status = parallel_inq_varid(NCI%id,'litho_temp',varid)
+    if (status .eq. nf90_noerr) then
+       call write_log('  Loading litho_temp')
+       status = distributed_get_var(NCI%id, varid, &
+            data%lithot%temp, (/1,1,1,infile%current_time/))
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = parallel_get_att(NCI%id, varid,'scale_factor',scaling_factor)
+       if (status.ne.NF90_NOERR) then
+          scaling_factor = 1.0d0
+       end if
+       if (abs(scaling_factor-1.0d0).gt.1.d-17) then
+          call write_log("scaling litho_temp",GM_DIAGNOSTIC)
+          data%lithot%temp = data%lithot%temp*scaling_factor
+       end if
+    end if
+
     status = parallel_inq_varid(NCI%id,'lon',varid)
     if (status .eq. nf90_noerr) then
        call write_log('  Loading lon')
@@ -2454,7 +2463,7 @@ contains
     if (status .eq. nf90_noerr) then
        call write_log('  Loading relx')
        status = distributed_get_var(NCI%id, varid, &
-            data%isos%relx, (/1,1,infile%current_time/))
+            data%isostasy%relx, (/1,1,infile%current_time/))
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = parallel_get_att(NCI%id, varid,'scale_factor',scaling_factor)
        if (status.ne.NF90_NOERR) then
@@ -2464,7 +2473,7 @@ contains
        end if
        if (abs(scaling_factor-1.0d0).gt.1.d-17) then
           call write_log("scaling relx",GM_DIAGNOSTIC)
-          data%isos%relx = data%isos%relx*scaling_factor
+          data%isostasy%relx = data%isostasy%relx*scaling_factor
        end if
     end if
 
@@ -2851,8 +2860,6 @@ contains
     type(glide_global_type) :: data
 
     ! local variables
-!WHLTSTEP - Changed factor to dp
-!    real :: factor
     real(dp) :: factor
     integer status, varid
 
@@ -2899,9 +2906,7 @@ contains
     integer status, varid
 
     ! reset total time
-!WHLTSTEP - Change to dp
-    outfile%total_time = 0.
-!    outfile%total_time = 0.d0
+    outfile%total_time = 0.d0
 
     ! reset acab
     status = parallel_inq_varid(NCO%id,'acab_tavg',varid)
@@ -3028,7 +3033,7 @@ contains
     type(glide_global_type) :: data
     real, dimension(:,:), intent(out) :: outarray
 
-    outarray = data%temper%bheatflx
+    outarray = (scale_bflx)*(data%temper%bheatflx)
   end subroutine glide_get_bheatflx
 
   subroutine glide_set_bheatflx(data,inarray)
@@ -3039,7 +3044,7 @@ contains
     type(glide_global_type) :: data
     real, dimension(:,:), intent(in) :: inarray
 
-    data%temper%bheatflx = inarray
+    data%temper%bheatflx = inarray/(scale_bflx)
   end subroutine glide_set_bheatflx
 
   subroutine glide_get_bmlt(data,outarray)
@@ -3611,7 +3616,7 @@ contains
     type(glide_global_type) :: data
     real, dimension(:,:), intent(out) :: outarray
 
-    outarray = (thk0)*(data%isos%relx)
+    outarray = (thk0)*(data%isostasy%relx)
   end subroutine glide_get_relx
 
   subroutine glide_set_relx(data,inarray)
@@ -3622,7 +3627,7 @@ contains
     type(glide_global_type) :: data
     real, dimension(:,:), intent(in) :: inarray
 
-    data%isos%relx = inarray/(thk0)
+    data%isostasy%relx = inarray/(thk0)
   end subroutine glide_set_relx
 
   subroutine glide_get_slc(data,outarray)
@@ -3633,7 +3638,7 @@ contains
     type(glide_global_type) :: data
     real, dimension(:,:), intent(out) :: outarray
 
-    outarray = (thk0)*(data%isos%relx-data%geometry%topg)
+    outarray = (thk0)*(data%isostasy%relx - data%geometry%topg)
   end subroutine glide_get_slc
 
   subroutine glide_get_soft(data,outarray)

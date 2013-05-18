@@ -1,8 +1,54 @@
 ================================================================================
- SVN $Id: ChangeLog 45792 2013-04-10 16:42:13Z tcraig $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_29/ChangeLog $
+ SVN $Id: ChangeLog 46542 2013-04-30 18:34:21Z mvertens $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/ChangeLog $
+================================================================================
+
+Information on changes to cpl7
+Originator: mvertens
+Date: 30 Apr 2013
+Model: cpl7
+Version: drvseq4_2_33
+One-line summary:  Fixed bug in cpl.buildnml.csh introduced in drvseq4_2_32
+	           changes to driver
+
+M       bld/cpl.buildnml.csh
+
 ================================================================================
 Information on changes to cpl7
+Originator: mvertens
+Date: 30 Apr 2013
+Model: cpl7
+Version: drvseq4_2_32
+One-line summary:  Changes to add adiabatic, aquaplanet and ideal physics namelist
+	           changes to driver
+
+M       bld/cpl.buildnml.csh
+M       bld/namelist_files/namelist_definition_drv.xml
+
+================================================================================
+Originator: santos
+Date: 23 Apr 2013
+Model: cpl7
+Version: drvseq4_2_31
+One-line summary:  Fix SCAM issue by having shr_scam_mod set sno_present.
+
+M       driver/ccsm_comp_mod.F90
+         - Allow shr_scam_checkSurface to set sno_present, rof_present,
+           and flood_present in addition to lnd, ocn, and ice flags.
+
+M       shr/seq_infodata_mod.F90
+         - Get rid of single_column conditional for rof/flood that is
+           now redundant.
+
+================================================================================
+Originator: santos
+Date: 16 Apr 2013
+Model: cpl7
+Version: drvseq4_2_30
+One-line summary:  Fix wrong intent causing error in NAG DEBUG RTM runs.
+
+M       driver/mrg_mod.F90
+         - Change intent(out) to intent(inout) for x2r_r.
 ================================================================================
 Originator: tcraig
 Date: 10 Apr 2013

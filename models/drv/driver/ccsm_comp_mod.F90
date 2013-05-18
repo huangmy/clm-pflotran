@@ -1000,17 +1000,21 @@ subroutine ccsm_init()
                                       glc_phase=1,wav_phase=1)
 
    !-----------------------------------------------------------------------------
-   ! If in single column mode overwrite lnd,ocn,ice_present flags according to 
-   ! focndomain file in ocn_in namelist
-   ! SCAM can reset the lnd_present, ice_present and ocn_present flags
+   ! If in single column mode, overwrite flags according to focndomain file
+   ! in ocn_in namelist. SCAM can reset the "present" flags for lnd, sno,
+   ! ocn, ice, rof, and flood.
    !-----------------------------------------------------------------------------
 
    if (.not.aqua_planet .and. single_column) then
       call seq_infodata_getData( infodata, scmlon=scmlon, scmlat=scmlat)
       call shr_scam_checkSurface(scmlon, scmlat, OCNID(ens1), mpicom_OCNID(ens1), &
-           lnd_present=lnd_present, ice_present=ice_present, ocn_present=ocn_present)
+           lnd_present=lnd_present, sno_present=sno_present, &
+           ocn_present=ocn_present, ice_present=ice_present, &
+           rof_present=rof_present, flood_present=flood_present)
       call seq_infodata_putData( infodata, &
-           lnd_present=lnd_present, ocn_present=ocn_present, ice_present=ocn_present)
+           lnd_present=lnd_present, sno_present=sno_present, &
+           ocn_present=ocn_present, ice_present=ice_present, &
+           rof_present=rof_present, flood_present=flood_present)
    endif
 
    !-----------------------------------------------------------------------------

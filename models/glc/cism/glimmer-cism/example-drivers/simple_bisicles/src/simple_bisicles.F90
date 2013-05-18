@@ -1,31 +1,28 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! +                                                           +
-! +  simple_glide.f90 - part of the Glimmer-CISM ice model    + 
-! +                                                           +
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! 
-! Copyright (C) 2005, 2006, 2007, 2008, 2009
-! Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   simple_bisicles.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
-! This file is part of Glimmer-CISM.
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! Glimmer-CISM is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or (at
-! your option) any later version.
+!   This file is part of Glimmer-CISM.
 !
-! Glimmer-CISM is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
 !
-! You should have received a copy of the GNU General Public License
-! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
 !
-! Glimmer-CISM is hosted on BerliOS.de:
-! https://developer.berlios.de/projects/glimmer-cism/
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
 !
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #ifdef HAVE_CONFIG_H
 #include "config.inc"
@@ -53,6 +50,8 @@ program simple_bisicles
   use glide_diagnostics
 
   use glimmer_to_dycore
+
+  use glide_nc_custom
 
   implicit none
 
@@ -104,7 +103,7 @@ program simple_bisicles
   time = model%numerics%tstart
   time_inc = model%numerics%tinc
 
-  call simple_massbalance(climate,model,time)
+!  call simple_massbalance(climate,model,time)
   call simple_surftemp(climate,model,time)
   call spinup_lithot(model)
 
@@ -113,11 +112,19 @@ program simple_bisicles
   print *,"Initializing external dycore interface."
   call gtd_init_dycore_interface()
 
+!  print*, "acab before dycore:"
+!  print*, model%climate%acab
+
   call parallel_barrier()
   print *,"Initializing external dycore."
   call gtd_init_dycore(model,dycore_model_index)
   call parallel_barrier()
 
+!  print*, "acab after dycore:"
+!  print*, model%climate%acab
+
+
+  
 ! write nc files
   call glide_io_writeall(model, model, time=time)         
 
@@ -125,6 +132,8 @@ program simple_bisicles
   do while (cur_time < model%numerics%tend)
       print *, "CISM timestep: time = ", cur_time, ", dt = ", time_inc
       call gtd_run_dycore(dycore_model_index,cur_time,time_inc)
+!     write nc files                                           
+      call glide_io_writeall(model, model, time=time)          
   end do
   print *,"Completed Dycore Run."
   call parallel_barrier()

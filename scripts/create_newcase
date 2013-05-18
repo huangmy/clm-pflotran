@@ -81,7 +81,9 @@ OPTIONS
                           _CG  = gregorian calendar
                           _D   = debug
                           _E   = esmf interfaces
-                          _IOP*= PnetCDF IO test where * is A(atm), C(cpl), G(glc) , I(ice), L(clm), O(ocn), W(wav) or blank (all components)
+                          _IOP*= PnetCDF IO test where * is 
+			         A(atm), C(cpl), G(glc) , I(ice), L(clm), O(ocn), 
+			         W(wav) or blank (all components)
                           _L*  = set run length y, m, d, h, s, n(nsteps) plus integer (ie _Lm6 for 6 months) 
                           _M*  = set the mpilib where * is default, mpi-serial, mpich, etc
                           _N*  = set NINST_ env value to * where * is an integer
@@ -1656,13 +1658,13 @@ sub set_compset
     # ========================================================
     # Generate compset description
     # ========================================================
-
+    my @compset_parts = split /[-_%]/, $compset_longname;
     @e = $xml_comp->elements_by_name( "desc" );
     while ( my $e = shift @e ) {
 	my $val  = clean($e->get_text());
 	my $name = clean($e->get_name());
 	%attr = $e->get_attributes();
-	if ($attr{'compset'}) {
+	if ($attr{'compset'}) {            
 	    if ($compset_longname =~ /$attr{'compset'}/)  {
 		if ($desc_comp =~ m/$val/) {
 		    # do nothing
@@ -1670,8 +1672,20 @@ sub set_compset
 		    $desc_comp = $desc_comp . " $val";
 		}
 	    }
+	    # Make sure that there is a description match for each part of the compset_name
+	    # this assures that there are no typos in the name.
+	    my $cnt=0; my $atrcnt=0;
+	    my @compset_tmp = @compset_parts;
+	    foreach my $part (@compset_tmp){
+		if(grep /$part/, $attr{'compset'}){
+		    splice(@compset_parts, $cnt, 1);
+		}else{
+		    $cnt++;
+		}
+	    }  
 	}
     }
+    die "Could not find definition for part @compset_parts of compset name" if($#compset_parts >= 0) ;
 
     # ========================================================
     # Print compset/grid info

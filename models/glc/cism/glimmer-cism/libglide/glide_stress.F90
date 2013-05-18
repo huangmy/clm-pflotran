@@ -1,8 +1,33 @@
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                                                             
+!   glide_stress.F90 - part of the Glimmer Community Ice Sheet Model (Glimmer-CISM)  
+!                                                              
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!
+!   Copyright (C) 2005-2013
+!   Glimmer-CISM contributors - see AUTHORS file for list of contributors
+!
+!   This file is part of Glimmer-CISM.
+!
+!   Glimmer-CISM is free software: you can redistribute it and/or modify it
+!   under the terms of the Lesser GNU General Public License as published
+!   by the Free Software Foundation, either version 3 of the License, or
+!   (at your option) any later version.
+!
+!   Glimmer-CISM is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   Lesser GNU General Public License for more details.
+!
+!   You should have received a copy of the Lesser GNU General Public License
+!   along with Glimmer-CISM. If not, see <http://www.gnu.org/licenses/>.
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 ! *sfp* module to hold subroutines for calculation of stress components from converged, higher-order
 ! stress and effective viscosity fields. To be called at the end of HO vel calculation.
 
-!TODO - Add header
-!       Combine with glam_strs2?  Not sure it needs to be its own module.
+!TODO - Combine with glam_strs2?  Not sure it needs to be its own module.
 
 module glide_stress
 
@@ -77,7 +102,7 @@ module glide_stress
         dew2 = 2.0_dp * dew; dns2 = 2.0_dp * dns        ! *sp* 2x the standard grid spacing
         dew4 = 4.0_dp * dew; dns4 = 4.0_dp * dns        ! *sp* 4x the standard grid spacing
 
-!HALO - This loop should be over locally owned cells only.
+!TODO - I think this loop should be over locally owned cells only.
         do ns = 2,nsn-1
             do ew = 2,ewn-1;
 
@@ -118,7 +143,7 @@ module glide_stress
             end do
         end do
 
-!HALO - This should be over locally owned cells only.  Move into loop above?
+        !TODO - This should be over locally owned cells only.  Move into loop above?
         tauxz = f1 * efvs * tauxz     
         tauyz = f1 * efvs * tauyz     
         tauxx = 2.0_dp * efvs * tauxx 
@@ -130,7 +155,7 @@ module glide_stress
         ! 1st order approx. to the 2nd strain-rate invariant (outlined in model description document).
         tau = sqrt(tauxz**2 + tauyz**2 + tauxx**2 + tauyy**2 + tauxx*tauyy + tauxy**2)
 
-!HALO - I don't think these halo updates are needed.  
+!TODO - I don't think these halo updates are needed.  
 !       (If they are, they should be moved up to the glissade driver level.)
 
         call parallel_halo(tauxx)
