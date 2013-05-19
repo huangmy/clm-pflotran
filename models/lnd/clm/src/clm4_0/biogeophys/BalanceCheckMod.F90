@@ -425,6 +425,8 @@ contains
           indexc = c
        end if
     end do
+
+#ifndef CLM_PFLOTRAN
     if ( found ) then
        write(iulog,*)'WARNING:  water balance error ',&
             ' nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc),' landunit type= ',ltype(clandunit(indexc))
@@ -570,7 +572,7 @@ contains
           call endrun()
        end if
     end if
-
+#endif
     ! Energy balance checks
 
     do p = lbp, ubp
