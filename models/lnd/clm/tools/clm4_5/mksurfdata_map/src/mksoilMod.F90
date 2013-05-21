@@ -798,7 +798,7 @@ subroutine mksoilcol(ldomain, mapfname, datfname, ndiag, &
            write (6,*) 'MKSOILCOL error: input field not conserved'
            write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
            write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-           !stop
+           stop
         end if
      end if
 
@@ -960,7 +960,7 @@ subroutine mkorganic(ldomain, mapfname, datfname, ndiag, organic_o)
            write (6,*) 'MKORGANIC error: organic = ',organic_o(no,lev), &
                 ' greater than 130.000001 for column, row = ',no
            call shr_sys_flush(6)
-           !stop
+           stop
         end if
      enddo
 
@@ -1222,7 +1222,7 @@ subroutine mkfmax(ldomain, mapfname, datfname, ndiag, fmax_o)
         write (6,*) 'MKFMAX error: fmax = ',fmax_o(no), &
                 ' greater than 1.000001 for column, row = ',no
         call shr_sys_flush(6)
-        !stop
+        stop
      end if
   enddo
 
@@ -1249,7 +1249,7 @@ subroutine mkfmax(ldomain, mapfname, datfname, ndiag, fmax_o)
         write (6,*) 'MKFMAX error: input field not conserved'
         write (6,'(a30,e20.10)') 'global sum output field = ',sum_fldo
         write (6,'(a30,e20.10)') 'global sum input  field = ',sum_fldi
-        !stop
+        stop
      end if
   end if
 
