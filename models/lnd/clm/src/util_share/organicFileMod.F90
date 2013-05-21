@@ -103,7 +103,7 @@ contains
        if (.not. readvar) call endrun('organicrd: errror reading ORGANIC')
 
        if ( masterproc )then
-          write(iulog,*) 'Successfully read organic matter data ---'
+          write(iulog,*) 'Successfully read organic matter data'
           write(iulog,*)
        end if
     endif
