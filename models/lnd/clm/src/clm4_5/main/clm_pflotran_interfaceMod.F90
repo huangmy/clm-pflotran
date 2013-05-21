@@ -213,15 +213,15 @@ contains
 
     !pflotran_m%nlclm = clm_npts
     !pflotran_m%ngclm = clm_npts
-    clm_pf_idata%nlclm = clm_npts
-    clm_pf_idata%ngclm = clm_npts
-    clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
-    clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
-    call clm_pflotran_interface_data_allocate_memory(pflotran_m%option%mycomm)
+    !clm_pf_idata%nlclm = clm_npts
+    !clm_pf_idata%ngclm = clm_npts
+    !clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
+    !clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
+    call CLMPFLOTRANIDataCreateVec(pflotran_m%option%mycomm)
 
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
-    call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -419,8 +419,8 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
     call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
 
-    call pflotranModelSetSoilProp3(pflotran_m)
-    !call pflotranModelSetICs3(pflotran_m)
+    call pflotranModelSetSoilProp(pflotran_m)
+    !call pflotranModelSetICs(pflotran_m)
     call pflotranModelStepperRunInit( pflotran_m )
     call MPI_Barrier(pflotran_m%option%global_comm,ierr)
 

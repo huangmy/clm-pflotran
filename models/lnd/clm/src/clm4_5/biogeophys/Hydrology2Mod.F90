@@ -288,6 +288,7 @@ contains
 
     PetscScalar, pointer :: sat_clm_loc(:)     !
     PetscScalar, pointer :: qflx_clm_loc(:)    !
+    PetscErrorCode :: ierr
 
     den = 998.2_r8 ! [kg/m^3]
     den = 1000._r8 ! [kg/m^3]
