@@ -252,10 +252,10 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   !   h2osoi_vol[m^3/m^3] (water + ice)
   ! =======================================================================
 
-  h2osoi_ice        => clm3%g%l%c%cws%h2osoi_ice
-  h2osoi_liq        => clm3%g%l%c%cws%h2osoi_liq
-  h2osoi_vol        => clm3%g%l%c%cws%h2osoi_vol
-  dz                => clm3%g%l%c%cps%dz  
+  h2osoi_ice        => cws%h2osoi_ice
+  h2osoi_liq        => cws%h2osoi_liq
+  h2osoi_vol        => cws%h2osoi_vol
+  dz                => cps%dz
 
   nclumps = get_proc_clumps()
   nstep   = get_nstep()

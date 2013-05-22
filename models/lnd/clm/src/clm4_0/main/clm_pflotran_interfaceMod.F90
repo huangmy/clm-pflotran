@@ -176,21 +176,21 @@ contains
     call get_proc_global(numg, numl, numc, nump)
 
     ! Assign local pointers to derived subtypes components (landunit-level)
-    ltype           => clm3%g%l%itype
+    ltype           => lun%itype
 
     ! Assign local pointer to derived subtypes components (column-level)
-    clandunit       => clm3%g%l%c%landunit
-    cgridcell       => clm3%g%l%c%gridcell
-    wtgcell         => clm3%g%l%c%wtgcell
-    ctype           => clm3%g%l%c%itype
-    hksat           => clm3%g%l%c%cps%hksat
-    sucsat          => clm3%g%l%c%cps%sucsat
-    watsat          => clm3%g%l%c%cps%watsat
-    h2osoi_vol      => clm3%g%l%c%cws%h2osoi_vol
+    clandunit       => col%landunit
+    cgridcell       => col%gridcell
+    wtgcell         => col%wtgcell
+    ctype           => col%itype
+    hksat           => cps%hksat
+    sucsat          => cps%sucsat
+    watsat          => cps%watsat
+    h2osoi_vol      => cws%h2osoi_vol
     topo            => ldomain%topo
-    zwt             => clm3%g%l%c%cws%zwt
-    latdeg          => clm3%g%latdeg
-    londeg          => clm3%g%londeg
+    zwt             => cws%zwt
+    latdeg          => grc%latdeg
+    londeg          => grc%londeg
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -213,10 +213,10 @@ contains
 
     !pflotran_m%nlclm = clm_npts
     !pflotran_m%ngclm = clm_npts
-    clm_pf_idata%nlclm = clm_npts
-    clm_pf_idata%ngclm = clm_npts
-    clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
-    clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
+    !clm_pf_idata%nlclm = clm_npts
+    !clm_pf_idata%ngclm = clm_npts
+    !clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
+    !clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
     call clm_pflotran_interface_data_allocate_memory(pflotran_m%option%mycomm)
 
     call pflotranModelInitMapping3(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)

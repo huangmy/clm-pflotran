@@ -273,6 +273,7 @@ contains
 
     PetscScalar, pointer :: sat_clm_loc(:)     !
     PetscScalar, pointer :: qflx_clm_loc(:)    !
+    PetscErrorCode :: ierr
 
     den = 998.2_r8 ! [kg/m^3]
     den = 1000._r8 ! [kg/m^3]
@@ -379,19 +380,19 @@ contains
     qflx_glcice_frz   => cwf%qflx_glcice_frz
 
 #ifdef CLM_PFLOTRAN
-    npfts             => clm3%g%l%c%npfts
-    wtgcell           => clm3%g%l%c%wtgcell
-    qflx_tran_veg_col => clm3%g%l%c%cwf%pwf_a%qflx_tran_veg
+    npfts             => col%npfts
+    wtgcell           => col%wtgcell
+    qflx_tran_veg_col => pwf_a%qflx_tran_veg
 
     ! Assign local pointers to derived type members (pft-level)
-    qflx_tran_veg_pft => clm3%g%l%c%p%pwf%qflx_tran_veg
-    qflx_evap_soi_pft => clm3%g%l%c%p%pwf%qflx_evap_soi
-    rootr_pft         => clm3%g%l%c%p%pps%rootr
-    pwtgcell          => clm3%g%l%c%p%wtgcell
-    pwtcol            => clm3%g%l%c%p%wtcol
-    pfti              => clm3%g%l%c%pfti
-    rootr_col         => clm3%g%l%c%cps%rootr_column
-    wtcol             => clm3%g%l%c%p%wtcol
+    qflx_tran_veg_pft => pwf%qflx_tran_veg
+    qflx_evap_soi_pft => pwf%qflx_evap_soi
+    rootr_pft         => pps%rootr
+    pwtgcell          => pft%wtgcell
+    pwtcol            => pft%wtcol
+    pfti              => col%pfti
+    rootr_col         => cps%rootr_column
+    wtcol             => pft%wtcol
 #endif
 
     ! Determine time step and step size
