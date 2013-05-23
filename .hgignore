@@ -3,4 +3,4 @@ syntax: regexp
 scripts/brazil*
 scripts/US-UMB*
 scripts/US-NR1*
-clm4-pf-xcode*
+\-xcode$
