@@ -137,10 +137,11 @@
           DESC="smoke CLM spinup test (only valid for CLM compsets with CLM45 and CN or BGC)"
           INFO_DBUG="2"
           CCSM_TCOST="-1"
-          STOP_OPTION="nsteps"
+          CLM_BLDNML_OPTS="-bgc_spinup on"
+          STOP_OPTION="ndays"
           RUN_TYPE="startup"
-          STOP_N="96"
-          DOUT_S="FALSE" />
+          STOP_N="4"
+          DOUT_S="TRUE" />
 
 <ccsmtest NAME="NCK"
           DESC="multi-instance validation vs single instance (default length)"

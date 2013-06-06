@@ -1,5 +1,5 @@
-! $Id: ESMF_RegridWeightGenCheck.F90 44128 2013-02-22 15:43:14Z mlevy@ucar.edu $
-! $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/check_maps/src/ESMF_RegridWeightGenCheck.F90 $
+! $Id: ESMF_RegridWeightGenCheck.F90 46983 2013-05-09 22:08:12Z tcraig $
+! $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/check_maps/src/ESMF_RegridWeightGenCheck.F90 $
 !
 ! Earth System Modeling Framework
 ! Copyright 2002-2012, University Corporation for Atmospheric Research,
@@ -28,19 +28,31 @@ program OfflineTester
 
   implicit none
 
+  integer,parameter :: R8 = selected_real_kind(12) ! 8 byte real
+  integer,parameter :: R4 = selected_real_kind( 6) ! 4 byte real
+  integer,parameter :: RN = kind(1.0)              ! native real
+  integer,parameter :: I8 = selected_int_kind (13) ! 8 byte integer
+  integer,parameter :: I4 = selected_int_kind ( 6) ! 4 byte integer
+  integer,parameter :: IN = kind(1)                ! native integer
+  integer,parameter :: CS = 80                     ! short char
+  integer,parameter :: CL = 256                    ! long char
+  integer,parameter :: CX = 512                    ! extra-long char
+
 !------------------------------------------------------------------------------
 ! EXECUTION
 !------------------------------------------------------------------------------
       integer :: localPet, nPet
       integer :: failCnt, totCnt, numarg
       integer :: status, rc
-      logical, parameter :: Debug=.false.
 #ifdef VERBOSE
       logical, parameter :: Verbose=.true.
+      logical, parameter :: Debug=.true.
 #else
       logical, parameter :: Verbose=.false.
+      logical, parameter :: Debug=.false.
 #endif
       integer, parameter :: Num_Tests=5
+      logical, parameter :: esmf_smm = .false.
       logical :: success, successful_map
 
       type(ESMF_VM) :: vm
@@ -56,8 +68,15 @@ program OfflineTester
                                      src_mask(:), dst_mask(:), &
                                      src_frac(:), dst_frac(:)
 
-      integer :: src_dim, dst_dim
-      integer :: i, j, src, dst
+      !--- for local mapping ---
+      integer  :: ns, col, row
+      real(r8) :: wgt
+
+      integer :: src_dim, dst_dim, nxs, nys, nxd, nyd
+      integer :: n, ni, nj, i, j, src, dst
+      integer :: ncid, dimid, dimids(2), dimidd(2), vid
+      character(len=128) :: fname,fname1,sname,dname
+      real(ESMF_KIND_R8),allocatable :: srcfld(:,:),dstfld(:,:)
 
       real(ESMF_KIND_R8), parameter :: one = 1.0
       real(ESMF_KIND_R8), parameter :: two = 2.0
@@ -128,6 +147,7 @@ program OfflineTester
       endif
       call ESMF_UtilGetArg(1, argvalue=wgtfile)
       if (Debug) print*, "ESMF_UtilGetArg!"
+      if (verbose) write(6,*) 'opening ',trim(wgtfile)
 
       !Set finalrc to success
       rc = ESMF_SUCCESS
@@ -135,11 +155,15 @@ program OfflineTester
       totCnt = 0
 
       ! read in the grid dimensions
-      call NCFileInquire(wgtfile, title, src_dim, dst_dim, localrc=status)
+      call NCFileInquire(wgtfile, title, src_dim, nxs, nys, &
+                                         dst_dim, nxd, nyd, localrc=status)
       if (ESMF_LogFoundError(rcToCheck=status, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, file=__FILE__, rcToReturn=rc)) &
         call ESMF_Finalize(endflag=ESMF_END_ABORT)
       if (Debug) print*, "NCFileInquire!"
+      if (verbose) write(6,*) 'NCFileInquire done'
+      if (verbose) write(6,*) '  src grid size = ',nxs,nys
+      if (verbose) write(6,*) '  dst grid size = ',nxd,nyd
 
     !  only read the data on PET 0 until we get ArrayRead going...
     if (localPet == 0) then
@@ -161,6 +185,7 @@ program OfflineTester
         line=__LINE__, file=__FILE__, rcToReturn=rc)) &
         call ESMF_Finalize(endflag=ESMF_END_ABORT)
       if (Debug) print*, "GridReadCoords!"
+      if (verbose) write(6,*) 'GridReadCoords done'
 
       ! create Fortran arrays
       allocate(FsrcArray(src_dim))
@@ -197,6 +222,7 @@ program OfflineTester
       end do
 
       FdstMatrix = UNINITVAL
+      if (verbose) write(6,*) 'Test Fields Setup done'
 
       ! deallocate arrays
       deallocate(src_lat)
@@ -205,7 +231,10 @@ program OfflineTester
       deallocate(dst_lon)
     endif
 
+    if (esmf_smm) then
+      if (verbose) write(6,*) 'using esmf_smm'
       do j=1,Num_Tests
+        if (verbose) write(6,'(a,i4,a,i4)') 'mapping field ',j,' of ',Num_Tests
         FsrcArray = FsrcMatrix(j,:)
         FdstArray = FdstMatrix(j,:)
 
@@ -309,7 +338,122 @@ program OfflineTester
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         if (Debug) print*, j, ": ESMF_ArrayGather!"
         FdstMatrix(j,:) = FdstArray
+        if (verbose) write(6,*) 'mapping field done ',j
       end do
+    else    ! esmf_smm
+      if (verbose) write(6,*) 'using local smm'
+
+!      status = nf90_open(trim(wgtfile),NF90_NOWRITE,ncid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_open:',trim(nf90_strerror(status))
+!      status = nf90_inq_dimid(ncid,'n_s',dimid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_inq_dimid n_s:',trim(nf90_strerror(status))
+!      status = nf90_inquire_dimension(ncid,dimid,len=ns)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_inq_dim_len n_s:',trim(nf90_strerror(status))
+!      allocate(row(ns),col(ns),wgt(ns))
+!      status = nf90_inq_varid(ncid,'row',vid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_varid row:',trim(nf90_strerror(status))
+!      status = nf90_get_var(ncid,vid,row)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_get_var row:',trim(nf90_strerror(status))
+!      status = nf90_inq_varid(ncid,'col',vid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_varid col:',trim(nf90_strerror(status))
+!      status = nf90_get_var(ncid,vid,col)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_get_var col:',trim(nf90_strerror(status))
+!      status = nf90_inq_varid(ncid,'S',vid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_varid wgt:',trim(nf90_strerror(status))
+!      status = nf90_get_var(ncid,vid,wgt)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_get_var wgt:',trim(nf90_strerror(status))
+!      status = nf90_close(ncid)
+!      if(status /= nf90_NoErr) write(6,*) 'nf90_close:',trim(nf90_strerror(status))
+
+      call ESMF_FieldRegridReadSCRIPFileP(wgtfile, factorList, factorIndexList, rc=status)
+      if (ESMF_LogFoundError(rcToCheck=status, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, file=__FILE__, rcToReturn=rc)) &
+        call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      if (Debug) print*, j, ": ESMF_FieldRegridReadSCRIPFileP!"
+
+      ns = size(factorList)
+      if (verbose) write(6,*) 'number of weights = ',ns
+
+      ! set zeros in FdstMatrix dst indices as starting point
+      do n = 1,ns
+         row = factorIndexList(2,n)
+         FdstMatrix(:,row) = 0.0_r8
+      enddo
+
+      do n = 1,ns
+      do j = 1,Num_Tests
+         col = factorIndexList(1,n)
+         row = factorIndexList(2,n)
+         wgt = factorList(n)
+         FdstMatrix(j,row) = FdstMatrix(j,row) + FsrcMatrix(j,col)*wgt
+      enddo
+      enddo
+    endif
+
+      ! -----------------------------------------------------------------------
+      ! netcdf output
+      ! -----------------------------------------------------------------------
+
+    if (localPet == 0) then
+       allocate(srcfld(nxs,nys),dstfld(nxd,nyd))
+       fname1 = trim(wgtfile)
+       n = index(fname1,'/',back=.true.)
+       fname = './test_'//fname1(n+1:len_trim(fname1))
+       if (verbose) write(6,*) 'writing ',trim(fname)
+       status = nf90_create(trim(fname),NF90_CLOBBER,ncid)
+       if(status /= nf90_NoErr) write(6,*) 'nf90_create:',trim(nf90_strerror(status))
+       status = nf90_def_dim(ncid,'nxs',nxs,dimids(1))
+       if(status /= nf90_NoErr) write(6,*) 'nf90_def_dim nxs:',trim(nf90_strerror(status))
+       status = nf90_def_dim(ncid,'nys',nys,dimids(2))
+       if(status /= nf90_NoErr) write(6,*) 'nf90_def_dim nys:',trim(nf90_strerror(status))
+       status = nf90_def_dim(ncid,'nxd',nxd,dimidd(1))
+       if(status /= nf90_NoErr) write(6,*) 'nf90_def_dim nxd:',trim(nf90_strerror(status))
+       status = nf90_def_dim(ncid,'nyd',nyd,dimidd(2))
+       if(status /= nf90_NoErr) write(6,*) 'nf90_def_dim nyd:',trim(nf90_strerror(status))
+       do j = 1,Num_Tests
+          write(sname,'(a,i2.2)') 'src',j
+          write(dname,'(a,i2.2)') 'dst',j
+          status = nf90_def_var(ncid,trim(sname),nf90_double,dimids,vid)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_def_var sname:',trim(nf90_strerror(status))
+          status = nf90_put_att(ncid,vid,'_FillValue',UNINITVAL)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_put_att fill sname:',trim(nf90_strerror(status))
+          status = nf90_def_var(ncid,trim(dname),nf90_double,dimidd,vid)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_def_var dname:',trim(nf90_strerror(status))
+          status = nf90_put_att(ncid,vid,'_FillValue',UNINITVAL)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_put_att dname:',trim(nf90_strerror(status))
+       enddo
+       status = nf90_enddef(ncid)
+       if(status /= nf90_NoErr) write(6,*) 'nf90_enddef:',trim(nf90_strerror(status))
+       do j = 1,Num_Tests
+          write(sname,'(a,i2.2)') 'src',j
+          write(dname,'(a,i2.2)') 'dst',j
+          n = 0
+          do nj = 1,nys
+          do ni = 1,nxs
+             n = n + 1
+             srcfld(ni,nj) = FsrcMatrix(j,n)
+          enddo
+          enddo
+          n = 0
+          do nj = 1,nyd
+          do ni = 1,nxd
+             n = n + 1
+             dstfld(ni,nj) = FdstMatrix(j,n)
+          enddo
+          enddo
+          status = nf90_inq_varid(ncid,trim(sname),vid)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_inq_varid sname:',trim(nf90_strerror(status))
+          status = nf90_put_var(ncid,vid,srcfld)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_put_var srcfld:',trim(nf90_strerror(status))
+          status = nf90_inq_varid(ncid,trim(dname),vid)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_inq_varid dname:',trim(nf90_strerror(status))
+          status = nf90_put_var(ncid,vid,dstfld)
+          if(status /= nf90_NoErr) write(6,*) 'nf90_put_var dstfld:',trim(nf90_strerror(status))
+       enddo
+       status = nf90_close(ncid)
+       if(status /= nf90_NoErr) write(6,*) 'nf90_close:',trim(nf90_strerror(status))
+       deallocate(srcfld,dstfld)
+    endif     
 
       ! -----------------------------------------------------------------------
       ! ERROR ANALYSIS - serial
@@ -317,6 +461,7 @@ program OfflineTester
     if (localPet == 0) then
       success = .true.
       do j=1,Num_Tests
+        if (verbose) write(6,'(a,i4,a,i4)') 'analyzing field ',j,' of ',Num_Tests
         FsrcArray = FsrcMatrix(j,:)
         FdstArray = FdstMatrix(j,:)
         FdstArrayX = FdstMatrixX(j,:)
@@ -621,15 +766,18 @@ contains
 ! The weights file should have the source and destination grid information
 ! provided.
 !***********************************************************************************
-  subroutine NCFileInquire (wgtfile, title, src_dim, dst_dim, localrc)
+  subroutine NCFileInquire (wgtfile, title, src_dim, nxs, nys, dst_dim, nxd, nyd, localrc)
  
     character(ESMF_MAXSTR), intent(in)  :: wgtfile
     character(ESMF_MAXSTR), intent(out)  :: title
     integer, intent(out)                :: src_dim
+    integer, intent(out)                :: nxs, nys
     integer, intent(out)                :: dst_dim
+    integer, intent(out)                :: nxd, nyd
     integer, intent(out), optional      :: localrc
       
     integer :: ncstat,  nc_file_id,  nc_srcdim_id, nc_dstdim_id
+    integer :: gdims(2)
     integer :: titleLen
 
     character(ESMF_MAXSTR) :: msg
@@ -688,6 +836,9 @@ contains
         return
       endif
 
+      nxs = src_dim
+      nys = 1
+
       !-----------------------------------------------------------------
       ! destination grid dimensions
       !-----------------------------------------------------------------
@@ -705,6 +856,27 @@ contains
         call ESMF_LogSetError(ESMF_RC_SYS, msg=msg, &
           line=__LINE__, file=__FILE__ , rcToReturn=rc)
         return
+      endif
+
+      nxs = dst_dim
+      nys = 1
+
+      !------------------------------------------------------------------------
+      !     get 2d grid sizes if we can, overwrite src_dim and dst_dim above
+      !------------------------------------------------------------------------
+
+      ncstat = nf90_inq_varid(nc_file_id, 'src_grid_dims', nc_srcdim_id)
+      if(ncstat == 0) then
+         ncstat = nf90_get_var(ncid=nc_file_id, varid=nc_srcdim_id, values=gdims)
+         nxs = gdims(1)
+         nys = gdims(2)
+      endif
+
+      ncstat = nf90_inq_varid(nc_file_id, 'dst_grid_dims', nc_dstdim_id)
+      if(ncstat == 0) then
+         ncstat = nf90_get_var(ncid=nc_file_id, varid=nc_dstdim_id, values=gdims)
+         nxd = gdims(1)
+         nyd = gdims(2)
       endif
 
       !------------------------------------------------------------------------

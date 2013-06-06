@@ -131,6 +131,10 @@ installing and running CESM1.1.
 <para> <ulink url="http://www.netlib.org/lapack/"> LAPACKm</ulink> or a vendor supplied equivalent may also be required for some configurations.
 </para>
 </listitem>
+<listitem>
+<para> <ulink url="http://www.cmake.org/"> CMake 2.8.6 or newer</ulink> is required for configurations that include CISM.
+</para>
+</listitem>
 </itemizedlist>
 
 <para> The following table contains the version in use at the time of release.  These

@@ -30,6 +30,8 @@ my %opts = (
     list     => 0, 
     verbose  => 0,
     outputlist => 0,
+    outputtext => 0,
+    outputxml =>  0,
     );
 
 GetOptions(
@@ -43,6 +45,7 @@ GetOptions(
     "h|help"     => \$opts{'help'},
     "v|verbose"  => \$opts{'verbose'},
     "outputlist" => \$opts{'outputlist'},
+    "outputxml" => \$opts{'outputxml'},
     );
 
 if (@ARGV) {
@@ -259,13 +262,14 @@ foreach my $cname (sort keys %$comphash){
     }
 }
 
-if (! $opts{'verbose'} && ! $opts{'outputlist'}) {
+if (! $opts{'verbose'} && ! $opts{'outputlist'} && ! $opts{'outputxml'}) {
     print "\n"; 
     printf("   %-50s %-20s %-20s %-20s  %-10s  %-20s\n", 
 	   "Compset", "TestName", "Grid", "Machine_compiler", "Test Category", "Namelist Dir (optional)");
     print "\n";
 }
 
+my %xmlhash;
 my $csname = ' ';  my $clname = ' '; 
 foreach my $cname (sort keys %$comphash){
     if ($compset_opt ne 'all') {
@@ -281,6 +285,7 @@ foreach my $cname (sort keys %$comphash){
 	    }
 	}
     }
+	
     foreach my $gname (sort keys %{$comphash->{$cname}}){
 	if ($grid_opt ne 'all') {
 	    next unless ($gname =~ /$grid_opt/);
@@ -302,12 +307,14 @@ foreach my $cname (sort keys %$comphash){
 			    next unless ($ttype eq $category_opt);
 			}
 			my $nldir;
+			my $nlxmldir;
 			foreach my $dir (keys %{$comphash->{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}}){
 			    $nldir = $dir;
 			}
 			my $compname = "$cname" . " ($csname)";
 			my $machname = "$mname" . "_$cpname";
 			if ($nldir ne 'all') {
+				$nlxmldir = $nldir;
 			    $nldir = "nldir=" . $nldir;  
 			} else {
 			    $nldir = "";
@@ -318,7 +325,14 @@ foreach my $cname (sort keys %$comphash){
 			    print "grid    : $gname  machine: $machname \n\n";
 			} else {
 			    if($opts{'outputlist'}) {
-				print "$tname.$gname.$csname.$machname\n";
+				#print "$tname.$gname.$csname.$machname\n";
+				print "$tname.$gname.$cname.$machname\n";
+				}elsif($opts{'outputxml'}) {
+					if(defined $nlxmldir ){
+						$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}{$nlxmldir} = 1;
+					}else{
+						$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}= 1;
+					}
 			    }else{
 				if ($nldir ne 'all') {
 				    printf   ("   %-50s %-20s %-20s %-20s  %-10s  %-20s\n", 
@@ -335,6 +349,50 @@ foreach my $cname (sort keys %$comphash){
 	}
     }
 }
+#print Dumper \%xmlhash;
+if($opts{'outputxml'})
+{
+    #$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}{$nlxmldir} = 1;
+	my $xmldoc = XML::LibXML::Document->new('1.0', 'UTF-8');
+	my $root = $xmldoc->createElement('testlist');
+	my ($cnode, $gnode, $tnode, $mnode) ;
+	
+	foreach my $cname (sort keys %xmlhash) {
+		$cnode = XML::LibXML::Element->new('compset');
+		$cnode->setAttribute('name', $cname);
+		foreach my $gname (sort keys %{$xmlhash{$cname}}) {
+			$gnode = XML::LibXML::Element->new('grid');
+			$gnode->setAttribute('name', $gname);
+			foreach my $tname (sort keys %{$xmlhash{$cname}{$gname}}) {
+				$tnode = XML::LibXML::Element->new('test');
+				$tnode->setAttribute('name', $tname);
+				foreach my $mname (sort keys %{$xmlhash{$cname}{$gname}{$tname}}) {
+					$mnode = XML::LibXML::Element->new('machine');
+					$mnode->appendText($mname);
+					foreach my $cpname (sort keys %{$xmlhash{$cname}{$gname}{$tname}{$mname}}) {
+						$mnode->setAttribute('compiler', $cpname);
+						foreach my $ttype(sort keys %{$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}}) {
+							$mnode->setAttribute('testtype', $ttype);
+							my $nlval = $xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype};
+							if(ref($nlval) eq 'HASH') {
+								my $nldir = (keys %{$nlval})[0];
+								$mnode->setAttribute('nldir', $nldir);
+							}
+						}
+					}
+					$tnode->appendChild($mnode);
+				}
+				$gnode->appendChild($tnode);
+			}
+			$cnode->appendChild($gnode);
+		}
+		$root->appendChild($cnode);
+	}
+	$xmldoc->setDocumentElement($root);
+	print $xmldoc->toString(1) ;
+}
+
+
 
 exit 0;
 
@@ -367,6 +425,8 @@ OPTIONS
      -machine <name>          limit selection to target machine name
      -compiler <name>         limit selection to target compiler name
      -grid <name>             limit selection to target grid name match
+     -outputlist              outputs the found tests to the old-style text test lists.  
+     -outputxml               outputs the found tests to an xml test list. 
 
     A note on the PE count specifiers:
     T, S, M, L, X are not constant.  first, they are only defined for a few

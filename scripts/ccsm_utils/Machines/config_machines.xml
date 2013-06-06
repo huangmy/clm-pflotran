@@ -476,5 +476,28 @@
 </machine>
 
 
+<machine MACH="stampede">
+        <DESC>TACC DELL, os is Linux, 16 pes/node, batch system is SLURM</DESC>
+        <OS>LINUX</OS>
+        <COMPILERS>intel,intel-mic</COMPILERS>
+        <MPILIBS>mvapich2,impi,mpi-serial</MPILIBS>
+        <RUNDIR>/work/02463/srinathv/$CASE/run</RUNDIR>
+        <EXEROOT>/work/02463/srinathv/$CASE/bld</EXEROOT>
+        <DIN_LOC_ROOT>/work/02463/srinathv/inputdata</DIN_LOC_ROOT>
+        <DIN_LOC_ROOT_CLMFORC>/work/02463/srinathv/lmwg</DIN_LOC_ROOT_CLMFORC>
+        <DOUT_S_ROOT>/work/02463/srinathv/archive/$CASE</DOUT_S_ROOT>
+        <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>              
+        <CCSM_BASELINE>/work/02463/srinathv/ccsm_baselines</CCSM_BASELINE>
+        <CCSM_CPRNC>/work/02463/srinathv/tools/cprnc/cprnc</CCSM_CPRNC>
+        <BATCHQUERY>squeue</BATCHQUERY>
+        <BATCHSUBMIT>sbatch</BATCHSUBMIT>
+        <SUPPORTED_BY>srinathv -at- ucar.edu</SUPPORTED_BY>
+        <GMAKE_J>8</GMAKE_J>
+        <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
+        <PES_PER_NODE>16</PES_PER_NODE>
+</machine>
+
+
+
 
 </config_machines>

@@ -3037,6 +3037,8 @@ visible to compute nodes."
  ldesc="
 If TRUE, perform short term archiving on all interim restart files,
 not just those at the end of the run. By default, this value is FALSE.
+The restart files are saved under the specific component directory
+($CASE/$COMPONENT/rest rather than the top-level $CASE/rest directory).
 This is for expert users ONLY and requires expert knowledge. We will
 not document this further in this guide."
 ></entry> 

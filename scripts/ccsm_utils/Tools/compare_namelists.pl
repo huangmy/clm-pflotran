@@ -63,9 +63,13 @@ foreach $line (@nlfile){
 
 }
 
+my $fname = $nml;
+if($nml=~ /.*\/(.*)$/){
+    $fname = $1;
+}
 
 if($#diffs1>=0){
-    print "\nFAIL namelist compare: $nml and $basenml differ\n";
+    print "\nFAIL namelist compare:  $fname differs\n";
     foreach my $line (@diffs1){
 	my $bline = shift @diffs2;
 	print "   NEW:        $line\n";

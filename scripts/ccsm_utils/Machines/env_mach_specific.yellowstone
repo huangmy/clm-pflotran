@@ -93,3 +93,5 @@ if ( $DEBUG == "TRUE" ) then
 else
   setenv MP_EUIDEVELOP min
 endif
+setenv MP_EAGER_LIMIT 0
+

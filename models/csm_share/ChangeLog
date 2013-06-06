@@ -1,8 +1,38 @@
 ================================================================================
-SVN $Id: ChangeLog 46241 2013-04-23 16:45:22Z santos@ucar.edu $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130423/ChangeLog $
+SVN $Id: ChangeLog 47549 2013-05-28 22:22:13Z santos@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130528/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+===========================
+Originator: santos
+Date: May 28, 2013
+Model: share
+Version: share3_130528
+One-line summary: Fix bug with Intel compiler and shr_spfn_mod.
+
+M     shr/shr_spfn_mod.F90
+       - ifort experiences an internal error if you use an intrinsic (e.g.
+         "gamma") in a function, and then rename that function to "gamma".
+         However, this can be circumvented by adding one extra layer of
+         indirection, e.g. by renaming a function by putting it in a
+         generic interface block. I have done this, so it will be possible
+         for modules to use this statement:
+
+         use shr_spfn_mod, only: gamma => shr_spfn_gamma
+
+===========================
+Originator: santos
+Date: May 7, 2013
+Model: share
+Version: share3_130507
+One-line summary: Fix bug with optional argument to shr_sys_abort
+
+M     shr/shr_sys_mod.F90
+       - shr_sys_abort passed an optional error string to len_trim without
+         checking if it is present. On many (most) compilers this is harmless,
+         but can cause a run-time error that prevents the error message from
+         being printed properly.
+
 ===========================
 Originator: santos
 Date: Apr 23, 2013

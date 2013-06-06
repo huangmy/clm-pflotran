@@ -103,6 +103,14 @@ public :: shr_spfn_igamma
 
 public :: shr_spfn_gamma_nonintrinsic
 
+interface shr_spfn_gamma
+   module procedure shr_spfn_gamma_r8
+end interface
+
+interface shr_spfn_gamma_nonintrinsic
+   module procedure shr_spfn_gamma_nonintrinsic_r8
+end interface
+
 ! Mathematical constants
 ! sqrt(pi)
 real(r8), parameter :: sqrtpi = 1.77245385090551602729_r8
@@ -317,7 +325,7 @@ function shr_spfn_erfc_scaled_r8(x) result(res)
 
 end function shr_spfn_erfc_scaled_r8
 
-pure function shr_spfn_gamma(x) result(res)
+pure function shr_spfn_gamma_r8(x) result(res)
   real(r8), intent(in) :: x
   real(r8) :: res
 
@@ -330,7 +338,7 @@ pure function shr_spfn_gamma(x) result(res)
   res = shr_spfn_gamma_nonintrinsic(x)
 #endif
 
-end function shr_spfn_gamma
+end function shr_spfn_gamma_r8
 
 !------------------------------------------------------------------
 !
@@ -932,7 +940,7 @@ END FUNCTION ERFCX_R4
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-pure function shr_spfn_gamma_nonintrinsic(X) result(gamma)
+pure function shr_spfn_gamma_nonintrinsic_r8(X) result(gamma)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -1161,7 +1169,7 @@ pure function shr_spfn_gamma_nonintrinsic(X) result(gamma)
   if (fact /= 1._r8) res = fact/res
   gamma = res
 ! ---------- LAST LINE OF GAMMA ----------
-end function shr_spfn_gamma_nonintrinsic
+end function shr_spfn_gamma_nonintrinsic_r8
 
 !! Incomplete Gamma function
 !!
