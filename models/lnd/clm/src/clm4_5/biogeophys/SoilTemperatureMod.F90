@@ -2090,7 +2090,6 @@ contains
        c = filter_nolakec(fc)
        g = cgridcell(c)
        gcount = g - begg
-       t_soisno(c,1) = t_soisno(c,2)
        do j = 1, nlevsoi
           t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
        enddo

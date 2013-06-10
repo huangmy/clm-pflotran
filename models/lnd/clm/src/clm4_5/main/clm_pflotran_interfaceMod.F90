@@ -23,8 +23,9 @@ module clm_pflotran_interfaceMod
   use spmdMod         , only : mpicom, MPI_INTEGER, masterproc
   use organicFileMod  , only : organicrd
   use clm_varcon      , only : istice, istdlak, istwet, isturb, istice_mec,  &
-       icol_roof, icol_sunwall, icol_shadewall, &
-       icol_road_perv, icol_road_imperv, zisoi, zsoi
+                               icol_roof, icol_sunwall, icol_shadewall, &
+                               icol_road_perv, icol_road_imperv, zisoi, zsoi, &
+                               istsoil, denice, denh2o
   use abortutils      , only : endrun
 
   !use clm_pflotran_interface_type
@@ -92,6 +93,9 @@ contains
     real(r8), pointer :: wtgcell(:)                 ! weight (relative to gridcell)
     integer , pointer :: ltype(:)                   ! landunit type index
     real(r8), pointer :: h2osoi_vol(:,:)            ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+    real(r8), pointer :: h2osoi_liq(:,:)            ! liquid water (kg/m2)
+    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(r8), pointer :: t_soisno(:,:)              ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
     real(r8), pointer :: topo(:)                    ! topography
 
     real(r8), pointer :: zwt(:)                     ! water table depth (m)
@@ -104,6 +108,7 @@ contains
     real(r8), pointer :: bsw_loc(:)             ! Clapp and Hornberger "b" (nlevgrnd)
     real(r8), pointer :: zwt_2d_loc(:)          ! water table depth (m)
     real(r8), pointer :: topo_2d_loc(:)         ! Topogrpahy
+    real(r8), pointer :: dz(:,:)                ! layer thickness (m)
     integer :: index
     
     real(r8), pointer :: latdeg(:)             ! latitude (radians)
@@ -156,6 +161,7 @@ contains
     real(r8):: closelat,closelon
 
     logical :: readvar
+    logical , pointer :: lakpoi(:)      ! true => landunit is a lake point
 
     integer, pointer :: clm_cell_ids_nindex(:)
     integer, pointer :: clm_surf_cell_ids_nindex(:)
@@ -170,6 +176,8 @@ contains
     PetscScalar, pointer :: sucsat_clm_loc(:)  ! volumetric soil water at saturation (porosity)
     PetscScalar, pointer :: bsw_clm_loc(:)     ! Clapp and Hornberger "b"
     PetscScalar, pointer :: press_clm_loc(:)   ! Pressure
+    PetscScalar, pointer :: temp_clm_loc(:)    ! Temperature
+    PetscScalar, pointer :: sat_clm_loc(:)     ! Saturation
     PetscErrorCode :: ierr
 
     ! Determine necessary indices
@@ -189,10 +197,15 @@ contains
     sucsat          => clm3%g%l%c%cps%sucsat
     watsat          => clm3%g%l%c%cps%watsat
     h2osoi_vol      => clm3%g%l%c%cws%h2osoi_vol
+    h2osoi_liq      => clm3%g%l%c%cws%h2osoi_liq
+    h2osoi_ice      => clm3%g%l%c%cws%h2osoi_ice
+    t_soisno        => clm3%g%l%c%ces%t_soisno
     topo            => ldomain%topo
     zwt             => clm3%g%l%c%cws%zwt
     latdeg          => clm3%g%latdeg
     londeg          => clm3%g%londeg
+    lakpoi          => clm3%g%l%lakpoi
+    dz              => clm3%g%l%c%cps%dz
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -471,9 +484,52 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
     call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
 
+    ! Set CLM soil properties onto PFLOTRAN grid
     call pflotranModelSetSoilProp(pflotran_m)
     !call pflotranModelSetICs(pflotran_m)
-    call pflotranModelStepperRunInit( pflotran_m )
+
+    ! Initialize PFLOTRAN states
+    call pflotranModelStepperRunInit(pflotran_m)
+
+    ! Get PFLOTRAN states
+    call pflotranModelGetUpdatedStates(pflotran_m)
+
+    ! Initialize soil temperature
+    if(pflotran_m%option%iflowmode==TH_MODE) then
+      call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
+      do c = begc,endc
+        l = clandunit(c)
+        if (.not. lakpoi(l)) then  !not lake
+         g = cgridcell(c)
+         gcount = g - begg
+         do j = 1, nlevsoi
+            t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
+         enddo
+         t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
+        endif
+      enddo
+      call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
+    endif
+
+    ! Initialize soil moisture
+    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
+    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+    do c = begc,endc
+      l = clandunit(c)
+      if (ltype(l) == istsoil) then
+        g = cgridcell(c)
+        gcount = g - begg
+        do j = 1, nlevsoi
+          h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi+j)*dz(c,j)*1.e3_r8
+          h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
+                            h2osoi_ice(c,j)/dz(c,j)/denice
+          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
+        enddo
+      endif
+    enddo
+    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 
     deallocate(sand3d,clay3d,organic3d)
 
