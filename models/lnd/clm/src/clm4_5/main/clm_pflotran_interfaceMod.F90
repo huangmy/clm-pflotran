@@ -491,6 +491,9 @@ contains
     ! Initialize PFLOTRAN states
     call pflotranModelStepperRunInit(pflotran_m)
 
+    ! Get top surface area
+    call pflotranModelGetTopFaceArea(pflotran_m)
+
     ! Get PFLOTRAN states
     call pflotranModelGetUpdatedStates(pflotran_m)
 

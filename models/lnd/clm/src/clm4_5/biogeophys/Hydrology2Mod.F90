@@ -286,8 +286,9 @@ contains
     real(r8) :: temp(lbc:ubc)                 ! accumulator for rootr weighting
     real(r8), pointer :: rootr_col(:,:)       ! effective fraction of roots in each soil layer
 
-    PetscScalar, pointer :: sat_clm_loc(:)     !
-    PetscScalar, pointer :: qflx_clm_loc(:)    !
+    PetscScalar, pointer :: sat_clm_loc(:)    !
+    PetscScalar, pointer :: qflx_clm_loc(:)   !
+    PetscScalar, pointer :: area_clm_loc(:)   !
     PetscErrorCode :: ierr
     real(r8) :: area
 
@@ -451,6 +452,7 @@ contains
 
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr)
 
     ! Determine necessary indices
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
@@ -477,9 +479,7 @@ contains
      g = cgridcell(c)
      gcount = g - begg
      j = 1
-     ! GB: TODO - Get planar area for each control volume from PFLTORAN
-     area = 2._r8*2._r8/2._r8
-     area = 1._r8*1._r8
+     area = area_clm_loc(gcount*nlevsoi+j)
      qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
                                         qflx_infl(c)*wtgcell(c)*area
     enddo
@@ -533,9 +533,7 @@ contains
         gcount = g - begg
         if (temp(c) /= 0._r8) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
-          ! GB: TODO - Get planar area for each control volume from PFLTORAN
-          area = 2._r8*2._r8/2._r8
-          area = 1._r8*1._r8
+          area = area_clm_loc(gcount*nlevsoi+j)
           qflx_clm_loc(gcount*nlevsoi + j ) = &
                               qflx_clm_loc(gcount*nlevsoi + j ) - &
                               qflx_tran_veg_col(c)*rootr_col(c,j)*area
@@ -560,6 +558,7 @@ contains
 
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr)
 
     call pflotranModelUpdateFlowConds( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
