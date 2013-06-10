@@ -61,7 +61,7 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 #include "finclude/petscviewer.h"
-!#include "definitions.h"
+#include "definitions.h"
 
     !
     ! !REVISION HISTORY:
@@ -158,7 +158,9 @@ contains
     logical :: readvar
 
     integer, pointer :: clm_cell_ids_nindex(:)
+    integer, pointer :: clm_surf_cell_ids_nindex(:)
     integer :: clm_npts
+    integer :: clm_surf_npts
 
     !PetscViewer :: viewer
     PetscScalar, pointer :: hksat_x_clm_loc(:) ! hydraulic conductivity in x-dir at saturation (mm H2O /s)
@@ -194,34 +196,85 @@ contains
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
-    !allocate(clm_pf_idata)
-    !clm_pf_idata => clm_pf_data_create()
 
+    ! Create PFLOTRAN model
     pflotran_m => pflotranModelCreate(mpicom)
-    !pflotran_m => pflotranModelCreate()
 
-    clm_npts = (endg - begg + 1)*nlevsoi
+    ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
+    call CLMPFLOTRANIDataInit()
+
+    ! Compute number of cells in CLM domain.
+    ! Assumption-1: One column per CLM grid cell.
+    ! Assumption-2: nz = nlevsoi and nz /= nlevgrnd. Need to add a flag in input
+    !               file to differenticate if PFLOTRAN grid is 'nlevsoi' or
+    !               'nlevgrnd' deep.
+    clm_npts = (endg-begg+1)*nlevsoi
+    clm_surf_npts = (endg-begg+1)
     allocate(clm_cell_ids_nindex( 1:clm_npts))
+    allocate(clm_surf_cell_ids_nindex(1:clm_surf_npts))
 
+    ! Save cell IDs of CLM grid
     clm_npts = 0
+    clm_surf_npts = 0
     do g = begg, endg
        do j = 1,nlevsoi
           clm_npts = clm_npts + 1
           clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
        enddo
+       clm_surf_npts=clm_surf_npts + 1
+       clm_surf_cell_ids_nindex(clm_surf_npts)=(ldecomp%gdc2glo(g)-1)*nlevsoi
     enddo
 
-    !pflotran_m%nlclm = clm_npts
-    !pflotran_m%ngclm = clm_npts
-    !clm_pf_idata%nlclm = clm_npts
-    !clm_pf_idata%ngclm = clm_npts
-    !clm_pf_idata%nlpf  = pflotran_m%realization%patch%grid%nlmax
-    !clm_pf_idata%ngpf  = pflotran_m%realization%patch%grid%ngmax
-    call CLMPFLOTRANIDataCreateVec(pflotran_m%option%mycomm)
+    ! CLM: Subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlclm_3d = clm_npts
+    clm_pf_idata%ngclm_3d = clm_npts
 
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_FLUX_MAP_ID)
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, CLM2PF_SOIL_MAP_ID)
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex,clm_npts, PF2CLM_FLUX_MAP_ID)
+    ! CLM: Surface of subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlclm_surf_3d = (endg-begg+1)
+    clm_pf_idata%ngclm_surf_3d = (endg-begg+1)
+
+    ! PFLOTRAN: Subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlpf_3d = pflotran_m%realization%patch%grid%nlmax
+    clm_pf_idata%ngpf_3d = pflotran_m%realization%patch%grid%ngmax
+
+    ! PFLOTRAN: Surface of subsurface domain (local and ghosted cells)
+    if(pflotran_m%option%iflowmode == TH_MODE) then
+      clm_pf_idata%nlpf_surf_3d = pflotranModelNSurfCells3DDomain(pflotran_m)
+      clm_pf_idata%ngpf_surf_3d = pflotranModelNSurfCells3DDomain(pflotran_m)
+    else
+      clm_pf_idata%nlpf_surf_3d = 0
+      clm_pf_idata%ngpf_surf_3d = 0
+    endif
+    
+    ! PFLOTRAN: Surface domain (local and ghosted cells)
+#ifdef SURFACE_FLOW
+    if(pflotran_m%option%nsurfflowdof > 0) then
+      clm_pf_idata%nlpf_2d = pflotran_m%surf_realization%patch%grid%nlmax
+      clm_pf_idata%ngpf_2d = pflotran_m%surf_realization%patch%grid%ngmax
+    else
+      clm_pf_idata%nlpf_2d = 0
+      clm_pf_idata%ngpf_2d = 0
+    endif
+#else
+    clm_pf_idata%nlpf_2d = 0
+    clm_pf_idata%ngpf_2d = 0
+#endif
+
+    ! Allocate vectors for data transfer between CLM and PFLOTRAN.
+    call CLMPFLOTRANIDataCreateVec(MPI_COMM_WORLD)
+
+    ! Initialize maps for transferring data between CLM and PFLOTRAN.
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, CLM2PF_FLUX_MAP_ID)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, CLM2PF_SOIL_MAP_ID)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, PF2CLM_FLUX_MAP_ID)
+
+    if(pflotran_m%option%iflowmode==TH_MODE) then
+      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                    clm_surf_npts, CLM2PF_GFLUX_MAP_ID)
+    endif
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -246,7 +299,6 @@ contains
     ! --------------------------------------------------------------------
     ! Read soil color, sand and clay from surface dataset
     ! --------------------------------------------------------------------
-
     if (masterproc) then
        write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
     endif
@@ -422,7 +474,6 @@ contains
     call pflotranModelSetSoilProp(pflotran_m)
     !call pflotranModelSetICs(pflotran_m)
     call pflotranModelStepperRunInit( pflotran_m )
-    call MPI_Barrier(pflotran_m%option%global_comm,ierr)
 
     deallocate(sand3d,clay3d,organic3d)
 

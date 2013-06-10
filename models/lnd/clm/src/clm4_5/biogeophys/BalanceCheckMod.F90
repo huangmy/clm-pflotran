@@ -475,6 +475,7 @@ contains
        end if
     end do
 
+#ifndef CLM_PFLOTRAN
     if ( found ) then
        write(iulog,*)'WARNING:  water balance error ',&
             ' nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
@@ -588,6 +589,7 @@ contains
           indexc = c
        end if
     end do
+#endif
 
 #ifndef CLM_PFLOTRAN
     if ( found ) then
@@ -744,6 +746,7 @@ contains
           indexc = c
        end if
     end do
+#ifndef CLM_PFLOTRAN
     if ( found ) then
        if (abs(errsoi_col(indexc)) > .10_r8 .and. (nstep > 2) ) then
           write(iulog,100)'BalanceCheck: soil balance error',nstep,indexc,errsoi_col(indexc)
@@ -752,6 +755,7 @@ contains
           call endrun()
        end if
     end if
+#endif
 
     ! Update SH and RUNOFF for dynamic land cover change energy and water fluxes
     call c2g( lbc, ubc, lbl, ubl, lbg, ubg,                &

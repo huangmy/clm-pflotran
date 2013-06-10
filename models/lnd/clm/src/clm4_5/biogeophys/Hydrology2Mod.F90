@@ -289,6 +289,7 @@ contains
     PetscScalar, pointer :: sat_clm_loc(:)     !
     PetscScalar, pointer :: qflx_clm_loc(:)    !
     PetscErrorCode :: ierr
+    real(r8) :: area
 
     den = 998.2_r8 ! [kg/m^3]
     den = 1000._r8 ! [kg/m^3]
@@ -476,8 +477,11 @@ contains
      g = cgridcell(c)
      gcount = g - begg
      j = 1
+     ! GB: TODO - Get planar area for each control volume from PFLTORAN
+     area = 2._r8*2._r8/2._r8
+     area = 1._r8*1._r8
      qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
-                                        qflx_infl(c)*wtgcell(c)/1000.0_r8*10_r8*10_r8/2_r8
+                                        qflx_infl(c)*wtgcell(c)*area
     enddo
 
     ! Compute the Transpiration sink at grid-level for each soil layer
@@ -529,9 +533,12 @@ contains
         gcount = g - begg
         if (temp(c) /= 0._r8) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
+          ! GB: TODO - Get planar area for each control volume from PFLTORAN
+          area = 2._r8*2._r8/2._r8
+          area = 1._r8*1._r8
           qflx_clm_loc(gcount*nlevsoi + j ) = &
                               qflx_clm_loc(gcount*nlevsoi + j ) - &
-                              qflx_tran_veg_col(c)*rootr_col(c,j)/1000.0_r8*1600_r8*1600_r8!*dz(c,j)
+                              qflx_tran_veg_col(c)*rootr_col(c,j)*area
         end if
       end do
     end do
@@ -551,25 +558,12 @@ contains
       end do
     end do
 
-    !write(*,*),'qflx_clm_loc:'
-    !do g = begg,endg
-    !  do j = 1,nlevsoi
-    !    gcount = g - begg + 1
-    !    write(*,*), g,j,qflx_clm_loc((gcount-1)*nlevsoi + j )*1000.0_r8/den
-    !  end do
-    !end do
-
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr)
 
-    write(iulog, *), 'call pflotranModelStepperRunTillPauseTime()'
-    !call pflotranModelUpdateSourceSink( pflotran_m )
-    !call pflotranModelUpdateSaturation( pflotran_m )
-    !call pflotranModelUpdateSourceSink3(pflotran_m)
+    call pflotranModelUpdateFlowConds( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    !call pflotranModelGetSaturation( pflotran_m )
-    !call pflotranModelGetSaturation3( pflotran_m )
-    write(iulog,*), 'qflx_sink [mm/sec]: ',tmp*1000.0_r8/den
+    call pflotranModelGetUpdatedStates( pflotran_m )
 
 #endif
 

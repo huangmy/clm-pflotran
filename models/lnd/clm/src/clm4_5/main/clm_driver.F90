@@ -145,6 +145,9 @@ module clm_driver
   use clm_atmlnd          , only : clm_map2gcell
   use clm_glclnd          , only : create_clm_s2x
   use perf_mod
+#ifdef CLM_PFLOTRAN
+  use SoilTemperatureMod  , only : SoilTemperaturePFUpdate
+#endif
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -659,6 +662,14 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
                      filter(nc)%num_nosnowc, filter(nc)%nosnowc)
      call t_stopf('hydro2')
 
+#ifdef CLM_PFLOTRAN
+     ! ============================================================================
+     ! Update soil temperatures from PFLOTRAN
+     ! ============================================================================
+     call SoilTemperaturePFUpdate(begl, endl, begc, endc, &
+                         filter(nc)%num_urbanl,  filter(nc)%urbanl, &
+                         filter(nc)%num_nolakec, filter(nc)%nolakec)
+#endif
      ! ============================================================================
      ! Lake hydrology
      ! ============================================================================
