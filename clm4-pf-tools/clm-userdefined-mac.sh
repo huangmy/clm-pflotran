@@ -89,11 +89,6 @@ MPIFC=/opt/local/bin/mpif90
 MPIEXEC=/opt/local/bin/mpirun
 MPI_VENDOR=mpich
 
-#MPICC=/Users/gbisht/local/bin/mpicc
-#MPICXX=/Users/gbisht/local/bin/mpicxx
-#MPIFC=/Users/gbisht/local/bin/mpif90
-#MPIEXEC=/Users/gbisht/local/bin/mpiexec
-
 FFLAGS="-fno-range-check"
 SLIBS="-L/opt/local/lib -lnetcdff -L/opt/local/lib -lnetcdf"
 NETCDF_PATH="/opt/local"
