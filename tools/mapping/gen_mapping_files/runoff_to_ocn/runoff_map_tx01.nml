@@ -1,6 +1,6 @@
   &input_nml
    gridtype     = 'obs'
-   file_rtm     = '/fs/cgd/csm/inputdata/lnd/clm2/rtmdata/rdirc.05.061026'
+   file_roff    = '/fs/cgd/csm/inputdata/lnd/clm2/rtmdata/rdirc.05.061026'
    file_ocn     = '/fs/cgd/csm/mapping/grids/tx0.1v2_070911.nc'
    file_nn      = 'map_nn_tx01v2.nc '
    file_smooth  = 'map_smoother_tx01v2.nc '

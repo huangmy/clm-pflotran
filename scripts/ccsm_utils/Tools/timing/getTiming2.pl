@@ -203,7 +203,11 @@ printf("  ocn = %-8s   %-6u      %-6u   %-6u x %-6u  %-6u (%-6u) \n",$COMP_OCN,$
 &gettime(' DRIVER_CPL_COMM ',$xmin,$xmax,$nullf);
 
 &gettime(' DRIVER_C2O_INITWAIT ',$ocnwaittime,$null,$nullf);
-$ocnrunitime = ($omax) * ($adays/$odays - 1.0);
+if ( $odays != 0.0 ) {
+   $ocnrunitime = ($omax) * ($adays/$odays - 1.0);
+} else {
+   $ocnrunitime = 0.0
+}
 $correction = $ocnrunitime - $ocnwaittime;
 if ($correction < 0) {$correction = 0.0;}
 

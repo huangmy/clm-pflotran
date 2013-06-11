@@ -1,9 +1,184 @@
 ================================================================================
-SVN $Id: ChangeLog 47024 2013-05-10 19:37:58Z erik $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130510/ChangeLog $
+SVN $Id: ChangeLog 47582 2013-05-29 19:39:27Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130529/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+================================================================================
+Originator: erik
+Date: May 29 2013
+Model: scripts
+Version: scripts4_130529
+One-line:  Update PTCLM, remove VIC temp files, set RTM to either 1850/2000 startup
+           fix 1x1_urbanc_alpha 
+
+Update PTCLM
+
+M       SVN_EXTERNAL_DIRECTORIES -- Update PTCLM
+M       ccsm_utils/Case.template/config_compsets.xml --- Fix
+            some settings for 1x1_urbanc_alpha. Add settings for
+            1850 or 2000 startup year for RTM
+M       ccsm_utils/Case.template/config_definition.xml -- add note
+            about where restart files for DOUT_S_SAVE_INT_REST_FILES
+M       ccsm_utils/Testlistxml/testlist.xml -- Remove user_nl_clm
+            from VIC tests
+
+------------ Delete the VIC temporary datasets
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_f09
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_f09/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_f19
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_f19/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_vrtlay
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vic/vic_vrtlay/user_nl_clm
+
+================================================================================
+Originator: santos
+Date: May 28 2013
+Model: scripts
+Version: scripts4_130528a
+One-line: Short term archiver no longer deletes data if "mv" errors.
+
+M       ccsm_utils/Tools/st_archive.sh
+         - If data couldn't be moved out of a temporary directory, this
+           script would end up deleting it all. Now it doesn't do that.
+
+================================================================================
+Originator: jshollen
+Date: May 28 2013
+Model: scripts
+Version: scripts4_130528
+One-line: query-tests now outputs xml test lists. 
+
+M       query_tests
+
+================================================================================
+Originator: sacks
+Date: May 24 2013
+Model: scripts
+Version: scripts4_130524
+One-line: update documentation: note cmake requirement for cism
+
+M       doc/usersguide/introduction.xml
+
+================================================================================
+Originator: jshollen
+Date: May 23 2013
+Model: scripts
+Version: scripts4_130523
+One-line: create_test documentation changes requested by Bill and Tony.
+
+M      create_test
+
+================================================================================
+Originator: sacks
+Date: May 22 2013
+Model: scripts
+Version: scripts4_130522a
+One-line: Fix some I compsets
+
+(1) Fix I_1850_CLM45_CN_GLC_CISM1 (IG1850CLM45CN) so that it is truly
+    using CLM4.5 (changes answers for this compset)
+
+(2) Fix sname of IG4804: change I_1948-2004_CLM45_GLC_CISM1 to
+    I_1948-2004_GLC_CISM1
+
+(3) Fix sname: change I_RCP2.6_CLML45_CN to I_RCP2.6_CLM45_CN (note
+    extra "L" before the 45 in the old name)
+
+M       ccsm_utils/Case.template/config_compsets.xml
+
+================================================================================
+Originator: jshollen
+Date: May 22 2013
+Model: scripts
+Version: scripts4_130522
+One-line: Testreporter update for namelist test summaries. 
+
+M       ccsm_utils/Tools/testreporter.pl
+
+================================================================================
+Originator: erik
+Date: May 20 2013
+Model: scripts
+Version: scripts4_130520
+One-line: I CRU compset years change
+
+Change 1850 CRUNCEP years to 1901-1920
+       2000 CRUNCEP years to 1991-2010
+       20TR CRUNCEP years to 1901-1920 with align year of 1901.
+       RCP  CRUNCEP years to 1991-2010 with align year of 2005.
+
+Change REFDATE for I1850CLM40CRUCN_f09_g16_clm4500_c130514 to 1122
+
+M       ccsm_utils/Case.template/config_compsets.xml
+
+================================================================================
+Originator: erik
+Date: May 17 2013
+Model: scripts
+Version: scripts4_130517
+One-line:  Work on SSP test and add I1850CLM40CRUCN_f09_g16_clm4500_c130514 ref-case for I1850CLM40CRUCN
+
+M       ccsm_utils/Tools/timing/getTiming2.pl -------- fix divide by zero issue
+M       ccsm_utils/Case.template/config_compsets.xml - add new compsets for BGCDV and BGCCROP
+               add I1850CLM40CRUCN_f09_g16_clm4500_c130514 ref-case for I1850CLM40CRUCN
+M       ccsm_utils/Testlistxml/testlist.xml ---------- add tests for new compsets
+M       ccsm_utils/Testcases/config_tests.xml -------- Work on SSP test
+M       ccsm_utils/Testcases/SSP_script -------------- Get SSP test working
+
+================================================================================
+Originator: jedwards
+Date: May 15 2013
+Model: scripts
+Version: scripts4_130515
+One-line:  Improve non-standard namelist handeling in create_test, remove a test with no grdi defined.
+
+	M create_test
+	M ccsm_utils/Testlistxml/testlist.xml
+
+	
+================================================================================
+Originator: jshollen
+Date: May 13 2013
+Model: scripts
+Version: scripts4_130513b
+One-line:  change f09_g16 TG to ERS, add shortlist.glc.auxtests as
+aux_glc_short. 
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: May 13 2013
+Model: scripts
+Version: scripts4_130513a
+One-line:  compare_namelist fix. 
+
+M       ccsm_utils/Tools/compare_namelists.pl
+
+
+================================================================================
+Originator: jshollen
+Date: May 13 2013
+Model: scripts
+Version: scripts4_130513
+One-line:  testreporter xml bug fix, compare_namelist new output allows for
+eaiser summarization of output. 
+
+M       ccsm_utils/Tools/compare_namelists.pl
+M       ccsm_utils/Tools/testreporter.pl
+
+================================================================================
+Originator: jshollen
+Date: May 11 2013
+Model: scripts
+Version: scripts4_130511
+One-line:  Create_test sets the baseline tag in testspec.xml, testreporter has
+more robust xml reporting. 
+
+M       create_test
+M       ccsm_utils/Tools/testreporter.pl
 
 ================================================================================
 Originator: erik

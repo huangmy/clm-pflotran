@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: shr_sys_mod.F90 46032 2013-04-16 17:20:39Z santos@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130423/shr/shr_sys_mod.F90 $
+! SVN $Id: shr_sys_mod.F90 46802 2013-05-07 18:05:27Z santos@ucar.edu $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130528/shr/shr_sys_mod.F90 $
 !===============================================================================
 
 #if defined CPRIBM || defined CPRPGI || defined CPRINTEL || defined __GFORTRAN__ || defined CPRCRAY
@@ -263,14 +263,18 @@ SUBROUTINE shr_sys_abort(string,rc)
 !-------------------------------------------------------------------------------
 
    call shr_sys_flush(s_logunit)
-   if (len_trim(string) > 0) write(s_logunit,F00) 'ERROR: '//trim(string)
+   if (present(string)) then
+      if (len_trim(string) > 0) write(s_logunit,F00) 'ERROR: '//trim(string)
+   end if
    write(s_logunit,F00) 'WARNING: calling shr_mpi_abort() and stopping'
    call shr_sys_flush(s_logunit)
 
    ! Make sure we always print to stdout as well; this way the abort
    ! message can always be found in the CESM log.
    if ( s_logunit/= 6 ) then
-      if (len_trim(string) > 0)  write(6,F00) 'ERROR: '//trim(string)
+      if (present(string)) then
+         if (len_trim(string) > 0)  write(6,F00) 'ERROR: '//trim(string)
+      end if
       write(6,F00) 'WARNING: calling shr_mpi_abort() and stopping'
       call shr_sys_flush(6)
    end if

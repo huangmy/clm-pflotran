@@ -39,6 +39,7 @@ contains
     use shr_kind_mod, only: r8 => shr_kind_r8
     use clmtype
     use shr_const_mod       , only : shr_const_pi
+    use shr_spfn_mod        , only : erf => shr_spfn_erf
     use clm_varcon          , only : istsoil, istcrop
     use clm_varctl,   only: iulog
 !
@@ -75,8 +76,6 @@ contains
     integer , pointer :: ltype(:)          ! landunit type
     integer , pointer :: clandunit(:)      ! columns's landunit
 
-    !intrinsic :: derf
-    real(r8)  :: derf
 !
 !EOP
 !
@@ -91,18 +90,18 @@ contains
 
 ! Assign local pointers to derived subtypes components (column-level)
 
-    h2osoi_liq          => clm3%g%l%c%cws%h2osoi_liq
-    h2osfc              => clm3%g%l%c%cws%h2osfc
-    micro_sigma         => clm3%g%l%c%cps%micro_sigma
-    topo_slope          => clm3%g%l%c%cps%topo_slope
-    topo_ndx            => clm3%g%l%c%cps%topo_ndx
-    ltype               => clm3%g%l%itype
-    clandunit           => clm3%g%l%c%landunit
+    h2osoi_liq          => cws%h2osoi_liq
+    h2osfc              => cws%h2osfc
+    micro_sigma         => cps%micro_sigma
+    topo_slope          => cps%topo_slope
+    topo_ndx            => cps%topo_ndx
+    ltype               => lun%itype
+    clandunit           =>col%landunit
 
-    frac_sno            => clm3%g%l%c%cps%frac_sno 
-    frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
-    snl                 => clm3%g%l%c%cps%snl
-    h2osno              => clm3%g%l%c%cws%h2osno
+    frac_sno            => cps%frac_sno 
+    frac_sno_eff        => cps%frac_sno_eff
+    snl                 => cps%snl
+    h2osno              => cws%h2osno
  
     ! arbitrary lower limit on h2osfc for safer numerics...
     min_h2osfc=1.e-8_r8
@@ -122,15 +121,15 @@ contains
 
              sigma=1.0e3*micro_sigma(c) ! convert to mm
              do l=1,10
-                fd = 0.5*d*(1.0_r8+derf(d/(sigma*sqrt(2.0)))) &
+                fd = 0.5*d*(1.0_r8+erf(d/(sigma*sqrt(2.0)))) &
                         +sigma/sqrt(2.0*shr_const_pi)*exp(-d**2/(2.0*sigma**2)) &
                         -h2osfc(c)
-                dfdd = 0.5*(1.0_r8+derf(d/(sigma*sqrt(2.0))))
+                dfdd = 0.5*(1.0_r8+erf(d/(sigma*sqrt(2.0))))
                 
                 d = d - fd/dfdd
              enddo
              !--  update the submerged areal fraction using the new d value
-             frac_h2osfc(c) = 0.5*(1.0_r8+derf(d/(sigma*sqrt(2.0))))
+             frac_h2osfc(c) = 0.5*(1.0_r8+erf(d/(sigma*sqrt(2.0))))
 
           else
              frac_h2osfc(c) = 0._r8

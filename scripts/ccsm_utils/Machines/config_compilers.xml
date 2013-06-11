@@ -383,7 +383,7 @@ for mct, etc.
 </compiler>
 
 <compiler COMPILER="intel" MACH="edison">
-  <ADD_SLIBS> -L$(NETCDF_DIR) -lnetcdff -Wl,--as-needed,-L$(NETCDF_DIR)/lib -lnetcdff -lnetcdf </ADD_SLIBS>
+  <ADD_SLIBS> -L$(NETCDF_DIR) -lnetcdff -Wl,--as-needed,-L$(NETCDF_DIR)/lib -lnetcdff -lnetcdf $(MKL)</ADD_SLIBS>
 </compiler>
 
 <compiler COMPILER="gnu" MACH="lynx">
@@ -543,7 +543,7 @@ for mct, etc.
   <ADD_FFLAGS DEBUG="TRUE" compile_threaded="true"> -qsmp=omp:noopt </ADD_FFLAGS>
   <ADD_CPPDEFS> -DLINUX -DnoI8 </ADD_CPPDEFS>
   <CONFIG_ARGS> --build=powerpc-bgp-linux --host=powerpc64-suse-linux </CONFIG_ARGS>
-  <LDFLAGS>  -Wl,--relax -Wl,--allow-multiple-definition -L/soft/libraries/unsupported/hdf5-1.8.10/lib -lhdf5 -lhdf5_hl </LDFLAGS>
+  <LDFLAGS>  -Wl,--relax -Wl,--allow-multiple-definition -L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl </LDFLAGS>
 </compiler>
 
 
@@ -566,8 +566,8 @@ for mct, etc.
   <SCC> mpixlc_r </SCC>
   <MPICC> mpixlc_r </MPICC>
   <ADD_CPPDEFS> -DNO_C_SIZEOF </ADD_CPPDEFS>
-  <NETCDF_PATH>/soft/libraries/unsupported/netcdf-4.2.1.1-20130417</NETCDF_PATH>
-  <PNETCDF_PATH>/soft/libraries/pnetcdf/1.3.1/cnk-xl/V1R2M0-20130422/</PNETCDF_PATH>
+  <NETCDF_PATH>/soft/libraries/netcdf/4.2.1.1/cnk-xl/V1R2M0-20130417/</NETCDF_PATH>
+  <PNETCDF_PATH>/soft/libraries/pnetcdf/1.3.1/cnk-xl/current/</PNETCDF_PATH>
   <ADD_SLIBS>-L/soft/libraries/unsupported/netcdf-4.2.1.1-20130417/lib -lnetcdff -lnetcdf -L/soft/libraries/unsupported/hdf5-1.8.10/lib -lhdf5 -lhdf5_hl -L/soft/libraries/alcf/current/xl/ZLIB/lib -lz -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas -L/bgsys/drivers/ppcfloor/comm/sys/lib </ADD_SLIBS>
   <PIO_CONFIG_OPTS>  --enable-filesystem-hints=gpfs </PIO_CONFIG_OPTS>
 </compiler>
@@ -687,5 +687,43 @@ for mct, etc.
  <ADD_LDFLAGS compile_threaded="true"> -L/home/santos/lib/fake_omp -lfake_omp -Wl,-Wl,,--rpath=/home/santos/lib/fake_omp </ADD_LDFLAGS>
 </compiler>
 
+<compiler MACH="stampede">
+  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre</PIO_CONFIG_OPTS>
+  <NETCDF_PATH>$(TACC_NETCDF_DIR)</NETCDF_PATH>
+  <!--PNETCDF_PATH>$(TACC_NETCDF_DIR)</PNETCDF_PATH-->
+  <ADD_CPPDEFS> -DHAVE_NANOTIME </ADD_CPPDEFS>
+</compiler>
+
+<compiler MACH="stampede" COMPILER="intel">
+  <MPICC>mpicc</MPICC>
+  <MPIFC>mpif90</MPIFC>
+  <MPICXX>mpicxx</MPICXX>
+  <SFC>ifort</SFC>
+  <SCC>icc</SCC>
+  <SCXX>icpc</SCXX>
+  <ADD_FFLAGS> -xHost </ADD_FFLAGS>
+  <ADD_CFLAGS> -xHost </ADD_CFLAGS>
+  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs) -L$(TACC_HDF5_LIB) -lhdf5</ADD_SLIBS>
+  <ADD_LDFLAGS>-L$(TACC_HDF5_LIB) -lhdf5</ADD_LDFLAGS>
+  <TRILINOS_PATH>$(TRILINOS_PATH)</TRILINOS_PATH>
+</compiler>
+
+<compiler MACH="stampede" COMPILER="intel-mic">
+  <MPICC>mpicc</MPICC>
+  <MPIFC>mpif90</MPIFC>
+  <MPICXX>mpicxx</MPICXX>
+  <SFC>ifort</SFC>
+  <SCC>icc</SCC>
+  <SCXX>icpc</SCXX>
+  <ADD_FFLAGS> -mmic </ADD_FFLAGS>
+  <ADD_FCFLAGS> -mmic </ADD_FCFLAGS>
+  <ADD_FFLAGS_NOOPT> -mmic</ADD_FFLAGS_NOOPT>
+  <ADD_CFLAGS> -mmic -DFORTRANUNDERSCORE </ADD_CFLAGS>
+  <ADD_CXXFLAGS> -mmic </ADD_CXXFLAGS>
+  <CONFIG_ARGS>--host=x86_64-k1om-linux --build=x86_64-unknown-linux</CONFIG_ARGS>
+  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs)</ADD_SLIBS>
+  <ADD_LDFLAGS> -mmic </ADD_LDFLAGS>
+  <TRILINOS_PATH>$(TRILINOS_PATH)</TRILINOS_PATH>
+</compiler>
 
 </config_compilers>

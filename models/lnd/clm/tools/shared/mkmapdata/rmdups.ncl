@@ -3,7 +3,7 @@
 ;
 ;  Mark Taylor (converted for use by CLM mkmapdata by Erik Kluzek)
 ;  Sep/01/2011
-;  $Id: rmdups.ncl 46863 2013-05-08 03:25:21Z sacks $
+;  $Id: rmdups.ncl 47629 2013-05-31 08:59:50Z erik $
 ;  $HeadURL;
 ;
 load "$NCARG_NCARG/nclscripts/csm/gsn_code.ncl"
@@ -23,7 +23,7 @@ begin
 
   if ( ismissing(mapfile) )then
      print( "You did NOT enter an input mapping file to convert" )
-     exit
+     status_exit( -1 )
   end if
   if ( ismissing(newmapfile) )then
      sdate      = systemfunc( "date +%y%m%d" );
@@ -33,13 +33,18 @@ begin
 
   if ( systemfunc("test -f "+mapfile+"; echo $?" ) .ne. 0 )then
      print( "Input file does not exist or not found: "+mapfile );
-     exit
+     status_exit( -1 )
   end if
   print("map file: "+mapfile)
   f      = addfile(mapfile,"r")       ; Open netCDF files.	
 
 
   n_s = dimsizes(f->col)
+  if ( n_s .eq. 0 )then
+     print( "n_s is size zero, so no overlap points just return: " );
+     exit
+  end if
+
   n_b = dimsizes(f->area_b)
   n_a = dimsizes(f->area_a)
   print("n_s = "+n_s+" max(row)="+max(f->row)+" max(col)="+max(f->col))
@@ -113,8 +118,8 @@ begin
     nco@history = nco@history + " Removed duplicate weights from mapping file with: rmdups.ncl "
     nco@rmdups_Logname       = logname;
     nco@rmdups_mod_date      = ldate;
-    nco@rmdups_version       = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_06/models/lnd/clm/tools/shared/mkmapdata/rmdups.ncl $";
-    nco@rmdups_revision_id   = "$Id: rmdups.ncl 46863 2013-05-08 03:25:21Z sacks $";
+    nco@rmdups_version       = "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_10/models/lnd/clm/tools/shared/mkmapdata/rmdups.ncl $";
+    nco@rmdups_revision_id   = "$Id: rmdups.ncl 47629 2013-05-31 08:59:50Z erik $";
 
     print("Successfully removed duplicate weights from mapping file" );
 

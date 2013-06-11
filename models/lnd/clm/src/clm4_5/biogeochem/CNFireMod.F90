@@ -134,7 +134,6 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
 ! Computes column-level burned area in each timestep
 !
 ! !USES:
-   use shr_sys_mod     , only: shr_sys_flush
    use clmtype
    use clm_time_manager, only: get_step_size, get_days_per_year, get_curr_date, get_nstep
    use clm_varpar      , only: max_pft_per_col
@@ -145,7 +144,6 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
    use pftvarcon       , only: nc4_grass, nc3crop, ndllf_evr_tmp_tree, &
                                nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree,      &
                                nbrdlf_evr_shrub
-!  use shr_sys_mod  , only: shr_sys_flush
 !
 ! !ARGUMENTS:
    implicit none
@@ -178,16 +176,9 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(r8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C transfer
    real(r8), pointer :: totvegc(:)            ! (gC/m2) total vegetation carbon, excluding cpool 
    real(r8), pointer :: btran2(:)             ! root zone soil wetness
-   integer , pointer :: pcolumn(:)            ! pft's column index
    real(r8), pointer :: leafc(:)              ! (gC/m2) leaf C
    real(r8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
    real(r8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-   real(r8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-   real(r8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-   real(r8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-   real(r8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-   real(r8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-   real(r8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
    integer , pointer :: burndate(:)           ! burn date for crop
 
 
@@ -257,7 +248,7 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
    ! non-boreal peat fires (was different in paper)
    real(r8), parameter :: non_boreal_peatfire_c = 0.0005d00
 
-   integer :: g,l,c,p,pi,j,fc,fp,jday,kyr, kmo, kda, mcsec   ! index variables
+   integer :: g,l,c,p,pi,j,fc,fp,kyr, kmo, kda, mcsec   ! index variables
    real(r8):: dt        ! time step variable (s)
    real(r8):: m         ! top-layer soil moisture (proportion)
    real(r8):: dayspyr   ! days per year
@@ -278,75 +269,68 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
 !EOP
 !-----------------------------------------------------------------------
   ! assign local pointers to derived type members (pft-level)
-  wtcol              => clm3%g%l%c%p%wtcol
-  ivt                => clm3%g%l%c%p%itype 
-  prec60             => clm3%g%l%c%p%pps%prec60
-  prec10             => clm3%g%l%c%p%pps%prec10
-  deadcrootc         => clm3%g%l%c%p%pcs%deadcrootc
-  deadcrootc_storage => clm3%g%l%c%p%pcs%deadcrootc_storage
-  deadcrootc_xfer    => clm3%g%l%c%p%pcs%deadcrootc_xfer
-  frootc             => clm3%g%l%c%p%pcs%frootc
-  frootc_storage     => clm3%g%l%c%p%pcs%frootc_storage
-  frootc_xfer        => clm3%g%l%c%p%pcs%frootc_xfer
-  livecrootc         => clm3%g%l%c%p%pcs%livecrootc
-  livecrootc_storage => clm3%g%l%c%p%pcs%livecrootc_storage
-  livecrootc_xfer    => clm3%g%l%c%p%pcs%livecrootc_xfer
-  totvegc            => clm3%g%l%c%p%pcs%totvegc
-  btran2             => clm3%g%l%c%p%pps%btran2
-  pcolumn            => clm3%g%l%c%p%column
-  leafc              => clm3%g%l%c%p%pcs%leafc
-  leafc_storage      => clm3%g%l%c%p%pcs%leafc_storage
-  leafc_xfer         => clm3%g%l%c%p%pcs%leafc_xfer
-  livestemc          => clm3%g%l%c%p%pcs%livestemc
-  livestemc_storage  => clm3%g%l%c%p%pcs%livestemc_storage
-  livestemc_xfer     => clm3%g%l%c%p%pcs%livestemc_xfer
-  deadstemc          => clm3%g%l%c%p%pcs%deadstemc
-  deadstemc_storage  => clm3%g%l%c%p%pcs%deadstemc_storage
-  deadstemc_xfer     => clm3%g%l%c%p%pcs%deadstemc_xfer
-  lfpftd             => clm3%g%l%c%p%pps%lfpftd
-  burndate           => clm3%g%l%c%p%pps%burndate
+  wtcol              =>pft%wtcol
+  ivt                =>pft%itype 
+  prec60             => pps%prec60
+  prec10             => pps%prec10
+  deadcrootc         => pcs%deadcrootc
+  deadcrootc_storage => pcs%deadcrootc_storage
+  deadcrootc_xfer    => pcs%deadcrootc_xfer
+  frootc             => pcs%frootc
+  frootc_storage     => pcs%frootc_storage
+  frootc_xfer        => pcs%frootc_xfer
+  livecrootc         => pcs%livecrootc
+  livecrootc_storage => pcs%livecrootc_storage
+  livecrootc_xfer    => pcs%livecrootc_xfer
+  totvegc            => pcs%totvegc
+  btran2             => pps%btran2
+  leafc              => pcs%leafc
+  leafc_storage      => pcs%leafc_storage
+  leafc_xfer         => pcs%leafc_xfer
+  lfpftd             => pps%lfpftd
+  burndate           => pps%burndate
 
   ! assign local pointers to derived type members (column-level)
-  cwtgcell         => clm3%g%l%c%wtgcell
-  npfts            => clm3%g%l%c%npfts
-  pfti             => clm3%g%l%c%pfti
-  wf               => clm3%g%l%c%cps%wf
-  wf2              => clm3%g%l%c%cps%wf2
-  tsoi17           => clm3%g%l%c%ces%tsoi17
-  farea_burned     => clm3%g%l%c%cps%farea_burned
-  baf_crop         => clm3%g%l%c%cps%baf_crop 
-  baf_peatf        => clm3%g%l%c%cps%baf_peatf 
-  fbac             => clm3%g%l%c%cps%fbac
-  fbac1            => clm3%g%l%c%cps%fbac1
-  cropf_col        => clm3%g%l%c%cps%cropf_col 
-  gdp_lf           => clm3%g%l%c%cps%gdp_lf
-  peatf_lf         => clm3%g%l%c%cps%peatf_lf
-  abm_lf           => clm3%g%l%c%cps%abm_lf
-  nfire            => clm3%g%l%c%cps%nfire             
-  totlitc          => clm3%g%l%c%ccs%totlitc
-  fsr_col          => clm3%g%l%c%cps%fsr_col 
-  fd_col           => clm3%g%l%c%cps%fd_col   
-  rootc_col        => clm3%g%l%c%ccs%rootc_col 
-  totvegc_col      => clm3%g%l%c%ccs%totvegc_col     
-  leafc_col        => clm3%g%l%c%ccs%leafc_col     
-  lgdp_col         => clm3%g%l%c%cps%lgdp_col  
-  lgdp1_col        => clm3%g%l%c%cps%lgdp1_col  
-  lpop_col         => clm3%g%l%c%cps%lpop_col  
-  fuelc            => clm3%g%l%c%ccs%fuelc 
-  fuelc_crop       => clm3%g%l%c%ccs%fuelc_crop  
-  btran_col        => clm3%g%l%c%cps%btran_col
-  wtlf             => clm3%g%l%c%cps%wtlf  
-  lfwt             => clm3%g%l%c%cps%lfwt    
-  cgridcell        => clm3%g%l%c%gridcell
-  trotr1_col       => clm3%g%l%c%cps%trotr1_col
-  trotr2_col       => clm3%g%l%c%cps%trotr2_col
-  dtrotr_col       => clm3%g%l%c%cps%dtrotr_col
-  prec60_col       => clm3%g%l%c%cps%prec60_col
-  prec10_col       => clm3%g%l%c%cps%prec10_col
-  lfc              => clm3%g%l%c%cps%lfc
-  fsat             => clm3%g%l%c%cws%fsat
+  cwtgcell         =>col%wtgcell
+  npfts            =>col%npfts
+  pfti             =>col%pfti
+  wf               => cps%wf
+  wf2              => cps%wf2
+  tsoi17           => ces%tsoi17
+  farea_burned     => cps%farea_burned
+  baf_crop         => cps%baf_crop 
+  baf_peatf        => cps%baf_peatf 
+  fbac             => cps%fbac
+  fbac1            => cps%fbac1
+  cropf_col        => cps%cropf_col 
+  gdp_lf           => cps%gdp_lf
+  peatf_lf         => cps%peatf_lf
+  abm_lf           => cps%abm_lf
+  nfire            => cps%nfire             
+  totlitc          => ccs%totlitc
+  fsr_col          => cps%fsr_col 
+  fd_col           => cps%fd_col   
+  rootc_col        => ccs%rootc_col 
+  totvegc_col      => ccs%totvegc_col     
+  leafc_col        => ccs%leafc_col     
+  lgdp_col         => cps%lgdp_col  
+  lgdp1_col        => cps%lgdp1_col  
+  lpop_col         => cps%lpop_col  
+  fuelc            => ccs%fuelc 
+  fuelc_crop       => ccs%fuelc_crop  
+  btran_col        => cps%btran_col
+  wtlf             => cps%wtlf  
+  lfwt             => cps%lfwt    
+  cgridcell        =>col%gridcell
+  trotr1_col       => cps%trotr1_col
+  trotr2_col       => cps%trotr2_col
+  dtrotr_col       => cps%dtrotr_col
+  prec60_col       => cps%prec60_col
+  prec10_col       => cps%prec10_col
+  lfc              => cps%lfc
+  fsat             => cws%fsat
   is_cwd           => decomp_cascade_con%is_cwd
-  decomp_cpools_vr => clm3%g%l%c%ccs%decomp_cpools_vr
+  decomp_cpools_vr => ccs%decomp_cpools_vr
  
   !assign local pointers to derived type members (grid-level) 
   forc_rh    => clm_a2l%forc_rh
@@ -354,7 +338,7 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
   forc_t     => clm_a2l%forc_t 
   forc_rain  => clm_a2l%forc_rain
   forc_snow  => clm_a2l%forc_snow
-  latdeg     => clm3%g%latdeg
+  latdeg     =>  grc%latdeg
  
   !pft to column average 
   call p2c(num_soilc, filter_soilc, prec10,  prec10_col)
@@ -597,7 +581,7 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
      g= cgridcell(c)
      ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND CURRENTLY DOES NOT!
      !       As such results are only valid for a time-step of a half-hour.
-     if(latdeg(g).lt.borealat )then
+     if(grc%latdeg(g).lt.borealat )then
         baf_peatf(c) = non_boreal_peatfire_c*max(0._r8, &
                        min(1._r8,(4.0_r8-prec60_col(c)*secspday)/ &
                        4.0_r8))**2*peatf_lf(c)*(1._r8-fsat(c))
@@ -729,13 +713,11 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
 !
 ! !USES:
    use clmtype
-   use pftvarcon, only: cc_leaf,cc_lstem,cc_dstem,cc_other,fm_leaf,fm_lstem,fm_dstem,fm_other,fm_root,fm_lroot,fm_droot
+   use pftvarcon, only: cc_leaf,cc_lstem,cc_dstem,cc_other,fm_leaf,fm_lstem,fm_other,fm_root,fm_lroot,fm_droot
    use pftvarcon, only: nc3crop,lf_flab,lf_fcel,lf_flig,fr_flab,fr_fcel,fr_flig
    use clm_time_manager, only: get_step_size,get_days_per_year,get_curr_date
-   use clm_varpar, only : maxpatch_pft,max_pft_per_col
-   use surfrdMod   , only: crop_prog
+   use clm_varpar, only : max_pft_per_col
    use clm_varctl  , only: fpftdyn
-   use shr_sys_mod , only: shr_sys_flush
    use clm_varcon  , only: secspday
 !
 ! !ARGUMENTS:
@@ -755,7 +737,7 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
 #if (defined CNDV)
    real(r8), pointer :: nind(:)         ! number of individuals (#/m2)
 #endif
-   real(r8), pointer :: woody(:)              ! woody lifeform (1=woody, 0=not woody) 
+   real(r8), pointer :: woody(:)        ! woody lifeform (1=woody, 0=not woody) 
    logical , pointer :: pactive(:)      ! true=>do computations on this pft (see reweightMod for details)
    integer , pointer :: ivt(:)          ! pft vegetation type
    real(r8), pointer :: wtcol(:)        ! pft weight relative to column 
@@ -930,7 +912,7 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(r8), pointer :: leaf_prof(:,:)          ! (1/m) profile of leaves
 !
 ! !OTHER LOCAL VARIABLES:
-   integer :: g,c,p,j,l,k,pi,kyr, kmo, kda, mcsec   ! indices
+   integer :: g,c,p,j,l,pi,kyr, kmo, kda, mcsec   ! indices
    integer :: fp,fc                ! filter indices
    real(r8):: f                    ! rate for fire effects (1/s)
    real(r8):: dt                   ! time step variable (s)
@@ -941,181 +923,181 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
    ! assign local pointers
 
 #if (defined CNDV)
-   nind                           => clm3%g%l%c%p%pdgvs%nind
+   nind                           => pdgvs%nind
 #endif
-   pcolumn                        => clm3%g%l%c%p%column
-   cgridcell                      => clm3%g%l%c%gridcell
-   farea_burned                   => clm3%g%l%c%cps%farea_burned
+   pcolumn                        =>pft%column
+   cgridcell                      =>col%gridcell
+   farea_burned                   => cps%farea_burned
    woody                          => pftcon%woody
-   fire_mortality_c_to_cwdc       => clm3%g%l%c%ccf%fire_mortality_c_to_cwdc
-   fire_mortality_n_to_cwdn       => clm3%g%l%c%cnf%fire_mortality_n_to_cwdn
+   fire_mortality_c_to_cwdc       => ccf%fire_mortality_c_to_cwdc
+   fire_mortality_n_to_cwdn       => cnf%fire_mortality_n_to_cwdn
    
-   lfc                            => clm3%g%l%c%cps%lfc
-   lfc2                           => clm3%g%l%c%cps%lfc2
-   fbac1                          => clm3%g%l%c%cps%fbac1
-   fbac                           => clm3%g%l%c%cps%fbac
-   baf_crop                       => clm3%g%l%c%cps%baf_crop
-   baf_peatf                      => clm3%g%l%c%cps%baf_peatf
-   leafcmax                       => clm3%g%l%c%p%pcs%leafcmax
-   latdeg                         => clm3%g%latdeg
-   wtcol                          => clm3%g%l%c%p%wtcol   
-   pfti                           => clm3%g%l%c%pfti 
+   lfc                            => cps%lfc
+   lfc2                           => cps%lfc2
+   fbac1                          => cps%fbac1
+   fbac                           => cps%fbac
+   baf_crop                       => cps%baf_crop
+   baf_peatf                      => cps%baf_peatf
+   leafcmax                       => pcs%leafcmax
+   latdeg                         =>  grc%latdeg
+   wtcol                          =>pft%wtcol   
+   pfti                           =>col%pfti 
    
-   ivt                            => clm3%g%l%c%p%itype
-   npfts                          => clm3%g%l%c%npfts
+   ivt                            =>pft%itype
+   npfts                          =>col%npfts
    
-   trotr1_col                     => clm3%g%l%c%cps%trotr1_col
-   trotr2_col                     => clm3%g%l%c%cps%trotr2_col
-   dtrotr_col                     => clm3%g%l%c%cps%dtrotr_col
+   trotr1_col                     => cps%trotr1_col
+   trotr2_col                     => cps%trotr2_col
+   dtrotr_col                     => cps%dtrotr_col
    
    
-   somc_fire                      => clm3%g%l%c%ccf%somc_fire
-   totsomc                        => clm3%g%l%c%ccs%totsomc
-   decomp_cpools_vr               => clm3%g%l%c%ccs%decomp_cpools_vr
-   decomp_npools_vr               => clm3%g%l%c%cns%decomp_npools_vr
+   somc_fire                      => ccf%somc_fire
+   totsomc                        => ccs%totsomc
+   decomp_cpools_vr               => ccs%decomp_cpools_vr
+   decomp_npools_vr               => cns%decomp_npools_vr
 
-   leafc                          => clm3%g%l%c%p%pcs%leafc
-   leafc_storage                  => clm3%g%l%c%p%pcs%leafc_storage
-   leafc_xfer                     => clm3%g%l%c%p%pcs%leafc_xfer
-   livestemc                      => clm3%g%l%c%p%pcs%livestemc
-   livestemc_storage              => clm3%g%l%c%p%pcs%livestemc_storage
-   livestemc_xfer                 => clm3%g%l%c%p%pcs%livestemc_xfer
-   deadstemc                      => clm3%g%l%c%p%pcs%deadstemc
-   deadstemc_storage              => clm3%g%l%c%p%pcs%deadstemc_storage
-   deadstemc_xfer                 => clm3%g%l%c%p%pcs%deadstemc_xfer
-   frootc                         => clm3%g%l%c%p%pcs%frootc
-   frootc_storage                 => clm3%g%l%c%p%pcs%frootc_storage
-   frootc_xfer                    => clm3%g%l%c%p%pcs%frootc_xfer
-   livecrootc                     => clm3%g%l%c%p%pcs%livecrootc
-   livecrootc_storage             => clm3%g%l%c%p%pcs%livecrootc_storage
-   livecrootc_xfer                => clm3%g%l%c%p%pcs%livecrootc_xfer
-   deadcrootc                     => clm3%g%l%c%p%pcs%deadcrootc
-   deadcrootc_storage             => clm3%g%l%c%p%pcs%deadcrootc_storage
-   deadcrootc_xfer                => clm3%g%l%c%p%pcs%deadcrootc_xfer
-   gresp_storage                  => clm3%g%l%c%p%pcs%gresp_storage
-   gresp_xfer                     => clm3%g%l%c%p%pcs%gresp_xfer
+   leafc                          => pcs%leafc
+   leafc_storage                  => pcs%leafc_storage
+   leafc_xfer                     => pcs%leafc_xfer
+   livestemc                      => pcs%livestemc
+   livestemc_storage              => pcs%livestemc_storage
+   livestemc_xfer                 => pcs%livestemc_xfer
+   deadstemc                      => pcs%deadstemc
+   deadstemc_storage              => pcs%deadstemc_storage
+   deadstemc_xfer                 => pcs%deadstemc_xfer
+   frootc                         => pcs%frootc
+   frootc_storage                 => pcs%frootc_storage
+   frootc_xfer                    => pcs%frootc_xfer
+   livecrootc                     => pcs%livecrootc
+   livecrootc_storage             => pcs%livecrootc_storage
+   livecrootc_xfer                => pcs%livecrootc_xfer
+   deadcrootc                     => pcs%deadcrootc
+   deadcrootc_storage             => pcs%deadcrootc_storage
+   deadcrootc_xfer                => pcs%deadcrootc_xfer
+   gresp_storage                  => pcs%gresp_storage
+   gresp_xfer                     => pcs%gresp_xfer
     
-   leafn                          => clm3%g%l%c%p%pns%leafn
-   leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-   leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-   livestemn                      => clm3%g%l%c%p%pns%livestemn
-   livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-   livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-   deadstemn                      => clm3%g%l%c%p%pns%deadstemn
-   deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-   deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-   frootn                         => clm3%g%l%c%p%pns%frootn
-   frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-   frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-   livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-   livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-   livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-   deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
-   deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-   deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-   retransn                       => clm3%g%l%c%p%pns%retransn  
-   pactive                        => clm3%g%l%c%p%active
+   leafn                          => pns%leafn
+   leafn_storage                  => pns%leafn_storage
+   leafn_xfer                     => pns%leafn_xfer
+   livestemn                      => pns%livestemn
+   livestemn_storage              => pns%livestemn_storage
+   livestemn_xfer                 => pns%livestemn_xfer
+   deadstemn                      => pns%deadstemn
+   deadstemn_storage              => pns%deadstemn_storage
+   deadstemn_xfer                 => pns%deadstemn_xfer
+   frootn                         => pns%frootn
+   frootn_storage                 => pns%frootn_storage
+   frootn_xfer                    => pns%frootn_xfer
+   livecrootn                     => pns%livecrootn
+   livecrootn_storage             => pns%livecrootn_storage
+   livecrootn_xfer                => pns%livecrootn_xfer
+   deadcrootn                     => pns%deadcrootn
+   deadcrootn_storage             => pns%deadcrootn_storage
+   deadcrootn_xfer                => pns%deadcrootn_xfer
+   retransn                       => pns%retransn  
+   pactive                        => pft%active
 
-   m_leafc_to_fire                => clm3%g%l%c%p%pcf%m_leafc_to_fire
-   m_leafc_storage_to_fire        => clm3%g%l%c%p%pcf%m_leafc_storage_to_fire
-   m_leafc_xfer_to_fire           => clm3%g%l%c%p%pcf%m_leafc_xfer_to_fire
-   m_livestemc_to_fire            => clm3%g%l%c%p%pcf%m_livestemc_to_fire
-   m_livestemc_storage_to_fire    => clm3%g%l%c%p%pcf%m_livestemc_storage_to_fire
-   m_livestemc_xfer_to_fire       => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_fire
-   m_deadstemc_to_fire            => clm3%g%l%c%p%pcf%m_deadstemc_to_fire
-   m_deadstemc_storage_to_fire    => clm3%g%l%c%p%pcf%m_deadstemc_storage_to_fire
-   m_deadstemc_xfer_to_fire       => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_fire
-   m_frootc_to_fire               => clm3%g%l%c%p%pcf%m_frootc_to_fire
-   m_frootc_storage_to_fire       => clm3%g%l%c%p%pcf%m_frootc_storage_to_fire
-   m_frootc_xfer_to_fire          => clm3%g%l%c%p%pcf%m_frootc_xfer_to_fire
-   m_livecrootc_to_fire           => clm3%g%l%c%p%pcf%m_livecrootc_to_fire
-   m_livecrootc_storage_to_fire   => clm3%g%l%c%p%pcf%m_livecrootc_storage_to_fire
-   m_livecrootc_xfer_to_fire      => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_fire
-   m_deadcrootc_to_fire           => clm3%g%l%c%p%pcf%m_deadcrootc_to_fire
-   m_deadcrootc_storage_to_fire   => clm3%g%l%c%p%pcf%m_deadcrootc_storage_to_fire
-   m_deadcrootc_xfer_to_fire      => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_fire
-   m_gresp_storage_to_fire        => clm3%g%l%c%p%pcf%m_gresp_storage_to_fire
-   m_gresp_xfer_to_fire           => clm3%g%l%c%p%pcf%m_gresp_xfer_to_fire
+   m_leafc_to_fire                => pcf%m_leafc_to_fire
+   m_leafc_storage_to_fire        => pcf%m_leafc_storage_to_fire
+   m_leafc_xfer_to_fire           => pcf%m_leafc_xfer_to_fire
+   m_livestemc_to_fire            => pcf%m_livestemc_to_fire
+   m_livestemc_storage_to_fire    => pcf%m_livestemc_storage_to_fire
+   m_livestemc_xfer_to_fire       => pcf%m_livestemc_xfer_to_fire
+   m_deadstemc_to_fire            => pcf%m_deadstemc_to_fire
+   m_deadstemc_storage_to_fire    => pcf%m_deadstemc_storage_to_fire
+   m_deadstemc_xfer_to_fire       => pcf%m_deadstemc_xfer_to_fire
+   m_frootc_to_fire               => pcf%m_frootc_to_fire
+   m_frootc_storage_to_fire       => pcf%m_frootc_storage_to_fire
+   m_frootc_xfer_to_fire          => pcf%m_frootc_xfer_to_fire
+   m_livecrootc_to_fire           => pcf%m_livecrootc_to_fire
+   m_livecrootc_storage_to_fire   => pcf%m_livecrootc_storage_to_fire
+   m_livecrootc_xfer_to_fire      => pcf%m_livecrootc_xfer_to_fire
+   m_deadcrootc_to_fire           => pcf%m_deadcrootc_to_fire
+   m_deadcrootc_storage_to_fire   => pcf%m_deadcrootc_storage_to_fire
+   m_deadcrootc_xfer_to_fire      => pcf%m_deadcrootc_xfer_to_fire
+   m_gresp_storage_to_fire        => pcf%m_gresp_storage_to_fire
+   m_gresp_xfer_to_fire           => pcf%m_gresp_xfer_to_fire
 
-   m_leafn_to_fire                => clm3%g%l%c%p%pnf%m_leafn_to_fire
-   m_leafn_storage_to_fire        => clm3%g%l%c%p%pnf%m_leafn_storage_to_fire
-   m_leafn_xfer_to_fire           => clm3%g%l%c%p%pnf%m_leafn_xfer_to_fire
-   m_livestemn_to_fire            => clm3%g%l%c%p%pnf%m_livestemn_to_fire
-   m_livestemn_storage_to_fire    => clm3%g%l%c%p%pnf%m_livestemn_storage_to_fire
-   m_livestemn_xfer_to_fire       => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_fire
-   m_deadstemn_to_fire            => clm3%g%l%c%p%pnf%m_deadstemn_to_fire
-   m_deadstemn_storage_to_fire    => clm3%g%l%c%p%pnf%m_deadstemn_storage_to_fire
-   m_deadstemn_xfer_to_fire       => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_fire
-   m_frootn_to_fire               => clm3%g%l%c%p%pnf%m_frootn_to_fire
-   m_frootn_storage_to_fire       => clm3%g%l%c%p%pnf%m_frootn_storage_to_fire
-   m_frootn_xfer_to_fire          => clm3%g%l%c%p%pnf%m_frootn_xfer_to_fire
-   m_livecrootn_to_fire           => clm3%g%l%c%p%pnf%m_livecrootn_to_fire
-   m_livecrootn_storage_to_fire   => clm3%g%l%c%p%pnf%m_livecrootn_storage_to_fire
-   m_livecrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_fire
-   m_deadcrootn_to_fire           => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
-   m_deadcrootn_storage_to_fire   => clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
-   m_deadcrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
-   m_retransn_to_fire             => clm3%g%l%c%p%pnf%m_retransn_to_fire
+   m_leafn_to_fire                => pnf%m_leafn_to_fire
+   m_leafn_storage_to_fire        => pnf%m_leafn_storage_to_fire
+   m_leafn_xfer_to_fire           => pnf%m_leafn_xfer_to_fire
+   m_livestemn_to_fire            => pnf%m_livestemn_to_fire
+   m_livestemn_storage_to_fire    => pnf%m_livestemn_storage_to_fire
+   m_livestemn_xfer_to_fire       => pnf%m_livestemn_xfer_to_fire
+   m_deadstemn_to_fire            => pnf%m_deadstemn_to_fire
+   m_deadstemn_storage_to_fire    => pnf%m_deadstemn_storage_to_fire
+   m_deadstemn_xfer_to_fire       => pnf%m_deadstemn_xfer_to_fire
+   m_frootn_to_fire               => pnf%m_frootn_to_fire
+   m_frootn_storage_to_fire       => pnf%m_frootn_storage_to_fire
+   m_frootn_xfer_to_fire          => pnf%m_frootn_xfer_to_fire
+   m_livecrootn_to_fire           => pnf%m_livecrootn_to_fire
+   m_livecrootn_storage_to_fire   => pnf%m_livecrootn_storage_to_fire
+   m_livecrootn_xfer_to_fire      => pnf%m_livecrootn_xfer_to_fire
+   m_deadcrootn_to_fire           => pnf%m_deadcrootn_to_fire
+   m_deadcrootn_storage_to_fire   => pnf%m_deadcrootn_storage_to_fire
+   m_deadcrootn_xfer_to_fire      => pnf%m_deadcrootn_xfer_to_fire
+   m_retransn_to_fire             => pnf%m_retransn_to_fire
 
-   m_leafc_to_litter_fire                => clm3%g%l%c%p%pcf%m_leafc_to_litter_fire
-   m_leafc_storage_to_litter_fire        => clm3%g%l%c%p%pcf%m_leafc_storage_to_litter_fire
-   m_leafc_xfer_to_litter_fire           => clm3%g%l%c%p%pcf%m_leafc_xfer_to_litter_fire
-   m_livestemc_to_litter_fire            => clm3%g%l%c%p%pcf%m_livestemc_to_litter_fire
-   m_livestemc_storage_to_litter_fire    => clm3%g%l%c%p%pcf%m_livestemc_storage_to_litter_fire
-   m_livestemc_xfer_to_litter_fire       => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter_fire
-   m_livestemc_to_deadstemc_fire         => clm3%g%l%c%p%pcf%m_livestemc_to_deadstemc_fire
-   m_deadstemc_to_litter_fire            => clm3%g%l%c%p%pcf%m_deadstemc_to_litter_fire
-   m_deadstemc_storage_to_litter_fire    => clm3%g%l%c%p%pcf%m_deadstemc_storage_to_litter_fire
-   m_deadstemc_xfer_to_litter_fire       => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_litter_fire
-   m_frootc_to_litter_fire               => clm3%g%l%c%p%pcf%m_frootc_to_litter_fire
-   m_frootc_storage_to_litter_fire       => clm3%g%l%c%p%pcf%m_frootc_storage_to_litter_fire
-   m_frootc_xfer_to_litter_fire          => clm3%g%l%c%p%pcf%m_frootc_xfer_to_litter_fire
-   m_livecrootc_to_litter_fire           => clm3%g%l%c%p%pcf%m_livecrootc_to_litter_fire
-   m_livecrootc_storage_to_litter_fire   => clm3%g%l%c%p%pcf%m_livecrootc_storage_to_litter_fire
-   m_livecrootc_xfer_to_litter_fire      => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter_fire
-   m_livecrootc_to_deadcrootc_fire       => clm3%g%l%c%p%pcf%m_livecrootc_to_deadcrootc_fire
-   m_deadcrootc_to_litter_fire           => clm3%g%l%c%p%pcf%m_deadcrootc_to_litter_fire
-   m_deadcrootc_storage_to_litter_fire   => clm3%g%l%c%p%pcf%m_deadcrootc_storage_to_litter_fire
-   m_deadcrootc_xfer_to_litter_fire      => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_litter_fire
-   m_gresp_storage_to_litter_fire        => clm3%g%l%c%p%pcf%m_gresp_storage_to_litter_fire
-   m_gresp_xfer_to_litter_fire           => clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter_fire
-   m_decomp_cpools_to_fire_vr            => clm3%g%l%c%ccf%m_decomp_cpools_to_fire_vr
-   m_c_to_litr_met_fire                  => clm3%g%l%c%ccf%m_c_to_litr_met_fire
-   m_c_to_litr_cel_fire                  => clm3%g%l%c%ccf%m_c_to_litr_cel_fire
-   m_c_to_litr_lig_fire                  => clm3%g%l%c%ccf%m_c_to_litr_lig_fire
+   m_leafc_to_litter_fire                => pcf%m_leafc_to_litter_fire
+   m_leafc_storage_to_litter_fire        => pcf%m_leafc_storage_to_litter_fire
+   m_leafc_xfer_to_litter_fire           => pcf%m_leafc_xfer_to_litter_fire
+   m_livestemc_to_litter_fire            => pcf%m_livestemc_to_litter_fire
+   m_livestemc_storage_to_litter_fire    => pcf%m_livestemc_storage_to_litter_fire
+   m_livestemc_xfer_to_litter_fire       => pcf%m_livestemc_xfer_to_litter_fire
+   m_livestemc_to_deadstemc_fire         => pcf%m_livestemc_to_deadstemc_fire
+   m_deadstemc_to_litter_fire            => pcf%m_deadstemc_to_litter_fire
+   m_deadstemc_storage_to_litter_fire    => pcf%m_deadstemc_storage_to_litter_fire
+   m_deadstemc_xfer_to_litter_fire       => pcf%m_deadstemc_xfer_to_litter_fire
+   m_frootc_to_litter_fire               => pcf%m_frootc_to_litter_fire
+   m_frootc_storage_to_litter_fire       => pcf%m_frootc_storage_to_litter_fire
+   m_frootc_xfer_to_litter_fire          => pcf%m_frootc_xfer_to_litter_fire
+   m_livecrootc_to_litter_fire           => pcf%m_livecrootc_to_litter_fire
+   m_livecrootc_storage_to_litter_fire   => pcf%m_livecrootc_storage_to_litter_fire
+   m_livecrootc_xfer_to_litter_fire      => pcf%m_livecrootc_xfer_to_litter_fire
+   m_livecrootc_to_deadcrootc_fire       => pcf%m_livecrootc_to_deadcrootc_fire
+   m_deadcrootc_to_litter_fire           => pcf%m_deadcrootc_to_litter_fire
+   m_deadcrootc_storage_to_litter_fire   => pcf%m_deadcrootc_storage_to_litter_fire
+   m_deadcrootc_xfer_to_litter_fire      => pcf%m_deadcrootc_xfer_to_litter_fire
+   m_gresp_storage_to_litter_fire        => pcf%m_gresp_storage_to_litter_fire
+   m_gresp_xfer_to_litter_fire           => pcf%m_gresp_xfer_to_litter_fire
+   m_decomp_cpools_to_fire_vr            => ccf%m_decomp_cpools_to_fire_vr
+   m_c_to_litr_met_fire                  => ccf%m_c_to_litr_met_fire
+   m_c_to_litr_cel_fire                  => ccf%m_c_to_litr_cel_fire
+   m_c_to_litr_lig_fire                  => ccf%m_c_to_litr_lig_fire
 
-   m_leafn_to_litter_fire                => clm3%g%l%c%p%pnf%m_leafn_to_litter_fire
-   m_leafn_storage_to_litter_fire        => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter_fire
-   m_leafn_xfer_to_litter_fire           => clm3%g%l%c%p%pnf%m_leafn_xfer_to_litter_fire
-   m_livestemn_to_litter_fire            => clm3%g%l%c%p%pnf%m_livestemn_to_litter_fire
-   m_livestemn_storage_to_litter_fire    => clm3%g%l%c%p%pnf%m_livestemn_storage_to_litter_fire
-   m_livestemn_xfer_to_litter_fire       => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter_fire
-   m_livestemn_to_deadstemn_fire         => clm3%g%l%c%p%pnf%m_livestemn_to_deadstemn_fire
-   m_deadstemn_to_litter_fire            => clm3%g%l%c%p%pnf%m_deadstemn_to_litter_fire
-   m_deadstemn_storage_to_litter_fire    => clm3%g%l%c%p%pnf%m_deadstemn_storage_to_litter_fire
-   m_deadstemn_xfer_to_litter_fire       =>clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter_fire
-   m_frootn_to_litter_fire               => clm3%g%l%c%p%pnf%m_frootn_to_litter_fire
-   m_frootn_storage_to_litter_fire       => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter_fire
-   m_frootn_xfer_to_litter_fire          => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter_fire
-   m_livecrootn_to_litter_fire           => clm3%g%l%c%p%pnf%m_livecrootn_to_litter_fire
-   m_livecrootn_storage_to_litter_fire   => clm3%g%l%c%p%pnf%m_livecrootn_storage_to_litter_fire
-   m_livecrootn_xfer_to_litter_fire      => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter_fire
-   m_livecrootn_to_deadcrootn_fire       => clm3%g%l%c%p%pnf%m_livecrootn_to_deadcrootn_fire
-   m_deadcrootn_to_litter_fire           => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter_fire
-   m_deadcrootn_storage_to_litter_fire   => clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_litter_fire
-   m_deadcrootn_xfer_to_litter_fire      => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter_fire
-   m_retransn_to_litter_fire             => clm3%g%l%c%p%pnf%m_retransn_to_litter_fire
-   m_decomp_npools_to_fire_vr            => clm3%g%l%c%cnf%m_decomp_npools_to_fire_vr
-   m_n_to_litr_met_fire                  => clm3%g%l%c%cnf%m_n_to_litr_met_fire
-   m_n_to_litr_cel_fire                  => clm3%g%l%c%cnf%m_n_to_litr_cel_fire
-   m_n_to_litr_lig_fire                  => clm3%g%l%c%cnf%m_n_to_litr_lig_fire
+   m_leafn_to_litter_fire                => pnf%m_leafn_to_litter_fire
+   m_leafn_storage_to_litter_fire        => pnf%m_leafn_storage_to_litter_fire
+   m_leafn_xfer_to_litter_fire           => pnf%m_leafn_xfer_to_litter_fire
+   m_livestemn_to_litter_fire            => pnf%m_livestemn_to_litter_fire
+   m_livestemn_storage_to_litter_fire    => pnf%m_livestemn_storage_to_litter_fire
+   m_livestemn_xfer_to_litter_fire       => pnf%m_livestemn_xfer_to_litter_fire
+   m_livestemn_to_deadstemn_fire         => pnf%m_livestemn_to_deadstemn_fire
+   m_deadstemn_to_litter_fire            => pnf%m_deadstemn_to_litter_fire
+   m_deadstemn_storage_to_litter_fire    => pnf%m_deadstemn_storage_to_litter_fire
+   m_deadstemn_xfer_to_litter_fire       =>pnf%m_deadstemn_xfer_to_litter_fire
+   m_frootn_to_litter_fire               => pnf%m_frootn_to_litter_fire
+   m_frootn_storage_to_litter_fire       => pnf%m_frootn_storage_to_litter_fire
+   m_frootn_xfer_to_litter_fire          => pnf%m_frootn_xfer_to_litter_fire
+   m_livecrootn_to_litter_fire           => pnf%m_livecrootn_to_litter_fire
+   m_livecrootn_storage_to_litter_fire   => pnf%m_livecrootn_storage_to_litter_fire
+   m_livecrootn_xfer_to_litter_fire      => pnf%m_livecrootn_xfer_to_litter_fire
+   m_livecrootn_to_deadcrootn_fire       => pnf%m_livecrootn_to_deadcrootn_fire
+   m_deadcrootn_to_litter_fire           => pnf%m_deadcrootn_to_litter_fire
+   m_deadcrootn_storage_to_litter_fire   => pnf%m_deadcrootn_storage_to_litter_fire
+   m_deadcrootn_xfer_to_litter_fire      => pnf%m_deadcrootn_xfer_to_litter_fire
+   m_retransn_to_litter_fire             => pnf%m_retransn_to_litter_fire
+   m_decomp_npools_to_fire_vr            => cnf%m_decomp_npools_to_fire_vr
+   m_n_to_litr_met_fire                  => cnf%m_n_to_litr_met_fire
+   m_n_to_litr_cel_fire                  => cnf%m_n_to_litr_cel_fire
+   m_n_to_litr_lig_fire                  => cnf%m_n_to_litr_lig_fire
    
    is_cwd                                => decomp_cascade_con%is_cwd
    is_litter                             => decomp_cascade_con%is_litter
-   croot_prof                            => clm3%g%l%c%p%pps%croot_prof
-   stem_prof                             => clm3%g%l%c%p%pps%stem_prof
-   froot_prof                            => clm3%g%l%c%p%pps%froot_prof
-   leaf_prof                             => clm3%g%l%c%p%pps%leaf_prof
+   croot_prof                            => pps%croot_prof
+   stem_prof                             => pps%stem_prof
+   froot_prof                            => pps%froot_prof
+   leaf_prof                             => pps%leaf_prof
 
    ! Get model step size
    ! calculate burned area fraction per sec
@@ -1455,7 +1437,7 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
    do fc = 1,num_soilc
       c = filter_soilc(fc)
       g = cgridcell(c)
-      if( latdeg(g) .lt. borealat)then
+      if( grc%latdeg(g) .lt. borealat)then
          somc_fire(c)= totsomc(c)*baf_peatf(c)/dt*6.0_r8/33.9_r8
       else
          somc_fire(c)= baf_peatf(c)/dt*2.2e3_r8

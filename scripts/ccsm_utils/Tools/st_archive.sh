@@ -323,8 +323,14 @@ done
 #copy back the required files for next restart
 cp ${sta}/rest/${dname}/* .
 
-mv ${sta}/* ${DOUT_S_ROOT}
-rm -fr ${sta}
+if mv ${sta}/* ${DOUT_S_ROOT}; then
+    rm -fr ${sta}
+else
+    echo "st_archive.sh: error, final move command unsuccessful"
+    echo "               some short-term archive data may be in ${sta}"
+    echo "st_archive.sh: exiting"
+    exit 1
+fi
 
 echo "st_archive.sh: short-term archiving completed successfully"
 

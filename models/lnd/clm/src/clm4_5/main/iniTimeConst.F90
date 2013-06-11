@@ -9,13 +9,12 @@ subroutine iniTimeConst
 ! !DESCRIPTION:
 ! Initialize time invariant clm variables
 ! 1) removed references to shallow lake - since it is not used
-! 2) ***Make c%z, c%zi and c%dz allocatable depending on if you
+! 2) ***Make z, zi and dz allocatable depending on if you
 !    have lake or soil
 ! 3) rootfr only initialized for soil points
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use nanMod      , only : nan
   use clmtype
   use decompMod   , only : get_proc_bounds, get_proc_global
   use decompMod   , only : gsMap_lnd_gdc2glo
@@ -68,6 +67,7 @@ subroutine iniTimeConst
 #endif
   use clm_varcon      , only : pc, mu
   use shr_const_mod   , only : shr_const_pi
+  use shr_spfn_mod    , only : shr_spfn_erf
   use SoilHydrologyMod, only : h2osfcflag
 !
 !
@@ -283,7 +283,6 @@ subroutine iniTimeConst
   real(r8),pointer :: std(:)           ! read in - topo_std
   real(r8),pointer :: tslope(:)        ! read in - topo_slope
   real(r8) :: maxslope, slopemax, minslope, d, fd, dfdd, slope0,slopebeta
-  real(r8) :: derf
 !------------------------------------------------------------------------
 
   if (masterproc) write(iulog,*) 'Attempting to initialize time invariant variables'
@@ -314,92 +313,92 @@ subroutine iniTimeConst
   allocate(sandcol(begc:endc,1:nlevgrnd), claycol(begc:endc,1:nlevgrnd), om_fraccol(begc:endc,1:nlevgrnd)) ! allocation for local variables
 #endif
 
-  efisop          => clm3%g%gve%efisop
+  efisop          => gve%efisop
 
   ! Assign local pointers to derived subtypes components (gridcell-level)
-  lat             => clm3%g%lat
+  lat             =>  grc%lat
      
   ! Assign local pointers to derived subtypes components (landunit-level)
 
-  ltype               => clm3%g%l%itype
-  thick_wall          => clm3%g%l%lps%thick_wall
-  thick_roof          => clm3%g%l%lps%thick_roof
+  ltype               => lun%itype
+  thick_wall          => lps%thick_wall
+  thick_roof          => lps%thick_roof
 
   ! Assign local pointers to derived subtypes components (column-level)
 
-  topo_std        => clm3%g%l%c%cps%topo_std
-  topo_slope      => clm3%g%l%c%cps%topo_slope
-  micro_sigma     => clm3%g%l%c%cps%micro_sigma
-  h2osfc_thresh   => clm3%g%l%c%cps%h2osfc_thresh
-  hksat_min       => clm3%g%l%c%cps%hksat_min
-  n_melt          => clm3%g%l%c%cps%n_melt
-  ctype           => clm3%g%l%c%itype
-  clandunit       => clm3%g%l%c%landunit
-  cgridcell       => clm3%g%l%c%gridcell
-  z               => clm3%g%l%c%cps%z
-  dz              => clm3%g%l%c%cps%dz
-  zi              => clm3%g%l%c%cps%zi
-  bsw             => clm3%g%l%c%cps%bsw
-  watsat          => clm3%g%l%c%cps%watsat
-  watfc           => clm3%g%l%c%cps%watfc
-  watdry          => clm3%g%l%c%cps%watdry  
-  watopt          => clm3%g%l%c%cps%watopt  
-  rootfr_road_perv => clm3%g%l%c%cps%rootfr_road_perv
-  hksat           => clm3%g%l%c%cps%hksat
-  sucsat          => clm3%g%l%c%cps%sucsat
-  tkmg            => clm3%g%l%c%cps%tkmg
-  tksatu          => clm3%g%l%c%cps%tksatu
-  tkdry           => clm3%g%l%c%cps%tkdry
-  csol            => clm3%g%l%c%cps%csol
-  smpmin          => clm3%g%l%c%cps%smpmin
-  hkdepth         => clm3%g%l%c%cps%hkdepth
-  wtfact          => clm3%g%l%c%cps%wtfact
-  bd              => clm3%g%l%c%cps%bd
+  topo_std        => cps%topo_std
+  topo_slope      => cps%topo_slope
+  micro_sigma     => cps%micro_sigma
+  h2osfc_thresh   => cps%h2osfc_thresh
+  hksat_min       => cps%hksat_min
+  n_melt          => cps%n_melt
+  ctype           => col%itype
+  clandunit       =>col%landunit
+  cgridcell       =>col%gridcell
+  z               => cps%z
+  dz              => cps%dz
+  zi              => cps%zi
+  bsw             => cps%bsw
+  watsat          => cps%watsat
+  watfc           => cps%watfc
+  watdry          => cps%watdry  
+  watopt          => cps%watopt  
+  rootfr_road_perv => cps%rootfr_road_perv
+  hksat           => cps%hksat
+  sucsat          => cps%sucsat
+  tkmg            => cps%tkmg
+  tksatu          => cps%tksatu
+  tkdry           => cps%tkdry
+  csol            => cps%csol
+  smpmin          => cps%smpmin
+  hkdepth         => cps%hkdepth
+  wtfact          => cps%wtfact
+  bd              => cps%bd
 #ifdef LCH4
-  zwt0            => clm3%g%l%c%cps%zwt0
-  f0              => clm3%g%l%c%cps%f0
-  p3              => clm3%g%l%c%cps%p3
-  pH              => clm3%g%l%c%cps%pH
+  zwt0            => cps%zwt0
+  f0              => cps%f0
+  p3              => cps%p3
+  pH              => cps%pH
 #endif
-  isoicol         => clm3%g%l%c%cps%isoicol
+  isoicol         => cps%isoicol
   
   ! added by F. Li and S. Levis
-  gdp_lf          => clm3%g%l%c%cps%gdp_lf
-  peatf_lf        => clm3%g%l%c%cps%peatf_lf
-  abm_lf          => clm3%g%l%c%cps%abm_lf
+  gdp_lf          => cps%gdp_lf
+  peatf_lf        => cps%peatf_lf
+  abm_lf          => cps%abm_lf
 
-  gwc_thr         => clm3%g%l%c%cps%gwc_thr
-  mss_frc_cly_vld => clm3%g%l%c%cps%mss_frc_cly_vld
-  max_dayl        => clm3%g%l%c%cps%max_dayl
-  cellsand        => clm3%g%l%c%cps%cellsand
-  cellclay        => clm3%g%l%c%cps%cellclay
-  cellorg         => clm3%g%l%c%cps%cellorg
-  lakedepth       => clm3%g%l%c%cps%lakedepth
-  etal            => clm3%g%l%c%cps%etal
-  lakefetch       => clm3%g%l%c%cps%lakefetch
+  gwc_thr         => cps%gwc_thr
+  mss_frc_cly_vld => cps%mss_frc_cly_vld
+  max_dayl        => cps%max_dayl
+  cellsand        => cps%cellsand
+  cellclay        => cps%cellclay
+  cellorg         => cps%cellorg
+  lakedepth       => cps%lakedepth
+  etal            => cps%etal
+  lakefetch       => cps%lakefetch
 #if (defined VICHYDRO)
-  b_infil        => clm3%g%l%c%cps%b_infil
-  dsmax          => clm3%g%l%c%cps%dsmax
-  ds             => clm3%g%l%c%cps%ds
-  Wsvic          => clm3%g%l%c%cps%Wsvic
-  expt           => clm3%g%l%c%cps%expt
-  ksat           => clm3%g%l%c%cps%ksat
-  phi_s          => clm3%g%l%c%cps%phi_s
-  depth          => clm3%g%l%c%cps%depth
-  porosity       => clm3%g%l%c%cps%porosity
-  max_moist      => clm3%g%l%c%cps%max_moist
+  b_infil        => cps%b_infil
+  dsmax          => cps%dsmax
+  ds             => cps%ds
+  Wsvic          => cps%Wsvic
+  expt           => cps%expt
+  ksat           => cps%ksat
+  phi_s          => cps%phi_s
+  depth          => cps%depth
+  porosity       => cps%porosity
+  max_moist      => cps%max_moist
 #endif
 
   ! Assign local pointers to derived subtypes components (pft-level)
 
-  ivt             => clm3%g%l%c%p%itype
-  pgridcell       => clm3%g%l%c%p%gridcell
-  pcolumn         => clm3%g%l%c%p%column
-  dewmx           => clm3%g%l%c%p%pps%dewmx
-  rootfr          => clm3%g%l%c%p%pps%rootfr
-  rresis          => clm3%g%l%c%p%pps%rresis
-  sandfrac        => clm3%g%l%c%p%pps%sandfrac
-  clayfrac        => clm3%g%l%c%p%pps%clayfrac
+  ivt             =>pft%itype
+  pgridcell       =>pft%gridcell
+  pcolumn         =>pft%column
+  dewmx           => pps%dewmx
+  rootfr          => pps%rootfr
+  rresis          => pps%rresis
+  sandfrac        => pps%sandfrac
+  clayfrac        => pps%clayfrac
 
   if (nlevurb > 0) then
     allocate(zurb_wall(begl:endl,nlevurb),    &
@@ -1017,11 +1016,11 @@ subroutine iniTimeConst
       if (micro_sigma(c) > 1.e-6_r8) then
          d=0.0
          do p=1,4
-            fd = 0.5*(1.0_r8+derf(d/(micro_sigma(c)*sqrt(2.0)))) - pc
+            fd = 0.5*(1.0_r8+shr_spfn_erf(d/(micro_sigma(c)*sqrt(2.0)))) - pc
             dfdd = exp(-d**2/(2.0*micro_sigma(c)**2))/(micro_sigma(c)*sqrt(2.0*shr_const_pi))
             d = d - fd/dfdd
          enddo
-         h2osfc_thresh(c) = 0.5*d*(1.0_r8+derf(d/(micro_sigma(c)*sqrt(2.0)))) &
+         h2osfc_thresh(c) = 0.5*d*(1.0_r8+shr_spfn_erf(d/(micro_sigma(c)*sqrt(2.0)))) &
               +micro_sigma(c)/sqrt(2.0*shr_const_pi)*exp(-d**2/(2.0*micro_sigma(c)**2))         
          h2osfc_thresh(c) = 1.e3_r8 * h2osfc_thresh(c) !convert to mm from meters
       else

@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: main.F90 35698 2012-03-22 23:59:57Z kauff $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/runoff_to_ocn/src/main.F90 $
+! SVN $Id: main.F90 46983 2013-05-09 22:08:12Z tcraig $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/runoff_to_ocn/src/main.F90 $
 !===============================================================================
 
 PROGRAM main
@@ -78,7 +78,7 @@ PROGRAM main
 
    write(6,F10) "correct/smooth/sort runoff -> ocean map"
    write(6,F10) "SVN &
-   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
+   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
 
    call shr_timer_init()
 
@@ -138,7 +138,7 @@ if (step1) then
    call mapsort_sort(map_orig)  ! sort map
    call map_check(map_orig)
    call map_write(map_orig, trim(file_nn)) 
-else
+else if (step2) then
    call map_read (map_orig, trim(file_nn))  ! read corrected r2o map
    call mapsort_sort(map_orig)  ! sort map
    call map_check(map_orig)
@@ -161,7 +161,7 @@ if (step2) then
    call mapsort_sort(map_smooth)
    call map_check(map_smooth)
    call map_write(map_smooth, trim(file_smooth)) 
-else
+else if (step3) then
    call map_read (map_smooth, trim(file_smooth))  ! read corrected r2o map
    call mapsort_sort(map_smooth)  ! sort map
    call map_check(map_smooth)

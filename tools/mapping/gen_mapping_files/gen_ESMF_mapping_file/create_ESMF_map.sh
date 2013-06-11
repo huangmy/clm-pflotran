@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #===============================================================================
 # SVN $Id: create_ESMF_map.sh 46423 2013-04-26 18:11:07Z mlevy@ucar.edu $
-# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh $
+# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh $
 #
 # Create needed mapping files for gen_domain and coupler mapping
 # Currently supported on yellowstone, geyser, caldera and jaguarpf

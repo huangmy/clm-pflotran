@@ -27,8 +27,8 @@ module CNC14DecayMod
     character(len=256), public :: atm_c14_filename = ' '   ! file name of C14 input data
     
 ! !PRIVATE TYPES:
-    real(r8), allocatable, private, save :: atm_c14file_time(:)
-    real(r8), allocatable, private, save :: atm_delta_c14(:)
+    real(r8), allocatable, private :: atm_c14file_time(:)
+    real(r8), allocatable, private :: atm_delta_c14(:)
 
 ! !REVISION HISTORY:
 ! 2/15/2011 by C. Koven
@@ -109,36 +109,36 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
 
     ! assign local pointers at the column level
-    decomp_cpools_vr                   => clm3%g%l%c%cc14s%decomp_cpools_vr
+    decomp_cpools_vr                   => cc14s%decomp_cpools_vr
 
     ! ! assign local pointers at the column level
     ! new pointers for dynamic landcover
-    seedc                          => clm3%g%l%c%cc14s%seedc
+    seedc                          => cc14s%seedc
 
    ! assign local pointers at the pft level
-    cpool                          => clm3%g%l%c%p%pc14s%cpool
-    xsmrpool                       => clm3%g%l%c%p%pc14s%xsmrpool
-    deadcrootc                     => clm3%g%l%c%p%pc14s%deadcrootc
-    deadcrootc_storage             => clm3%g%l%c%p%pc14s%deadcrootc_storage
-    deadcrootc_xfer                => clm3%g%l%c%p%pc14s%deadcrootc_xfer
-    deadstemc                      => clm3%g%l%c%p%pc14s%deadstemc
-    deadstemc_storage              => clm3%g%l%c%p%pc14s%deadstemc_storage
-    deadstemc_xfer                 => clm3%g%l%c%p%pc14s%deadstemc_xfer
-    frootc                         => clm3%g%l%c%p%pc14s%frootc
-    frootc_storage                 => clm3%g%l%c%p%pc14s%frootc_storage
-    frootc_xfer                    => clm3%g%l%c%p%pc14s%frootc_xfer
-    gresp_storage                  => clm3%g%l%c%p%pc14s%gresp_storage
-    gresp_xfer                     => clm3%g%l%c%p%pc14s%gresp_xfer
-    leafc                          => clm3%g%l%c%p%pc14s%leafc
-    leafc_storage                  => clm3%g%l%c%p%pc14s%leafc_storage
-    leafc_xfer                     => clm3%g%l%c%p%pc14s%leafc_xfer
-    livecrootc                     => clm3%g%l%c%p%pc14s%livecrootc
-    livecrootc_storage             => clm3%g%l%c%p%pc14s%livecrootc_storage
-    livecrootc_xfer                => clm3%g%l%c%p%pc14s%livecrootc_xfer
-    livestemc                      => clm3%g%l%c%p%pc14s%livestemc
-    livestemc_storage              => clm3%g%l%c%p%pc14s%livestemc_storage
-    livestemc_xfer                 => clm3%g%l%c%p%pc14s%livestemc_xfer
-    pft_ctrunc                     => clm3%g%l%c%p%pc14s%pft_ctrunc
+    cpool                          => pc14s%cpool
+    xsmrpool                       => pc14s%xsmrpool
+    deadcrootc                     => pc14s%deadcrootc
+    deadcrootc_storage             => pc14s%deadcrootc_storage
+    deadcrootc_xfer                => pc14s%deadcrootc_xfer
+    deadstemc                      => pc14s%deadstemc
+    deadstemc_storage              => pc14s%deadstemc_storage
+    deadstemc_xfer                 => pc14s%deadstemc_xfer
+    frootc                         => pc14s%frootc
+    frootc_storage                 => pc14s%frootc_storage
+    frootc_xfer                    => pc14s%frootc_xfer
+    gresp_storage                  => pc14s%gresp_storage
+    gresp_xfer                     => pc14s%gresp_xfer
+    leafc                          => pc14s%leafc
+    leafc_storage                  => pc14s%leafc_storage
+    leafc_xfer                     => pc14s%leafc_xfer
+    livecrootc                     => pc14s%livecrootc
+    livecrootc_storage             => pc14s%livecrootc_storage
+    livecrootc_xfer                => pc14s%livecrootc_xfer
+    livestemc                      => pc14s%livestemc
+    livestemc_storage              => pc14s%livestemc_storage
+    livestemc_xfer                 => pc14s%livestemc_xfer
+    pft_ctrunc                     => pc14s%pft_ctrunc
     spinup_factor                  => decomp_cascade_con%spinup_factor
 
 
@@ -238,8 +238,9 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
    integer :: ind_below
    integer :: ntim_atm_ts
    real(r8) :: twt_1, twt_2                     ! weighting fractions for interpolating
+   real(r8) :: min, max
 
-   rc14_atm       => clm3%g%l%c%p%pepv%rc14_atm
+   rc14_atm       => pepv%rc14_atm
 
    if ( use_c14_bombspike ) then
 
@@ -263,7 +264,8 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
       elseif (ind_below .eq. ntim_atm_ts ) then
          delc14o2_atm = atm_delta_c14(ntim_atm_ts)
       else
-         twt_2 = min(1._r8, max(0._r8,(dateyear-atm_c14file_time(ind_below))/(atm_c14file_time(ind_below+1)-atm_c14file_time(ind_below))))
+         twt_2 = min(1._r8, max(0._r8,(dateyear-atm_c14file_time(ind_below)) &
+             / (atm_c14file_time(ind_below+1)-atm_c14file_time(ind_below))))
          twt_1 = 1._r8 - twt_2
          delc14o2_atm = atm_delta_c14(ind_below) * twt_1 +  atm_delta_c14(ind_below+1) * twt_2
       endif

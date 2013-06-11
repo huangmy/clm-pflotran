@@ -186,26 +186,26 @@ contains
     call get_proc_global(numg, numl, numc, nump)
 
     ! Assign local pointers to derived subtypes components (landunit-level)
-    ltype           => clm3%g%l%itype
+    ltype           => lun%itype
 
     ! Assign local pointer to derived subtypes components (column-level)
-    clandunit       => clm3%g%l%c%landunit
-    cgridcell       => clm3%g%l%c%gridcell
-    wtgcell         => clm3%g%l%c%wtgcell
-    ctype           => clm3%g%l%c%itype
-    hksat           => clm3%g%l%c%cps%hksat
-    sucsat          => clm3%g%l%c%cps%sucsat
-    watsat          => clm3%g%l%c%cps%watsat
-    h2osoi_vol      => clm3%g%l%c%cws%h2osoi_vol
-    h2osoi_liq      => clm3%g%l%c%cws%h2osoi_liq
-    h2osoi_ice      => clm3%g%l%c%cws%h2osoi_ice
-    t_soisno        => clm3%g%l%c%ces%t_soisno
+    clandunit       => col%landunit
+    cgridcell       => col%gridcell
+    wtgcell         => col%wtgcell
+    ctype           => col%itype
+    hksat           => cps%hksat
+    sucsat          => cps%sucsat
+    watsat          => cps%watsat
+    h2osoi_vol      => cws%h2osoi_vol
+    h2osoi_liq      => cws%h2osoi_liq
+    h2osoi_ice      => cws%h2osoi_ice
+    t_soisno        => ces%t_soisno
     topo            => ldomain%topo
-    zwt             => clm3%g%l%c%cws%zwt
-    latdeg          => clm3%g%latdeg
-    londeg          => clm3%g%londeg
-    lakpoi          => clm3%g%l%lakpoi
-    dz              => clm3%g%l%c%cps%dz
+    zwt             => cws%zwt
+    latdeg          => grc%latdeg
+    londeg          => grc%londeg
+    lakpoi          => lun%lakpoi
+    dz              => cps%dz
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)

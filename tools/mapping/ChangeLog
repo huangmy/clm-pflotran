@@ -1,8 +1,39 @@
 ================================================================================
-SVN $Id: ChangeLog 46423 2013-04-26 18:11:07Z mlevy@ucar.edu $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/ChangeLog $
+SVN $Id: ChangeLog 46983 2013-05-09 22:08:12Z tcraig $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: tcraig
+Date: May 9 2013
+Model: mapping
+Version: mapping_130509
+One-line summary: update gen_mapping_files/runoff_to_ocn and check_maps
+
+ - updated READMEs
+ - new sample namelist for runoff_to_ocn
+ - add scrip grid file option for runoff grid input
+ - fix step1,2,3 logic in runoff_to_ocn code
+ - add src_grid_dims and dst_grid_dims to runoff mapping file
+ - check_maps now writes out netcdf file with fields
+ - add local smm option and set it as default in check_maps (>100x faster)
+
+D       map_field/INSTALL
+M       map_field/README
+D       gen_mapping_files/runoff_to_ocn/runoff_map_gx1.nml
+M       gen_mapping_files/runoff_to_ocn/runoff_map.nml
+D       gen_mapping_files/runoff_to_ocn/runoff_map_gx3.nml
+A       gen_mapping_files/runoff_to_ocn/runoff_map_wr50a_ar9v4.nml
+A       gen_mapping_files/runoff_to_ocn/runoff_map_r05_gx3v7.nml
+M       gen_mapping_files/runoff_to_ocn/src/main.F90
+M       gen_mapping_files/runoff_to_ocn/src/map_mod.F90
+M       gen_mapping_files/runoff_to_ocn/README
+M       gen_mapping_files/runoff_to_ocn/runoff_map_tx01.nml
+A       gen_mapping_files/runoff_to_ocn/runoff_map_wr50a_gx3v7.nml
+D       check_maps/INSTALL
+M       check_maps/src/ESMF_RegridWeightGenCheck.F90
+M       check_maps/README
+
 ================================================================================
 Originator: mlevy
 Date: Apr 26 2013

@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: map_mod.F90 44128 2013-02-22 15:43:14Z mlevy@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130426a/gen_mapping_files/runoff_to_ocn/src/map_mod.F90 $
+! SVN $Id: map_mod.F90 46983 2013-05-09 22:08:12Z tcraig $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/runoff_to_ocn/src/map_mod.F90 $
 !===============================================================================
 
 MODULE map_mod
@@ -49,6 +49,7 @@ MODULE map_mod
      real(r8)   ,pointer ::   yv_a(:,:) ! y-coords of verticies ~ deg north (nv,n)
      integer,pointer :: mask_a(:)   ! mask: 0 <=> out-of-domain (invalid data)
      real(r8)   ,pointer :: area_a(:)   ! area of grid cell ~ radians squared
+     integer         :: dims_a(2)       ! hardwire to 2 for now
 
      !--- domain b ---
      integer         ::    n_b      ! number of non-zero matrix elements
@@ -60,6 +61,7 @@ MODULE map_mod
      real(r8)   ,pointer ::   yv_b(:,:) ! y-coords of verticies ~ deg north (nv,n)
      integer,pointer :: mask_b(:)   ! mask: 0 <=> out-of-domain (invalid data)
      real(r8)   ,pointer :: area_b(:)   ! area of grid cell ~ radians squared
+     integer         :: dims_b(2)       ! hardwire to 2 for now
 
      !--- fraction of cell mapped to domain b or from domain a ---
      real(r8)   ,pointer :: frac_a(:)   ! area of grid cell ~ radians squared
@@ -159,10 +161,18 @@ SUBROUTINE map_read(map, filename)
    !-----------------------------------------------
    rcode = nf_inq_dimid (fid, 'n_a' , did)
    rcode = nf_inq_dimlen(fid, did   , map%n_a  )
+   map%dims_a(1) = map%n_a
+   map%dims_a(2) = 1
    rcode = nf_inq_dimid (fid, 'ni_a', did)
-   rcode = nf_inq_dimlen(fid, did   , map%ni_a )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_inq_dimlen(fid, did   , map%ni_a )
+      map%dims_a(1) = map%ni_a
+   endif
    rcode = nf_inq_dimid (fid, 'nj_a', did)
-   rcode = nf_inq_dimlen(fid, did   , map%nj_a )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_inq_dimlen(fid, did   , map%nj_a )
+      map%dims_a(2) = map%nj_a
+   endif
 
    allocate(map%  xc_a(   map%n_a)) ! x-coordinates of center
    allocate(map%  yc_a(   map%n_a)) ! y-coordinates of center
@@ -172,6 +182,10 @@ SUBROUTINE map_read(map, filename)
    allocate(map%area_a(   map%n_a)) ! grid cell area
    allocate(map%frac_a(   map%n_a)) ! grid cell area
 
+   rcode = nf_inq_varid     (fid,'src_grid_dims',vid )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_get_var_int   (fid,vid     ,map%dims_a)
+   endif
    rcode = nf_inq_varid     (fid,'xc_a'  ,vid)
    rcode = nf_get_var_double(fid,vid     ,map%xc_a )
    rcode = nf_inq_varid     (fid,'yc_a'  ,vid)
@@ -192,10 +206,18 @@ SUBROUTINE map_read(map, filename)
    !-----------------------------------------------
    rcode = nf_inq_dimid (fid, 'n_b' , did)
    rcode = nf_inq_dimlen(fid, did   , map%n_b  )
+   map%dims_b(1) = map%n_b
+   map%dims_b(2) = 1
    rcode = nf_inq_dimid (fid, 'ni_b', did)
-   rcode = nf_inq_dimlen(fid, did   , map%ni_b )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_inq_dimlen(fid, did   , map%ni_b )
+      map%dims_b(1) = map%ni_b
+   endif
    rcode = nf_inq_dimid (fid, 'nj_b', did)
-   rcode = nf_inq_dimlen(fid, did   , map%nj_b )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_inq_dimlen(fid, did   , map%nj_b )
+      map%dims_b(2) = map%nj_b
+   endif
 
    allocate(map%  xc_b(   map%n_b)) ! x-coordinates of center
    allocate(map%  yc_b(   map%n_b)) ! y-coordinates of center
@@ -205,6 +227,10 @@ SUBROUTINE map_read(map, filename)
    allocate(map%area_b(   map%n_b)) ! grid cell area
    allocate(map%frac_b(   map%n_b)) ! grid cell area
 
+   rcode = nf_inq_varid     (fid,'dst_grid_dims',vid )
+   if (rcode.eq.NF_NOERR) then
+      rcode = nf_get_var_int   (fid,vid     ,map%dims_b)
+   endif
    rcode = nf_inq_varid     (fid,'xc_b'  ,vid)
    rcode = nf_get_var_double(fid,vid     ,map%xc_b )
    rcode = nf_inq_varid     (fid,'yc_b'  ,vid)
@@ -311,6 +337,8 @@ SUBROUTINE map_gridRead(map, rfilename, ofilename, gridtype)
       map%ni_a = 720
       map%nj_a = 360
       map%n_a  = map%ni_a * map%nj_a
+      map%dims_a(1) = map%ni_a
+      map%dims_a(2) = map%nj_a
 
       allocate(map%  xc_a(   map%n_a)) ! x-coordinates of center
       allocate(map%  yc_a(   map%n_a)) ! y-coordinates of center
@@ -376,6 +404,8 @@ SUBROUTINE map_gridRead(map, rfilename, ofilename, gridtype)
       map%ni_a = ni
       map%nj_a = nj
       map%n_a  = ni*nj
+      map%dims_a(1) = map%ni_a
+      map%dims_a(2) = map%nj_a
 
       allocate(map%  xc_a(   map%n_a)) ! x-coordinates of center
       allocate(map%  yc_a(   map%n_a)) ! y-coordinates of center
@@ -483,6 +513,58 @@ SUBROUTINE map_gridRead(map, rfilename, ofilename, gridtype)
 !     map%xv_b = map%xv_b * RADtoDEG
 !     map%yv_b = map%yv_b * RADtoDEG
 
+   else if (trim(gridtype) == "scrip") then
+
+      !----------------------------------------------------------------------------
+      write(*,F00) "read source domain info -- scrip grid"
+      !----------------------------------------------------------------------------
+      write(6,F00) 'rof data file',' = ',trim(rfilename)
+      rcode = nf_open(rfilename,NF_NOWRITE,fid)
+
+      rcode = nf_inq_dimid (fid, 'grid_size' , did)
+      rcode = nf_inq_dimlen(fid, did   , map%n_a  )
+      rcode = nf_inq_dimid (fid, 'grid_rank', did)
+      rcode = nf_inq_dimlen(fid, did   , grid_rank)
+      if (grid_rank /= 2) then
+         write(6,*) 'ERROR: grid_rank is ',grid_rank,' in ',trim(rfilename)
+         call shr_sys_abort(subName//"ERROR: rfilename grid_rank")
+      endif
+      rcode = nf_inq_varid  (fid, 'grid_dims', vid)
+      rcode = nf_get_var_int(fid, vid   , grid_dims)
+      map%ni_a = grid_dims(1)
+      map%nj_a = grid_dims(2)
+      map%dims_a(1) = map%ni_a
+      map%dims_a(2) = map%nj_a
+
+      allocate(map%  xc_a(   map%n_a)) ! x-coordinates of center
+      allocate(map%  yc_a(   map%n_a)) ! y-coordinates of center
+      allocate(map%  xv_a(nv,map%n_a)) ! x-coordinates of verticies
+      allocate(map%  yv_a(nv,map%n_a)) ! y-coordinates of verticies
+      allocate(map%mask_a(   map%n_a)) ! domain mask
+      allocate(map%area_a(   map%n_a)) ! grid cell area
+      allocate(map%frac_a(   map%n_a)) ! grid cell area
+
+      rcode = nf_inq_varid     (fid,'grid_center_lon'  ,vid)
+      rcode = nf_get_var_double(fid,vid     ,map%xc_a )
+      rcode = nf_inq_varid     (fid,'grid_center_lat'  ,vid)
+      rcode = nf_get_var_double(fid,vid     ,map%yc_a )
+      rcode = nf_inq_varid     (fid,'grid_corner_lon'  ,vid)
+      rcode = nf_get_var_double(fid,vid     ,map%xv_a )
+      rcode = nf_inq_varid     (fid,'grid_corner_lat'  ,vid)
+      rcode = nf_get_var_double(fid,vid     ,map%yv_a )
+      rcode = nf_inq_varid     (fid,'grid_imask',vid )
+      rcode = nf_get_var_int   (fid,vid     ,map%mask_a)
+      rcode = nf_inq_varid     (fid,'grid_area',vid )
+      rcode = nf_get_var_double(fid,vid     ,map%area_a)
+
+      map%xc_a = map%xc_a * RADtoDEG
+      map%yc_a = map%yc_a * RADtoDEG
+      map%xv_a = map%xv_a * RADtoDEG
+      map%yv_a = map%yv_a * RADtoDEG
+      map%frac_a = map%mask_a * 1.0_r8
+
+      rcode = nf_close(fid)
+
    else
       !-------------------------------------------------------------------------
       ! no other valid choices
@@ -509,6 +591,8 @@ SUBROUTINE map_gridRead(map, rfilename, ofilename, gridtype)
    rcode = nf_get_var_int(fid, vid   , grid_dims)
    map%ni_b = grid_dims(1)
    map%nj_b = grid_dims(2)
+   map%dims_b(1) = map%ni_b
+   map%dims_b(2) = map%nj_b
 
    allocate(map%  xc_b(   map%n_b)) ! x-coordinates of center
    allocate(map%  yc_b(   map%n_b)) ! y-coordinates of center
@@ -1082,32 +1166,34 @@ SUBROUTINE map_print(map)
    !-----------------------------------------------------------------
    ! global attributes
    !-----------------------------------------------------------------
-   write(6,*) subname,' title = ',trim(map%title)
-   write(6,*) subname,' normal = ',trim(map%normal)
-   write(6,*) subname,' method = ',trim(map%method)
-   write(6,*) subname,' history = ',trim(map%history)
-   write(6,*) subname,' convention = ',trim(map%convention)
+   write(6,*) subname,' title    = ',trim(map%title)
+   write(6,*) subname,' normal   = ',trim(map%normal)
+   write(6,*) subname,' method   = ',trim(map%method)
+   write(6,*) subname,' history  = ',trim(map%history)
+   write(6,*) subname,' conventn = ',trim(map%convention)
    write(6,*) subname,' domain_a = ',trim(map%domain_a)
    write(6,*) subname,' domain_b = ',trim(map%domain_b)
    write(6,*) ' '
-   write(6,*) subname,' n_a  = ',map%n_a
-   write(6,*) subname,' ni_a = ',map%ni_a
-   write(6,*) subname,' nj_a = ',map%nj_a
-   write(6,*) subname,' xc_a = ',minval(map%xc_a),maxval(map%xc_a)
-   write(6,*) subname,' yc_a = ',minval(map%yc_a),maxval(map%yc_a)
-   write(6,*) subname,' xv_a = ',minval(map%xv_a),maxval(map%xv_a)
-   write(6,*) subname,' yv_a = ',minval(map%yv_a),maxval(map%yv_a)
+   write(6,*) subname,' n_a    = ',map%n_a
+   write(6,*) subname,' ni_a   = ',map%ni_a
+   write(6,*) subname,' nj_a   = ',map%nj_a
+   write(6,*) subname,' dims_a = ',map%dims_a
+   write(6,*) subname,' xc_a   = ',minval(map%xc_a),maxval(map%xc_a)
+   write(6,*) subname,' yc_a   = ',minval(map%yc_a),maxval(map%yc_a)
+   write(6,*) subname,' xv_a   = ',minval(map%xv_a),maxval(map%xv_a)
+   write(6,*) subname,' yv_a   = ',minval(map%yv_a),maxval(map%yv_a)
    write(6,*) subname,' mask_a = ',minval(map%mask_a),maxval(map%mask_a),sum(map%mask_a)
    write(6,*) subname,' frac_a = ',minval(map%frac_a),maxval(map%frac_a),sum(map%frac_a)
    write(6,*) subname,' area_a = ',minval(map%area_a),maxval(map%area_a),sum(map%area_a)
    write(6,*) ' '
-   write(6,*) subname,' n_b  = ',map%n_b
-   write(6,*) subname,' ni_b = ',map%ni_b
-   write(6,*) subname,' nj_b = ',map%nj_b
-   write(6,*) subname,' xc_b = ',minval(map%xc_b),maxval(map%xc_b)
-   write(6,*) subname,' yc_b = ',minval(map%yc_b),maxval(map%yc_b)
-   write(6,*) subname,' xv_b = ',minval(map%xv_b),maxval(map%xv_b)
-   write(6,*) subname,' yv_b = ',minval(map%yv_b),maxval(map%yv_b)
+   write(6,*) subname,' n_b    = ',map%n_b
+   write(6,*) subname,' ni_b   = ',map%ni_b
+   write(6,*) subname,' nj_b   = ',map%nj_b
+   write(6,*) subname,' dims_b = ',map%dims_b
+   write(6,*) subname,' xc_b   = ',minval(map%xc_b),maxval(map%xc_b)
+   write(6,*) subname,' yc_b   = ',minval(map%yc_b),maxval(map%yc_b)
+   write(6,*) subname,' xv_b   = ',minval(map%xv_b),maxval(map%xv_b)
+   write(6,*) subname,' yv_b   = ',minval(map%yv_b),maxval(map%yv_b)
    write(6,*) subname,' mask_b = ',minval(map%mask_b),maxval(map%mask_b),sum(map%mask_b)
    write(6,*) subname,' frac_b = ',minval(map%frac_b),maxval(map%frac_b),sum(map%frac_b)
    write(6,*) subname,' area_b = ',minval(map%area_b),maxval(map%area_b),sum(map%area_b)
@@ -1207,11 +1293,13 @@ SUBROUTINE map_write(map, filename)
    rcode = nf_def_dim(fid, 'ni_a', map%ni_a, did) ! # of points wrt i
    rcode = nf_def_dim(fid, 'nj_a', map%nj_a, did) ! # of points wrt j
    rcode = nf_def_dim(fid, 'nv_a',  4      , did) ! # of verticies per cell
+   rcode = nf_def_dim(fid, 'src_grid_rank', 2, did) ! # of verticies per cell
 
    rcode = nf_def_dim(fid, 'n_b' , map%n_b , did) ! # of points total
    rcode = nf_def_dim(fid, 'ni_b', map%ni_b, did) ! # of points wrt i
    rcode = nf_def_dim(fid, 'nj_b', map%nj_b, did) ! # of points wrt j
    rcode = nf_def_dim(fid, 'nv_b',  4      , did) ! # of verticies per cell
+   rcode = nf_def_dim(fid, 'dst_grid_rank', 2, did) ! # of verticies per cell
 
    rcode = nf_def_dim(fid, 'n_s' , map%n_s , did) ! size of sparse matrix
 
@@ -1261,6 +1349,9 @@ SUBROUTINE map_write(map, filename)
    str   = 'fraction of domain intersection (input)'
    rcode = nf_put_att_text(fid,vid,"long_name",len_trim(str),str)
 
+   rcode = nf_inq_dimid(fid,'src_grid_rank' , did   )
+   rcode = nf_def_var  (fid,'src_grid_dims',NF_INT ,1,did,vid)
+
    !-----------------------------------------------------------------
    ! define data -- coordinates, output grid
    !-----------------------------------------------------------------
@@ -1308,6 +1399,9 @@ SUBROUTINE map_write(map, filename)
    str   = 'fraction of domain intersection (output)'
    rcode = nf_put_att_text(fid,vid,"long_name",len_trim(str),str)
 
+   rcode = nf_inq_dimid(fid,'dst_grid_rank' , did   )
+   rcode = nf_def_var  (fid,'dst_grid_dims',NF_INT ,1,did,vid)
+
    !-----------------------------------------------------------------
    ! define data -- matrix elements
    !-----------------------------------------------------------------
@@ -1333,6 +1427,8 @@ SUBROUTINE map_write(map, filename)
    !-----------------------------------------------------------------
    rcode = nf_enddef(fid)
 
+   rcode = nf_inq_varid     (fid,'src_grid_dims', vid)
+   rcode = nf_put_var_int   (fid,    vid , map%dims_a)
    rcode = nf_inq_varid     (fid,'xc_a', vid)
    rcode = nf_put_var_double(fid,  vid ,map%xc_a)
    rcode = nf_inq_varid     (fid,'yc_a', vid)
@@ -1348,6 +1444,8 @@ SUBROUTINE map_write(map, filename)
    rcode = nf_inq_varid     (fid,'frac_a', vid)
    rcode = nf_put_var_double(fid,  vid ,map%frac_a)
 
+   rcode = nf_inq_varid     (fid,'dst_grid_dims', vid)
+   rcode = nf_put_var_int   (fid,    vid , map%dims_b)
    rcode = nf_inq_varid     (fid,'xc_b', vid)
    rcode = nf_put_var_double(fid,  vid ,map%xc_b)
    rcode = nf_inq_varid     (fid,'yc_b', vid)
@@ -1501,6 +1599,7 @@ SUBROUTINE map_dup(map_in,map_out)
    map_out%   n_a = map_in%   n_a
    map_out%  ni_a = map_in%  ni_a
    map_out%  nj_a = map_in%  nj_a
+   map_out%dims_a = map_in%dims_a
    map_out%  xc_a = map_in%  xc_a
    map_out%  yc_a = map_in%  yc_a
    map_out%  xv_a = map_in%  xv_a
@@ -1511,6 +1610,7 @@ SUBROUTINE map_dup(map_in,map_out)
    map_out%   n_b = map_in%   n_b
    map_out%  ni_b = map_in%  ni_b
    map_out%  nj_b = map_in%  nj_b
+   map_out%dims_b = map_in%dims_b
    map_out%  xc_b = map_in%  xc_b
    map_out%  yc_b = map_in%  yc_b
    map_out%  xv_b = map_in%  xv_b

@@ -1,4 +1,524 @@
 ===============================================================
+Tag name:  clm4_5_10
+Originator(s):  muszala (Stefan Muszala)
+Date: Mon Jun 10 13:10:31 MDT 2013
+One-line Summary: refactor clmtype
+
+Purpose of changes: Refactor clmtype so that there is only one level of indirection.
+
+     call hist_addfld1d (fname='SNOOCFRCL', units='W/m^2', &
+          avgflag='A', long_name='surface forcing of OC in snow (land) ', &
+-         ptr_pft=clm3%g%l%c%p%pef%sfc_frc_oc, set_urb=spval)
++         ptr_pft=pef%sfc_frc_oc, set_urb=spval)
+
+There is a README (with more detailed information) and a script to help with future merges in:
+
+  models/lnd/clm/tools/clm4_5/refactorTools/clmType/{README & renameClmType.pl}
+
+Requirements for tag: N/A
+
+Test level of tag: standard
+
+Bugs fixed (include bugzilla ID): N/A
+
+Known bugs (include bugzilla ID): N/A
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: self, mvertens
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do:
+
+- script and README for refactoring clmType
+A       models/lnd/clm/tools/clm4_5/refactorTools
+A       models/lnd/clm/tools/clm4_5/refactorTools/associate
+A       models/lnd/clm/tools/clm4_5/refactorTools/clmType
+A       models/lnd/clm/tools/clm4_5/refactorTools/clmType/renameClmType.pl
+A       models/lnd/clm/tools/clm4_5/refactorTools/clmType/README
+
+List all existing files that have been modified, and describe the changes:
+
+- major refactor in these to flatten clmtype
+M       models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90
+M       models/lnd/clm/src/clm4_5/main/clmtype.F90
+
+- change derived type access to match those of clmtype
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCStateUpdate2Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNGapMortalityMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNitrifDenitrifMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNGRespMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CropRestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/initch4Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNStateUpdate1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNBalanceCheckMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNStateUpdate3Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNFireMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNMRespMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDecompCascadeMod_BGC.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNVerticalProfileMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/ch4RestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNWoodProductsMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCIsoFluxMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNPrecisionControlMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/ch4Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNSummaryMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/DUSTMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDVLightMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNPhenologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/STATICEcosysDynMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDecompMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCStateUpdate1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDVMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCStateUpdate3Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/VOCEmissionMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNrestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDVEcosystemDynIniMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNAnnualUpdateMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNStateUpdate2Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDecompCascadeMod_CENTURY.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNDynamicsMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNAllocationMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/DryDepVelocity.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNSetValueMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNVegStructUpdateMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNSoilLittVertTranspMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDVEstablishmentMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNC14DecayMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_varcon.F90
+M       models/lnd/clm/src/clm4_5/main/CNiniTimeVar.F90
+M       models/lnd/clm/src/clm4_5/main/dynlandMod.F90
+M       models/lnd/clm/src/clm4_5/main/subgridRestMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_glclnd.F90
+M       models/lnd/clm/src/clm4_5/main/accFldsMod.F90
+M       models/lnd/clm/src/clm4_5/main/pftdynMod.F90
+M       models/lnd/clm/src/clm4_5/main/iniTimeConst.F90
+M       models/lnd/clm/src/clm4_5/main/histFileMod.F90
+M       models/lnd/clm/src/clm4_5/main/pft2colMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_atmlnd.F90
+M       models/lnd/clm/src/clm4_5/main/initSurfAlbMod.F90
+M       models/lnd/clm/src/clm4_5/main/filterMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_driver.F90
+M       models/lnd/clm/src/clm4_5/main/subgridAveMod.F90
+M       models/lnd/clm/src/clm4_5/main/initGridCellsMod.F90
+M       models/lnd/clm/src/clm4_5/main/initSoilParVICMod.F90
+M       models/lnd/clm/src/clm4_5/main/CNiniSpecial.F90
+M       models/lnd/clm/src/clm4_5/main/inicPerpMod.F90
+M       models/lnd/clm/src/clm4_5/main/reweightMod.F90
+M       models/lnd/clm/src/clm4_5/main/mkarbinitMod.F90
+M       models/lnd/clm/src/clm4_5/main/histFldsMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/BalanceCheckMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilTemperatureMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SLakeFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SnowHydrologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Biogeophysics1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/FrictionVelocityMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/TridiagonalMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SLakeHydrologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Hydrology1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/BiogeophysRestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/UrbanMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/ActiveLayerMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/clm_driverInitMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/CLMVICMapMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SLakeTemperatureMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/BareGroundFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SNICARMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/CanopyFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SurfaceRadiationMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/initSLakeMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/H2OSfcMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Biogeophysics2Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/FracWetMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/UrbanInitMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SLakeRestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SurfaceAlbedoMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Hydrology2Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilHydrologyMod.F90
+
+Machines testing ran on:  (Tests in priority order)
+  Standard Tag Pretag ***                    Standard Tag Posttag **
+
+  build-namelist unit tester:   no
+
+  CESM test lists:
+
+    yellowstone/aux_clm     intel    OK    
+    yellowstone/aux_clm     pgi      OK
+    frankfurt/aux_clm       intel    OK
+    frankfurt/aux_clm       pgi      OK
+    frankfurt/aux_clm       nag      OK
+
+  CESM history file comparison:
+
+    yellowstone/aux_clm     intel       
+
+CLM tag used for the baseline comparison tests if applicable: clm4_5_09
+
+Changes answers relative to baseline: No.  Everything in this refactor should be BFB.
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_09
+Originator(s):  muszala (Stefan Muszala,UCAR/CGD,303-497-1320)
+Date: Tue Jun  4 15:59:07 MDT 2013
+One-line Summary: volr and vic fix, update mct and rtm
+
+Purpose of changes: add volr area correction, minor vic fix from maoyi, update mct and
+                    rtm externals
+
+Requirements for tag: N/A
+
+Test level of tag: standard
+
+Bugs fixed (include bugzilla ID): N/A
+
+Known bugs (include bugzilla ID): N/A
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: self, swenson
+
+List any svn externals directories updated (csm_share, mct, etc.):
+-models/rof/rtm                  https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_27
++models/rof/rtm                  https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_28
+
+-models/utils/mct                https://github.com/MCSclimate/MCT/tags/MCT_2.8.3
++models/utils/mct                https://github.com/quantheory/MCT/tags/compiler_fixes_n01_MCT_2.8.3
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+- fix for VIC hydrology
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilHydrologyMod.F90
+- volr area correction
+M       models/lnd/clm/src/cpl_mct/lnd_comp_mct.F90
+M       models/lnd/clm/src/cpl_esmf/lnd_comp_esmf.F90
+- mct and rtm update
+M       SVN_EXTERNAL_DIRECTORIES
+- clean up
+M       models/lnd/clm/bld/unit_testers/xFail/expectedClmTestFails.xml
+
+Machines testing ran on:  (Tests in priority order)
+
+  build-namelist unit tester:   OK
+
+  CESM test lists:
+
+    yellowstone/aux_clm     intel  OK
+    yellowstone/aux_clm     pgi    OK
+    frankfurt/aux_clm       intel  OK     
+    frankfurt/aux_clm       pgi    OK
+    frankfurt/aux_clm       nag    OK
+
+CLM tag used for the baseline comparison tests if applicable: clm4_5_08
+
+Changes answers relative to baseline: only for VIC compsets.  VOLR diagnostic changes.
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_08
+Originator(s):  muszala (Stefan Muszala,UCAR/CGD,303-497-1320)
+Date: Mon Jun  3 13:29:30 MDT 2013
+One-line Summary: port for NAG compiler
+
+Purpose of changes: Bring in Sean Santos mods, port clm4_5 and test with the NAG compiler on Frankfurt.
+
+Requirements for tag: N/A
+
+Test level of tag: standard
+
+Bugs fixed (include bugzilla ID): 1721 - Jim Edwards fixed problem in PIO
+
+Known bugs (include bugzilla ID): 1722 - Error in some VIC tests starting in clm4_5_07
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: self, Santos
+
+List any svn externals directories updated (csm_share, mct, etc.): PIO - update to pio1_7_2
+
+List all files eliminated: 
+
+D       models/lnd/clm/src/util_share/nanMod.F90
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/bld/unit_testers/xFail/expectedFail.pm
+M       models/lnd/clm/src/util_share/clm_time_manager.F90
+M       models/lnd/clm/src/util_share/accumulMod.F90
+M       models/lnd/clm/src/util_share/ndepStreamMod.F90
+M       models/lnd/clm/src/util_share/ncdio_pio.F90
+M       models/lnd/clm/src/util_share/spmdMod.F90
+M       models/lnd/clm/src/util_share/domainMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNFireMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCIsoFluxMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/ch4Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNSummaryMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/DUSTMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNPhenologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/ch4varcon.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/STATICEcosysDynMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDecompMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNCStateUpdate1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNrestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNAllocationMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNDVEstablishmentMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNC14DecayMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_glclnd.F90
+M       models/lnd/clm/src/clm4_5/main/subgridMod.F90
+M       models/lnd/clm/src/clm4_5/main/accFldsMod.F90
+M       models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90
+M       models/lnd/clm/src/clm4_5/main/iniTimeConst.F90
+M       models/lnd/clm/src/clm4_5/main/histFileMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_atmlnd.F90
+M       models/lnd/clm/src/clm4_5/main/controlMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_driver.F90
+M       models/lnd/clm/src/clm4_5/main/pftvarcon.F90
+M       models/lnd/clm/src/clm4_5/main/histFldsMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/BalanceCheckMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilTemperatureMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Hydrology1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SNICARMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/CanopyFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SurfaceRadiationMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/H2OSfcMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilHydrologyMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/CropRestMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/DUSTMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/CNPhenologyMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/STATICEcosysDynMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/CNAllocationMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/CNDVEstablishmentMod.F90
+M       models/lnd/clm/src/clm4_0/main/clm_glclnd.F90
+M       models/lnd/clm/src/clm4_0/main/subgridMod.F90
+M       models/lnd/clm/src/clm4_0/main/accFldsMod.F90
+M       models/lnd/clm/src/clm4_0/main/clmtypeInitMod.F90
+M       models/lnd/clm/src/clm4_0/main/pftvarcon.F90
+M       models/lnd/clm/src/clm4_0/main/iniTimeConst.F90
+M       models/lnd/clm/src/clm4_0/main/histFileMod.F90
+M       models/lnd/clm/src/clm4_0/main/clm_atmlnd.F90
+M       models/lnd/clm/src/clm4_0/biogeophys/SNICARMod.F90
+M       SVN_EXTERNAL_DIRECTORIES
+
+Machines testing ran on:  (Tests in priority order)
+
+  build-namelist unit tester:            - OK.
+
+    yellowstone/aux_clm     intel        - OK.
+    yellowstone/aux_clm     pgi          - OK.
+	    One BFAIL for hcru_hcru which should pass next time around.  Bug fixed when upgrading to pio1_7_2.
+		 BFAIL ERS_D.hcru_hcru.I_2000_CRUFRC_CLM45_CN.yellowstone_pgi.GC.08testPgi.compare_hist.clm4_5_07
+    frankfurt/aux_clm       intel        - OK.
+    frankfurt/aux_clm       pgi          - OK.
+    frankfurt/aux_clm       nag          - OK.  No baselines to compare against.
+
+CLM tag used for the baseline comparison tests if applicable: clm4_5_07
+
+Changes answers relative to baseline: No
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_07
+Originator(s):  erik (Erik Kluzek)
+Date: Fri May 31 02:49:45 MDT 2013
+One-line Summary: New spinup files for CLM45 AND RTM, work on PTCLM, turn drydep off by default, update externals
+
+Purpose of changes:
+
+    Bring in new spinup finidat files (f09_g16@1850 for SP and BGC). interpinic to 2deg, hcru_hcru and ne30.
+    New spinup finidat files for BGCCROP and BGCDV (f19 and f09 respectively)
+    New spinup finidat files for 2000 (f09_g16 for SP and BGC)
+    Update RTM to bring in finidat_rtm files for either 1850 or 2000.
+    Update scripts, Machines, pio
+    scripts includes update for CLM40CRU hybrid startup
+    Turn drydep namelist off by default
+    Do a lot of work on getting PTCLM working and tools working for single-point.
+
+Requirements for tag:
+    New spinup files, fix bugs: 1708, 1700
+
+Test level of tag: standard
+
+Bugs fixed (include bugzilla ID):
+                                 1715 (rmdups.ncl fails for no-overlap case)
+                                 1714 (mkscripgrid.ncl doesn't calculate corners correctly.)
+                                 1708 (Need Initial conditions for RTM)
+                                 1706 (VIC tests fail)
+                                 1700 (Memory leak in MPI layer on yellowstone)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: None
+
+Describe any changes made to the namelist: drydep namelist now OFF by default
+
+List any changes to the defaults for the boundary datasets: New initial conditions
+          Native initial conditions for f09 for:
+             I1850CLM45SP, I1850CLM45BGC, ICLM45SP, ICLM45BGC
+          Interpinic for:
+             I1850CLM45 & I1850CLM45BGC: f19, hcru_hcru, ne30
+             ICLM45BGCCROP @ f19
+             ICLM45BGCDB   @ f09
+
+    ALSO NOTE THAT NOW RTM HAS INITIAL CONDITIONS FOR R05 -- SO RIVERFLOW CHANGES 
+    FOR BOTH CLM45 AND CLM40
+
+Describe any substantial timing or memory changes: None
+
+Code reviewed by: self
+
+List any svn externals directories updated (csm_share, mct, etc.): many
+   csm_share, pio, scripts, Machines, RTM, cprnc, mapping
+      
+
+    scripts   to scripts4_130529 (update PTCLM, send simyr to RTM, new IC for CLM40CRUCN)
+    csm_share to share3_130528
+    rtm       to rtm1_0_27       (Set startup initial condition files by -simyr flag)
+    Machines  to Machines_130529 (Set hcru_hcru PE-layout, and PE-layout on yellowstone for f09 I cases)
+    pio       to pio1_7_1
+    cprnc     to cprnc_130425
+    mapping   to mapping_130509
+
+List all files eliminated: None
+
+List all files added and what they do: None
+
+List all existing files that have been modified, and describe the changes:
+
+    M  models/lnd/clm/test/tools/TBLCFGtools.sh --- Correctly point to TSMCFGtools rather than TSMtools.sh.
+
+    M  models/lnd/clm/tools/clm4_5/mksurfdata_map/mksurfdata.pl - Add -usr_mapdir option
+
+    M  models/lnd/clm/tools/shared/mkmapdata/rmdups.ncl ------ Exit early if n_s==0
+    M  models/lnd/clm/tools/shared/mkmapdata/mkmapdata.sh ---- Skip if file already exists, give 
+          directory for rmdups.ncl
+    M  models/lnd/clm/tools/shared/mkmapdata/mknoocnmap.pl --- Don't hide NCL output
+    M  models/lnd/clm/tools/shared/mkmapgrids/mkscripgrid.ncl  Explicitly calculate corners
+
+    M  models/lnd/clm/bld/build-namelist - Set drydep to off by default, check crop setting for finidat files
+
+    M  models/lnd/clm/bld/clm.buildnml.csh - Add back logic in about ignoring IC year or date
+
+    M  models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_5.xml - New initial conditions for:
+          Native initial conditions for f09 for:
+             I1850CLM45SP, I1850CLM45BGC, ICLM45SP, ICLM45BGC
+          Interpinic for:
+             I1850CLM45SP & I1850CLM45BGC: f19, hcru_hcru, ne30
+             ICLM45BGCCROP @ f19
+             ICLM45BGCDB   @ f09
+    M  models/lnd/clm/bld/namelist_files/namelist_defaults_usr_files.xml - Use surfdata_map rather than surfdata
+          for CLM_USRDAT_NAME fsurdat files
+
+    M  models/lnd/clm/bld/namelist_files/use_cases/stdurbpt_pd.xml - Remove setting of dtime, adjust hist output
+
+      More work on readme files...
+
+    M  README
+    M  models/lnd/clm/doc/IMPORTANT_NOTES
+    M  models/lnd/clm/doc/Quickstart.GUIDE
+    M  models/lnd/clm/doc/Quickstart.userdatasets
+
+Machines testing ran on:  (Tests in priority order)
+
+  build-namelist unit tester:   yes
+
+  CESM test lists:
+
+    yellowstone/aux_clm     intel       yes
+    yellowstone/aux_clm     pgi         yes
+    frankfurt/aux_clm       intel       yes
+    frankfurt/aux_clm       pgi         yes
+
+  CESM history file comparison:
+  (ccsm_utils/Tools/component_gen_comp -compare $oldtag -generate $newtag -testid $testid -baselineroot $GLDCSEG/ccsm_baselines/ -model clm2)
+
+    yellowstone/aux_clm     intel       yes
+
+  test_driver.sh tools testing:
+
+    yellowstone interactive:    yes
+    frankfurt interactive:      yes
+
+  yellowstone/PTCLM:            yes!
+
+CLM tag used for the baseline comparison tests if applicable: clm4_5_06
+
+Changes answers relative to baseline:  Yes -- due to new initial condition files
+     for I1850CLM45SP and I1850CLM45BGC      @ f09, f19, hcru, ne30
+         ICLM45SP     and ICLM45BGC          @ f09
+         ICLM45BGCCROP @ f19 and ICLM45BGCDB @ f09
+     and ICLM40CRUCN   @ f09
+
+   AND new initial conditions for RTM for ALL R05 grids
+
+   And turning drydep namelist off in the driver causes answers to appear to be different
+   when comparing coupler history files.
+
+===============================================================
+===============================================================
 Tag name:  clm4_5_06
 Originator(s):  erik (Erik Kluzek)
 Date: Wed May 15 13:52:43 MDT 2013

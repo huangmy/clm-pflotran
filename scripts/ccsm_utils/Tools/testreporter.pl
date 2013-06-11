@@ -3,6 +3,7 @@ use Getopt::Long;
 use Data::Dumper;
 use LWP;
 use HTTP::Request;
+use XML::LibXML;
 #-------------------------------------------------------------------------------
 # testreporter.pl
 # Perl script that watches the CESM tests as they progress, and sends the reports to 
@@ -13,6 +14,7 @@ use HTTP::Request;
 # reporting test results.  
 #-------------------------------------------------------------------------------
 my $teststatusfilename = "TestStatus";
+my $teststatusoutfilename = "TestStatus.out";
 my $iopstatusfilename = "TestStatus.IOP";
 my $casestatusfilename = "CaseStatus";
 my $sleeptime = 120;
@@ -35,8 +37,9 @@ my $email = undef;
 my $testtype = undef;
 my $debug = 0;
 my $dumpxml = 0;
-my $username;
-my $password;
+my $printreport = 0;
+my $username = undef;
+my $password = undef;
 
 #-------------------------------------------------------------------------------
 # Main
@@ -53,11 +56,15 @@ while(1)
 {
     @testdirs = &getTestDirs($testroot, $testid);
     %suiteinfo = &getTestSuiteInfo(\@testdirs);
-    my %teststatus;
-    %teststatus = getTestStatus(\@testdirs, $tagname, $testid);
-    &Debug( eval { Dumper \%teststatus} );
+    my $teststatus;
+	my $nlfailreport;
+    ($teststatus, $nlfailreport) = getTestStatus(\@testdirs, $tagname, $testid);
+    &Debug( eval { Dumper $teststatus} );
     &Debug( eval { Dumper \%suiteinfo } );
-    &sendresults(\%teststatus, \%suiteinfo);
+    my $testxml = &makeResultsXml($teststatus, \%suiteinfo, $nlfailreport);
+	&sendresults(\%teststatus, \%suiteinfo, $testxml);
+	&printreport($teststatus, $nlfailreport) if $printreport;
+    exit(0);
     sleep($sleeptime);
 }
 #-------------------------------------------------------------------------------
@@ -76,7 +83,8 @@ sub opts
 	          "debug|d" => \$debug,
 	          "testtype=s" => \$testtype,
 	          "help" => \$opt_help,
-                  "dumpxml|x" => $dumpxml,
+              "dumpxml|x" => \$dumpxml,
+			  "printreport|p" => \$printreport,
 	);
     # Show usage if the required options aren't specified. 
     &help if (defined $opt_help);
@@ -91,6 +99,7 @@ sub usage
     print <<'END';
     Usage: 
 ./testreporter --testroot /glade/scratch/$user/tests/cesm1_1_alphaXX --tagname cesm1_1_alpha15c --testid testid --testtype prealpha|prebeta|prerelease
+               [--dumpxml|--printreport]
 END
     exit(1);
 }
@@ -173,21 +182,37 @@ sub getTestSuiteInfo
 {
     my $testlist = shift;
     my %caseinfo; 
-    my $firsttest = (@$testlist)[0];
-    my $abspath = $testroot . "/" . $firsttest;
-    &Debug("abs path:  $abspath\n");
-    my @dirs = ( $abspath, $abspath . "/Tools");
+    #my $firsttest = (@$testlist)[0];
+	my $testpath;
+	foreach my $testdir(@$testlist)
+	{
+		$testpath = $testroot . "/" . $testdir;
+		if( -e "$testpath/env_case.xml" && -e "$testpath/env_run.xml" && "$testpath/env_build.xml")
+		{
+			last;
+		}
+	}
+    #my $abspath = $testroot . "/" . $firsttest;
+    &Debug("test path:  $testpath\n");
+    my @dirs = ( $testpath, $testpath . "/Tools");
     unshift @INC, @dirs;
     require XML::Lite;
     require ConfigCase;
-    my $caseenv = ConfigCase->new("$abspath/Tools/config_definition.xml", "$abspath/env_case.xml");
-    my $runenv = ConfigCase->new("$abspath/Tools/config_definition.xml", "$abspath/env_run.xml");
-    my $buildenv = ConfigCase->new("$abspath/Tools/config_definition.xml", "$abspath/env_build.xml");
-    $caseinfo{'ccsm_repotag'} = $runenv->get('CCSM_REPOTAG');
+    my $caseenv = ConfigCase->new("$testpath/Tools/config_definition.xml", "$testpath/env_case.xml");
+    my $runenv = ConfigCase->new("$testpath/Tools/config_definition.xml", "$testpath/env_run.xml");
+    my $buildenv = ConfigCase->new("$testpath/Tools/config_definition.xml", "$testpath/env_build.xml");
     $caseinfo{'mach'} = $caseenv->get('MACH');
-    $caseinfo{'ccsmuser'} = $caseenv->get('CCSMUSER');
     $caseinfo{'compiler'} = $buildenv->get('COMPILER');
     $caseinfo{'mpilib'} = $buildenv->get('MPILIB');
+
+    my $testspecfile = "$testroot/testspec.$testid.$caseinfo{'mach'}.xml";
+	Debug( "testspecfile: $testspecfile\n");
+	my $parser = XML::LibXML->new;
+	my $spec = $parser->parse_file($testspecfile);
+	my $root = $spec->getDocumentElement();
+    my @bltagnodes = $root->findnodes('/testlist/baselinetag');
+ 	$caseinfo{'baselinetag'} = $bltagnodes[0]->textContent();
+    Debug( "baselinetag: $caseinfo{'baselinetag'}\n") ;
     
     &Debug("caseinfo: " . eval { Dumper \%caseinfo} );
     return %caseinfo;
@@ -201,6 +226,7 @@ sub getTestStatus
 {
     my ($testdirs, $tag)  = @_;
     my %teststatushash;
+	my %nlreporthash;
     my $time = localtime;
     print "$time\n";
     
@@ -227,9 +253,6 @@ sub getTestStatus
 
 	    # Now go through the TestStats getting the memleak, compare, baseline tag, throughput, and comments if any. 
 	    my @statuslines = <$teststatusfile>;
-  	  my @memleaklines = grep { /memleak/ } @statuslines;
-	    my $memleakstatus = (split(/\s+/, $memleaklines[0]))[0];
-  	  $teststatushash{$testcase}{'memleak'} = $memleakstatus;
 
 	    my @comparelines = grep { /compare_hist/} @statuslines;
 	    my ($comparestatus,$comparetest)  = split(/\s+/, $comparelines[0]);
@@ -237,13 +260,24 @@ sub getTestStatus
 	    my $comparetag = (split(/\./, $comparetest))[-1];
 	    $baselinetag = $comparetag unless defined $baselinetag;
 
-	    my @memcomplines = grep { /memcomp/} @statuslines;
-	    my $memcompstatus = (split(/\s+/, $memcomplines[0]))[0];
-	    $teststatushash{$testcase}{'memcomp'} = $memcompstatus;
+  
+        # If this a normal test, ie NOT a set of SBN tests, then 
+        # send the following fields. If this is a namelist test, then skip these fields, they
+        # will never be filled in for SBN tests. 
+        if($testtype ne 'namelist') 
+		{
+			my @memleaklines = grep { /memleak/ } @statuslines;
+			my $memleakstatus = (split(/\s+/, $memleaklines[0]))[0];
+  	  		$teststatushash{$testcase}{'memleak'} = $memleakstatus;
 
-	    my @tputcomplines = grep { /tputcomp/ } @statuslines;
-	    my $tputcompstatus = (split(/\s+/, $tputcomplines[0]))[0];
-	    $teststatushash{$testcase}{'tputcomp'} = $tputcompstatus;
+			my @memcomplines = grep { /memcomp/} @statuslines;
+			my $memcompstatus = (split(/\s+/, $memcomplines[0]))[0];
+			$teststatushash{$testcase}{'memcomp'} = $memcompstatus;
+
+			my @tputcomplines = grep { /tputcomp/ } @statuslines;
+			my $tputcompstatus = (split(/\s+/, $tputcomplines[0]))[0];
+			$teststatushash{$testcase}{'tputcomp'} = $tputcompstatus;
+		}
 
 	    my @nlcomplines = grep { /nlcomp/i } @statuslines;
 	    my $nlcompstatus = (split(/\s+/, $nlcomplines[0]))[0];
@@ -327,23 +361,189 @@ sub getTestStatus
 	    
 	      close $iopfh;
 	    }
-	
 
+
+        if($testtype eq 'namelist')
+		{
+			my $statusoutfile = $testroot  . "/"  . $testcase .  "/" . $teststatusoutfilename;
+            if( -e $statusoutfile  && $teststatushash{$testcase}{'nlcomp'} eq 'FAIL')
+			{
+				open my $STATUSOUT, "<", $statusoutfile or warn "can't open $statusoutfile, $!";
+				my @statusoutlines = <$STATUSOUT>;	
+				my $commentflag = 0;
+				foreach my $soline(@statusoutlines)
+				{
+					chomp $soline;
+					next if ($soline =~ /^$/);
+					$commentflag = 1 if ($soline =~ /^FAIL/);	
+					$commentflag = 0 if ($soline =~ /^PASS/);
+					if($commentflag)
+					{
+						$teststatushash{$testcase}{'comment'} .= "$soline\n";
+						Debug( eval { Dumper \$teststatushash{$testcase}{'comment'} } );
+					}
+				}
+				$nlreporthash{$teststatushash{$testcase}{'comment'}}{$testcase} = 1;
+			}
+			foreach my $blank(keys %nlreporthash)
+			{
+				delete $nlreporthash{$blank} if(length $nlreporthash{$blank} == 0);
+			}
+		}
     }
-    return %teststatushash;
+	
+	foreach my $blank(keys %nlreporthash)
+	{
+		delete $nlreporthash{$blank} if(length $nlreporthash{$blank} == 0);
+	}
+	
+    return \%teststatushash, \%nlreporthash;
 }
 
+
+# New sendresults, using XML::LibXML
+# This is a work in progress, it is not yet functional.  
+# TODO: finish implementing the programmatic text-based implementation. 
+sub makeResultsXml
+{
+	my ($testresults, $suiteinfo, $nlfailreport) = @_;
+	my $testxml = XML::LibXML::Document->new('1.0', 'UTF-8');
+    my $root =  $testxml->createElement('testrecord');
+	$root->appendTextChild('tag_name', $tagname);
+	$root->appendTextChild('mach', $suiteinfo{'mach'});
+    my $compilerelem = XML::LibXML::Element->new('compiler');
+    $compilerelem->setAttribute('version', '');
+    $compilerelem->appendText($suiteinfo{'compiler'});
+    $root->appendChild($compilerelem);
+    my $mpielem = XML::LibXML::Element->new('mpilib');
+    $mpielem->setAttribute('version', '');
+    $mpielem->appendText($suiteinfo{'mpilib'});
+    $root->appendChild($mpielem);
+	$root->appendTextChild('testroot', $testroot);
+	$root->appendTextChild('testtype', $testtype);
+	$root->appendTextChild('baselinetag', $suiteinfo{'baselinetag'});
+
+	foreach my $test(reverse sort keys %$testresults)
+	{
+		my $testelem = $testxml->createElement('tests');
+		$testelem->setAttribute('testname', $test);
+		foreach my $detail(sort keys %{$$testresults{$test}})
+		{
+			my $catelem = $testxml->createElement('category');
+			$catelem->setAttribute('name', $detail);
+			if($detail eq 'comment')
+			{
+				$cdata = XML::LibXML::CDATASection->new($$testresults{$test}{$detail});
+				$catelem->appendChild($cdata);
+			}
+			else
+			{
+				$catelem->appendText($$testresults{$test}{$detail});
+			}
+			$testelem->appendChild($catelem);
+			#print Dumper $testelem;
+			
+		}
+		$root->appendChild($testelem);
+	}
+
+	if($testtype eq 'namelist')
+	{
+		my $nlfailreportelem = XML::LibXML::Element->new('namelistfailuresreport');
+		foreach my $nlfailkey(sort keys %$nlfailreport)
+		{
+			my $nlfailelem = $testxml->createElement('namelistfailure');
+			my $nlfailtxt = $testxml->createElement('namelistfailuretext');
+			my $nlfailcdata = XML::LibXML::CDATASection->new($nlfailkey);
+			$nlfailtxt->appendChild($nlfailcdata);
+			$nlfailelem->appendChild($nlfailtxt);
+
+			foreach my $testname(sort keys %{$$nlfailreport{$nlfailkey}})
+			{
+				$nlfailelem->appendTextChild('test', $testname);
+			}
+			$nlfailreportelem->appendChild($nlfailelem);
+		}
+	 	$root->appendChild($nlfailreportelem);
+	}
+
+	$testxml->setDocumentElement($root);
+	$xmlstring = $testxml->toString(1);
+	Debug("testxml file: ");
+    Debug( $xmlstring);
+	if($debug || $dumpxml)
+	{
+		open my $xmldumpfile, ">", "./testreporter.dump.xml" or die $!;
+		print $xmldumpfile $testxml->toString(1);
+		close $xmldumpfile;
+		print "wrote xml test report to testreporter.dump.xml\n";
+    }	
+	return $testxml;
+}
+
+sub sendresults
+{
+	my ($testresults, $suiteinfo, $testxml) = @_;
+	my $resultsstr = $testxml->toString(1);
+
+    my $useragent = LWP::UserAgent->new(ssl_opts => {verify_hostname => 0});
+    my $req = HTTP::Request->new(POST => $posturl);
+    $req->content_type('application/x-www-form-urlencoded');
+    $req->content("username=$username&password=$password&testXML=$resultsstr");
+    my $response = $useragent->request($req);
+
+    if($response->is_success)
+    {
+        print "Test results successfully posted to csegweb\n";
+    }
+    elsif($response->code eq '401')
+    {
+      my $errmsg = "The server responded with '401 - Unauthorized'\n";
+      $errmsg .=   "Your svn username & password is most likely incorrect!\n";
+      $errmsg .=   "Please re-run the script, and provide the correct svn username & password\n";
+      die $errmsg;
+
+    }
+    else
+    {
+        print "Posting the results to $posturl failed! \n";
+        my $status = $response->status_line;
+        print "$status\n";
+        print "aborting!\n";
+        exit(1);
+    }
+}
+
+sub printreport
+{
+	my ($teststatus, $nlfailreport) = @_;
+	foreach my $basefail(keys %$nlfailreport)
+	{
+		my @tests = sort keys %{$$nlfailreport{$basefail}};
+    	print "====================================================================\n";
+    	print "namelist difference: \n";
+    	print "$basefail\n";
+    	print "--------------------------------------------------------------------\n";
+		print "Tests which had the above namelist diffs:\n";
+    	map { print "$_\n"} sort @tests;
+    	print "--------------------------------------------------------------------\n";
+	}
+}
+
+#
 #-------------------------------------------------------------------------------
 # Send the test results to csegweb testdb
 #-------------------------------------------------------------------------------
-sub sendresults
+sub sendresultsOld
 {
     my ($testresults, $suiteinfo) = @_;
     my $resultsstr = "";
 
 
 #-------------------------------------------------------------------------------
-# ASB - using the following DTD to send XML formatted results
+# ASB - using the following DTD to send XML formatted results, comments 
+# wrapped in CDATA to ensure proper escaping and encoding of anything that 
+# could possibly 
 #<testrecord>
 #  <tag_name> </tag_name>
 #  <machine> </machine>
@@ -371,7 +571,14 @@ sub sendresults
 	    $resultsstr .= "<tests testname='$test'>\n";
 	    foreach my $detail(sort keys %{$$testresults{$test}})
 	    {
-	      $resultsstr .= "<category name='$detail'>$$testresults{$test}{$detail}</category>\n";
+		  if($detail eq 'comment')
+		  {
+			$resultsstr .= "<category name='$detail'><![CDATA[$$testresults{$test}{$detail}]]></category>\n";
+		  }
+		  else
+		  {
+	      	$resultsstr .= "<category name='$detail'>$$testresults{$test}{$detail}</category>\n";
+		  }
 	    }
 	    $resultsstr .= "</tests>\n";
     }

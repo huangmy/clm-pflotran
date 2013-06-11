@@ -31,4 +31,5 @@ setenv KMP_LIBRARY throughput
 setenv KMP_BLOCKTIME infinite
 setenv OMP_DYNAMIC FALSE
 
-
+setenv MPI_TYPE_DEPTH 10
+setenv PNETCDF_PATH /home1/fvitt/parallel-netcdf-1.3.1
