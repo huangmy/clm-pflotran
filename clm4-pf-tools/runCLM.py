@@ -41,17 +41,27 @@ parser.add_option("--runroot", dest="runroot", default="../runs", \
 parser.add_option("--ccsm_input", dest="ccsm_input", \
                   help = "input data directory for CESM (required)")
 parser.add_option("--cesmdir", dest="cesmdir", default='..', \
-                  help = "cesm directory (default = .., i.e., upper of scripts/)")
+                  help = "cesm directory (default = .., i.e., upper directory of this script)")
 parser.add_option("--compset", dest="compset", default='I1850CLM45CN', \
                   help = "component set to use (required)")
-parser.add_option("--machine", dest="machine", default = 'userdefined', \
+parser.add_option("--machine", dest="machine", default = '', \
                   help = "machine to use ---- \n"  
-                         "default = userdefined \n"
+                         "default = '' \n"
                          "options = checking by ./create_newcase -list machines \n "
                          "NOTE: make sure the option you chose well-defined in config_machines.xml")
-parser.add_option("--compiler", dest="compiler", default = 'gnu', \
+parser.add_option("--mach_specific", dest="mach_specific", default = '', \
+                  help = "machine to use ---- \n"  
+                         "default = '' \n"
+                         "options = checking by ./create_newcase -list machines \n "
+                         "NOTE: make sure the option you chose well-defined in config_machines.xml")
+parser.add_option("--osname", dest="osname", default = '', \
+                  help = "name of machine OS ---- \n"
+                         "   default = '', the default compiler for the chosen machine) \n "
+                         "   options = intel,ibm, pgi,pathscale,gnu,cray,lahey,userdefined \n "
+                         "NOTE: make sure the option you chose well-defined in config_compilers.xml")
+parser.add_option("--compiler", dest="compiler", default = '', \
                   help = "compiler to use on machine ---- \n"
-                         "   default = gnu) \n "
+                         "   default = '', the default compiler for the chosen machine) \n "
                          "   options = intel,ibm, pgi,pathscale,gnu,cray,lahey,userdefined \n "
                          "NOTE: make sure the option you chose well-defined in config_compilers.xml")
 parser.add_option("--mpilib", dest="mpilib", default = 'mpi-serial', \
@@ -158,12 +168,37 @@ parser.add_option("--refcase", dest="refcase" , default='none', \
 PTCLMdir = os.getcwd()
 
 # cesm model directory
-csmdir = os.path.abspath(options.cesmdir)
-scriptsdir = csmdir+'/scripts'
+if (options.cesmdir==''):
+    print('UNKNOWN cesm root directory: ')
+    sys.exit()
+else:
+    csmdir = os.path.abspath(options.cesmdir)
+    scriptsdir = csmdir+'/scripts'
+
+# machine option
+if (options.machine==''):
+    print('machine option is required !')
+    sys.exit()
+else:
+    machineoptions = ' -mach '+options.machine
+    if (options.machine == 'userdefined'):
+        if (options.osname == '' or options.compiler == '' or options.mpilib == ''):
+            print('"osname", "compiler", and "mpilib" options are required for " -mach userdefined"!')
+            sys.exit()
+        
+        if (options.mach_specific == ''):
+            print('please provide a specific mach name for setting up "env_mach_specific" if " -mach userdefined"! \n' + \
+                  'OR, the script will look for "env_mach_spefic.'+options.osname+'-'+options.compiler+'"')        
+            options.mach_specific = options.osname+'_'+options.compiler
+
+if (options.compiler != ''):
+    machineoptions += ' -compiler '+options.compiler
+
+if (options.mpilib != ''):
+    machineoptions += ' -mpilib '+options.mpilib
 
 # case directory
-if (options.machine == 'userdefined' or \
-options.caseroot == '' or \
+if (options.caseroot == '' or \
 (os.path.exists(options.caseroot) == False)):
     caseroot = csmdir+'/cases'
 else:
@@ -171,8 +206,7 @@ else:
 print('CASE root directory: '+options.caseroot)
 
 # case run root directory
-if (options.machine == 'userdefined' or \
-options.runroot == '' or \
+if (options.runroot == '' or \
 (os.path.exists(options.runroot) == False)):
     runroot = csmdir+"/runs"
 else:
@@ -180,8 +214,7 @@ else:
 print('CASE RUN root directory: '+runroot)
 
 #check for valid input data directory
-if (options.machine == 'userdefined' or \
-options.ccsm_input == '' or \
+if (options.ccsm_input == '' or \
 (os.path.exists(options.ccsm_input) == False)):
     print('Error:  invalid input data directory')
     sys.exit()
@@ -349,24 +382,15 @@ if (options.debug_build):
     debugoption = ' -confopts _D'
     print ("case build will be configured for debugging \n")
 
-# set machine and compiler information, new addtions in clm45
-compileroption = ' -compiler gnu'
-if (options.compiler != "gnu"):
-    compileroption = ' -compiler '+options.compiler
-
-mpiliboption = ' -mpilib mpi-serial'
-if (options.mpilib != "mpi-serial"):
-    mpiliboption = ' -mpilib '+options.mpilib
-
 os.chdir(scriptsdir)
 if (options.refcase == 'none'):
     #create new case
-    print ('./create_newcase -case '+casedir+' -mach '+options.machine + \
+    print ('./create_newcase -case '+casedir+' '+machineoptions + \
                  ' -compset '+ options.compset +' -res CLM_USRDAT ' + \
-                 compileroption + mpiliboption + debugoption)
-    os.system('./create_newcase -case '+casedir+' -mach '+options.machine + \
+                 debugoption)
+    os.system('./create_newcase -case '+casedir+' '+machineoptions + \
                  ' -compset '+ options.compset +' -res CLM_USRDAT ' + \
-                 compileroption + mpiliboption + debugoption + \
+                 debugoption + \
                   ' > create_newcase.log')
     if (os.path.isdir(casedir)):
         print(casename+' created.  See create_newcase.log for details')
@@ -379,7 +403,20 @@ if (options.refcase == 'none'):
 
 #----------- env_build.xml modification ---------------------------
     
-    # for some reasons, user-defined a few critical root direcotories are not easily modified in machine files
+    # user-defined machine
+    if (options.machine == "userdefined"):
+        os.system('./xmlchange -file env_build.xml -id ' \
+                  +'OS -val '+options.osname)
+        
+        os.system('./xmlchange -file env_build.xml -id ' \
+                  +'COMPILER -val '+options.compiler)
+         
+        os.system('./xmlchange -file env_build.xml -id ' \
+                  +'MPILIB -val '+options.mpilib)
+        
+        os.system('./xmlchange -file env_build.xml -id ' \
+                  +'GMAKE -val make')
+
     if (options.runroot != '' or options.machine == "userdefined"):
         os.system('./xmlchange -file env_build.xml -id ' \
                   +'EXEROOT -val '+runroot+'/'+casename) 
@@ -497,6 +534,10 @@ if (options.refcase == 'none'):
     os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_OCN -val 1')
     os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_CPL -val 1')
     os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_GLC -val 1')
+    os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_ROF -val 1')
+    os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_WAV -val 1')
+    os.system('./xmlchange -file env_mach_pes.xml -id MAX_TASKS_PER_NODE -val 1')
+    os.system('./xmlchange -file env_mach_pes.xml -id TOTALPES -val 1')
     
     #if number of land instances > 1
     if (int(options.ninst) > 1):
@@ -508,7 +549,25 @@ if (options.refcase == 'none'):
     #if running with > 1 processor
     if (int(options.np) > 1):
         os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_ATM -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
                       +'NTASKS_LND -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_ICE -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_OCN -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_CPL -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_GLC -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_ROF -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'NTASKS_WAV -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'MAX_TASKS_PER_NODE -val '+options.np)
+        os.system('./xmlchange -file env_mach_pes.xml -id ' \
+                      +'TOTALPES -val '+options.np)
 
 #------- cesm setup -------------------------------------------
     #clean configure if requested prior to configure
@@ -518,6 +577,14 @@ if (options.refcase == 'none'):
         os.system('rm -f user-nl-*')
 
     if (options.no_config == False):
+        if (options.mach_specific != ''):
+            os.system('cp -f '+PTCLMdir+'/userdefined_machines/env_mach_specific.'+options.mach_specific + \
+                      ' env_mach_specific')
+            os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific + \
+                      ' Macros')
+            os.system('cp -f '+PTCLMdir+'/userdefined_machines/mkbatch.'+options.mach_specific + \
+                      ' ./Tools/mkbatch.userdefined')
+
         os.system('./cesm_setup > configure.log')
         
         # geneated *.run lacks of csh command
@@ -583,47 +650,12 @@ if (options.refcase == 'none'):
         os.system('rm -rf '+runroot+'/'+casename+'/*.exe.*')
     
     #compile cesm
-    if (options.no_build == False):
+    if (options.no_build == False):        
         os.system('./'+casename+'.build')
         
-    #transient CO2 patch for transient run (datm buildnml mods)
+    #transient CO2 patch for transient run (datm buildnml mods) - to do soon
     #if (compset == "I20TRCLM45CN"):
-
-    
-#--------------- make necessary modificaitons to run script for OIC
-    if (options.machine == "linux_pgi"):
-        myinput  = open("./"+casename+".run")
-        myoutput = open("./"+casename+"temp.run",'w')
-        for s in myinput:
-            if s[6:8]  == '-N':
-                myoutput.write("#PBS -N "+casename+"\n")
-            elif s[9:14] == 'batch':
-                myoutput.write("#PBS -q "+options.queue+"\n")
-            #elif s[0:4] == 'cd /':                 
-                #output.write("cd "+csmdir+'/scripts/'+casename+"\n")
-                #os.chdir(casedir)
-            elif s[0:7] == './Tools':
-                myoutput.write("cd "+casedir+"\n")
-                myoutput.write(s)
-            elif s[0:14] =="##PBS -l nodes":
-                myoutput.write("#PBS -l nodes="+str((int(options.np)-1)/8+1)+ \
-                                 ":ppn="+str(min(int(options.np),8))+"\n")  
-            elif s[9:17] == 'walltime':
-                myoutput.write("#PBS -l walltime=48:00:00\n") 
-            elif s[0:5] == '##PBS':
-                myoutput.write(s.replace("##PBS","#PBS"))
-            elif s[0:7] == '   exit':
-                myoutput.write('   #exit 2')
-            elif s[0:10] == '   #mpirun':
-                myoutput.write("   mpirun -np "+str(options.np)+" --hostfile $PBS_NODEFILE ./ccsm.exe >&! ccsm.log.$LID\n")
-            elif s[0:5] == 'sleep':
-                myoutput.write("sleep 5\n")
-            else:
-                myoutput.write(s)
-        myoutput.close()
-        myinput.close()
-        os.system("mv "+casename+"temp.run "+casename+".run")  
-    
+       
 
 #----------------------------Reference case set ------------------------------------------
 # the following has not yet checked for CLM4.5
@@ -792,7 +824,9 @@ if (options.finidat_case != ''):
 #----- submit job if requested
 if (options.no_submit == False):
     os.chdir(casedir)
-    if (options.machine == "darwin-gnu"):
+    stdout  = os.popen("which qsub")
+    stdout_val = stdout.read().rstrip( )   
+    if (stdout_val == ""):
         os.system("./"+casename+".run")
     else:   
         os.system("qsub ./"+casename+".run")
