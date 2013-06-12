@@ -18,7 +18,7 @@ FIXEDFLAGS:=  -ffixed-form
 
 FREEFLAGS:= -ffree-form 
 
-LAPACK_LIBDIR:= /usr/bin 
+LAPACK_LIBDIR:= /usr/lib 
 
 MPICC:= mpicc  
 

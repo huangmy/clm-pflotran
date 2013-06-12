@@ -580,10 +580,11 @@ if (options.refcase == 'none'):
         if (options.mach_specific != ''):
             os.system('cp -f '+PTCLMdir+'/userdefined_machines/env_mach_specific.'+options.mach_specific + \
                       ' env_mach_specific')
-            os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific + \
-                      ' Macros')
             os.system('cp -f '+PTCLMdir+'/userdefined_machines/mkbatch.'+options.mach_specific + \
                       ' ./Tools/mkbatch.userdefined')
+            if (os.path.isfile(PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific)):
+                os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific + \
+                      ' Macros')
 
         os.system('./cesm_setup > configure.log')
         
