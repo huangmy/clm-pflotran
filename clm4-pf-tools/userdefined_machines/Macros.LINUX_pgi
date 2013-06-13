@@ -1,0 +1,113 @@
+#
+# Makefile Macros generated from /home/f9y/cesm/clm4-pf/scripts/ccsm_utils/Machines/config_compilers.xml using
+# COMPILER=pgi
+# OS=Linux
+# MACH=userdefined
+#
+CPPDEFS+= -DFORTRANUNDERSCORE -DNO_SHR_VMATH -DNO_R16  -DLinux -DCPRPGI 
+
+SLIBS+=# USERDEFINED $(shell $(NETCDF_PATH)/bin/nc-config --flibs)
+
+CFLAGS:= -gopt -Mlist -time -O -Mvect=nosse 
+
+CONFIG_ARGS:=
+
+CXX_LINKER:= CXX
+
+ESMF_LIBDIR:=
+
+FC_AUTO_R8:= -r8 
+
+FFLAGS:=  -i4 -gopt -Mlist -time -Mextend -byteswapio -Mflushz -Kieee  
+
+FIXEDFLAGS:= -Mfixed 
+
+FREEFLAGS:= -Mfree 
+
+LDFLAGS:= -time -Wl,--allow-multiple-definition 
+
+MPICC:= mpicc 
+
+MPICXX:= mpicxx 
+
+MPIFC:= mpif90 
+
+MPI_LIB_NAME:=
+
+MPI_PATH:=
+
+NETCDF_PATH:= $(NETCDF_PATH)
+
+PNETCDF_PATH:=
+
+LAPACK_LIBDIR:= $(LAPACK_LIBDIR)
+
+SCC:= pgcc 
+
+SCXX:= pgc++ 
+
+SFC:= pgf95 
+
+SUPPORTS_CXX:=FALSE
+
+ifeq ($(DEBUG), TRUE) 
+   FFLAGS += -g -Ktrap=fp -Mbounds -Kieee 
+endif
+
+ifeq ($(compile_threaded), true) 
+   LDFLAGS += -mp 
+   CFLAGS += -mp 
+   FFLAGS += -mp 
+endif
+
+ifeq ($(MODEL), dwav) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), dlnd) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), drof) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), cam) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), dice) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), cice) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), moby) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), rtm) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), pop2) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), docn) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), clm) 
+   FFLAGS += -O -Mvect=nosse  
+endif
+
+ifeq ($(MODEL), datm) 
+   FFLAGS += -Mnovect 
+endif
+
+ifeq ($(MODEL), driver) 
+   LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
+endif

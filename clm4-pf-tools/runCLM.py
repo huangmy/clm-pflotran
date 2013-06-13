@@ -340,27 +340,32 @@ os.putenv("CLM_USRDAT_NAME", str(numxpts)+"x"+str(numypts)+"pt_"+options.site)
 os.putenv("DOMAINPATH", options.ccsm_input+'/share/domains/domain.clm')
 
 #------------------- make point data for site -------------------------------
-
-os.chdir(PTCLMdir)
-ptcmd = 'python makepointdata.py --compset '+compset+ \
+if (options.nopointdata == False):
+    os.chdir(PTCLMdir)
+    ptcmd = 'python makepointdata.py --compset '+compset+ \
               ' --site '+options.site+' --sitegroup '+options.sitegroup+ \
               ' --csmdir '+csmdir+' --ccsm_input '+options.ccsm_input
 
-ptcmd = ptcmd + ' --grid_input /'+options.ugriddir
-if (options.metdir != 'none'):
-    ptcmd = ptcmd + ' --metdir '+options.metdir
-if (options.makemet):
-    ptcmd = ptcmd + ' --makemetdata'
-if (options.soilgrid):
-    ptcmd = ptcmd + ' --soilgrid'
-if (options.regional):
-    ptcmd = ptcmd + ' --regional'
-os.system(ptcmd)
+    ptcmd = ptcmd + ' --grid_input /'+options.ugriddir
+    if (options.metdir != 'none'):
+        ptcmd = ptcmd + ' --metdir '+options.metdir
+    if (options.makemet):
+        ptcmd = ptcmd + ' --makemetdata'
+    if (options.soilgrid):
+        ptcmd = ptcmd + ' --soilgrid'
+    if (options.regional):
+        ptcmd = ptcmd + ' --regional'
+    
+    os.system(ptcmd)
+else:
+    print('point data making NOT requested! Make sure they exist')
 
-# default pft parameter file
+# ------------- pft parameter file ------
+# default
 pftfile = ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.'+options.site+'.nc'
 os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.nc ' \
               + pftfile)
+
 # new or user-defined pft-phys file if desired
 if (options.parm_file != ''):
     pftfile = ccsm_input+'/lnd/clm2/pftdata/' + \
@@ -822,8 +827,45 @@ if (options.finidat_case != ''):
     os.system('cp -f '+runroot+'/'+options.finidat_case+'/run/'+ \
               'rpointer.* '+rundir)
 
+
+# -------- make necessary modificaitons to run script for OIC ------------------------------
+os.chdir(casedir)
+if (options.osname == "LINUX"):
+        myinput  = open("./"+casename+".run")
+        myoutput = open("./"+casename+"temp.run",'w')
+        for s in myinput:
+            if s[6:8]  == '-N':
+                myoutput.write("#PBS -N "+casename+"\n")
+            elif s[9:14] == 'batch':
+                myoutput.write("#PBS -q "+options.queue+"\n")
+            #elif s[0:4] == 'cd /':                 
+                #output.write("cd "+csmdir+'/scripts/'+casename+"\n")
+                #os.chdir(casedir)
+            elif s[0:7] == './Tools':
+                myoutput.write("cd "+casedir+"\n")
+                myoutput.write(s)
+            elif s[0:14] =="##PBS -l nodes":
+                myoutput.write("#PBS -l nodes="+str((int(options.np)-1)/8+1)+ \
+                                 ":ppn="+str(min(int(options.np),8))+"\n")  
+            elif s[9:17] == 'walltime':
+                myoutput.write("#PBS -l walltime=48:00:00\n") 
+            elif s[0:5] == '##PBS':
+                myoutput.write(s.replace("##PBS","#PBS"))
+            elif s[0:7] == '   exit':
+                myoutput.write('   #exit 2')
+            elif s[0:10] == '   #mpirun':
+                myoutput.write("   mpirun -np "+str(options.np)+" --hostfile $PBS_NODEFILE ./ccsm.exe >&! ccsm.log.$LID\n")
+            elif s[0:5] == 'sleep':
+                myoutput.write("sleep 5\n")
+            else:
+                myoutput.write(s)
+        myoutput.close()
+        myinput.close()
+        os.system("mv "+casename+"temp.run "+casename+".run")  
+
 #----- submit job if requested
-if (options.no_submit == False):
+if (options.no_submit == False):    
+    
     os.chdir(casedir)
     stdout  = os.popen("which qsub")
     stdout_val = stdout.read().rstrip( )   

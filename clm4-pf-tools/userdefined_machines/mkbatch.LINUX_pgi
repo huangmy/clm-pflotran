@@ -45,12 +45,12 @@ cat >! $file << EOF1
 
 ##BSUB -l nodes=${nodes}:ppn=${taskpernode}:walltime=${tlimit}
 ##BSUB -q ${qname}
-###BSUB -k eo
-###BSUB -J $CASE
-###BSUB -W ${tlimit}
+##BSUB -k eo
+##BSUB -J $CASE
+##BSUB -W ${tlimit}
 
-#limit coredumpsize 1000000
-#limit stacksize unlimited
+##limit coredumpsize 1000000
+##limit stacksize unlimited
 
 
 EOF1
