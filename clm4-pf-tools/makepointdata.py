@@ -154,7 +154,7 @@ if (options.compset == 'ICLM45CN'):
 surffile_orig = options.ccsm_input+options.grid_input  \
     +'/surfdata_360x720cru_simyr1850_c130415.nc'
 print('origin: '+ surffile_orig)
-surffile_new = options.ccsm_input+'/lnd/clm2/surfdata/' \
+surffile_new = options.ccsm_input+'/lnd/clm2/surfdata_map/' \
     +'surfdata_'+str(numxpts)+'x'+str(numypts)+'pt_'+options.site+'_simyr'+str(mysimyr)+'.nc'
 print('new: '+ surffile_new)
 if (os.path.isfile(surffile_new)):

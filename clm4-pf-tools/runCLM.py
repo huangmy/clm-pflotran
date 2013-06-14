@@ -624,12 +624,12 @@ if (options.refcase == 'none'):
     if (finidat != ''):
         output.write(" finidat = '"+finidat+"'\n")
     
-    output.write(" fsurdat = '"+ccsm_input+"/lnd/clm2/surfdata/" + \
+    output.write(" fsurdat = '"+ccsm_input+"/lnd/clm2/surfdata_map/" + \
                  "surfdata_"+str(numxpts)+"x"+str(numypts)+"pt_"+options.site+ \
                  "_simyr"+str(mysimyr)+".nc'\n")
     
     if (compset == 'I20TRCLM45CN'):
-        output.write(" fpftdyn = '"+ccsm_input+"/lnd/clm2/surfdata/" + \
+        output.write(" fpftdyn = '"+ccsm_input+"/lnd/clm2/surfdata_map/" + \
                           "surfdata.pftdyn_"+str(numxpts)+"x"+str(numypts)+"pt_"+ \
                           options.site+".nc'\n")
     
@@ -852,7 +852,7 @@ if (options.osname == "LINUX"):
             elif s[0:5] == '##PBS':
                 myoutput.write(s.replace("##PBS","#PBS"))
             elif s[0:7] == '   exit':
-                myoutput.write('   #exit 2')
+                myoutput.write('   exit -2\n')
             elif s[0:10] == '   #mpirun':
                 myoutput.write("   mpirun -np "+str(options.np)+" --hostfile $PBS_NODEFILE ./ccsm.exe >&! ccsm.log.$LID\n")
             elif s[0:5] == 'sleep':
