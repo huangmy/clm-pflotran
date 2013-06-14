@@ -1,0 +1,55 @@
+#
+# Makefile Macros generated from /Users/f9y/mygit/clm4-pf/scripts/ccsm_utils/Machines/config_compilers.xml using
+# COMPILER=gnu
+# OS=Darwin
+# MACH=darwin-gnu
+#
+CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DgFORTRAN  -DSYSDARWIN  -DDarwin -DCPRGNU 
+
+CXX_LINKER:=FORTRAN
+
+FC_AUTO_R8:= -fdefault-real-8 
+
+FFLAGS:= -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none 
+
+FFLAGS_NOOPT:= -O0 
+
+FIXEDFLAGS:=  -ffixed-form 
+
+FREEFLAGS:= -ffree-form 
+
+LAPACK_LIBDIR:= /usr/lib 
+
+MPICC:= mpicc  
+
+MPICXX:= mpicxx 
+
+MPIFC:= mpif90 
+
+SCC:= gcc 
+
+SCXX:= g++ 
+
+SFC:= gfortran 
+
+SUPPORTS_CXX:=TRUE
+
+ifeq ($(DEBUG), TRUE) 
+   FFLAGS += -g -Wall 
+endif
+
+ifeq ($(compile_threaded), true) 
+   LDFLAGS += -fopenmp 
+   CFLAGS += -fopenmp 
+   FFLAGS += -fopenmp 
+endif
+
+ifeq ($(MODEL), cism) 
+   CMAKE_OPTS += -D CISM_GNU=ON 
+endif
+
+ifeq ($(MODEL), driver) 
+   LDFLAGS += -all_load
+   LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
+endif
+

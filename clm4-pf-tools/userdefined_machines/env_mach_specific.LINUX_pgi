@@ -1,0 +1,39 @@
+#! /bin/csh -f
+
+# -------------------------------------------------------------------------
+# USERDEFINED
+# Edit this file to add module load or other paths needed for the build
+# and run on the system.  Can also include general env settings for machine.
+# Some samples are below
+# -------------------------------------------------------------------------
+
+
+if (-e /opt/modules/default/init/csh) then
+    source /opt/modules/default/init/csh
+    module unload mpi/openmpi-1.4.3-gcc4
+
+else
+    echo "ERROR: Failed to initialize modules"
+    exit -1
+endif
+
+# invoking modules sets $MPICH_DIR and $NETCDF_DIR
+setenv PATH ${PATH}:/home/zdr/nco-4.0.0/bin:/home/zdr/opt/ncl_ncarg-6.0.0/bin
+setenv LD_LIBRARY_PATH /usr/lib64:/home/zdr/netcdf-4.0/lib:/home/zdr/opt/lib:${LD_LIBRARY_PATH}
+
+setenv NCARG_ROOT /home/zdr/opt/ncl_ncarg-6.0.0
+setenv NETCDF_ROOT /home/zdr/netcdf-4.0
+setenv NETCDF_PATH /home/zdr/netcdf-4.0
+setenv LIB_NETCDF ${NETCDF_PATH}/lib
+setenv INC_NETCDF ${NETCDF_PATH}/include
+
+module load PGI/2011-64bit
+module load mpi/openmpi-1.4.3-pgi
+setenv LAPACK_LIBDIR /opt/pgi/linux86-64/2011/lib
+
+#-------------------------------------------------------------------------------
+# Runtime environment variables
+#-------------------------------------------------------------------------------
+
+limit coredumpsize unlimited
+limit stacksize unlimited

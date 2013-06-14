@@ -1,0 +1,24 @@
+#! /bin/csh -f
+
+# -------------------------------------------------------------------------
+# USERDEFINED
+# Edit this file to add module load or other paths needed for the build
+# and run on the system.  Can also include general env settings for machine.
+# Some samples are below
+# -------------------------------------------------------------------------
+
+setenv GCC_PATH /usr/local
+setenv PATH ${GCC_PATH}/bin:${PATH}
+setenv LD_LIBRARY_PATH ${GCC_PATH}/lib
+setenv DYLD_LIBRARY_PATH ${GCC_PATH}/lib
+
+alias gmake make
+alias gcc-4.8 gcc
+alias g++-4.8 g++
+alias gfortran-4.8 gfortran
+
+#--- set env variables for Macros if needed
+setenv NETCDF_PATH /usr/local/netcdf-4.1.3-gcc48
+setenv MPICH_PATH /usr/local/mpich-3.0.3-gcc48
+setenv PATH ${MPICH_PATH}/bin:${PATH}
+
