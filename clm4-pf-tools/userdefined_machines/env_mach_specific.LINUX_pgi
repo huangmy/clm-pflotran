@@ -19,17 +19,17 @@ endif
 
 # invoking modules sets $MPICH_DIR and $NETCDF_DIR
 setenv PATH ${PATH}:/home/zdr/nco-4.0.0/bin:/home/zdr/opt/ncl_ncarg-6.0.0/bin
-setenv LD_LIBRARY_PATH /usr/lib64:/home/zdr/opt/netcdf-4.1.3/lib:/home/zdr/opt/lib:${LD_LIBRARY_PATH}
+setenv LD_LIBRARY_PATH /usr/lib64:/home/zdr/netcdf-4.0/lib:/home/zdr/opt/lib:${LD_LIBRARY_PATH}
 
 setenv NCARG_ROOT /home/zdr/opt/ncl_ncarg-6.0.0
-setenv NETCDF_ROOT /home/zdr/opt/netcdf-4.1.3
-setenv NETCDF_PATH /home/zdr/opt/netcdf-4.1.3
+setenv NETCDF_ROOT /home/zdr/netcdf-4.0
+setenv NETCDF_PATH /home/zdr/netcdf-4.0
 setenv LIB_NETCDF ${NETCDF_PATH}/lib
 setenv INC_NETCDF ${NETCDF_PATH}/include
 
-module load PGI/2012-64bit
+module load PGI/2011-64bit
 module load mpi/openmpi-1.4.3-pgi
-setenv LAPACK_LIBDIR /opt/pgi/linux86-64/2012/lib
+setenv LAPACK_LIBDIR /opt/pgi/linux86-64/2011/lib
 
 #-------------------------------------------------------------------------------
 # Runtime environment variables
