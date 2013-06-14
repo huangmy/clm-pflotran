@@ -1,0 +1,396 @@
+INSTRUCTION on Machine settings and DMR's PTCLM python scripts for CLM4.5.06 on Mac OSx and OIC 
+6/14/13 8:30 AM	Yuan, Fengming
+
+
+This instructon include 3 sections:
+I. machine settings for CLM4.5.06 on Mac OSx 10.8
+II.machine settings for CLM4.5.06 on OIC (ORNL)
+III. instrucion on run DMR's 'runCLM.py' (modified and tested by FMY)
+
+(I have already put those machine setting files under clm4-pf-tools/userdefined_machines, so don't need to do those again. But you do need to modify it if your system is different).
+
+
+I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
+
+ 1. The prerequisites (versions may be different):  
+ (1) gcc-4.8 full package 
+ (2) mpich-3.0.3 built with gcc-4.8
+ (3) netcdf-4.1.3 built with gcc-4.8, bundled with mpich-3.0.3
+ (4) python 2.7, with library of numpy, Scientific, nco support
+ (5) perl
+ 
+ 2. modification/addition of machine
+ The building/runs will use the case configuration of “-mach=userdefined”, which included in /scripts/cesm_utils/Machines/, but will establish the required environmental settings under /clm4-pf-tools/userdefined_machines, as following:
+ 
+ (1) env_mach_specific.Darwin_gnu (here, ‘Darwin’ is the OS, and ‘gnu’ is the complier, both of which are generally defined in ‘userdefined’ machine – same naming followed for other two setting files)
+ 
+ 
+ #! /bin/csh -f
+ 
+ # -------------------------------------------------------------------------
+ # USERDEFINED
+ # Edit this file to add module load or other paths needed for the build
+ # and run on the system.  Can also include general env settings for machine.
+ # Some samples are below
+ # -------------------------------------------------------------------------
+ 
+ setenv GCC_PATH /usr/local
+ setenv PATH ${GCC_PATH}/bin:${PATH}
+ setenv LD_LIBRARY_PATH ${GCC_PATH}/lib
+ setenv DYLD_LIBRARY_PATH ${GCC_PATH}/lib
+ 
+ alias gmake make
+ alias gcc-4.8 gcc
+ alias g++-4.8 g++
+ alias gfortran-4.8 gfortran
+ 
+ #--- set env variables for Macros if needed
+ setenv NETCDF_PATH /usr/local/netcdf-4.1.3-gcc48
+ setenv MPICH_PATH /usr/local/mpich-3.0.3-gcc48
+ setenv PATH ${MPICH_PATH}/bin:${PATH}
+ setenv LAPACK_LIBDIR /usr/lib
+ 
+ NOTE: this file is a copy of ‘env_mach_specific.userdefined’ from the model Machines file, but here we add those specific PATHS and LIBRARIES paths, available on the test machine.
+ 
+ 
+ (2) mkbatch.Darwin_gnu
+ This file is a copy of ‘mkbatch.userdefined’ from the model Machines file, but only need a modifying the following line:
+ Line 78:  remove the “#” so that the model can be launched
+ mpiexec -n ${maxtasks} \$EXEROOT/cesm.exe >&! cesm.log.\$LID
+  
+ (3) Macros.Darwin_gnu
+ #
+ # Makefile Macros generated from /Users/f9y/mygit/clm4-cf/scripts/ccsm_utils/Machines/config_compilers.xml using
+ # COMPILER=gnu
+ # OS=Darwin
+ # MACH=userdefined
+ #
+ CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DgFORTRAN  -DSYSDARWIN  -DDarwin -DCPRGNU 
+ 
+ CXX_LINKER:=FORTRAN
+ 
+ FC_AUTO_R8:= -fdefault-real-8 
+ 
+ FFLAGS:= -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none 
+ 
+ FFLAGS_NOOPT:= -O0 
+ 
+ FIXEDFLAGS:=  -ffixed-form 
+ 
+ FREEFLAGS:= -ffree-form 
+ 
+ LAPACK_LIBDIR:= $(LAPACK_LIBDIR)
+ 
+ MPICC:= mpicc  
+ 
+ MPICXX:= mpicxx 
+ 
+ MPIFC:= mpif90 
+ 
+ SCC:= gcc 
+ 
+ SCXX:= g++ 
+ 
+ SFC:= gfortran 
+ 
+ SUPPORTS_CXX:=TRUE
+ 
+ ifeq ($(DEBUG), TRUE) 
+    FFLAGS += -g -Wall 
+ endif
+ 
+ ifeq ($(compile_threaded), true) 
+    LDFLAGS += -fopenmp 
+    CFLAGS += -fopenmp 
+    FFLAGS += -fopenmp 
+ endif
+ 
+ ifeq ($(MODEL), cism) 
+    CMAKE_OPTS += -D CISM_GNU=ON 
+ endif
+ 
+ ifeq ($(MODEL), driver) 
+    LDFLAGS += -all_load
+    LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
+ endif
+ 
+ NOTE: this file is modified from the automatically generated ‘Macros’ file in case creation. There are two modifications: (i) adding 'LAPACK_LIBDIR'; and (ii) adding 'LDFLAGS' for fortran library of netcdf (since NETCDF version 4.1.3, the fortran lib is named as 'libnetcdff', so if you're using the previous version, this is not needed).
+ 
+
+
+
+
+II. MACHINE SETTINGs for CLM4.5.06 on ORNL-OIC
+
+
+ 1. The prerequisites (versions may be different on your machine):  
+ (1) pgi 2011 
+ (2) openmpi with pgi
+ (3) netcdf-4.0 built with pgi/openmpi
+ (4) python 2.7, with library of numpy, Scientific, nco support
+ (5) perl
+ 
+ 2. modification/addition of machine
+ The building/runs will use the case configuration of “-mach=userdefined”, which included in /scripts/cesm_utils/Machines/, but will establish the required environmental settings under /clm4-pf-tools/userdefined_machines, as following:
+ 
+ (1) env_mach_specific.LINUX_pgi (here, ‘LINUX’ is the OS, and ‘pgi’ is the complier, both of which are generally defined in ‘userdefined’ machine – same naming followed for other two setting files)
+ 
+ 
+ #! /bin/csh -f
+ 
+ # -------------------------------------------------------------------------
+ # USERDEFINED
+ # Edit this file to add module load or other paths needed for the build
+ # and run on the system.  Can also include general env settings for machine.
+ # Some samples are below
+ # -------------------------------------------------------------------------
+ 
+ 
+ if (-e /opt/modules/default/init/csh) then
+     source /opt/modules/default/init/csh
+     module unload mpi/openmpi-1.4.3-gcc4
+ 
+ else
+     echo "ERROR: Failed to initialize modules"
+     exit -1
+ endif
+ 
+ # invoking modules sets $MPICH_DIR and $NETCDF_DIR
+ setenv PATH ${PATH}:/home/zdr/nco-4.0.0/bin:/home/zdr/opt/ncl_ncarg-6.0.0/bin
+ setenv LD_LIBRARY_PATH /usr/lib64:/home/zdr/netcdf-4.0/lib:/home/zdr/opt/lib:${LD_LIBRARY_PATH}
+ 
+ setenv NCARG_ROOT /home/zdr/opt/ncl_ncarg-6.0.0
+ setenv NETCDF_ROOT /home/zdr/netcdf-4.0
+ setenv NETCDF_PATH /home/zdr/netcdf-4.0
+ setenv LIB_NETCDF ${NETCDF_PATH}/lib
+ setenv INC_NETCDF ${NETCDF_PATH}/include
+ 
+ module load PGI/2011-64bit
+ module load mpi/openmpi-1.4.3-pgi
+ setenv LAPACK_LIBDIR /opt/pgi/linux86-64/2011/lib
+ 
+ #-------------------------------------------------------------------------------
+ # Runtime environment variables
+ #-------------------------------------------------------------------------------
+ 
+ limit coredumpsize unlimited
+ limit stacksize unlimited
+ 
+ NOTE: this file is a copy of ‘env_mach_specific.userdefined’ from the model Machines file, but here we add those specific PATHS and LIBRARIES paths
+ (TIPS: the netcdf configuration and building must be consistent with the pgi and openmpi, otherwise the model build/compilation/run will fail. ON ORNL-OIC, the only available NETCDF was built by DMR. There are a few versions on his directory. CLM building/runs with the version (/home/zdr/netcdf-4.0) was successfully tested ONLY with PGI/2011-64bit. I tried those 4.1.3 version under /home/zdr/opt, either with PGI/2011-64bit or PGI/2012-64bit, in which the model running failed due to error ‘undefined netcdf90_open_’ when reading datm data).
+ 
+ 
+ (2) mkbatch.LINUX_pgi
+ This file is a copy of ‘mkbatch.userdefined’ from the model Machines file. 
+ Unlike mac os, there is NO need to modify the following line, but OK if do so:
+ Line 79:  remove the “#” so that the model can be launched
+ mpirun -n ${maxtasks} \$EXEROOT/cesm.exe >&! cesm.log.\$LID
+ (This is because these modifications are carried out in python scripts ‘runCLM.py’) 
+ 
+  
+ (3) Macros.LINUX_pgi
+ #
+ # Makefile Macros generated from /home/f9y/cesm/clm4-pf/scripts/ccsm_utils/Machines/config_compilers.xml using
+ # COMPILER=pgi
+ # OS=Linux
+ # MACH=userdefined
+ #
+ CPPDEFS+= -DFORTRANUNDERSCORE -DNO_SHR_VMATH -DNO_R16  -DLinux -DCPRPGI 
+ 
+ SLIBS+=# USERDEFINED $(shell $(NETCDF_PATH)/bin/nc-config --flibs)
+ 
+ CFLAGS:= -gopt -Mlist -time -O -Mvect=nosse 
+ 
+ CONFIG_ARGS:=
+ 
+ CXX_LINKER:= CXX
+ 
+ ESMF_LIBDIR:=
+ 
+ FC_AUTO_R8:= -r8 
+ 
+ FFLAGS:=  -i4 -gopt -Mlist -time -Mextend -byteswapio -Mflushz -Kieee  
+ 
+ FIXEDFLAGS:= -Mfixed 
+ 
+ FREEFLAGS:= -Mfree 
+ 
+ LDFLAGS:= -time -Wl,--allow-multiple-definition 
+ 
+ MPICC:= mpicc 
+ 
+ MPICXX:= mpicxx 
+ 
+ MPIFC:= mpif90 
+ 
+ MPI_LIB_NAME:=
+ 
+ MPI_PATH:=
+ 
+ NETCDF_PATH:= $(NETCDF_PATH)
+ 
+ PNETCDF_PATH:=
+ 
+ LAPACK_LIBDIR:= $(LAPACK_LIBDIR)
+ 
+ SCC:= pgcc 
+ 
+ SCXX:= pgc++ 
+ 
+ SFC:= pgf90 
+ 
+ SUPPORTS_CXX:=FALSE
+ 
+ ifeq ($(DEBUG), TRUE) 
+    FFLAGS += -g -Ktrap=fp -Mbounds -Kieee 
+ endif
+ 
+ ifeq ($(compile_threaded), true) 
+    LDFLAGS += -mp 
+    CFLAGS += -mp 
+    FFLAGS += -mp 
+ endif
+ 
+ ifeq ($(MODEL), dwav) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ ifeq ($(MODEL), dlnd) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ ifeq ($(MODEL), drof) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ ifeq ($(MODEL), cam) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), dice) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ ifeq ($(MODEL), cice) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), moby) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), rtm) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), pop2) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), docn) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ ifeq ($(MODEL), clm) 
+    FFLAGS += -O -Mvect=nosse  
+ endif
+ 
+ ifeq ($(MODEL), datm) 
+    FFLAGS += -Mnovect 
+ endif
+ 
+ NOTE: this file is modified from the automatically generated ‘Macros’ file in case creation. The modifications include: (i) adding 'NETCDF_PATH', and (ii) adding 'LAPACK_LIBDIR' (note this is needed for since CLM4.0.40, in which the soil thermal/hydrological numerical approach is using one function of the LAPACK).
+ 
+
+
+
+III. run PTCLM python scripts for CLM4.5.06 building/compiling/running
+
+ 
+ (1) PTCLM tools and files
+ Author: Dan Ricciuto, ORNL
+ 
+ There are two python scripts:
+ runCLM.py – the main script to: create/configure a case; setup/build the case; and run the case.
+ makepointdata.py – a script to extract point grid/fraction and surface data from global half degree datasets.
+ (Dan’s scripts also include a point meteorological data extraction, but not yet tested here. We now use his already prepard dataset for Barrow from 1998-2006)
+
+
+(2)  Input data
+* /atm/datm7/CLM1PT_data/1x1pt_??? (this is the primary climate driver data. Basically you need to prepare by your own. The ??? is the name of point used throughout the setup procedure. And ??? must be defined in /scripts/PTCLM_files/PTCLM_sitedata/xxx_pftdata.txt, xxx_sitedata.txt, xxx_soildata.txt)
+
+* /atm/datm7/domain.clm/domain.lnd.1x1pt_???_navy.nc (this is generated by /scripts/makepointdata.py  
+
+* other /atm data is automatically updated, if connected to CESM’s site by SVN when build the case 
+
+* /lnd/clm2/surfdata/surfdata.1x1pt_???.nc, (or surfdata_dynpft.1x1pt_???.nc for I20TRCLMCN45), also generated by makepointdata.py
+
+* $cesm_inputdata/ugrid/0.5x0.5data: the following global datasets are required for makepointdata.py to produce the point data:
+domain.360x720_ORCHIDEE0to360.100409.nc
+surfdata_360x720cru_simyr1850_c130415.nc
+surfdata.pftdyn_0.5x0.5_simyr1850-2010.nc
+
+(3) Test run: 
+site US-Brw in AmeriFlux
+compset I1850CLM45CN (for both ad_spinup and spinup) and I20TRCLM45CN
+
+Step 1: ad_spinup
+./runCLM.py --site=US-Brw --sitegroup=AmeriFlux 
+                   --caseroot=/Users/f9y/mygit/clm4-pf/cases 
+                   --runroot=/Users/f9y/clm4_5_simulations 
+                   --ccsm_input=/Users/f9y/clm4_5_inputdata 
+                   --cesmdir=/Users/f9y/mygit/clm4-pf 
+                   --compset=I1850CLM45CN --coldstart --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup 10 
+                   --machine=userdefined –osname=Darwin --compiler=gnu --debug --mpilib=mpi-serial 
+ (                   --machine=userdefined –osname=LINUX --compiler=pgi --debug --mpilib=mpi-serial )
+                   --ugriddir=ugrid/0.5x0.5data 
+                   --rmold --clean_config --clean_build
+
+NOTE – this script will 
+(1) clean-create/setup a case in $caseroot/US-Brw_I1850CLM45CN_ad_spinup; (note: machine setting is for Mac OS, the setting with bracket () is for OIC - you only need one)
+(2) the model setting: CLM4.5, with CN, CLM4me, vertical-resolved C without Century bgc, and no fire.
+(3) clean-build the case in $runroot/US-Brw_I1850CLM45CN_ad_spinup; with ‘Debug’ option is ON
+(4) run the case in $runroot/US-Brw_I1850CLM45CN_ad_spinup/run, for 10 years (default 600+1 years)
+
+FYI, clm45 no more needs to run ‘exit-spinup’; if no need to make the point data, replace ‘--ugriddir=ugrid/0.5x0.5data’ with ‘--nopointdata’ (checking the runCLM.py with --help)
+
+ Step 2: I1850CLM45cn (i.e. spinup)
+ ./runCLM.py --site=US-Brw --sitegroup=AmeriFlux 
+                    --caseroot=/Users/f9y/mygit/clm4-pf/cases 
+                    --runroot=/Users/f9y/clm4_5_simulations 
+                    --ccsm_input=/Users/f9y/clm4_5_inputdata 
+                    --cesmdir=/Users/f9y/mygit/clm4-pf 
+                    --compset=I1850CLM45CN --vertsoilc --CH4 --no_fire --finidat_year 11 --run_n 10
+                    --machine=userdefined –osname=Darwin --compiler=gnu --debug --mpilib=mpi-serial 
+ (                   --machine=userdefined –osname=LINUX --compiler=pgi --debug --mpilib=mpi-serial )
+                    --ugriddir=ugrid/0.5x0.5data 
+                    --rmold --clean_config --clean_build
+ 
+ NOTE – this script will 
+ a. clean-create/setup a case in $caseroot/US-Brw_I1850CLM45CN; 
+ b. clean-build the case in $runroot/US-Brw_I1850CLM45CN;
+ c. copy all restart files from $runroot/US-Brw_I1850CLM45CN_ad_spinup/run to this case’s run root (see below); note the ‘finidat_year 11’ is from the last run year of the ad_spinup run (default is 601).
+ d. run the case in $runroot/US-Brw_I1850CLM45CN/run, for 10 years (default 600 years)
+ 
+ Step 3: transit
+ ./runCLM.py --site=US-Brw --sitegroup=AmeriFlux 
+                    --caseroot=/Users/f9y/mygit/clm4-pf/cases 
+                    --runroot=/Users/f9y/clm4_5_simulations 
+                    --ccsm_input=/Users/f9y/clm4_5_inputdata 
+                    --cesmdir=/Users/f9y/mygit/clm4-pf 
+                    --compset=I20TRCLM45CN --vertsoilc --CH4 --no_fire --finidat_year 11 --run_n 10
+                    --machine=userdefined –osname=Darwin --compiler=gnu --debug --mpilib=mpi-serial 
+ (                   --machine=userdefined –osname=LINUX --compiler=pgi --debug --mpilib=mpi-serial )
+                    --ugriddir=ugrid/0.5x0.5data 
+                    --rmold --clean_config --clean_build
+ 
+ NOTE – this script will do similar run as I1850CLM45CN (spinup), i.e., 
+ a. clean-create/setup a case in $caseroot/US-Brw_I20TRCLM45CN, including preparation of surface data; 
+ b. clean-build the case in $runroot/US-Brw_I20TRCLM45CN;
+ c. copy all restart files from $runroot/US-Brw_I1850CLM45CN/run to this case’s run root (see below); note the ‘finidat_year 11’ is from the last run year of the ad_spinup run.
+ d. run the case in $runroot/US-Brw_I1850CLM45CN/run, for 10 years (default from 1850 – 2006 (the last year in the metdata))
+ 
+ Historical CO2 into ‘transit’ run –
+ (TO be updated soon)
+ 
+
