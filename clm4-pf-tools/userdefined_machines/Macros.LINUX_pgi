@@ -46,7 +46,7 @@ SCC:= pgcc
 
 SCXX:= pgc++ 
 
-SFC:= pgf95 
+SFC:= pgf90 
 
 SUPPORTS_CXX:=FALSE
 
@@ -106,8 +106,4 @@ endif
 
 ifeq ($(MODEL), datm) 
    FFLAGS += -Mnovect 
-endif
-
-ifeq ($(MODEL), driver) 
-   LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
 endif
