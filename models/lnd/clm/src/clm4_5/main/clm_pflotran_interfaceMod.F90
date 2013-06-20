@@ -20,7 +20,7 @@ module clm_pflotran_interfaceMod
   use domainMod       , only : ldomain
 
   use fileutils       , only : getfil
-  use spmdMod         , only : mpicom, MPI_INTEGER, masterproc
+  use spmdMod         , only : mpicom, masterproc
   use organicFileMod  , only : organicrd
   use clm_varcon      , only : istice, istdlak, istwet, isturb, istice_mec,  &
                                icol_roof, icol_sunwall, icol_shadewall, &
@@ -245,6 +245,9 @@ contains
     ! CLM: Surface of subsurface domain (local and ghosted cells)
     clm_pf_idata%nlclm_surf_3d = (endg-begg+1)
     clm_pf_idata%ngclm_surf_3d = (endg-begg+1)
+    ! For CLM: Same as surface of subsurface domain
+    clm_pf_idata%nlclm_2d = clm_surf_npts
+    clm_pf_idata%ngclm_2d = clm_surf_npts
 
     ! PFLOTRAN: Subsurface domain (local and ghosted cells)
     clm_pf_idata%nlpf_3d = pflotran_m%realization%patch%grid%nlmax
@@ -262,8 +265,8 @@ contains
     ! PFLOTRAN: Surface domain (local and ghosted cells)
 #ifdef SURFACE_FLOW
     if(pflotran_m%option%nsurfflowdof > 0) then
-      clm_pf_idata%nlpf_2d = pflotran_m%surf_realization%patch%grid%nlmax
-      clm_pf_idata%ngpf_2d = pflotran_m%surf_realization%patch%grid%ngmax
+      clm_pf_idata%nlpf_2d = pflotran_m%simulation%surf_realization%patch%grid%nlmax
+      clm_pf_idata%ngpf_2d = pflotran_m%simulation%surf_realization%patch%grid%ngmax
     else
       clm_pf_idata%nlpf_2d = 0
       clm_pf_idata%ngpf_2d = 0
@@ -288,6 +291,15 @@ contains
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
                                     clm_surf_npts, CLM2PF_GFLUX_MAP_ID)
     endif
+
+#ifdef SURFACE_FLOW
+    if(pflotran_m%option%nsurfflowdof > 0) then
+      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                    clm_surf_npts, PF2CLM_SURF_MAP_ID)
+      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                    clm_surf_npts, CLM2PF_RFLUX_MAP_ID)
+    endif
+#endif
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
