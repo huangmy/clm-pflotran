@@ -32,7 +32,7 @@ MPICXX:= mpicxx
 
 MPIFC:= mpif90 
 
-MPI_LIB_NAME:=
+MPI_LIB_NAME:= mpi
 
 MPI_PATH:=
 

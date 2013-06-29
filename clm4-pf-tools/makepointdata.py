@@ -21,6 +21,10 @@ parser.add_option("--sitegroup", dest="sitegroup", default="AmeriFlux", \
 parser.add_option("--regional", action="store_true", \
                    dest="regional", default=False, \
                    help="Flag for regional run (2x2 or greater)")
+parser.add_option("--xpts", dest="xpts", default=1, \
+                  help = 'for regional: xpts')
+parser.add_option("--ypts", dest="ypts", default=1, \
+                  help = 'for regional: ypts')
 parser.add_option("--csmdir", dest="csmdir", default='..', \
                   help = "base CESM directory (default = ../)")
 parser.add_option("--ccsm_input", dest="ccsm_input", \
@@ -56,10 +60,13 @@ for row in AFdatareader:
         endyear=int(row[7])
         alignyear = int(row[8])
         if options.regional == True:
-            numxpts=int(row[9])
-            numypts=int(row[10])
-            resx=float(row[11])
-            resy=float(row[12])
+            if (options.xpts<2 or options.ypts<2):
+                print('Error: xpts AND ypts MUST be greater than 1 ! \n')
+                exit(-1)
+            numxpts=int(options.xpts)
+            numypts=int(options.ypts)
+            resx=0.1
+            resy=0.1
         else:
             numxpts=1
             numypts=1
@@ -234,7 +241,8 @@ for i in range(0,numxpts):
         pct_wetland_vals[j][i] = 0.0
         pct_lake_vals[j][i]    = 0.0
         pct_glacier_vals[j][i] = 0.0
-        pct_urban_vals[j][i]   = 0.0
+        for u in range(0,3):
+            pct_urban_vals[u][j][i]   = 0.0
         soil_color_vals[j][i] = soil_color_vals[0][0]
         fmax_vals[j][i] = fmax_vals[0][0]
         for k in range(0,10):

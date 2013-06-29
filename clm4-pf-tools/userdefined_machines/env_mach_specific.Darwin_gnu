@@ -22,3 +22,8 @@ setenv NETCDF_PATH /usr/local/netcdf-4.1.3-gcc48
 setenv MPICH_PATH /usr/local/mpich-3.0.3-gcc48
 setenv PATH ${MPICH_PATH}/bin:${PATH}
 
+setenv PETSC_DIR /Users/f9y/mygit/petsc-hg
+setenv PETSC_LIB ${PETSC_DIR}/lib
+setenv PETSC_ARCH arch-darwin-c-debug
+setenv PFLOTRAN_COUPLED_MODEL /Users/f9y/mygit/pflotran-coupled
+

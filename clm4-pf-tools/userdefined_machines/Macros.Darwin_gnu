@@ -4,7 +4,7 @@
 # OS=Darwin
 # MACH=darwin-gnu
 #
-CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DgFORTRAN  -DSYSDARWIN  -DDarwin -DCPRGNU 
+CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DgFORTRAN -DSYSDARWIN -DDarwin -DCPRGNU 
 
 CXX_LINKER:=FORTRAN
 
@@ -24,7 +24,9 @@ MPICC:= mpicc
 
 MPICXX:= mpicxx 
 
-MPIFC:= mpif90 
+MPIFC:= mpif90
+
+MPI_LIB_NAME:= mpich
 
 SCC:= gcc 
 
@@ -49,7 +51,7 @@ ifeq ($(MODEL), cism)
 endif
 
 ifeq ($(MODEL), driver) 
-   LDFLAGS += -all_load
-   LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
+   #LDFLAGS += -all_load  # this will cause 'duplicate call' of mpich libraries if 'mpich' as mpilib on Mac
+   LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff
 endif
 

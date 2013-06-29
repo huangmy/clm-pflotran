@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys, csv, time, math
+import os, sys, csv
 from optparse import OptionParser
-import Scientific.IO.NetCDF
-from Scientific.IO import NetCDF
+#import Scientific.IO.NetCDF
+#from Scientific.IO import NetCDF
 #from Numeric import *
 
 
@@ -23,7 +23,7 @@ from Scientific.IO import NetCDF
 #  the case directory.
 #
 # FMY 6/6/2013
-# modified to work for CLM4-pf (CLM4.5.06, with PFLOTRAN interface) version used by NGEE-Arctic
+# modified to work for CLM4-pf (CLM4.5.10, with PFLOTRAN interface) version used by NGEE-Arctic
 #-------------------Parse options-----------------------------------------------
 
 parser = OptionParser()
@@ -67,6 +67,8 @@ parser.add_option("--compiler", dest="compiler", default = '', \
 parser.add_option("--mpilib", dest="mpilib", default = 'mpi-serial', \
                   help = "mpi library to use (default = mpi-serial)"
                          "options=openmpi,mpich,mpt,ibm,mpi-serial, BUT upon your system")
+parser.add_option("--clm_pflotran", action="store_true", dest="pflotran", default = False, \
+                  help = "clm coupled with PFLOTRAAN (default = False, i.e. not coupled)")
 parser.add_option("--no_fire", dest="nofire", action="store_true", \
                   default=False, help="Turn off fire algorightms")
 #parser.add_option("--C13", dest="C13", default=False, \
@@ -157,6 +159,10 @@ parser.add_option("--soilgrid", dest="soilgrid", default=False, \
                   help = 'Use gridded soil data', action="store_true")
 parser.add_option("--regional", dest="regional", default=False, \
                    help="flag for regional", action="store_true")
+parser.add_option("--xpts", dest="xpts", default=1, \
+                  help = 'for regional: xpts')
+parser.add_option("--ypts", dest="ypts", default=1, \
+                  help = 'for regional: ypts')
 parser.add_option("--refcase", dest="refcase" , default='none', \
                   help = 'Use already compiled CLM case')
 
@@ -300,8 +306,11 @@ for row in AFdatareader:
         endyear=int(row[7])
         alignyear = int(row[8])
         if (options.regional == True):
-            numxpts=int(row[9])
-            numypts=int(row[10])
+            if (options.xpts<2 and options.ypts<2):
+                print('Error: xpts OR ypts MUST be greater than 1 for Option: regional! \n')
+                exit(-1)
+            numxpts=int(options.xpts)
+            numypts=int(options.ypts)
         else:
             numxpts=1
             numypts=1
@@ -355,6 +364,8 @@ if (options.nopointdata == False):
         ptcmd = ptcmd + ' --soilgrid'
     if (options.regional):
         ptcmd = ptcmd + ' --regional'
+        ptcmd = ptcmd + ' --xpts '+options.xpts
+        ptcmd = ptcmd + ' --ypts '+options.ypts
     
     os.system(ptcmd)
 else:
@@ -590,6 +601,12 @@ if (options.refcase == 'none'):
             if (os.path.isfile(PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific)):
                 os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific + \
                       ' Macros')
+            
+            # clm coupled with pflotran 
+            if (options.pflotran):
+                os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros_pflotran.'+options.mach_specific + \
+                      ' Macros')
+
 
         os.system('./cesm_setup > configure.log')
         
