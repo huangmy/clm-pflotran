@@ -85,7 +85,9 @@ I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
  
  MPICXX:= mpicxx 
  
- MPIFC:= mpif90 
+ MPIFC:= mpif90
+ 
+ MPI_LIB_NAME:= mpich    # otherwise, Makefile will automatically set this as 'mpi', which is unavailable 
  
  SCC:= gcc 
  
@@ -110,7 +112,7 @@ I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
  endif
  
  ifeq ($(MODEL), driver) 
-    LDFLAGS += -all_load
+    # LDFLAGS += -all_load  # this will cause duplicated call of libmpich.a and libpmpich.a if mpich is on 
     LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
  endif
  
@@ -127,7 +129,7 @@ II. MACHINE SETTINGs for CLM4.5.06 on ORNL-OIC
  (1) pgi 2011 
  (2) openmpi with pgi
  (3) netcdf-4.0 built with pgi/openmpi
- (4) python 2.7, with library of numpy, Scientific, nco support
+ (4) python 2.6, with library of numpy, Scientific, nco support
  (5) perl
  
  2. modification/addition of machine
@@ -223,7 +225,7 @@ II. MACHINE SETTINGs for CLM4.5.06 on ORNL-OIC
  
  MPIFC:= mpif90 
  
- MPI_LIB_NAME:=
+ MPI_LIB_NAME:= mpi
  
  MPI_PATH:=
  
@@ -304,7 +306,7 @@ II. MACHINE SETTINGs for CLM4.5.06 on ORNL-OIC
 
 
 
-III. run PTCLM python scripts for CLM4.5.06 building/compiling/running
+III. run PTCLM python scripts for CLM4.5.10 building/compiling/running
 
  
  (1) PTCLM tools and files
@@ -341,8 +343,8 @@ Step 1: ad_spinup
                    --ccsm_input=/Users/f9y/clm4_5_inputdata 
                    --cesmdir=/Users/f9y/mygit/clm4-pf 
                    --compset=I1850CLM45CN --coldstart --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup 10 
-                   --machine=userdefined Ðosname=Darwin --compiler=gnu --debug --mpilib=mpi-serial 
- (                   --machine=userdefined Ðosname=LINUX --compiler=pgi --debug --mpilib=mpi-serial )
+                   --machine=userdefined Ðosname=Darwin --compiler=gnu --debug --mpilib=mpi-serial(mpich) 
+ (                   --machine=userdefined Ðosname=LINUX --compiler=pgi --debug --mpilib=mpi-serial(openmpi) )
                    --ugriddir=ugrid/0.5x0.5data 
                    --rmold --clean_config --clean_build
 
