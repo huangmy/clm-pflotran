@@ -15,16 +15,10 @@ module SoilTemperatureMod
 ! !PUBLIC TYPES:
   implicit none
   save
-#ifdef CLM_PFLOTRAN
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#endif
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: SoilTemperature     ! Snow and soil temperatures including phase change
-#ifdef CLM_PFLOTRAN
   public :: SoilTemperaturePFUpdate ! Update soil temperatures from pflotran
-#endif
 !
 ! !PRIVATE MEMBER FUNCTIONS:
   private :: SoilThermProp      ! Set therm conduct. and heat cap of snow/soil layers
@@ -94,6 +88,12 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
+
+#ifdef CLM_PFLOTRAN
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+#endif
+
     integer , intent(in)  :: lbc, ubc                    ! column bounds
     integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
@@ -2035,7 +2035,6 @@ contains
 
   end subroutine Phasechange_beta
 
-#ifdef CLM_PFLOTRAN
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -2051,14 +2050,19 @@ contains
     use clm_varctl    , only : iulog
     use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi 
     use decompMod    , only : get_proc_bounds, get_proc_global
-    use clm_pflotran_interface_data, only : clm_pf_idata
     use decompMod                  , only : get_proc_bounds, get_proc_global
     use clm_varpar                 , only : max_pft_per_col
 
+#ifdef CLM_PFLOTRAN
+    use clm_pflotran_interface_data, only : clm_pf_idata
+#endif
+
     implicit none
+
+#ifdef CLM_PFLOTRAN
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
-
+#endif
     integer , intent(in)  :: lbc, ubc                    ! column bounds
     integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
@@ -2066,6 +2070,7 @@ contains
     integer , intent(in)  :: num_urbanl                  ! number of urban landunits in clump
     integer , intent(in)  :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
 
+    character(len=256) :: subname = 'SoilTemperaturePFUpdate'
     integer  :: j,c,g                     !  indices
     integer  :: fc                        ! lake filtered column indices
     integer  :: gcount
@@ -2076,9 +2081,15 @@ contains
 
     real(r8), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
     integer , pointer :: cgridcell(:)       ! column's gridcell
+#ifdef CLM_PFLOTRAN
     PetscScalar, pointer :: temp_clm_loc(:)  !
     PetscErrorCode :: ierr
+#endif
 
+#ifndef CLM_PFLOTRAN
+    call endrun(trim(subname) // ": ERROR: CLM-PFLOTRAN interface has not been compiled " // &
+         "into this version of CLM.")
+#else
     t_soisno       => ces%t_soisno
     cgridcell      => col%gridcell
 
@@ -2097,9 +2108,8 @@ contains
     enddo
 
     call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
-
-  end subroutine SoilTemperaturePFUpdate
 #endif
+  end subroutine SoilTemperaturePFUpdate
 
 
 end module SoilTemperatureMod

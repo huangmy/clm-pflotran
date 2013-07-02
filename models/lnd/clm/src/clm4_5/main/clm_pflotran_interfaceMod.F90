@@ -1,5 +1,3 @@
-#ifdef CLM_PFLOTRAN
-
 module clm_pflotran_interfaceMod
 
   !-----------------------------------------------------------------------
@@ -11,28 +9,12 @@ module clm_pflotran_interfaceMod
   ! Performs
   !
   ! !USES:
-  use clmtype
-  use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column
-  use decompMod       , only : get_proc_bounds, get_proc_global
-  use clm_varpar      , only : nlevsoi, nlevgrnd
-  use shr_kind_mod    , only: r8 => shr_kind_r8
-  use decompMod       , only : ldecomp
-  use domainMod       , only : ldomain
-
-  use fileutils       , only : getfil
-  use spmdMod         , only : mpicom, masterproc
-  use organicFileMod  , only : organicrd
-  use clm_varcon      , only : istice, istdlak, istwet, isturb, istice_mec,  &
-                               icol_roof, icol_sunwall, icol_shadewall, &
-                               icol_road_perv, icol_road_imperv, zisoi, zsoi, &
-                               istsoil, denice, denh2o
-  use abortutils      , only : endrun
 
   !use clm_pflotran_interface_type
+#ifdef CLM_PFLOTRAN
   use clm_pflotran_interface_data
   use pflotran_model_module
-  use ncdio_pio
-
+#endif
 
   ! !PUBLIC TYPES:
   implicit none
@@ -41,45 +23,66 @@ module clm_pflotran_interfaceMod
   save
 
   !type(clm_pflotran_interface_data_type),pointer,public   :: clm_pf_idata
+#ifdef CLM_PFLOTRAN
   type(pflotran_model_type),pointer,public                :: pflotran_m
-
+#endif
   !
   private    ! By default everything is private
 
   character(len=256), public :: pflotran_prefix = ''
 
   ! !PUBLIC MEMBER FUNCTIONS:
-  public :: clm_pf_interface_init  ! Phase one initialization
   public :: clm_pf_readnl
 
+  ! wrappers around ifdef statements to maintain sane runtime behavior
+  ! when pflotran is not available.
+  public :: clm_pf_interface_init  ! Phase one initialization
+  public :: clm_pf_update_soil_moisture
+
+#ifdef CLM_PFLOTRAN
+  ! private work functions that truely require ifdef CLM_PFLOTRAN
+  private :: interface_init_clm_pf
+  private :: update_soil_moisture_clm_pf
+#endif
 
 contains
 
 !-----------------------------------------------------------------------
-!BOP
 !
-! !IROUTINE: clm_pf_readnl
+! public interface functions allowing runtime behavior regardless of
+! whether pflotran is compiled in.
 !
-! !INTERFACE:
+!-----------------------------------------------------------------------
+
+  !-----------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_readnl
+  !
+  ! !INTERFACE:
   subroutine clm_pf_readnl( NLFilename )
-!
-! !DESCRIPTION:
-! Read namelist for clm-pflotran interface
-!
-! !USES:
+  !
+  ! !DESCRIPTION:
+  ! Read namelist for clm-pflotran interface
+  !
+  ! !USES:
+    use clm_varctl    , only : iulog
     use spmdMod       , only : masterproc, mpicom
     use fileutils     , only : getavu, relavu, opnfil
     use clm_nlUtilsMod, only : find_nlgroup_name
     use shr_mpi_mod   , only : shr_mpi_bcast
     use abortutils    , only : endrun
-! !ARGUMENTS:
+
+    implicit none
+
+  ! !ARGUMENTS:
     character(len=*), intent(IN) :: NLFilename ! Namelist filename
-! !LOCAL VARIABLES:
+  ! !LOCAL VARIABLES:
     integer :: ierr                 ! error code
     integer :: unitn                ! unit for namelist file
     character(len=32) :: subname = 'clm_pf_readnl'  ! subroutine name
-!EOP
-!-----------------------------------------------------------------------
+  !EOP
+  !-----------------------------------------------------------------------
     namelist / clm_pflotran_inparm / pflotran_prefix
 
     ! ----------------------------------------------------------------------
@@ -107,19 +110,127 @@ contains
     call shr_mpi_bcast(pflotran_prefix, mpicom)
   end subroutine clm_pf_readnl
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: clm_pf_interface_init
-!
-! !INTERFACE:
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: pflotran_not_available
+  !
+  ! !INTERFACE:
+  subroutine pflotran_not_available(subname)
+  !
+  ! !DESCRIPTION:
+  ! Print an error message and abort.
+  !
+  ! !USES:
+    use abortutils    , only : endrun
+  ! !ARGUMENTS:
+    implicit none
+    character(len=*), intent(in) :: subname
+  ! !LOCAL VARIABLES:
+  !EOP
+  !-----------------------------------------------------------------------
+    call endrun(trim(subname) // ": ERROR: CLM-PFLOTRAN interface has not been compiled " // &
+         "into this version of CLM.")
+  end subroutine pflotran_not_available
+
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_interface_init
+  !
+  ! !INTERFACE:
   subroutine clm_pf_interface_init()
+  !
+  ! !DESCRIPTION:
+  ! Wrapper around pflotran init
+  !
+  ! !USES:
+  ! !ARGUMENTS:
+    implicit none
+  ! !LOCAL VARIABLES:
+    character(len=256) :: subname = "clm_pf_interface_init()"
+  !EOP
+  !-----------------------------------------------------------------------
+#ifdef CLM_PFLOTRAN
+    call interface_init_clm_pf()
+#else
+    call pflotran_not_available(subname)
+#endif
+  end subroutine clm_pf_interface_init
+
+
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_update_soil_moisture
+  !
+  ! !INTERFACE:
+  subroutine clm_pf_update_soil_moisture(cws, cps, filter)
+  !
+  ! !DESCRIPTION:
+  ! Wrapper around update soil moisture
+  !
+  ! !USES:
+    use clmtype,              only : column_wstate_type, column_pstate_type
+    use filterMod,            only : clumpfilter
+  ! !ARGUMENTS:
+    implicit none
+    type(column_wstate_type), intent(inout) :: cws
+    type(column_pstate_type), intent(inout) :: cps
+    type(clumpfilter), intent(inout) :: filter(:)
+  ! !LOCAL VARIABLES:
+    character(len=256) :: subname = "clm_pf_update_soil_moisture"
+  !EOP
+  !-----------------------------------------------------------------------
+#ifdef CLM_PFLOTRAN
+    call update_soil_moisture_clm_pf(cws, cps, filter)
+#else
+    call pflotran_not_available(subname)
+#endif
+  end subroutine clm_pf_update_soil_moisture
+
+
+
+!-----------------------------------------------------------------------
 !
-! !DESCRIPTION:
-! initialize the pflotran iterface
+! private work functions requiring the pflotran
 !
-! !USES:
-    use clm_varctl, only : use_pflotran
+!-----------------------------------------------------------------------
+#ifdef CLM_PFLOTRAN
+  !-----------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_interface_init
+  !
+  ! !INTERFACE:
+  subroutine interface_init_clm_pf()
+    !
+    ! !DESCRIPTION:
+    ! initialize the pflotran iterface
+    !
+    ! !USES:
+    use clmtype
+    use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
+         use_pflotran
+    use decompMod       , only : get_proc_bounds, get_proc_global
+    use clm_varpar      , only : nlevsoi, nlevgrnd
+    use shr_kind_mod    , only: r8 => shr_kind_r8
+    use decompMod       , only : ldecomp
+    use domainMod       , only : ldomain
+    
+    use fileutils       , only : getfil
+    use spmdMod         , only : mpicom, masterproc
+    use organicFileMod  , only : organicrd
+    use clm_varcon      , only : istice, istdlak, istwet, isturb, istice_mec,  &
+         icol_roof, icol_sunwall, icol_shadewall, &
+         icol_road_perv, icol_road_imperv, zisoi, zsoi, &
+         istsoil, denice, denh2o
+    use abortutils      , only : endrun
+
+    use ncdio_pio
     !
     ! !ARGUMENTS:
 
@@ -220,7 +331,7 @@ contains
 
     integer  :: ier                                ! error status
     character(len=256) :: locfn                    ! local filEname
-    character(len= 32) :: subname = 'clm_pflotran_interfaceMod' ! subroutine name
+    character(len= 32) :: subname = 'clm_pf_interface_init' ! subroutine name
     integer :: mxsoil_color                        ! maximum number of soil color classes
 
     integer :: closelatidx,closelonidx
@@ -613,9 +724,75 @@ contains
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 
     deallocate(sand3d,clay3d,organic3d)
+  end subroutine interface_init_clm_pf
 
-  end subroutine clm_pf_interface_init
+
+  ! =======================================================================
+  ! For NSTEP=0; update the soil moisture values that were initialized in
+  !              PFLOTRAN. Variables modified
+  !   h2osoi_liq [kg/m^2]  
+  !   h2osoi_vol[m^3/m^3] (water + ice)
+  ! =======================================================================
+  subroutine update_soil_moisture_clm_pf(cws, cps, filter)
+    use clm_varctl          , only : iulog
+    use decompMod           , only : get_proc_clumps, get_clump_bounds, get_proc_bounds
+    use clm_time_manager    , only : get_nstep
+    use clm_varcon,           only : denh2o, denice
+    use clm_varpar,           only : nlevsoi
+    use clmtype,              only : r8, column_wstate_type, column_pstate_type
+    use filterMod,            only : clumpfilter
+
+    implicit none
+
+    type(column_wstate_type), intent(inout) :: cws
+    type(column_pstate_type), intent(inout) :: cps
+    type(clumpfilter), intent(inout) :: filter(:)
+
+    integer  :: nstep                    ! time step number
+    integer  :: nc, fc, c, fp, p, l, g   ! indices
+    integer  :: nclumps                  ! number of clumps on this processor
+    integer  :: begg, endg               ! clump beginning and ending gridcell indices
+    integer  :: begl, endl               ! clump beginning and ending landunit indices
+    integer  :: begc, endc               ! clump beginning and ending column indices
+    integer  :: begp, endp               ! clump beginning and ending pft indices
+
+    real(r8), pointer :: dz(:,:)          ! layer thickness depth (m)
+    real(r8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(r8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+    integer :: j
+    real(r8):: tmp
+
+    h2osoi_ice        => cws%h2osoi_ice
+    h2osoi_liq        => cws%h2osoi_liq
+    h2osoi_vol        => cws%h2osoi_vol
+    dz                => cps%dz
+
+    nclumps = get_proc_clumps()
+    nstep   = get_nstep()
+
+    if (nstep.eq.0) then
+
+       write(iulog,*), 'NSTEP = 0'
+       tmp = 0.0_r8
+       do nc = 1,nclumps
+          call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
+
+          do fc = 1,filter(nc)%num_hydrologyc
+             c = filter(nc)%hydrologyc(fc)
+             do j = 1, nlevsoi
+                !h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
+                !h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
+                !h2osoi_vol(c,j) = min(h2osoi_vol(c,j),clm_pf_data%watsat(c,j))
+                tmp = tmp + h2osoi_liq(c,j) + h2osoi_ice(c,j)
+             enddo
+          enddo
+       enddo
+       write(iulog,*), 'tmp = ',tmp
+    endif
+  end subroutine update_soil_moisture_clm_pf
+
+#endif
 
 end module clm_pflotran_interfaceMod
 
-#endif

@@ -20,12 +20,6 @@ module clm_initializeMod
   use ncdio_pio
   use mct_mod
 
-#ifdef CLM_PFLOTRAN
-  use clm_pflotran_interfaceMod , only : clm_pf_interface_init
-  use clm_pflotran_interfaceMod , only : pflotran_m
-  use pflotran_model_module
-#endif
-
 ! !PUBLIC TYPES:
   implicit none
   save
@@ -278,7 +272,7 @@ contains
 ! !USES:
     use clm_atmlnd      , only : clm_map2gcell
     use clm_glclnd      , only : create_clm_s2x
-    use clm_varctl      , only : finidat, fpftdyn
+    use clm_varctl      , only : finidat, fpftdyn, use_pflotran
     use decompMod       , only : get_proc_clumps, get_proc_bounds
     use filterMod       , only : allocFilters
     use reweightMod     , only : reweightWrapup
@@ -318,6 +312,9 @@ contains
     use initSurfAlbMod     , only : initSurfAlb, do_initsurfalb 
     use clm_varorb         , only : eccen, mvelpp, lambm0, obliqr
     use VOCEmissionMod  , only : VOCEmission_init
+    use clm_pflotran_interfaceMod , only : clm_pf_interface_init
+    !use clm_pflotran_interfaceMod , only : pflotran_m
+    !use pflotran_model_module
 
 
 ! !Arguments    
@@ -661,10 +658,10 @@ contains
 
     call t_stopf('clm_init2')
 
-#ifdef CLM_PFLOTRAN
-    call clm_pf_interface_init()
+    if (use_pflotran) then
+       call clm_pf_interface_init()
     !call pflotranModelGetSaturation( pflotran_m )
-#endif
+    end if
 
   end subroutine initialize2
 

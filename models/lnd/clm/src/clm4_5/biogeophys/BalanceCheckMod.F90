@@ -195,7 +195,7 @@ contains
     use clm_varcon   , only : isturb, icol_roof, icol_sunwall, icol_shadewall, &
                               spval, icol_road_perv, icol_road_imperv, istice_mec, &
                               istdlak, istslak,istsoil,istcrop,istwet
-    use clm_varctl   , only : glc_dyntopo, create_glacier_mec_landunit
+    use clm_varctl   , only : glc_dyntopo, create_glacier_mec_landunit, use_pflotran
 !
 ! !ARGUMENTS:
     implicit none
@@ -475,7 +475,7 @@ contains
        end if
     end do
 
-#ifndef CLM_PFLOTRAN
+    if (.not. use_pflotran) then
     if ( found ) then
        write(iulog,*)'WARNING:  water balance error ',&
             ' nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
@@ -589,9 +589,9 @@ contains
           indexc = c
        end if
     end do
-#endif
+ end if ! use_pflotran
 
-#ifndef CLM_PFLOTRAN
+ if (.not. use_pflotran) then
     if ( found ) then
        write(iulog,*)'WARNING:  snow balance error ',&
             ' nstep = ',nstep,' indexc= ',indexc,'ltype: ', ltype(clandunit(indexc)),' errh2osno= ',errh2osno(indexc)
@@ -620,7 +620,7 @@ contains
           call endrun()
        end if
     end if
-#endif
+ end if ! pflotran
     ! Energy balance checks
 
     do p = lbp, ubp
@@ -747,7 +747,7 @@ contains
           indexc = c
        end if
     end do
-#ifndef CLM_PFLOTRAN
+  if (.not. use_pflotran) then 
     if ( found ) then
        if (abs(errsoi_col(indexc)) > .10_r8 .and. (nstep > 2) ) then
           write(iulog,100)'BalanceCheck: soil balance error',nstep,indexc,errsoi_col(indexc)
@@ -756,7 +756,7 @@ contains
           call endrun()
        end if
     end if
-#endif
+  end if ! use_pflotran
 
     ! Update SH and RUNOFF for dynamic land cover change energy and water fluxes
     call c2g( lbc, ubc, lbl, ubl, lbg, ubg,                &
