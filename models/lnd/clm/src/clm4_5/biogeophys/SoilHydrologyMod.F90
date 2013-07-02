@@ -400,7 +400,7 @@ contains
          icol_shadewall, icol_road_perv,denh2o, denice, roverg, wimp, &
          isturb,istsoil,pc,mu,tfrz, istcrop
     use clmtype
-    use clm_varctl      , only: iulog
+    use clm_varctl      , only: iulog, use_pflotran
     use clm_time_manager, only : get_step_size
     use clm_varpar      , only : nlevsoi
     use H2OSfcMod       , only : FracH2oSfc
@@ -636,11 +636,11 @@ contains
 #else
           qinmax=(1._r8 - fsat(c)) * minval(10._r8**(-e_ice*(icefrac(c,1:3)))*hksat(c,1:3))
 #endif
-#ifdef CLM_PFLOTRAN
-          !Note: This is a dummy fix. Need to limit infiltration based on
-          !      soil moisture condition of the top soil layer.
-          qinmax = 1.0e-6_r8
-#endif
+          if (use_pflotran) then
+             !Note: This is a dummy fix. Need to limit infiltration based on
+             !      soil moisture condition of the top soil layer.
+             qinmax = 1.0e-6_r8
+          end if
 
           qflx_infl_excess(c) = max(0._r8,qflx_in_soil(c) -  (1.0_r8 - frac_h2osfc(c))*qinmax)
        
@@ -815,20 +815,10 @@ contains
     use shr_const_mod , only : SHR_CONST_TKFRZ, SHR_CONST_LATICE, SHR_CONST_G
     use TridiagonalMod, only : Tridiagonal
     use clm_time_manager  , only : get_step_size
-#ifdef CLM_PFLOTRAN
-    use clm_varcon   , only : denh2o, denice
-    use decompMod    , only : get_proc_bounds, get_proc_global
-    !use clm_pflotran_interface_type
-    use clm_pflotran_interface_data
-#endif
 !
 ! !ARGUMENTS:
     implicit none
 
-#ifdef CLM_PFLOTRAN
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#endif
     integer , intent(in)  :: lbc, ubc                     ! column bounds
     integer , intent(in)  :: num_hydrologyc               ! number of column soil points in column filter
     integer , intent(in)  :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
@@ -877,19 +867,6 @@ contains
     real(r8), pointer :: hkdepth(:)           ! decay factor (m)
     real(r8), pointer :: zwt(:)               ! water table depth (m)
     real(r8), pointer :: zi(:,:)              ! interface level below a "z" level (m)
-#ifdef CLM_PFLOTRAN
-!    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(r8):: tmp
-    integer  :: g,gcount                  ! do loop indices
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
-    integer , pointer :: cgridcell(:)     ! column's gridcell
-    PetscScalar, pointer :: sat_clm_loc(:)     !
-    PetscScalar, pointer :: watsat_clm_loc(:)    !
-    PetscErrorCode :: ierr
-#endif
 !
 ! local pointers to original implicit inout arguments
 !
@@ -977,9 +954,6 @@ contains
     pfti              =>col%pfti
     smp_l             => cws%smp_l
     hk_l              => cws%hk_l
-#ifdef  CLM_PFLOTRAN
-    cgridcell         => col%gridcell
-#endif
 
     ! Assign local pointers to derived type members (pft-level)
 
@@ -1338,30 +1312,9 @@ contains
     ! update in drainage for case jwt < nlevsoi
 
 
-#ifdef CLM_PFLOTRAN
-    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-
-    do fc = 1,num_hydrologyc
-      c = filter_hydrologyc(fc)
-      g = cgridcell(c)
-      gcount = g - begg
-      do j = 1, nlevsoi
-        h2osoi_liq(c,j) = watsat_clm_loc(gcount*nlevsoi+j)*sat_clm_loc(gcount*nlevsoi+j)*denh2o*dz(c,j)
-        h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi + j)*dzmm(c,j)
-        h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o+h2osoi_ice(c,j)/dz(c,j)/denice
-        h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
-      enddo
-    enddo
-
-    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
-#endif
 
     do fc = 1,num_hydrologyc
        c = filter_hydrologyc(fc)
-#ifndef CLM_PFLOTRAN
        do j = 1, nlevsoi
           h2osoi_liq(c,j) = h2osoi_liq(c,j) + dwat2(c,j)*dzmm(c,j)
        end do
@@ -1398,9 +1351,6 @@ contains
           ! if water table is below soil column, compute qcharge from dwat2(11)
           qcharge(c) = dwat2(c,nlevsoi+1)*dzmm(c,nlevsoi+1)/dtime
        endif
-#else
-      qcharge(c) = 0.0_r8
-#endif	   
     end do
 
 

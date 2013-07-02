@@ -175,8 +175,8 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 ! !USES:
 
   use clm_varctl, only : use_pflotran
-  use clm_pflotran_interfaceMod, only : clm_pf_update_soil_moisture, clm_pf_write_restart
-  use SoilTemperatureMod  , only : SoilTemperaturePFUpdate
+  use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
+       clm_pf_update_soil_temperature
 
 ! !ARGUMENTS:
   implicit none
@@ -250,13 +250,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   clandunit           =>col%landunit
 
   ! Set pointers into derived type
-
-  if (use_pflotran) then
-     ! For NSTEP=0; update the soil moisture values that were
-     !              initialized in PFLOTRAN.
-     call clm_pf_update_soil_moisture(cws, cps, filter)
-  end if
-
 
 #ifdef CN
   ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
@@ -620,7 +613,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      ! Update soil temperatures from PFLOTRAN
      ! ============================================================================
      if (use_pflotran) then
-        call SoilTemperaturePFUpdate(begl, endl, begc, endc, &
+        call clm_pf_update_soil_temperature(begl, endl, begc, endc, &
              filter(nc)%num_urbanl,  filter(nc)%urbanl, &
              filter(nc)%num_nolakec, filter(nc)%nolakec)
      end if
