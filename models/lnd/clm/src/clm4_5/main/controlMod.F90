@@ -27,6 +27,7 @@ module controlMod
                             create_glacier_mec_landunit, glc_dyntopo, glc_smb, &
                             glc_topomax, glc_grid, subgridflag, &
                             use_c13, use_c14, irrigate, &
+                            use_pflotran, &
                             spinup_state, override_bgc_restart_mismatch_dump
   use CanopyFluxesMod , only : perchroot, perchroot_alt
 #if (defined LCH4) && (defined CN)
@@ -93,6 +94,7 @@ module controlMod
   use shr_nl_mod      , only : shr_nl_find_group_name
   use Hydrology1Mod   , only : Hydrology1_readnl
   use SoilHydrologyMod, only : SoilHydrology_readnl
+  use clm_pflotran_interfaceMod, only : clm_pf_readnl
  
 !
 ! !PUBLIC TYPES:
@@ -300,6 +302,9 @@ contains
          use_c14_bombspike, atm_c14_filename
 #endif
 
+    ! pflotran interface
+    namelist /clm_inparm/ &
+         use_pflotran
 
     ! ----------------------------------------------------------------------
     ! Default values
@@ -406,6 +411,9 @@ contains
     call Hydrology1_readnl(    NLFilename )
     call SoilHydrology_readnl( NLFilename )
 
+    if (use_pflotran) then
+       call clm_pf_readnl(NLFilename)
+    end if
 
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate

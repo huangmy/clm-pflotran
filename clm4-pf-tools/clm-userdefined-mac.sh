@@ -147,6 +147,8 @@ function configure_step() {
     ./cesm_setup
     perl -w -i -p -e "s@#mpirun@${MPIEXEC}@" ${CASE_NAME}.run
     perl -w -i -p -e "s@^sleep@#sleep@" ${CASE_NAME}.run
+
+    setup_clm_user_namelist
 }
 
 function build_step() {
@@ -369,6 +371,20 @@ ifeq (\$(MODEL), driver)
 endif
 
 EOF
+
+}
+
+function setup_clm_user_namelist() {
+    if [ ! -z ${LINK_PFLOTRAN} ]; then
+        echo "Adding pflotran flags to user_nl_clm"
+        cat >> ${CASE_DIR}/user_nl_clm <<EOF
+use_pflotran = .true.
+
+&clm_pflotran_inparm
+    pflotran_prefix = "${CASE_NAME}"
+/
+EOF
+    fi
 
 }
 

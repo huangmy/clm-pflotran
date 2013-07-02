@@ -46,14 +46,80 @@ module clm_pflotran_interfaceMod
   !
   private    ! By default everything is private
 
+  character(len=256), public :: pflotran_prefix = ''
+
   ! !PUBLIC MEMBER FUNCTIONS:
   public :: clm_pf_interface_init  ! Phase one initialization
+  public :: clm_pf_readnl
 
 
 contains
 
-  subroutine clm_pf_interface_init()
+!-----------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: clm_pf_readnl
+!
+! !INTERFACE:
+  subroutine clm_pf_readnl( NLFilename )
+!
+! !DESCRIPTION:
+! Read namelist for clm-pflotran interface
+!
+! !USES:
+    use spmdMod       , only : masterproc, mpicom
+    use fileutils     , only : getavu, relavu, opnfil
+    use clm_nlUtilsMod, only : find_nlgroup_name
+    use shr_mpi_mod   , only : shr_mpi_bcast
+    use abortutils    , only : endrun
+! !ARGUMENTS:
+    character(len=*), intent(IN) :: NLFilename ! Namelist filename
+! !LOCAL VARIABLES:
+    integer :: ierr                 ! error code
+    integer :: unitn                ! unit for namelist file
+    character(len=32) :: subname = 'clm_pf_readnl'  ! subroutine name
+!EOP
+!-----------------------------------------------------------------------
+    namelist / clm_pflotran_inparm / pflotran_prefix
 
+    ! ----------------------------------------------------------------------
+    ! Read namelist from standard namelist file.
+    ! ----------------------------------------------------------------------
+
+    if ( masterproc )then
+
+       unitn = getavu()
+       write(iulog,*) 'Read in clm-pflotran namelist'
+       call opnfil (NLFilename, unitn, 'F')
+       call find_nlgroup_name(unitn, 'clm_pflotran_inparm', status=ierr)
+       if (ierr == 0) then
+          read(unitn, clm_pflotran_inparm, iostat=ierr)
+          if (ierr /= 0) then
+             call endrun(subname // ':: ERROR reading clm_pflotran_inparm namelist')
+          end if
+       end if
+       call relavu( unitn )
+       write(iulog, '(/, A)') " clm-pflotran namelist parameters :"
+       write(iulog, '(A, " : ", A,/)') "   pflotran_prefix", trim(pflotran_prefix)
+    end if
+
+    ! Broadcast namelist variables read in
+    call shr_mpi_bcast(pflotran_prefix, mpicom)
+  end subroutine clm_pf_readnl
+
+!-----------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: clm_pf_interface_init
+!
+! !INTERFACE:
+  subroutine clm_pf_interface_init()
+!
+! !DESCRIPTION:
+! initialize the pflotran iterface
+!
+! !USES:
+    use clm_varctl, only : use_pflotran
     !
     ! !ARGUMENTS:
 
@@ -211,7 +277,7 @@ contains
     allocate(pflotran_m)
 
     ! Create PFLOTRAN model
-    pflotran_m => pflotranModelCreate(mpicom)
+    pflotran_m => pflotranModelCreate(mpicom, pflotran_prefix)
 
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()
