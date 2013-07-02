@@ -38,11 +38,13 @@ module clm_pflotran_interfaceMod
   ! when pflotran is not available.
   public :: clm_pf_interface_init  ! Phase one initialization
   public :: clm_pf_update_soil_moisture
+  public :: clm_pf_write_restart
 
 #ifdef CLM_PFLOTRAN
   ! private work functions that truely require ifdef CLM_PFLOTRAN
   private :: interface_init_clm_pf
   private :: update_soil_moisture_clm_pf
+  private :: write_restart_clm_pf
 #endif
 
 contains
@@ -193,6 +195,34 @@ contains
   end subroutine clm_pf_update_soil_moisture
 
 
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_write_restart
+  !
+  ! !INTERFACE:
+  subroutine clm_pf_write_restart(date_stamp)
+  !
+  ! !DESCRIPTION:
+  ! Wrapper around write restart
+  !
+  ! !USES:
+  ! !ARGUMENTS:
+    implicit none
+    character(len=*), intent(in) :: date_stamp
+  ! !LOCAL VARIABLES:
+    character(len=32) :: subname = "clm_pf_write_restart"
+  !EOP
+  !-----------------------------------------------------------------------
+#ifdef CLM_PFLOTRAN
+    call write_restart_clm_pf(date_stamp)
+#else
+    call pflotran_not_available(subname)
+#endif
+  end subroutine clm_pf_write_restart
+
+
+
 
 !-----------------------------------------------------------------------
 !
@@ -200,6 +230,34 @@ contains
 !
 !-----------------------------------------------------------------------
 #ifdef CLM_PFLOTRAN
+  !-----------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: write_restart_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine write_restart_clm_pf(date_stamp)
+  !
+  ! !DESCRIPTION:
+  ! Trigger a pflotran checkpoint file to be written
+  !
+  ! !USES:
+  ! !ARGUMENTS:
+    character(len=32), intent(in) :: date_stamp ! file name date stamp
+  ! !LOCAL VARIABLES:
+
+
+  !EOP
+  !-----------------------------------------------------------------------
+
+    call pflotranModelStepperCheckpoint(pflotran_m, date_stamp)
+    ! TODO: do we need to record the checkpoint file name someplace...?
+    !pflotran_m%realization%output_option%last_checkpoint_filename
+
+  end subroutine write_restart_clm_pf
+
+
+
   !-----------------------------------------------------------------------
   !BOP
   !
@@ -389,6 +447,10 @@ contains
 
     ! Create PFLOTRAN model
     pflotran_m => pflotranModelCreate(mpicom, pflotran_prefix)
+    ! if restart_date_stamp 
+    !   option%restart_flag = true
+    !   option%restart_filename = pflotran_prefix-date_stamp.chk
+    ! else if not restart_date_stamp and option%restart_flag then error
 
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()

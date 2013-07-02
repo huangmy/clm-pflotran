@@ -175,7 +175,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 ! !USES:
 
   use clm_varctl, only : use_pflotran
-  use clm_pflotran_interfaceMod, only : clm_pf_update_soil_moisture
+  use clm_pflotran_interfaceMod, only : clm_pf_update_soil_moisture, clm_pf_write_restart
   use SoilTemperatureMod  , only : SoilTemperaturePFUpdate
 
 ! !ARGUMENTS:
@@ -872,6 +872,9 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      call t_startf('clm_drv_io_wrest')
      filer = restFile_filename(rdate=rdate)
      call restFile_write( filer, nlend, rdate=rdate )
+     if (use_pflotran) then
+        call clm_pf_write_restart(rdate)
+     end if
      call t_stopf('clm_drv_io_wrest')
   end if
 
