@@ -29,7 +29,8 @@ module clm_pflotran_interfaceMod
   !
   private    ! By default everything is private
 
-  character(len=256), public :: pflotran_prefix = ''
+  character(len=256), private :: pflotran_prefix = ''
+  character(len=32), private :: restart_stamp = ''
 
   ! !PUBLIC MEMBER FUNCTIONS:
   public :: clm_pf_readnl
@@ -40,7 +41,7 @@ module clm_pflotran_interfaceMod
        clm_pf_update_soil_moisture, &
        clm_pf_update_soil_temperature, &
        clm_pf_step_th, &
-       clm_pf_write_restart, &
+       clm_pf_write_restart, clm_pf_set_restart_stamp, &
        clm_pf_vecget_gflux, clm_pf_vecrestore_gflux
 
 #ifdef CLM_PFLOTRAN
@@ -117,6 +118,42 @@ contains
     ! Broadcast namelist variables read in
     call shr_mpi_bcast(pflotran_prefix, mpicom)
   end subroutine clm_pf_readnl
+
+
+
+  !-----------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: clm_pf_set_restart_stamp
+  !
+  ! !INTERFACE:
+  subroutine clm_pf_set_restart_stamp(clm_restart_filename)
+  !
+  ! !DESCRIPTION: Set the pflotran restart date stamp. Note we do NOT
+  ! restart here, that gets handled by pflotran's internal
+  ! initialization during interface_init_clm_pf()
+  !
+  ! !USES:
+  ! !ARGUMENTS:
+    character(len=256), intent(in) :: clm_restart_filename
+  ! !LOCAL VARIABLES:
+    integer :: name_length, start_pos, end_pos
+    character(len=32) :: clm_stamp
+  !EOP
+  !-----------------------------------------------------------------------
+
+    ! clm restart file name is of the form:
+    !     ${CASE_NAME}.clm2.r.YYYY-MM-DD-SSSSS.nc
+    ! we need to extract the: YYYY-MM-DD-SSSSS
+    write(*, '("clm-pf : clm restart file name : ", A/)') trim(clm_restart_filename)
+    name_length = len(trim(clm_restart_filename))
+    start_pos = name_length - 18
+    end_pos = name_length - 3
+    clm_stamp = clm_restart_filename(start_pos : end_pos)
+    write(*, '("clm-pf : clm date stamp : ", A/)') trim(clm_stamp)
+    restart_stamp = clm_stamp
+
+  end subroutine clm_pf_set_restart_stamp
 
 
   !-----------------------------------------------------------------------------
@@ -309,7 +346,6 @@ contains
 
 
 
-
 !-----------------------------------------------------------------------
 !
 ! private work functions requiring pflotran
@@ -337,10 +373,9 @@ contains
   !-----------------------------------------------------------------------
 
     call pflotranModelStepperCheckpoint(pflotran_m, date_stamp)
-    ! TODO: do we need to record the checkpoint file name someplace...?
-    !pflotran_m%realization%output_option%last_checkpoint_filename
 
   end subroutine write_restart_clm_pf
+
 
 
   !-----------------------------------------------------------------------------
@@ -398,7 +433,7 @@ contains
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
-
+    gflux_clm_loc = 0.0_r8
     call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
     call VecView(clm_pf_idata%gflux_clm, PETSC_VIEWER_STDOUT_WORLD, ierr)
   end subroutine vecrestore_gflux_clm_pf
@@ -594,10 +629,8 @@ contains
 
     ! Create PFLOTRAN model
     pflotran_m => pflotranModelCreate(mpicom, pflotran_prefix)
-    ! if restart_date_stamp 
-    !   option%restart_flag = true
-    !   option%restart_filename = pflotran_prefix-date_stamp.chk
-    ! else if not restart_date_stamp and option%restart_flag then error
+
+    call pflotranModelSetupRestart(pflotran_m, restart_stamp)
 
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()
