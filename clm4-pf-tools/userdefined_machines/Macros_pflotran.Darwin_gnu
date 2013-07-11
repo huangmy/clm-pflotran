@@ -5,6 +5,8 @@
 # MACH=darwin-gnu
 # PFLOTRAN coupling options added
 
+PFLOTRAN := TRUE
+
 ifeq ($(PFLOTRAN), TRUE)
     include ${PETSC_DIR}/conf/variables
 endif
@@ -15,7 +17,7 @@ CXX_LINKER:=FORTRAN
 
 FC_AUTO_R8:= -fdefault-real-8 
 
-FFLAGS := -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none
+FFLAGS:= -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none 
 FFLAGS += -fno-range-check 
 
 FFLAGS_NOOPT:= -O0 
