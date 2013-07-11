@@ -15,16 +15,9 @@ module SoilTemperatureMod
 ! !PUBLIC TYPES:
   implicit none
   save
-#ifdef CLM_PFLOTRAN
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#endif
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: SoilTemperature     ! Snow and soil temperatures including phase change
-#ifdef CLM_PFLOTRAN
-  public :: SoilTemperaturePFUpdate ! Update soil temperatures from pflotran
-#endif
 !
 ! !PRIVATE MEMBER FUNCTIONS:
   private :: SoilThermProp      ! Set therm conduct. and heat cap of snow/soil layers
@@ -72,7 +65,7 @@ contains
     use clmtype
     use clm_atmlnd    , only : clm_a2l
     use clm_time_manager  , only : get_step_size
-    use clm_varctl    , only : iulog
+    use clm_varctl    , only : iulog, use_pflotran
     use shr_infnan_mod, only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon    , only : sb, capr, cnfac, hvap, isturb, &
                                icol_roof, icol_sunwall, icol_shadewall, &
@@ -82,18 +75,16 @@ contains
     use clm_varpar    , only : nlevsno, nlevgrnd, max_pft_per_col, nlevurb
     use BandDiagonalMod, only : BandDiagonal
 
-#ifdef CLM_PFLOTRAN
-    use clm_pflotran_interfaceMod  , only : pflotran_m
-    use clm_pflotran_interface_data, only : clm_pf_idata
+    use clm_pflotran_interfaceMod  , only : clm_pf_vecget_gflux, clm_pf_vecrestore_gflux
     use clm_varctl                 , only : iulog
     use decompMod                  , only : get_proc_bounds, get_proc_global
     use clm_varpar                 , only : max_pft_per_col
     use clm_varcon  , only : tkwat, tkice, tkair
-#endif
 
 !
 ! !ARGUMENTS:
     implicit none
+
     integer , intent(in)  :: lbc, ubc                    ! column bounds
     integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
@@ -251,7 +242,8 @@ contains
     real(r8) :: eflx_gnet_soil
     real(r8) :: eflx_gnet_h2osfc
     integer  :: jbot(lbc:ubc)                      ! bottom level at each column
-#ifdef CLM_PFLOTRAN
+
+    ! pflotran interface
     integer  :: gcount
     integer  :: pftindex                        ! pft index
     integer  :: begp, endp                ! per-proc beginning and ending pft indices
@@ -268,14 +260,10 @@ contains
     real(r8) :: bw
     real(r8) :: thk_snow_wat
     real(r8) :: thk_snow
-
     real(r8), pointer :: cwtgcell(:)       ! weight (relative to gridcell)
     integer , pointer :: cgridcell(:)     ! column's gridcell index
+    real(r8), pointer :: gflux_clm_loc(:)
 
-    PetscScalar, pointer :: gflux_clm_loc(:)    !
-    PetscErrorCode       :: ierr
-    real(r8) :: area
-#endif
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
@@ -360,16 +348,16 @@ contains
     h2osoi_liq     => cws%h2osoi_liq
     h2osoi_ice     => cws%h2osoi_ice
 
-#ifdef CLM_PFLOTRAN
     cwtgcell       => col%wtgcell
     cgridcell      => col%gridcell
 
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-    call get_proc_global(numg, numl, numc, nump)
+    if (use_pflotran) then
+       call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+       call get_proc_global(numg, numl, numc, nump)
 
-    call VecGetArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr)
-    gflux_clm_loc = 0._r8
-#endif
+       call clm_pf_vecget_gflux(gflux_clm_loc)
+       gflux_clm_loc = 0._r8
+    end if
 
     ! Get step size
 
@@ -704,92 +692,91 @@ contains
 
     enddo
 
-#ifdef CLM_PFLOTRAN
+    if (use_pflotran) then
+       ! Do not evolve soil temperature
+       do j = 1,nlevgrnd
+          do fc = 1,num_nolakec
+             c = filter_nolakec(fc)
 
-    ! Do not evolve soil temperature
-    do j = 1,nlevgrnd
-      do fc = 1,num_nolakec
-        c = filter_nolakec(fc)
+             at(c,j) = 0._r8
+             bt(c,j) = 1._r8
+             ct(c,j) = 0._r8
+             rt(c,j) = t_soisno(c,j)
+          enddo
+       enddo
 
-        at(c,j) = 0._r8
-        bt(c,j) = 1._r8
-        ct(c,j) = 0._r8
-        rt(c,j) = t_soisno(c,j)
-      enddo
-    enddo
+       ! Modify snow/h2osfc/soil connection:
+       ! Default CLM connection order:
+       ! 1) snow <---> soil layer
+       ! 2) h2osfc <---> soil layer
+       !
+       ! New connection order:
+       ! 1) snow <---> h2osfc <---> soil layer
+       j = 0
+       do fc = 1,num_nolakec
+          c = filter_nolakec(fc)
+          g = cgridcell(c)
 
-    ! Modify snow/h2osfc/soil connection:
-    ! Default CLM connection order:
-    ! 1) snow <---> soil layer
-    ! 2) h2osfc <---> soil layer
-    !
-    ! New connection order:
-    ! 1) snow <---> h2osfc <---> soil layer
-    j = 0
-    do fc = 1,num_nolakec
-      c = filter_nolakec(fc)
-      g = cgridcell(c)
+          if(snl(c)>0 .and. frac_h2osfc(c) == 0._r8) then
+             ! Snow is present without standing water
 
-      if(snl(c)>0 .and. frac_h2osfc(c) == 0._r8) then
-        ! Snow is present without standing water
+             dzp     = (z(c,j+1)-z(c,j))
 
-        dzp     = (z(c,j+1)-z(c,j))
+             rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
+             ct(c,j) = 0._r8
 
-        rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
-        ct(c,j) = 0._r8
+             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+                  tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
-        gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
-          tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
+          else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
 
-      else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
+             ! Snow and standing water are both present
 
-        ! Snow and standing water are both present
+             ! Distances
+             dzm     = (z(c,j)-z(c,j-1))
+             dzp     = (z(c,j)+dz_h2osfc(c)*0.5_r8)
 
-        ! Distances
-        dzm     = (z(c,j)-z(c,j-1))
-        dzp     = (z(c,j)+dz_h2osfc(c)*0.5_r8)
+             ! Thermal conductivity of lowest snow layer
+             bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
+             thk_snow = tkair + (7.75e-5_r8 *bw + 1.105e-6_r8*bw*bw)*(tkice-tkair)
 
-        ! Thermal conductivity of lowest snow layer
-        bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
-        thk_snow = tkair + (7.75e-5_r8 *bw + 1.105e-6_r8*bw*bw)*(tkice-tkair)
+             ! Thermal conductivity of snow/h2osfc interface
+             thk_snow_wat = tkwat*thk_snow*z(c,j)*0.5_r8*dz_h2osfc(c) &
+                  /(thk_snow*0.5_r8*dz_h2osfc(c)+tkwat*z(c,j))
 
-        ! Thermal conductivity of snow/h2osfc interface
-        thk_snow_wat = tkwat*thk_snow*z(c,j)*0.5_r8*dz_h2osfc(c) &
-                       /(thk_snow*0.5_r8*dz_h2osfc(c)+tkwat*z(c,j))
+             fn_snow_wat=thk_snow_wat*(t_h2osfc(c)-t_soisno(c,0))/dzp
 
-        fn_snow_wat=thk_snow_wat*(t_h2osfc(c)-t_soisno(c,0))/dzp
+             if (snl(c)==1) then
+                ! Only one snow layer present that interacts with atmosphere
+                ! and standing water
+                bt(c,j) = 1._r8+(1._r8-cnfac)*fact(c,j)*thk_snow_wat/dzp-fact(c,j)*dhsdT(c)
+                rt(c,j) = t_soisno(c,j) +  fact(c,j)*( hs_top_snow(c) &
+                     - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
+             else
+                ! More than one snow layer present that interacts with another snow
+                ! layer and standing water
+                bt(c,j) = 1._r8+(1._r8-cnfac)*fact(c,j)*(thk_snow_wat/dzp + tk(c,j-1)/dzm)
+                rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn_snow_wat - fn(c,j-1) )
+             endif
 
-        if (snl(c)==1) then
-          ! Only one snow layer present that interacts with atmosphere
-          ! and standing water
-          bt(c,j) = 1._r8+(1._r8-cnfac)*fact(c,j)*thk_snow_wat/dzp-fact(c,j)*dhsdT(c)
-          rt(c,j) = t_soisno(c,j) +  fact(c,j)*( hs_top_snow(c) &
-                    - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
-        else
-          ! More than one snow layer present that interacts with another snow
-          ! layer and standing water
-          bt(c,j) = 1._r8+(1._r8-cnfac)*fact(c,j)*(thk_snow_wat/dzp + tk(c,j-1)/dzm)
-          rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn_snow_wat - fn(c,j-1) )
-        endif
+             ct(c,j) = - (1._r8-cnfac)*fact(c,j)*thk_snow_wat/dzp
 
-        ct(c,j) = - (1._r8-cnfac)*fact(c,j)*thk_snow_wat/dzp
+             rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
 
-        rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
+             ! Note (GB): Need to add a check if surface water temperature is being
+             ! evolved by PFLOTRAN
 
-        ! Note (GB): Need to add a check if surface water temperature is being
-        ! evolved by PFLOTRAN
+          else if(snl(c) == 0 .and. frac_h2osfc(c) == 0._r8) then
+             ! Both snow and standing water absent (need to do nothing)
+             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+                  hs_soil(c)*cwtgcell(c)
+          else
+             ! Snow is absent but standing water is present (This is accounted for
+             ! later in the code)
+          endif
+       enddo
 
-      else if(snl(c) == 0 .and. frac_h2osfc(c) == 0._r8) then
-        ! Both snow and standing water absent (need to do nothing)
-        gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
-                hs_soil(c)*cwtgcell(c)
-      else
-        ! Snow is absent but standing water is present (This is accounted for
-        ! later in the code)
-      endif
-    enddo
-
-#endif
+    end if ! use_pflotran
 
     ! set up compact matrix for band diagonal solver, requires additional 
     !     sub/super diagonals (1 each), and one additional row for t_h2osfc
@@ -846,49 +833,49 @@ contains
 
        tvector(c,0)=t_h2osfc(c)
 
-#ifdef CLM_PFLOTRAN
-       g = cgridcell(c)
+       if (use_pflotran) then
+          g = cgridcell(c)
 
-       if (frac_h2osfc(c) /= 0) then
+          if (frac_h2osfc(c) /= 0) then
 
-          if (snl(c) > 0) then
-            ! Both snow and standing water present
+             if (snl(c) > 0) then
+                ! Both snow and standing water present
 
-            ! Distances
-            dzm = (z(c,0)+dz_h2osfc(c)*0.5_r8)
-            dzp = (0.5*dz_h2osfc(c)+z(c,1))
+                ! Distances
+                dzm = (z(c,0)+dz_h2osfc(c)*0.5_r8)
+                dzp = (0.5*dz_h2osfc(c)+z(c,1))
 
-            ! Thermal conductivity of lowest snow layer
-            j = 0
-            bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
-            thk_snow = tkair + (7.75e-5_r8 *bw + 1.105e-6_r8*bw*bw)*(tkice-tkair)
+                ! Thermal conductivity of lowest snow layer
+                j = 0
+                bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
+                thk_snow = tkair + (7.75e-5_r8 *bw + 1.105e-6_r8*bw*bw)*(tkice-tkair)
 
-            ! Thermal conductivity of snow/h2osfc interface
-            thk_snow_wat = tkwat*thk_snow*z(c,j)*0.5_r8*dz_h2osfc(c) &
-                           /(thk_snow*0.5_r8*dz_h2osfc(c)+tkwat*z(c,j))
+                ! Thermal conductivity of snow/h2osfc interface
+                thk_snow_wat = tkwat*thk_snow*z(c,j)*0.5_r8*dz_h2osfc(c) &
+                     /(thk_snow*0.5_r8*dz_h2osfc(c)+tkwat*z(c,j))
 
-            ! Interaction with snow layer
-            bmatrix(c,4,0)=-(1._r8-cnfac)*(dtime/c_h2osfc(c))*thk_snow_wat/dzm
-            ! Interaction with itself (digonal entry)
-            bmatrix(c,3,0)=1._r8+(1._r8-cnfac)*(dtime/c_h2osfc(c))*thk_snow_wat/dzm &
-                          *(tk_h2osfc(c)/dzp + thk_snow_wat/dzm)
-            ! Interaction with soil layer
-            bmatrix(c,2,0)=-(1._r8-cnfac)*(dtime/c_h2osfc(c))*tk_h2osfc(c)/dzp
+                ! Interaction with snow layer
+                bmatrix(c,4,0)=-(1._r8-cnfac)*(dtime/c_h2osfc(c))*thk_snow_wat/dzm
+                ! Interaction with itself (digonal entry)
+                bmatrix(c,3,0)=1._r8+(1._r8-cnfac)*(dtime/c_h2osfc(c))*thk_snow_wat/dzm &
+                     *(tk_h2osfc(c)/dzp + thk_snow_wat/dzm)
+                ! Interaction with soil layer
+                bmatrix(c,2,0)=-(1._r8-cnfac)*(dtime/c_h2osfc(c))*tk_h2osfc(c)/dzp
 
-            fn_snow_wat=thk_snow_wat*(t_h2osfc(c)-t_soisno(c,0))/dzm
-            fn_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
+                fn_snow_wat=thk_snow_wat*(t_h2osfc(c)-t_soisno(c,0))/dzm
+                fn_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
 
-            rvector(c,0)= t_soisno(c,j) + cnfac*(dtime/c_h2osfc(c))*(fn_h2osfc(c)-fn_snow_wat)
+                rvector(c,0)= t_soisno(c,j) + cnfac*(dtime/c_h2osfc(c))*(fn_h2osfc(c)-fn_snow_wat)
 
+             endif
+
+             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+                  fn_h2osfc(c)*cwtgcell(c)
           endif
 
-        gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
-            fn_h2osfc(c)*cwtgcell(c)
-       endif
-
-       rvector(c,0) = rvector(c,0)-bmatrix(c,2,0)*t_h2osfc(c)
-       bmatrix(c,2,0) = 0._r8
-#endif
+          rvector(c,0) = rvector(c,0)-bmatrix(c,2,0)*t_h2osfc(c)
+          bmatrix(c,2,0) = 0._r8
+       end if ! use_pflotran
 
 !=========================================================================
        ! soil layers; top layer will have one offset and one extra coefficient
@@ -897,30 +884,30 @@ contains
        bmatrix(c,4,1:nlevgrnd)=at(c,1:nlevgrnd)
        ! top soil layer has sub coef shifted to 2nd super diagonal
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-#ifndef CLM_PFLOTRAN
-          bmatrix(c,4,1)=  - frac_h2osfc(c) * (1._r8-cnfac) * fact(c,1) &
-               * tk_h2osfc(c)/dzm !flux from h2osfc
-#endif
+          if (.not. use_pflotran) then
+             bmatrix(c,4,1)=  - frac_h2osfc(c) * (1._r8-cnfac) * fact(c,1) &
+                  * tk_h2osfc(c)/dzm !flux from h2osfc
+          end if
        else
           bmatrix(c,4,1)= 0.0_r8
        end if
        bmatrix(c,5,1)=at(c,1)
        ! diagonal element correction for presence of h2osfc
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-#ifndef CLM_PFLOTRAN
-          bmatrix(c,3,1)=bmatrix(c,3,1)+ frac_h2osfc(c) &
-               *((1._r8-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
-#endif
+          if (.not. use_pflotran) then
+             bmatrix(c,3,1)=bmatrix(c,3,1)+ frac_h2osfc(c) &
+                  *((1._r8-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
+          end if
        end if
 
        rvector(c,1:nlevgrnd)=rt(c,1:nlevgrnd)
        ! rhs correction for h2osfc
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-#ifndef CLM_PFLOTRAN
-          rvector(c,1)=rvector(c,1) &
-               -frac_h2osfc(c)*fact(c,1)*((hs_soil(c) - dhsdT(c)*t_soisno(c,1)) &
-               +cnfac*fn_h2osfc(c))
-#endif
+          if (.not. use_pflotran) then
+             rvector(c,1)=rvector(c,1) &
+                  -frac_h2osfc(c)*fact(c,1)*((hs_soil(c) - dhsdT(c)*t_soisno(c,1)) &
+                  +cnfac*fn_h2osfc(c))
+          end if
        end if
 
        tvector(c,1:nlevgrnd)=t_soisno(c,1:nlevgrnd)
@@ -1076,9 +1063,9 @@ contains
     deallocate( tk_h2osfc )
     deallocate( dhsdT     )
 
-#ifdef CLM_PFLOTRAN
-    call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr)
-#endif
+    if (use_pflotran) then
+       call clm_pf_vecrestore_gflux(gflux_clm_loc)
+    end if
 
   end subroutine SoilTemperature
 
@@ -2034,72 +2021,5 @@ contains
     end do
 
   end subroutine Phasechange_beta
-
-#ifdef CLM_PFLOTRAN
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: SoilTemperaturePFUpdate
-!
-! !INTERFACE:
-  subroutine SoilTemperaturePFUpdate(lbl, ubl, lbc, ubc, num_urbanl, filter_urbanl, &
-                             num_nolakec, filter_nolakec)
-
-    use shr_kind_mod  , only : r8 => shr_kind_r8
-    use clmtype
-    use clm_time_manager  , only : get_step_size
-    use clm_varctl    , only : iulog
-    use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi 
-    use decompMod    , only : get_proc_bounds, get_proc_global
-    use clm_pflotran_interface_data, only : clm_pf_idata
-    use decompMod                  , only : get_proc_bounds, get_proc_global
-    use clm_varpar                 , only : max_pft_per_col
-
-    implicit none
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-
-    integer , intent(in)  :: lbc, ubc                    ! column bounds
-    integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
-    integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer , intent(in)  :: lbl, ubl                    ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                  ! number of urban landunits in clump
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
-
-    integer  :: j,c,g                     !  indices
-    integer  :: fc                        ! lake filtered column indices
-    integer  :: gcount
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
-
-    real(r8), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
-    integer , pointer :: cgridcell(:)       ! column's gridcell
-    PetscScalar, pointer :: temp_clm_loc(:)  !
-    PetscErrorCode :: ierr
-
-    t_soisno       => ces%t_soisno
-    cgridcell      => col%gridcell
-
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-
-    call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
-
-    do fc = 1,num_nolakec
-       c = filter_nolakec(fc)
-       g = cgridcell(c)
-       gcount = g - begg
-       do j = 1, nlevsoi
-          t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
-       enddo
-       t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
-    enddo
-
-    call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
-
-  end subroutine SoilTemperaturePFUpdate
-#endif
-
 
 end module SoilTemperatureMod

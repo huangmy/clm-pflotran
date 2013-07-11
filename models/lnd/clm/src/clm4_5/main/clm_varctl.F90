@@ -108,6 +108,10 @@ module clm_varctl
   character(len=256), public :: glc_grid = ' '              ! glc_grid used to determine fglcmask  
   character(len=256), public :: fglcmask = ' '              ! glacier mask file name (based on glc_grid)
 !
+! pflotran interface
+!
+  logical, public :: use_pflotran = .false.
+!
 ! single column control variables
 !
   logical,  public :: single_column = .false.           ! true => single column mode

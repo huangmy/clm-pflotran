@@ -1268,6 +1268,12 @@ if ($phys eq "clm4_5") {
 }
 
 #
+# pflotran interface
+#
+add_default($nl, 'use_pflotran', 'use_pflotran'=>$nl->get_value('use_pflotran'));
+add_default($nl, 'pflotran_prefix', $nl->get_value('pflotran_prefix'));
+
+#
 # Nitrogen deposition for bgc=CN
 #
 if ( $bgc =~ /^cn/ ) {
@@ -1435,7 +1441,7 @@ my @groups;
 if ($phys eq "clm4_0") {
     @groups = qw(clm_inparm ndepdyn_nml);
 } else {
-    @groups = qw(clm_inparm ndepdyn_nml popd_streams light_streams clm_hydrology1_inparm clm_soilhydrology_inparm);
+    @groups = qw(clm_inparm ndepdyn_nml popd_streams light_streams clm_hydrology1_inparm clm_soilhydrology_inparm clm_pflotran_inparm);
     if ( $clm4me  eq "on" ) {
 	push @groups, "ch4par_in";
     }

@@ -84,7 +84,7 @@ module clm_driver
 ! !USES:
   use shr_kind_mod        , only : r8 => shr_kind_r8
   use clmtype
-  use clm_varctl          , only : wrtdia, fpftdyn, iulog, create_glacier_mec_landunit
+  use clm_varctl          , only : wrtdia, fpftdyn, iulog, create_glacier_mec_landunit, use_pflotran
   use spmdMod             , only : masterproc,mpicom
   use decompMod           , only : get_proc_clumps, get_clump_bounds, get_proc_bounds
   use filterMod           , only : filter
@@ -145,9 +145,6 @@ module clm_driver
   use clm_atmlnd          , only : clm_map2gcell
   use clm_glclnd          , only : create_clm_s2x
   use perf_mod
-#ifdef CLM_PFLOTRAN
-  use SoilTemperatureMod  , only : SoilTemperaturePFUpdate
-#endif
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -177,10 +174,9 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 !
 ! !USES:
 
-#ifdef CLM_PFLOTRAN
-  use clm_varcon      , only : denh2o, denice
-  use clm_varpar      , only : nlevsoi
-#endif
+  use clm_varctl, only : use_pflotran
+  use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
+       clm_pf_update_soil_temperature
 
 ! !ARGUMENTS:
   implicit none
@@ -243,14 +239,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 #endif
   character(len=256) :: filer          ! restart file name
   integer :: ier                       ! error code
-#ifdef CLM_PFLOTRAN
-  real(r8), pointer :: dz(:,:)          ! layer thickness depth (m)
-  real(r8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
-  real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-  real(r8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-  integer :: j
-  real(r8):: tmp
-#endif
 !-----------------------------------------------------------------------
 
   ! Assign local pointers to derived subtypes components (landunit-level)
@@ -262,46 +250,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   clandunit           =>col%landunit
 
   ! Set pointers into derived type
-
-
-#ifdef CLM_PFLOTRAN
-  ! =======================================================================
-  ! For NSTEP=0; update the soil moisture values that were initialized in
-  !              PFLOTRAN. Variables modified
-  !   h2osoi_liq [kg/m^2]  
-  !   h2osoi_vol[m^3/m^3] (water + ice)
-  ! =======================================================================
-
-  h2osoi_ice        => cws%h2osoi_ice
-  h2osoi_liq        => cws%h2osoi_liq
-  h2osoi_vol        => cws%h2osoi_vol
-  dz                => cps%dz  
-
-  nclumps = get_proc_clumps()
-  nstep   = get_nstep()
-
-  if (nstep.eq.0) then
-     
-     write(iulog,*), 'NSTEP = 0'
-     tmp = 0.0_r8
-     do nc = 1,nclumps
-        call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
-        
-        do fc = 1,filter(nc)%num_hydrologyc
-           c = filter(nc)%hydrologyc(fc)
-           do j = 1, nlevsoi
-              !h2osoi_liq(c,j) = clm_pf_data%watsat(c,j) * clm_pf_data%sat(c,j) * denh2o * dz(c,j)
-              !h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + h2osoi_ice(c,j)/dz(c,j)/denice
-              !h2osoi_vol(c,j) = min(h2osoi_vol(c,j),clm_pf_data%watsat(c,j))
-              tmp = tmp + h2osoi_liq(c,j) + h2osoi_ice(c,j)
-           enddo
-        enddo
-     enddo
-     
-     write(iulog,*), 'tmp = ',tmp
-  endif
-
-#endif
 
 #ifdef CN
   ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
@@ -661,14 +609,14 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
                      filter(nc)%num_nosnowc, filter(nc)%nosnowc)
      call t_stopf('hydro2')
 
-#ifdef CLM_PFLOTRAN
      ! ============================================================================
      ! Update soil temperatures from PFLOTRAN
      ! ============================================================================
-     call SoilTemperaturePFUpdate(begl, endl, begc, endc, &
-                         filter(nc)%num_urbanl,  filter(nc)%urbanl, &
-                         filter(nc)%num_nolakec, filter(nc)%nolakec)
-#endif
+     if (use_pflotran) then
+        call clm_pf_update_soil_temperature(begl, endl, begc, endc, &
+             filter(nc)%num_urbanl,  filter(nc)%urbanl, &
+             filter(nc)%num_nolakec, filter(nc)%nolakec)
+     end if
      ! ============================================================================
      ! Lake hydrology
      ! ============================================================================
@@ -917,6 +865,9 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      call t_startf('clm_drv_io_wrest')
      filer = restFile_filename(rdate=rdate)
      call restFile_write( filer, nlend, rdate=rdate )
+     if (use_pflotran) then
+        call clm_pf_write_restart(rdate)
+     end if
      call t_stopf('clm_drv_io_wrest')
   end if
 

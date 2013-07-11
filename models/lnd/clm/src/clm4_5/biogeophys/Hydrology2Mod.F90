@@ -17,11 +17,6 @@ module Hydrology2Mod
   implicit none
   save
 
-#ifdef CLM_PFLOTRAN
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#endif
-
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Hydrology2        ! Calculates soil/snow hydrology
@@ -74,25 +69,17 @@ contains
                                  icol_shadewall, istdlak, &
                                  tfrz, hfus, grav
     use clm_varcon      , only : istcrop
-    use clm_varctl      , only : glc_dyntopo
+    use clm_varctl      , only : glc_dyntopo, use_pflotran
     use clm_varpar      , only : nlevgrnd, nlevsno, nlevsoi, nlevurb
     use SnowHydrologyMod, only : SnowCompaction, CombineSnowLayers, DivideSnowLayers, &
                                  SnowWater, BuildSnowFilter
     use SoilHydrologyMod, only : Infiltration, SoilWater, Drainage, SurfaceRunoff
     use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
+    use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture
 #if (defined VICHYDRO)
     use CLMVICMapMod    , only : CLMVICMap
 #endif
 
-#ifdef CLM_PFLOTRAN
-    !use clm_pflotran_interface_type
-    use pflotran_model_module
-    use clm_pflotran_interfaceMod  , only : pflotran_m
-    use clm_pflotran_interface_data
-    use clm_varctl                 , only : iulog
-    use decompMod                  , only : get_proc_bounds, get_proc_global
-    use clm_varpar                 , only : max_pft_per_col
-#endif
 !
 ! !ARGUMENTS:
     implicit none
@@ -258,44 +245,6 @@ contains
     real(r8) :: s_node                     ! soil wetness (-)
     real(r8) :: icefrac(lbc:ubc,1:nlevsoi)
 
-#ifdef CLM_PFLOTRAN
-    integer  :: p                         ! do loop indices
-    integer  :: pftindex                        ! pft index
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
-    integer  :: nbeg, nend
-    integer  :: numg                      ! total number of gridcells across all processors
-    integer  :: numl                      ! total number of landunits across all processors
-    integer  :: numc                      ! total number of columns across all processors
-    integer  :: nump                      ! total number of pfts across all processors
-    real(r8) :: tmp
-
-    real(r8), pointer :: wtcol(:)             ! pft weight relative to column
-    real(r8), pointer :: wtgcell(:)           ! weight (relative to gridcell)
-    real(r8), pointer :: pwtcol(:)            ! weight relative to column for each pft
-    real(r8), pointer :: pwtgcell(:)          ! weight relative to gridcell for each pft
-    real(r8), pointer :: rootr_pft(:,:)       ! effective fraction of roots in each soil layer
-    real(r8), pointer :: qflx_tran_veg_pft(:) ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(r8), pointer :: qflx_tran_veg_col(:) ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(r8), pointer :: qflx_evap_soi_pft(:) ! soil evaporation (mm H2O/s) (+ = to atm)
-    integer , pointer :: npfts(:)             ! column's number of pfts - ADD
-    integer , pointer :: pfti(:)              ! beginning pft index for each column
-    real(r8) :: den
-    real(r8) :: temp(lbc:ubc)                 ! accumulator for rootr weighting
-    real(r8), pointer :: rootr_col(:,:)       ! effective fraction of roots in each soil layer
-
-    PetscScalar, pointer :: sat_clm_loc(:)    !
-    PetscScalar, pointer :: qflx_clm_loc(:)   !
-    PetscScalar, pointer :: area_clm_loc(:)   !
-    PetscErrorCode :: ierr
-    real(r8) :: area
-
-    den = 998.2_r8 ! [kg/m^3]
-    den = 1000._r8 ! [kg/m^3]
-#endif
-
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
@@ -404,22 +353,6 @@ contains
     smpmin            => cps%smpmin
     qflx_glcice_frz   => cwf%qflx_glcice_frz
 
-#ifdef CLM_PFLOTRAN
-    npfts             => col%npfts
-    wtgcell           => col%wtgcell
-    qflx_tran_veg_col => pwf_a%qflx_tran_veg
-
-    ! Assign local pointers to derived type members (pft-level)
-    qflx_tran_veg_pft => pwf%qflx_tran_veg
-    qflx_evap_soi_pft => pwf%qflx_evap_soi
-    rootr_pft         => pps%rootr
-    pwtgcell          => pft%wtgcell
-    pwtcol            => pft%wtcol
-    pfti              => col%pfti
-    rootr_col         => cps%rootr_column
-    wtcol             => pft%wtcol
-#endif
-
     ! Determine time step and step size
 
     nstep = get_nstep()
@@ -442,132 +375,26 @@ contains
 #endif
 
     ! moved vol_liq from SurfaceRunoff to Infiltration
+    ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
     call SurfaceRunoff(lbc, ubc, lbp, ubp, num_hydrologyc, filter_hydrologyc, &
                        num_urbanc, filter_urbanc, icefrac )
 
+    ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
     call Infiltration(lbc, ubc,  num_hydrologyc, filter_hydrologyc, &
                       num_urbanc, filter_urbanc, vol_liq)
 
-#ifdef CLM_PFLOTRAN
-
-    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr)
-
-    ! Determine necessary indices
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-    call get_proc_global(numg, numl, numc, nump)
-
-    ! Initialize to ZERO
-    do g = begg, endg
-      do j = 1,nlevsoi
-        gcount = g - begg
-        qflx_clm_loc(gcount*nlevsoi + j ) = 0.0_r8
-      end do
-    end do
-
-    ! Compute the Infiltration - Evaporation at each grid-level
-    ! qflx_infl [mm/sec],
-    ! qflx_clm_loc [m^3/sec] (assuming top surf-area = 1 m^2)
-    !
-    ! [m^3/s] = [mm/s]/1000
-    !
-
-    gcount = 1_r8 ! assumption that only 1 soil-column per grid cell
-    do c = begc, endc
-     ! Set gridcell indices
-     g = cgridcell(c)
-     gcount = g - begg
-     j = 1
-     area = area_clm_loc(gcount*nlevsoi+j)
-     qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
-                                        qflx_infl(c)*wtgcell(c)*area
-    enddo
-
-    ! Compute the Transpiration sink at grid-level for each soil layer
-    ! qflx_tran_veg_pft [mm/sec], while
-    ! qflx_clm_loc      [kg/sec] (assuming top surf-area = 1 m^2)
-
-    ! (i) Initialize root faction at column level to be zero
-    do j = 1, nlevsoi
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
-        rootr_col(c,j) = 0._r8
-      end do
-    end do
-
-    temp(:) = 0._r8
-
-    ! (ii) Compute the root fraction at column level
-    do pftindex = 1,max_pft_per_col
-      do j = 1,nlevsoi
-        do fc = 1, num_hydrologyc
-          c = filter_hydrologyc(fc)
-          if (pftindex <= npfts(c)) then
-            p = pfti(c) + pftindex - 1
-            if (pwtgcell(p)>0._r8) then
-              rootr_col(c,j) = rootr_col(c,j) + &
-              rootr_pft(p,j) * qflx_tran_veg_pft(p) * pwtcol(p)
-            end if
-          end if
-        end do
-      end do
-
-
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
-        if (pftindex <= npfts(c)) then
-          p = pfti(c) + pftindex - 1
-          if (pwtgcell(p)>0._r8) then
-            temp(c) = temp(c) + qflx_tran_veg_pft(p) * pwtcol(p)
-          end if
-        end if
-      end do
-    end do
-
-    ! (iii) Compute the Transpiration sink
-    do j = 1, nlevsoi
-      do fc = 1, num_hydrologyc
-        c = filter_hydrologyc(fc)
-        g = cgridcell(c)
-        gcount = g - begg
-        if (temp(c) /= 0._r8) then
-          rootr_col(c,j) = rootr_col(c,j)/temp(c)
-          area = area_clm_loc(gcount*nlevsoi+j)
-          qflx_clm_loc(gcount*nlevsoi + j ) = &
-                              qflx_clm_loc(gcount*nlevsoi + j ) - &
-                              qflx_tran_veg_col(c)*rootr_col(c,j)*area
-        end if
-      end do
-    end do
-
-
-    ! Set the 'new' saturation states; which PFLOTRAN will evolve.
-    ! NOTE: The 'new' saturation states arise because of the phase
-    !       change of water during the evolution of soil temperature
-    !       states
-    do j = 1, nlevsoi
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        ! Set gridcell and landunit indices
-        g = cgridcell(c)
-        !clm_pf_data%sat(g,j) = clm_pf_data%sat(g,j) + &
-        !     h2osoi_liq(c,j)/dz(c,j)/denh2o/watsat(c,j) * wtgcell(c)
-      end do
-    end do
-
-    call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr)
-
-    call pflotranModelUpdateFlowConds( pflotran_m )
-    call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    call pflotranModelGetUpdatedStates( pflotran_m )
-
-#endif
-
-    call SoilWater(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                   num_urbanc, filter_urbanc, dwat, hk, dhkdw)
+    if (use_pflotran) then
+       call clm_pf_step_th(lbc, ubc, lbp, ubp, &
+            num_nolakec, filter_nolakec, &
+            num_hydrologyc, filter_hydrologyc, &
+            num_snowc, filter_snowc, &
+            num_nosnowc, filter_nosnowc)
+       call clm_pf_update_soil_moisture(cws, cps, lbc, ubc, &
+            num_hydrologyc, filter_hydrologyc)
+    else
+       call SoilWater(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
+            num_urbanc, filter_urbanc, dwat, hk, dhkdw)
+    end if
 
 #if (defined VICHYDRO)
     ! mapping soilmoist from CLM to VIC layers for runoff calculations

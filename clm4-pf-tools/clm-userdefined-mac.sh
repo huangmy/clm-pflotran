@@ -92,7 +92,7 @@ MPI_VENDOR=mpich
 FFLAGS="-fno-range-check"
 SLIBS="-L/opt/local/lib -lnetcdff -L/opt/local/lib -lnetcdf"
 NETCDF_PATH="/opt/local"
-LDFLAGS="-framework Accelerate"
+BLAS_FLAGS="-framework Accelerate"
 
 
 
@@ -146,6 +146,9 @@ function configure_step() {
     # create the run script
     ./cesm_setup
     perl -w -i -p -e "s@#mpirun@${MPIEXEC}@" ${CASE_NAME}.run
+    perl -w -i -p -e "s@^sleep@#sleep@" ${CASE_NAME}.run
+
+    setup_clm_user_namelist
 }
 
 function build_step() {
@@ -168,6 +171,57 @@ function clobber_step() {
 # check the user input
 #
 ################################################################################
+function check_pflotran() {
+    _valid_pflotran_env=1
+    if [ "XXX${PETSC_DIR}" == "XXX" ]; then
+        echo "ERROR: PETSC_DIR must be set to link pflotran"
+        _valid_pflotran_env=0
+    else
+        if [ ! -d ${PETSC_DIR} ]; then
+            echo "ERROR: PETSC_DIR must be set and point to a valid directory."
+            echo "PETSC_DIR = ${PETSC_DIR}"
+            _valid_pflotran_env=0
+        fi
+    fi
+
+    if [ "XXX${PETSC_ARCH}" == "XXX" ]; then
+        echo "ERROR: PETSC_ARCH must be set to link pflotran"
+        _valid_pflotran_env=0
+    else
+        if [ ! -d ${PETSC_DIR}/${PETSC_ARCH} ]; then
+            echo "ERROR: PETSC_ARCH does not exist inside PETSC_DIR."
+            echo "PETSC_DIR = ${PETSC_DIR}"
+            echo "PETSC_ARCH = ${PETSC_ARCH}"
+            _valid_pflotran_env=0
+        fi
+    fi
+
+    if [ "XXX${PFLOTRAN_DIR}" == "XXX" ]; then
+        echo "ERROR: PFLOTRAN_DIR must be set to link pflotran"
+        _valid_pflotran_env=0
+    else
+        if [ ! -d ${PFLOTRAN_DIR} ]; then
+            echo "ERROR: PFLOTRAN_DIR does not exist."
+            echo "PFLOTRAN_DIR = ${PFLOTRAN_DIR}"
+            _valid_pflotran_env=0
+        fi
+
+        if [ ! -f ${PFLOTRAN_DIR}/src/clm-pflotran/libpflotran.a ]; then
+            echo "ERROR: \${PFLOTRAN_DIR}/src/clm-pflotran/libpflotran.a must be built."
+        fi
+    fi
+
+    if [ ${_valid_pflotran_env} != 1 ]; then
+        echo "ERROR: invalid pflotran environment. exiting."
+        exit 1
+    else
+        echo "pflotran environment:"
+        echo "    PETSC_DIR=${PETSC_DIR}"
+        echo "    PETSC_ARCH=${PETSC_ARCH}"
+        echo "    PFLOTRAN_DIR=${PFLOTRAN_DIR}"
+    fi
+}
+
 function check_data_dir() {
     if [ ! -d ${DATA_DIR} ]; then
         echo "ERROR: The cesm inputdata directory does not exist: '${DATA_DIR}'"
@@ -198,13 +252,10 @@ function check_macros() {
     # necessary. We do NOT want to automatically override in case the
     # user has modified something!
     if [ ! -f ${CASE_DIR}/Macros ]; then
-        if [ ! -z ${MACRO_FILE} ]; then
-            MACRO_FILE=$(abspath ${MACRO_FILE})
-            ln -s ${MACRO_FILE} ${CASE_DIR}/Macros
-            echo "  Linking command line Macros file into case."
-        else
-            create_macros_file
-        fi
+        create_macros_file
+    elif [ "${OVERWRITE}" == "Macros" ]; then
+        echo "WARNING: overwriting existing Macro's file!"
+        create_macros_file
     else
         echo "  Using existing Macros file."
     fi
@@ -216,15 +267,37 @@ function check_macros() {
 }
 
 function create_macros_file() {
+    if [ ! -z ${MACRO_FILE} ]; then
+        MACRO_FILE=$(abspath ${MACRO_FILE})
+        ln -s ${MACRO_FILE} ${CASE_DIR}/Macros
+        echo "  Linking command line Macros file into case."
+    else
+        macros_from_template
+    fi
+}
+
+function macros_from_template() {
     echo "  Creating new userdefined Macros file from template."
-    cd ${CASE_DIR}
-    cat > Macros <<EOF
+    _petsc_include=
+    _user_include=
+    _user_fflags=
+    _user_ldflags=
+    if [ ! -z ${LINK_PFLOTRAN} ]; then
+        _petsc_include='include ${PETSC_DIR}/conf/variables'
+        _user_include='-I${PETSC_DIR}/${PETSC_ARCH}/include -I${PETSC_DIR}/include -I${PFLOTRAN_DIR}/src/clm-pflotran'
+        _user_fflags=-DCLM_PFLOTRAN
+        _user_ldflags='${PFLOTRAN_DIR}/src/clm-pflotran/libpflotran.a -L${PETSC_DIR}/${PETSC_ARCH}/lib $(PETSC_LIB) -lnetcdff -lnetcdf'
+    fi
+    cat > ${CASE_DIR}/Macros <<EOF
 #
 # Makefile Macros generated from clm4_5_04/scripts/ccsm_utils/Machines/config_compilers.xml using
 # COMPILER=gnu
 # OS=Darwin
 # MACH=userdefined
 #
+
+${_petsc_include}
+
 CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DSYSDARWIN  -DDarwin -DCPRGNU
 
 #SLIBS+=# USERDEFINED \$(shell \$(NETCDF_PATH)/bin/nc-config --flibs)
@@ -270,7 +343,8 @@ SFC:=${FC}
 SUPPORTS_CXX:=TRUE
 
 # linking to external libraries...
-USER_INCLDIR:=
+USER_INCLDIR:=${_user_include}
+FFLAGS+=${_user_fflags}
 LDFLAGS +=
 
 ifeq (\$(DEBUG), TRUE)
@@ -289,13 +363,28 @@ endif
 
 ifeq (\$(MODEL), driver)
    LDFLAGS += -all_load
+   LDFLAGS += ${_user_ldflags}
    # mac os blas/lapack
-   LDFLAGS += ${LDFLAGS}
+   LDFLAGS += ${BLAS_FLAGS}
    # NOTE(bandre): ugly hack to get around linking error...
    LDFLAGS += ${CASE_DIR}/bld/lib/libice.a
 endif
 
 EOF
+
+}
+
+function setup_clm_user_namelist() {
+    if [ ! -z ${LINK_PFLOTRAN} ]; then
+        echo "Adding pflotran flags to user_nl_clm"
+        cat >> ${CASE_DIR}/user_nl_clm <<EOF
+use_pflotran = .true.
+
+&clm_pflotran_inparm
+    pflotran_prefix = "${CASE_NAME}"
+/
+EOF
+    fi
 
 }
 
@@ -311,7 +400,10 @@ Usage: $0 [options]
     -c CASE_NAME    set the case name
     -d DATA_DIR     cesm input data directory
     -h              print this help message
+    -m FILENAME     link to existing macros file instead of generating
     -n NP           number of mpi processors
+    -o FILENAME     over write existing file FILENAME
+    -p              add petsc/pflotran info to Macros
     -s BUILD_STAGE  build stage must be one of:
                         clobber configure build all
 
@@ -362,7 +454,9 @@ CASE_DIR=
 DATA_DIR=
 MACRO_FILE=
 NP=2
-while getopts "c:d:hm:n:s:" FLAG
+LINK_PFLOTRAN=
+OVERWRITE=
+while getopts "c:d:hm:n:o:ps:" FLAG
 do
   case ${FLAG} in
     c) CASE_DIR=${OPTARG};;
@@ -370,6 +464,8 @@ do
     h) usage; exit;;
     m) MACRO_FILE=${OPTARG};;
     n) NP=${OPTARG};;
+    o) OVERWRITE=${OPTARG};;
+    p) LINK_PFLOTRAN=1;;
     s) BUILD_STEP=${OPTARG};;
   esac
 done
@@ -385,6 +481,10 @@ if [ -z "${DATA_DIR}" ]; then
     exit
 fi
 
+if [ ! -z ${LINK_PFLOTRAN} ]; then
+    check_pflotran
+fi
+
 DATA_DIR=$(abspath ${DATA_DIR})
 CASE_DIR=$(abspath ${CASE_DIR})
 CASE_NAME=`basename ${CASE_DIR}`
@@ -393,10 +493,11 @@ echo "Configuring userdefined machine using:"
 echo "    CASE_DIR = ${CASE_DIR}"
 echo "    CASE_NAME = ${CASE_NAME}"
 echo "    DATA_DIR = ${DATA_DIR}"
+echo "    linking pflotran in macros = ${LINK_PFLOTRAN}"
+echo "    overwrite = ${OVERWRITE}"
 
 check_data_dir
 check_case
-check_macros
 
 case ${BUILD_STEP} in
     all) clobber; configure_step; build_step;;
