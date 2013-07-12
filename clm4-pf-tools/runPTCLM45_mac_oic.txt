@@ -12,7 +12,7 @@ III. instrucion on run DMR's 'runCLM.py' (modified and tested by FMY)
 
 I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
 
- 1. The prerequisites (versions may be different):  
+ 1. The prerequisites (versions may be different on your system and you MUST edit those in 'env_mach_specific.Darwin_gnu' as in 2(1)below):  
  (1) gcc-4.8 full package 
  (2) mpich-3.0.3 built with gcc-4.8
  (3) netcdf-4.1.3 built with gcc-4.8, bundled with mpich-3.0.3
@@ -49,6 +49,12 @@ I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
  setenv MPICH_PATH /usr/local/mpich-3.0.3-gcc48
  setenv PATH ${MPICH_PATH}/bin:${PATH}
  setenv LAPACK_LIBDIR /usr/lib
+
+ setenv PETSC_DIR /usr/local/petsc
+ setenv PETSC_LIB ${PETSC_DIR}/lib
+ setenv PETSC_ARCH arch-darwin-c-debug
+ setenv PFLOTRAN_COUPLED_MODEL /Users/f9y/mygit/pflotran-coupled
+
  
  NOTE: this file is a copy of ‘env_mach_specific.userdefined’ from the model Machines file, but here we add those specific PATHS and LIBRARIES paths, available on the test machine.
  
@@ -58,20 +64,28 @@ I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
  Line 78:  remove the “#” so that the model can be launched
  mpiexec -n ${maxtasks} \$EXEROOT/cesm.exe >&! cesm.log.\$LID
   
- (3) Macros.Darwin_gnu
+ (3) Macros(_pflotran).Darwin_gnu
  #
  # Makefile Macros generated from /Users/f9y/mygit/clm4-cf/scripts/ccsm_utils/Machines/config_compilers.xml using
  # COMPILER=gnu
  # OS=Darwin
  # MACH=userdefined
  #
+
+ PFLOTRAN := TRUE   # this can be modified to FALSE for pure CLM run
+
+ ifeq ($(PFLOTRAN), TRUE)
+    include ${PETSC_DIR}/conf/variables
+ endif
+
  CPPDEFS+= -DFORTRANUNDERSCORE -DNO_R16 -DgFORTRAN  -DSYSDARWIN  -DDarwin -DCPRGNU 
  
  CXX_LINKER:=FORTRAN
  
  FC_AUTO_R8:= -fdefault-real-8 
  
- FFLAGS:= -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none 
+ FFLAGS:= -O -fconvert=big-endian -ffree-line-length-none -ffixed-line-length-none
+ FFLAGS+= -fno-range-check 
  
  FFLAGS_NOOPT:= -O0 
  
@@ -111,9 +125,23 @@ I. MACHINE SETTINGs for CLM4.5.06 on Mac OSx 10.8 (mountain lion)
     CMAKE_OPTS += -D CISM_GNU=ON 
  endif
  
+ ifeq ($(PFLOTRAN), TRUE)
+   FFLAGS+=-I/${PETSC_DIR}/${PETSC_ARCH}/include
+   FFLAGS+=-I/${PETSC_DIR}/include
+   FFLAGS+=-I$(PFLOTRAN_COUPLED_MODEL)/src/clm-pflotran
+   FFLAGS+=-DCLM_PFLOTRAN
+ endif
+
  ifeq ($(MODEL), driver) 
     # LDFLAGS += -all_load  # this will cause duplicated call of libmpich.a and libpmpich.a if mpich is on 
-    LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff 
+    LDFLAGS += -L$(NETCDF_PATH)/lib -lnetcdff
+
+    ifeq ($(PFLOTRAN), TRUE)
+       LDFLAGS += -framework Accelerate
+       LDFLAGS += $(PFLOTRAN_COUPLED_MODEL)/src/clm-pflotran/libpflotran.a
+       LDFLAGS += $(PETSC_LIB)
+    endif
+
  endif
  
  NOTE: this file is modified from the automatically generated ‘Macros’ file in case creation. There are two modifications: (i) adding 'LAPACK_LIBDIR'; and (ii) adding 'LDFLAGS' for fortran library of netcdf (since NETCDF version 4.1.3, the fortran lib is named as 'libnetcdff', so if you're using the previous version, this is not needed).

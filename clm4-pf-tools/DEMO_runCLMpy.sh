@@ -21,18 +21,31 @@
 
 export os=$1
 
-export PFLOTRAN=FALSE
+export pflotran_coupled=$2
 
 if [ "$os" == "mac" ]; then
-    python ./runCLM.py --site=US-Brw --sitegroup=AmeriFlux \
+    if [ "$pflotran_coupled" == "pflotran" ]; then
+        python ./runCLM.py --site=US-Brw --sitegroup=AmeriFlux \
 --caseroot=/Users/f9y/mygit/clm4-pf/cases \
 --runroot=/Users/f9y/clm4_5_simulations \
 --ccsm_input=/Users/f9y/clm4_5_inputdata \
 --cesmdir=/Users/f9y/mygit/clm4-pf \
---compset=I1850CLM45CN --coldstart --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup 1200 \
---machine=userdefined --osname=Darwin --compiler=gnu --ninst=1 --np=1 --mpilib=mpi-serial \
---ugriddir=ugrid/0.5x0.5data --xpts=1 --ypts=1 \
+--compset=I1850CLM45CN --coldstart --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup=10 --clm_pflotran \
+--machine=userdefined --osname=Darwin --compiler=gnu --ninst=1 --np=4 --mpilib=mpich \
+--nopointdata --regional --xpts=3 --ypts=5 \
 --rmold --clean_config --clean_build
+
+    else
+        python ./runCLM.py --site=US-Brw --sitegroup=AmeriFlux \
+--caseroot=/Users/f9y/mygit/clm4-pf/cases \
+--runroot=/Users/f9y/clm4_5_simulations \
+--ccsm_input=/Users/f9y/clm4_5_inputdata \
+--cesmdir=/Users/f9y/mygit/clm4-pf \
+--compset=I1850CLM45CN --coldstart --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup=10 \
+--machine=userdefined --osname=Darwin --compiler=gnu --ninst=1 --np=4 --mpilib=mpich \
+--nopointdata --regional --xpts=3 --ypts=5 \
+--rmold --clean_config --clean_build
+
 fi
 
 if [ "$os" == "linux" ]; then
@@ -45,4 +58,5 @@ if [ "$os" == "linux" ]; then
 --machine=userdefined --osname=LINUX --compiler=pgi --ninst=1 --np=100 --mpilib=openmpi \
 --nopointdata --regional --xpts=50 --ypts=100 \
 --rmold --clean_config --clean_build
+
 fi

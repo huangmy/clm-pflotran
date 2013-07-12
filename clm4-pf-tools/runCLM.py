@@ -604,23 +604,13 @@ if (options.refcase == 'none'):
             
             # clm coupled with pflotran 
             if (options.pflotran):
+                print(" \n NOTE: PFLOTRAN coupled CLM will be configured ! \n" )
                 os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros_pflotran.'+options.mach_specific + \
                       ' Macros')
 
 
         os.system('./cesm_setup > configure.log')
         
-        # geneated *.run lacks of csh command
-        myinput  = open("./"+casename+".run")  
-        myoutput = open("./"+casename+"temp.run",'w')
-        myoutput.write("#! /bin/csh -f \n")
-        for s in myinput:
-            myoutput.write(s)
-        myoutput.close()
-        myinput.close()
-        os.system("mv "+casename+"temp.run "+casename+".run")  
-        os.system("chmod a+x ./"+casename+".run")
-
     else:
         print("Warning:  No case configure performed.  PTCLM will not " \
                   +"make any requested modifications to env_*.xml files.  Exiting.")
@@ -652,6 +642,14 @@ if (options.refcase == 'none'):
     
     if (pftfile != ''):
         output.write(" fpftcon=   '" + pftfile + "'\n")
+        
+    # namelist options for PFLOTRAN coupling
+    if (options.pflotran):
+        output.write(" use_pflotran = .true.\n")
+        output.write("\n")
+        output.write("&clm_pflotran_inparm\n")
+        output.write("    pflotran_prefix = '"+ casename + "'\n")
+        output.write("/\n")
 
     output.close()
 
