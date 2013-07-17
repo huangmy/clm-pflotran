@@ -79,8 +79,8 @@ parser.add_option("--centbgc", dest="centbgc", default=False, \
                   help = 'To turn on CN with multiple soil layers, CENTURY C module (CLM4ME on as well)', action="store_true")
 parser.add_option("--CH4", dest="CH4", default=False, \
                   help = 'To turn on CN with CLM4me', action="store_true")
-#parser.add_option("--maxpft", dest="maxpft", default=17, \
-#                  help = 'user-defined max no of pft, excluding crop pfts. Must provide --parm_file')
+parser.add_option("--arcticpft", dest="arcticpft", default=False, \
+                  help = 'To turn on Expanded Arctic PFTs flag (-DPFTARCTIC) in CLM4.5. Must provide --parm_file', action="store_true")
 parser.add_option("--parm_file", dest="parm_file", default="", \
                   help = 'CLM user-defined physiological parameter file')
 parser.add_option("--co2_file", dest="co2_file", default="fco2_datm_1765-2007_c100614.nc", \
@@ -239,7 +239,12 @@ if (compset == 'I20TRCLM45CN'):
     #ignore spinup option if transient compset
     if (options.ad_spinup):
         print('Spinup options not available for transient compset.')
-        sys.exit()        
+        sys.exit()
+
+if (options.arcticpft and options.parm_file == ''):  # must provide user-defined 'pft-physiology.???.nc'
+    print('MUST provide user-defined parameter file! Exit \n')
+    sys.exit()
+            
     
 #get full path of finidat file
 finidat      = options.finidat
@@ -382,14 +387,14 @@ if (options.parm_file != ''):
     pftfile = ccsm_input+'/lnd/clm2/pftdata/' + \
                   options.parm_file + '.' + options.site + '.nc'
     os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/'+ options.parm_file + \
-               pftfile)
+               ' '+pftfile)
 
 #------------------IF no refcase, create, configure and build -----------------------------------------
 #set number of run years for ad-spinup cases
 if (options.ny_ad != options.run_n and options.ad_spinup):
     options.run_n = options.ny_ad
 
-if (options.run_n != 600 and options.compset== "I20TRCLM45CN"):
+if (options.run_n == 600 and options.compset== "I20TRCLM45CN"):
     options.run_n = endyear - mysimyr +1
 
 # set 'debug' mode
@@ -534,13 +539,7 @@ if (options.refcase == 'none'):
     
     # not yet figured out how to set this option, obviously not here
     #if (options.C13):
-    #        clmcn_opts += " -use_c13 on"
-
-    # not yet figured out how to set this option, obviously not here
-    #modification of maxpft
-    #if (options.maxpft != 17):
-    #        clmcn_opts += " -maxpft "+str(options.maxpft)
-    
+    #        clmcn_opts += " -use_c13 on" 
         
 #--------- env_mach_pes.xml modification ------------------------------------
     # normal pt mode
@@ -605,8 +604,19 @@ if (options.refcase == 'none'):
             # clm coupled with pflotran 
             if (options.pflotran):
                 print(" \n NOTE: PFLOTRAN coupled CLM will be configured ! \n" )
+                print(" \n NOTE: make sure of libpflotran.a compiled and its directory correct ! \n" )
                 os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros_pflotran.'+options.mach_specific + \
                       ' Macros')
+                
+            # option to turn on expanded arctic PFTs
+            if (options.arcticpft):
+                print(" \n Expanded PFTs for Arctic Tundra in CLM4.5 will be turned on ! " )
+                print(" NOTE: make sure of using right CLM4.5 code ! \n" )
+                with open("Macros", "a") as myfile:
+                    myfile.write("\n") 
+                    myfile.write("#expanded arctic PFT flag for CLM4.5\n") 
+                    myfile.write("FFLAGS += -DPFTARCTIC\n")
+                myfile.close()
 
 
         os.system('./cesm_setup > configure.log')
@@ -650,16 +660,25 @@ if (options.refcase == 'none'):
         output.write("&clm_pflotran_inparm\n")
         output.write("    pflotran_prefix = '"+ casename + "'\n")
         output.write("/\n")
+    else:
+        output.write(" use_pflotran = .false.\n")
+        output.write("\n")       
 
     output.close()
 
     #copy sourcemods
     if (options.srcmods_loc != ''):
+        if (options.srcmods_loc.startswith('/')):
+            options.srcmods_loc = os.path.abspath(options.srcmods_loc)
+        else:   
+            options.srcmods_loc = os.path.abspath(PTCLMdir+'/'+options.srcmods_loc)
+            
         if (os.path.exists(options.srcmods_loc) == False):
             print('Invalid srcmods directory.  Exiting')
             sys.exit()
-        options.srcmods_loc = os.path.abspath(options.srcmods_loc)
-        os.system('cp -r '+options.srcmods_loc+'/* ./SourceMods')   
+        else:
+            print('User-defined source codes will be copied from: '+options.srcmods_loc)
+        os.system('cp -rf '+options.srcmods_loc+'/* ./SourceMods')   
    
 #------- build clm45 within cesm  
     #clean build if requested prior to build
