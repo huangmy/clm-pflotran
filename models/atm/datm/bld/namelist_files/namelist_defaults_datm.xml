@@ -1842,8 +1842,7 @@ ncep.v_10.T62.2009.20120412.nc
 
 <strm_taxmode                   >cycle</strm_taxmode>
 <strm_taxmode grid="CLM_USRDAT" >cycle</strm_taxmode>
-<!-- <strm_taxmode datm_mode="CLM1PT">extend</strm_taxmode> -->
-<strm_taxmode datm_mode="CLM1PT">cycle</strm_taxmode>
+<strm_taxmode datm_mode="CLM1PT">extend</strm_taxmode>
 
 <!-- =========================================  -->
 <!-- Non-stream variables                       -->
