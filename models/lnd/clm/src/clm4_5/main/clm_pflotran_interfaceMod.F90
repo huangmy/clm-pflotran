@@ -433,6 +433,8 @@ contains
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
+    ! FIXME(bja, 2013-07-19) pflotran is getting negative densities!
+    gflux_clm_loc = 0.0_r8
     call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
     call VecView(clm_pf_idata%gflux_clm, PETSC_VIEWER_STDOUT_WORLD, ierr)
   end subroutine vecrestore_gflux_clm_pf
@@ -470,6 +472,16 @@ contains
     use abortutils      , only : endrun
 
     use ncdio_pio
+
+    ! pflotran
+    use Option_module, only : printErrMsg
+    use Simulation_Base_class, only : simulation_base_type
+    use Subsurface_Simulation_class, only : subsurface_simulation_type
+    use Surface_Simulation_class, only : surface_simulation_type
+    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Realization_class, only : realization_type
+    use Surface_Realization_class, only : surface_realization_type
+
     !
     ! !ARGUMENTS:
 
@@ -584,6 +596,10 @@ contains
     integer :: clm_npts
     integer :: clm_surf_npts
 
+    class(simulation_base_type), pointer :: simulation
+    class(realization_type), pointer    :: realization
+    class(surface_realization_type), pointer    :: surf_realization
+
     !PetscViewer :: viewer
     PetscScalar, pointer :: hksat_x_clm_loc(:) ! hydraulic conductivity in x-dir at saturation (mm H2O /s)
     PetscScalar, pointer :: hksat_y_clm_loc(:) ! hydraulic conductivity in y-dir at saturation (mm H2O /s)
@@ -634,6 +650,22 @@ contains
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()
 
+    select type (simulation => pflotran_m%simulation)
+      class is (subsurface_simulation_type)
+         realization => simulation%realization
+         nullify(surf_realization)
+      class is (surface_simulation_type)
+         nullify(realization)
+         surf_realization => simulation%surf_realization
+      class is (surfsubsurface_simulation_type)
+         realization => simulation%realization
+         surf_realization => simulation%surf_realization
+      class default
+         pflotran_m%option%io_buffer = "clm-pflotran only works with surface and subsurface simulations."
+         write(*, '(/A/)') pflotran_m%option%io_buffer
+         call printErrMsg(pflotran_m%option)
+    end select
+
     ! Compute number of cells in CLM domain.
     ! Assumption-1: One column per CLM grid cell.
     ! Assumption-2: nz = nlevsoi and nz /= nlevgrnd. Need to add a flag in input
@@ -668,8 +700,8 @@ contains
     clm_pf_idata%ngclm_2d = clm_surf_npts
 
     ! PFLOTRAN: Subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlpf_3d = pflotran_m%realization%patch%grid%nlmax
-    clm_pf_idata%ngpf_3d = pflotran_m%realization%patch%grid%ngmax
+    clm_pf_idata%nlpf_3d = realization%patch%grid%nlmax
+    clm_pf_idata%ngpf_3d = realization%patch%grid%ngmax
 
     ! PFLOTRAN: Surface of subsurface domain (local and ghosted cells)
     if(pflotran_m%option%iflowmode == TH_MODE) then
@@ -681,18 +713,13 @@ contains
     endif
     
     ! PFLOTRAN: Surface domain (local and ghosted cells)
-#ifdef SURFACE_FLOW
-    if(pflotran_m%option%nsurfflowdof > 0) then
-      clm_pf_idata%nlpf_2d = pflotran_m%simulation%surf_realization%patch%grid%nlmax
-      clm_pf_idata%ngpf_2d = pflotran_m%simulation%surf_realization%patch%grid%ngmax
+    if(associated(surf_realization) .and. pflotran_m%option%nsurfflowdof > 0) then
+      clm_pf_idata%nlpf_2d = surf_realization%patch%grid%nlmax
+      clm_pf_idata%ngpf_2d = surf_realization%patch%grid%ngmax
     else
       clm_pf_idata%nlpf_2d = 0
       clm_pf_idata%ngpf_2d = 0
     endif
-#else
-    clm_pf_idata%nlpf_2d = 0
-    clm_pf_idata%ngpf_2d = 0
-#endif
 
     ! Allocate vectors for data transfer between CLM and PFLOTRAN.
     call CLMPFLOTRANIDataCreateVec(MPI_COMM_WORLD)
