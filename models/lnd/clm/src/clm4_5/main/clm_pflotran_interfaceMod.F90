@@ -433,10 +433,9 @@ contains
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
-    ! FIXME(bja, 2013-07-19) pflotran is getting negative densities!
-    gflux_clm_loc = 0.0_r8
+
     call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
-    call VecView(clm_pf_idata%gflux_clm, PETSC_VIEWER_STDOUT_WORLD, ierr)
+
   end subroutine vecrestore_gflux_clm_pf
 
 
