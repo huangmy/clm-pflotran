@@ -725,7 +725,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) - &
                   tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
           else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
@@ -869,7 +869,7 @@ contains
 
              endif
 
-             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) - &
                   fn_h2osfc(c)*cwtgcell(c)
           endif
 
