@@ -41,7 +41,7 @@ if [ "$os" == "mac" ]; then
 --runroot=/Users/f9y/clm4_5_simulations \
 --ccsm_input=/Users/f9y/clm4_5_inputdata \
 --cesmdir=/Users/f9y/mygit/clm4-pf \
---compset=I20TRCLM45CN --finidat=US-Brw_I1850CLM45CN_spinup.clm2.r.0601-01-01-00000.nc --finidat_year=601 --vertsoilc --CH4 --no_fire --hist_userdefined=clm_output_tr \
+--compset=I1850CLM45CN --vertsoilc --CH4 --no_fire --ad_spinup --nyears_ad_spinup=5000 --hist_userdefined=clm_output_adspinup \
 --machine=userdefined --osname=Darwin --compiler=gnu --ninst=1 --np=1 --mpilib=mpi-serial \
 --nopointdata --xpts=1 --ypts=1 \
 --rmold --clean_config --clean_build

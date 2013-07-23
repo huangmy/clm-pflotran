@@ -246,6 +246,10 @@ if (options.arcticpft and options.parm_file == ''):  # must provide user-defined
     sys.exit()
               
 #finidat file and finidat year
+if (options.coldstart and (options.finidat != '' or options.finidat_case != '')):
+        print('Error: Cannot have an finidat/finidat_case AND coldstart simultaneously! Exit \n')
+        sys.exit()
+    
 if (options.finidat == '' and options.finidat_case == ''):   # not user-defined
     if (options.coldstart==False and compset == "I1850CLM45CN"):
         if (options.mycaseid != ''):
@@ -271,16 +275,13 @@ if (options.finidat == '' and options.finidat_case == ''):   # not user-defined
                   runroot+'/'+options.finidat_case+' existed as refcase')
             sys.exit()
 elif (options.finidat != ''):  # user-defined finidat file
-    if (options.coldstart):
-        print('Error: Cannot have an initial data file AND coldstart simultaneously! Exit \n')
-        sys.exit()
-    elif (options.finidat.startswith('/')):  # full path and file names
-        finitdat = options.finidat
+    if (options.finidat.startswith('/')):  # full path and file names
+        finidat = options.finidat
     else:  # otherwise, finidat is assummed under the $ccsm_input/lnd/clm2/inidata/
         finidat = ccsm_input+'/lnd/clm2/inidata/'+options.finidat
     
     if (options.finidat_year == -1):
-        print('Error: must define the finidat_year as well! Exit \n')
+        print('Error: must define the finidat_year if finidat defined! Exit \n')
         sys.exit()
 
 finidat_year = int(options.finidat_year)
@@ -294,7 +295,7 @@ if (options.finidat_case != '' or options.finidat != ''):
     if (finidat_year < 10):
         finidat_yst = '000'+str(finidat_year)
 
-    if (finidat == ''):
+    if (options.finidat == ''):
         finidat = runroot+'/'+options.finidat_case+'/run/'+ \
                   options.finidat_case+'.clm2.r.'+finidat_yst+ \
                   '-01-01-00000.nc'
@@ -503,7 +504,7 @@ if (options.refcase == 'none'):
         os.system('./xmlchange -file env_run.xml -id ' \
                       +'ATM_NCPL -val '+str(int(24/float(options.tstep))))
     
-    # run-type adjusting
+    # run-type adjusting -- needs checking ('rof' not working??) 
     if (options.branch):
         os.system('./xmlchange -file env_run.xml -id ' \
                       +'RUN_TYPE -val branch')
@@ -641,8 +642,9 @@ if (options.refcase == 'none'):
     output.write('&clm_inparm\n')
         
     #(6a) user-defined initial data file ---
-    if (finidat != ''):
-        output.write(" finidat = '"+finidat+"'\n")
+    if (options.coldstart == False):
+        if (finidat != ''):
+            output.write(" finidat = '"+finidat+"'\n")
     
     #(6b) surfdata - generated above ----
     output.write(" fsurdat = '"+ccsm_input+"/lnd/clm2/surfdata_map/" + \
