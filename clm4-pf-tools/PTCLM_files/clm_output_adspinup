@@ -1,0 +1,9 @@
+ hist_empty_htapes = .true.
+ hist_fincl1 = 'H2OCAN','H2OSNO','H2OSOI','SOILPSI','TSOI',
+               'TOTLITC','TOTSOMC','TOTLITN','TOTSOMN','TLAI','TOTVEGC','TOTVEGN','CWDC','CWDN',
+               'LITR1C_vr','LITR2C_vr','LITR3C_vr','SOIL1C_vr','SOIL2C_vr','SOIL3C_vr','SOIL4C_vr',
+               'SMIN_NH4_vr','SMIN_NO3_vr' 
+ hist_fincl2 = 'TLAI','GPP','NPP','NEE','AR','HR','FCH4'
+ hist_dov2xy = .true.,.false.
+ hist_nhtfrq = -24 -24
+ hist_mfilt  = 365 365

@@ -79,8 +79,8 @@ parser.add_option("--centbgc", dest="centbgc", default=False, \
                   help = 'To turn on CN with multiple soil layers, CENTURY C module (CLM4ME on as well)', action="store_true")
 parser.add_option("--CH4", dest="CH4", default=False, \
                   help = 'To turn on CN with CLM4me', action="store_true")
-#parser.add_option("--maxpft", dest="maxpft", default=17, \
-#                  help = 'user-defined max no of pft, excluding crop pfts. Must provide --parm_file')
+parser.add_option("--arcticpft", dest="arcticpft", default=False, \
+                  help = 'To turn on Expanded Arctic PFTs flag (-DPFTARCTIC) in CLM4.5. Must provide --parm_file', action="store_true")
 parser.add_option("--parm_file", dest="parm_file", default="", \
                   help = 'CLM user-defined physiological parameter file')
 parser.add_option("--co2_file", dest="co2_file", default="fco2_datm_1765-2007_c100614.nc", \
@@ -194,7 +194,7 @@ else:
         
         if (options.mach_specific == ''):
             print('please provide a specific mach name for setting up "env_mach_specific" if " -mach userdefined"! \n' + \
-                  'OR, the script will look for "env_mach_spefic.'+options.osname+'-'+options.compiler+'"')        
+                  'OR, the script will look for "env_mach_spefic.'+options.osname+'_'+options.compiler+'"')        
             options.mach_specific = options.osname+'_'+options.compiler
 
 if (options.compiler != ''):
@@ -239,13 +239,18 @@ if (compset == 'I20TRCLM45CN'):
     #ignore spinup option if transient compset
     if (options.ad_spinup):
         print('Spinup options not available for transient compset.')
-        sys.exit()        
-    
-#get full path of finidat file
-finidat      = options.finidat
-finidat_year = int(options.finidat_year)
+        sys.exit()
 
-if (finidat == '' and options.finidat_case == ''):   # not user-defined
+if (options.arcticpft and options.parm_file == ''):  # must provide user-defined 'pft-physiology.???.nc'
+    print('MUST provide user-defined parameter file! Exit \n')
+    sys.exit()
+              
+#finidat file and finidat year
+if (options.coldstart and (options.finidat != '' or options.finidat_case != '')):
+        print('Error: Cannot have an finidat/finidat_case AND coldstart simultaneously! Exit \n')
+        sys.exit()
+    
+if (options.finidat == '' and options.finidat_case == ''):   # not user-defined
     if (options.coldstart==False and compset == "I1850CLM45CN"):
         if (options.mycaseid != ''):
             options.finidat_case = options.mycaseid+'_'+options.site+ \
@@ -254,7 +259,7 @@ if (finidat == '' and options.finidat_case == ''):   # not user-defined
             options.finidat_case = options.site+'_I1850CLM45CN_ad_spinup'
     
         if (options.finidat_year == -1):
-            finidat_year = int(options.ny_ad)+1
+            options.finidat_year = int(options.ny_ad)+1
     
     if (compset == "I20TRCLM45CN"):
         if (options.mycaseid != ''):
@@ -262,18 +267,26 @@ if (finidat == '' and options.finidat_case == ''):   # not user-defined
                                   '_I1850CLM45CN'
         else:
             options.finidat_case = options.site+'_I1850CLM45CN'
-        
-        if (options.finidat_year == -1):
-            finidat_year = 1850
-        
-        #finidat is required for transient compset
-        if (os.path.exists(runroot+'/'+options.finidat_case) == False):
+                
+        #finidat and finidat_year is required for transient compset
+        if (os.path.exists(runroot+'/'+options.finidat_case) == False \
+            or options.finidat_year == -1):
             print('Error:  must provide initial data file for I20TRCLM45CN compset, OR, '+ \
                   runroot+'/'+options.finidat_case+' existed as refcase')
             sys.exit()
+elif (options.finidat != ''):  # user-defined finidat file
+    if (options.finidat.startswith('/')):  # full path and file names
+        finidat = options.finidat
+    else:  # otherwise, finidat is assummed under the $ccsm_input/lnd/clm2/inidata/
+        finidat = ccsm_input+'/lnd/clm2/inidata/'+options.finidat
+    
+    if (options.finidat_year == -1):
+        print('Error: must define the finidat_year if finidat defined! Exit \n')
+        sys.exit()
 
+finidat_year = int(options.finidat_year)
 
-if (options.finidat_case != ''):
+if (options.finidat_case != '' or options.finidat != ''):
     finidat_yst = str(finidat_year)
     if (finidat_year >= 100 and finidat_year < 1000):
         finidat_yst = '0'+str(finidat_year)
@@ -282,19 +295,19 @@ if (options.finidat_case != ''):
     if (finidat_year < 10):
         finidat_yst = '000'+str(finidat_year)
 
-    if (finidat == ''):
+    if (options.finidat == ''):
         finidat = runroot+'/'+options.finidat_case+'/run/'+ \
                   options.finidat_case+'.clm2.r.'+finidat_yst+ \
                   '-01-01-00000.nc'
 
-#construct default casename
+#----- Construct default casename
 casename    = options.site+"_"+compset
 if (options.mycaseid != ""):
     casename = options.mycaseid+'_'+casename
 if (options.ad_spinup):
     casename = casename+'_ad_spinup'
 
-#get site year information
+#----- Get site information from 'sitegroup' inputs
 PTCLMfiledir = PTCLMdir+'/PTCLM_files'
 
 sitedatadir = os.path.abspath(PTCLMfiledir+'/PTCLM_sitedata')
@@ -322,7 +335,7 @@ if (options.compset == 'ICLM45CN'):
     mysimyr=2000
 
 
-#construct case dir (clm4.5 case has two parts: directory+casename
+#----- Construct case dir, run/build dirs (clm4.5 case has two parts: directory+casename)
 if (caseroot != "./"):
     casedir=caseroot+"/"+casename
 else:
@@ -344,11 +357,30 @@ print ("CASE exeroot is: "+blddir+"\n")
 rundir=runroot+"/"+casename+"/run"
 print ("CASE rundir is: "+rundir+"\n")
 
+#pft parameter file
+# default
+pftfile = ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.'+options.site+'.nc'
+os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.nc ' \
+              + pftfile)
+
+# new or user-defined pft-phys file if desired
+if (options.parm_file != ''):
+    pftfile = ccsm_input+'/lnd/clm2/pftdata/' + \
+                  options.parm_file + '.' + options.site + '.nc'
+    os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/'+ options.parm_file + \
+               ' '+pftfile)
+
+#set number of run years, if not user-defined
+if (options.ny_ad != options.run_n and options.ad_spinup):
+    options.run_n = options.ny_ad
+if (options.run_n == 600 and options.compset== "I20TRCLM45CN"):
+    options.run_n = endyear - mysimyr +1
+
 #Environment variable hacks
 os.putenv("CLM_USRDAT_NAME", str(numxpts)+"x"+str(numypts)+"pt_"+options.site)    
 os.putenv("DOMAINPATH", options.ccsm_input+'/share/domains/domain.clm')
 
-#------------------- make point data for site -------------------------------
+# ------------------- Make point data for site -------------------------------
 if (options.nopointdata == False):
     os.chdir(PTCLMdir)
     ptcmd = 'python makepointdata.py --compset '+compset+ \
@@ -371,27 +403,8 @@ if (options.nopointdata == False):
 else:
     print('point data making NOT requested! Make sure they exist')
 
-# ------------- pft parameter file ------
-# default
-pftfile = ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.'+options.site+'.nc'
-os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.nc ' \
-              + pftfile)
-
-# new or user-defined pft-phys file if desired
-if (options.parm_file != ''):
-    pftfile = ccsm_input+'/lnd/clm2/pftdata/' + \
-                  options.parm_file + '.' + options.site + '.nc'
-    os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/'+ options.parm_file + \
-               pftfile)
-
-#------------------IF no refcase, create, configure and build -----------------------------------------
-#set number of run years for ad-spinup cases
-if (options.ny_ad != options.run_n and options.ad_spinup):
-    options.run_n = options.ny_ad
-
-if (options.run_n != 600 and options.compset== "I20TRCLM45CN"):
-    options.run_n = endyear - mysimyr +1
-
+# ------------------ IF no refcase, create, setup and build -----------------------------------------
+#--- (1) create a new case
 # set 'debug' mode
 debugoption = ''
 if (options.debug_build):
@@ -417,7 +430,7 @@ if (options.refcase == 'none'):
     # go to newly created case directory
     os.chdir(casedir)
 
-#----------- env_build.xml modification ---------------------------
+# (2) env_build.xml modification ---------------------------
     
     # user-defined machine
     if (options.machine == "userdefined"):
@@ -463,7 +476,7 @@ if (options.refcase == 'none'):
                   +'CLM_CONFIG_OPTS -val "'+clmcn_opts+'"')
     print ("CLM module options: " + clmcn_opts +"\n")
 
-#---------- env_run.xml modification ------------------------------------
+# (3) env_run.xml modification ------------------------------------
     # input/run/output directory
     if (options.runroot != '' or options.machine == "userdefined"):
         os.system('./xmlchange -file env_run.xml -id ' \
@@ -491,7 +504,7 @@ if (options.refcase == 'none'):
         os.system('./xmlchange -file env_run.xml -id ' \
                       +'ATM_NCPL -val '+str(int(24/float(options.tstep))))
     
-    # run-type adjusting
+    # run-type adjusting -- needs checking ('rof' not working??) 
     if (options.branch):
         os.system('./xmlchange -file env_run.xml -id ' \
                       +'RUN_TYPE -val branch')
@@ -534,15 +547,9 @@ if (options.refcase == 'none'):
     
     # not yet figured out how to set this option, obviously not here
     #if (options.C13):
-    #        clmcn_opts += " -use_c13 on"
-
-    # not yet figured out how to set this option, obviously not here
-    #modification of maxpft
-    #if (options.maxpft != 17):
-    #        clmcn_opts += " -maxpft "+str(options.maxpft)
-    
+    #        clmcn_opts += " -use_c13 on" 
         
-#--------- env_mach_pes.xml modification ------------------------------------
+# (4) env_mach_pes.xml modification ------------------------------------
     # normal pt mode
     os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_ATM -val 1')
     os.system('./xmlchange -file env_mach_pes.xml -id NTASKS_LND -val 1')
@@ -585,13 +592,14 @@ if (options.refcase == 'none'):
         os.system('./xmlchange -file env_mach_pes.xml -id ' \
                       +'TOTALPES -val '+options.np)
 
-#------- cesm setup -------------------------------------------
+# (5) cesm setup -------------------------------------------
     #clean configure if requested prior to configure
     if (options.clean_config):
         os.system('./cesm_setup -clean')
         os.system('rm -f Macro')
         os.system('rm -f user-nl-*')
 
+# (5a) user-defined machine settings ------
     if (options.no_config == False):
         if (options.mach_specific != ''):
             os.system('cp -f '+PTCLMdir+'/userdefined_machines/env_mach_specific.'+options.mach_specific + \
@@ -602,13 +610,26 @@ if (options.refcase == 'none'):
                 os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros.'+options.mach_specific + \
                       ' Macros')
             
-            # clm coupled with pflotran 
+# (5b) settings for clm coupled with pflotran, if requested ------
             if (options.pflotran):
                 print(" \n NOTE: PFLOTRAN coupled CLM will be configured ! \n" )
+                print(" make sure of libpflotran.a compiled! and,\n")
+                print(" PFLOTRAN directories: can be defined in 'userdefined_machines/env_mach_spefic.'" \
+                      +options.osname+'_'+options.compiler+"\n" )
                 os.system('cp -f '+PTCLMdir+'/userdefined_machines/Macros_pflotran.'+options.mach_specific + \
                       ' Macros')
+                
+# (5c) flags for option to turn on expanded arctic PFTs, if requested ------
+            if (options.arcticpft):
+                print(" \n Expanded PFTs for Arctic Tundra in CLM4.5 will be turned on ! " )
+                print(" NOTE: make sure of using right CLM4.5 code ! \n" )
+                with open("Macros", "a") as myfile:
+                    myfile.write("\n") 
+                    myfile.write("#expanded arctic PFT flag for CLM4.5\n") 
+                    myfile.write("FFLAGS += -DPFTARCTIC\n")
+                myfile.close()
 
-
+# (5d) setup ---------
         os.system('./cesm_setup > configure.log')
         
     else:
@@ -616,52 +637,125 @@ if (options.refcase == 'none'):
                   +"make any requested modifications to env_*.xml files.  Exiting.")
         sys.exit()    
 
-    #clm user-defined namelist from a file 
+# (6) clm user-defined namelist modification ('user_nl_clm') -----
     output = open("user_nl_clm",'w')
     output.write('&clm_inparm\n')
         
-    # clm output hist user-defined file
-    if (options.hist_file != ''):
-        hvars_file = open(options.hist_file)
-        for s2 in hvars_file:
-            myline = s2.strip()
-            output.write(myline+"\n")
-            hvars_file.close()
-            
-    if (finidat != ''):
-        output.write(" finidat = '"+finidat+"'\n")
+    #(6a) user-defined initial data file ---
+    if (options.coldstart == False):
+        if (finidat != ''):
+            output.write(" finidat = '"+finidat+"'\n")
     
+    #(6b) surfdata - generated above ----
     output.write(" fsurdat = '"+ccsm_input+"/lnd/clm2/surfdata_map/" + \
                  "surfdata_"+str(numxpts)+"x"+str(numypts)+"pt_"+options.site+ \
                  "_simyr"+str(mysimyr)+".nc'\n")
     
+    #(6c) pft dynamics file for transient run ----
     if (compset == 'I20TRCLM45CN'):
         output.write(" fpftdyn = '"+ccsm_input+"/lnd/clm2/surfdata_map/" + \
                           "surfdata.pftdyn_"+str(numxpts)+"x"+str(numypts)+"pt_"+ \
                           options.site+".nc'\n")
     
+    #(6d) user-defined pft physiological file ----
     if (pftfile != ''):
         output.write(" fpftcon=   '" + pftfile + "'\n")
         
-    # namelist options for PFLOTRAN coupling
+    #(6e) clm output hist user-defined file ----
+    if (options.hist_file != ''):
+        histfile = PTCLMfiledir+"/"+options.hist_file
+        hvars_file = open(histfile)
+        output.write("\n")
+        for s2 in hvars_file:
+            myline = s2
+            output.write(myline)
+        output.write("\n")
+        hvars_file.close()
+
+    #(6e) namelist options for PFLOTRAN coupling ----
     if (options.pflotran):
         output.write(" use_pflotran = .true.\n")
         output.write("\n")
         output.write("&clm_pflotran_inparm\n")
         output.write("    pflotran_prefix = '"+ casename + "'\n")
         output.write("/\n")
+    else:
+        output.write(" use_pflotran = .false.\n")
+        output.write("\n")       
 
     output.close()
 
-    #copy sourcemods
+#(7) copy user-defined sourcemods codes  ----
     if (options.srcmods_loc != ''):
+        if (options.srcmods_loc.startswith('/')):
+            options.srcmods_loc = os.path.abspath(options.srcmods_loc)
+        else:   
+            options.srcmods_loc = os.path.abspath(PTCLMdir+'/'+options.srcmods_loc)
+            
         if (os.path.exists(options.srcmods_loc) == False):
             print('Invalid srcmods directory.  Exiting')
             sys.exit()
-        options.srcmods_loc = os.path.abspath(options.srcmods_loc)
-        os.system('cp -r '+options.srcmods_loc+'/* ./SourceMods')   
+        else:
+            print('User-defined source codes will be copied from: '+options.srcmods_loc)
+        os.system('cp -rf '+options.srcmods_loc+'/* ./SourceMods')   
    
-#------- build clm45 within cesm  
+# (8) transient CO2 patch for transient run ----
+    if (compset == "I20TRCLM45CN"):      
+#       (8a) historical co2 stream data: globally 1 value ----
+        os.system('cp '+csmdir+'/models/lnd/clm/doc/UsersGuide/co2_streams.txt ./')
+        myinput  = open('co2_streams.txt')
+        myoutput = open('co2_streams.txt.tmp','w')
+        for s in myinput:
+            s2 = s.strip()
+            if (s2 =='<filePath>'):
+                myoutput.write(s)
+                myoutput.write('            '+ccsm_input+'/atm/datm7/CO2\n')
+                next(myinput);
+            elif (s2 =='<fileNames>'):
+                myoutput.write(s)
+                myoutput.write('            '+options.co2_file+'\n')
+                next(myinput);
+            else:
+                myoutput.write(s)
+        myinput.close()
+        myoutput.close()       
+        os.system('mv co2_streams.txt.tmp co2_streams.txt')
+        
+        # (8b) modifying default 'datm_atm.in' to include historical co2 stream data ---
+        myinput  = open('./Buildconf/datmconf/datm_atm_in')
+        myoutput = open('user_nl_datm','w')
+        for s in myinput:
+            s2 = s.strip()
+            if (s2.startswith('dtlimit')):
+                myoutput.write(' '+s2+',1.5\n')
+            elif (s2.startswith('fillalgo')):
+                myoutput.write(" "+s2+",'nn'\n")
+            elif (s2.startswith('fillmask')):
+                myoutput.write(" "+s2+",'nomask'\n")
+            elif (s2.startswith('mapalgo')):
+                myoutput.write(" "+s2+",'nn'\n")
+            elif (s2.startswith('mapmask')):
+                myoutput.write(" "+s2+",'nomask'\n")
+            elif (s2.startswith('streams')):
+                myoutput.write(" "+s2+",'datm.global1val.streams.co2.txt 1766 1766 2010'\n")
+            elif (s2.startswith('taxmode')):
+                myoutput.write(" taxmode = 'cycle', 'extend', 'extend'\n")
+            elif (s2.startswith('tintalgo')):
+                myoutput.write(" "+s2+",'linear'\n")
+            else:
+                myoutput.write(s)
+        myinput.close()
+        myoutput.close()       
+        
+# datm namelist modifications (cycle met data streams - a bug in clm4.5.10) ---
+    if (compset != "I20TRCLM45CN"):  # for transient run, it's been corrected above
+        output = open("user_nl_datm",'w')
+        output.write("&shr_strdata_nml\n")
+        output.write(" taxmode = 'cycle', 'extend'\n")
+        output.write("/\n")
+        output.close()      
+
+# (9) ------- build clm45 within cesm ---------------------------------------------- 
     #clean build if requested prior to build
     if (options.clean_build):
         os.system('./'+casename+'.clean_build')
@@ -669,16 +763,16 @@ if (options.refcase == 'none'):
         os.system('rm -rf '+runroot+'/'+casename+'/run/*.nc')
         os.system('rm -rf '+runroot+'/'+casename+'/*.*log.*')
         os.system('rm -rf '+runroot+'/'+casename+'/*.exe.*')
-    
+            
     #compile cesm
     if (options.no_build == False):        
-        os.system('./'+casename+'.build')
-        
-    #transient CO2 patch for transient run (datm buildnml mods) - to do soon
-    #if (compset == "I20TRCLM45CN"):
-       
+        os.system('./'+casename+'.build')        
+        # note: *.build will sweep everything under ./Buildconf, but we need 'co2_streams.txt' in transient run ---
+        if (compset == "I20TRCLM45CN"):
+            os.system('cp -f co2_streams.txt ./Buildconf/datmconf/datm.global1val.streams.co2.txt')
+            os.system('cp -f co2_streams.txt '+rundir+'/datm.global1val.streams.co2.txt')
 
-#----------------------------Reference case set ------------------------------------------
+# ---------------------------- Reference case set ------------------------------------------
 # the following has not yet checked for CLM4.5
 else:  
 
@@ -833,9 +927,9 @@ else:
         output.write("mpirun -np "+options.np+" --hostfile $PBS_NODEFILE ./ccsm.exe\n")
     output.close()
 
-#---------------------------end of refcase ------------------------------------------------
+# --------------------------- end of refcase ------------------------------------------------
 
-#----- copy rpointers and restart files to current run directory prior to run model
+# ----- copy rpointers and restart files to current run directory prior to run model ---
 if (options.finidat_case != ''):
     os.system('cp -f '+runroot+'/'+options.finidat_case+'/run/' + \
               options.finidat_case+'.*'+finidat_yst+'* ' + rundir)
@@ -853,9 +947,6 @@ if (options.osname == "LINUX"):
                 myoutput.write("#PBS -N "+casename+"\n")
             elif s[9:14] == 'batch':
                 myoutput.write("#PBS -q "+options.queue+"\n")
-            #elif s[0:4] == 'cd /':                 
-                #output.write("cd "+csmdir+'/scripts/'+casename+"\n")
-                #os.chdir(casedir)
             elif s[0:7] == './Tools':
                 myoutput.write("cd "+casedir+"\n")
                 myoutput.write(s)
@@ -878,7 +969,7 @@ if (options.osname == "LINUX"):
         myinput.close()
         os.system("mv "+casename+"temp.run "+casename+".run")  
 
-#----- submit job if requested
+# ----- submit job if requested ---
 if (options.no_submit == False):    
     
     os.chdir(casedir)
