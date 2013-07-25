@@ -411,16 +411,16 @@ contains
     call Hydrology1_readnl(    NLFilename )
     call SoilHydrology_readnl( NLFilename )
 
-    if (use_pflotran) then
-       call clm_pf_readnl(NLFilename)
-    end if
-
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
     ! ----------------------------------------------------------------------
 
     call control_spmd()
     
+    if (use_pflotran) then
+       call clm_pf_readnl(NLFilename)
+    end if
+
     if (masterproc) then
        write(iulog,*) 'Successfully initialized run control settings'
        write(iulog,*)
@@ -606,6 +606,8 @@ contains
 
     ! error growth perturbation limit
     call mpi_bcast (pertlim, 1, MPI_REAL8, 0, mpicom, ier)
+
+    call mpi_bcast (use_pflotran, 1, MPI_LOGICAL, 0, mpicom, ier)
 
   end subroutine control_spmd
 

@@ -108,6 +108,8 @@ function modify_env_build() {
     ./xmlchange -file env_build.xml -id EXEROOT -val ${CASE_DIR}/bld
     ./xmlchange -file env_build.xml -id SUPPORTED_BY -val ${USER}
     ./xmlchange -file env_build.xml -id GMAKE -val make
+    # doing dev work on an unsupported machine, always use a debug build
+    ./xmlchange -file env_build.xml -id DEBUG -val TRUE
 }
 
 function modify_env_mach_pes() {
