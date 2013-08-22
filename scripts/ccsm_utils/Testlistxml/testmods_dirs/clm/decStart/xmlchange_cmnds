@@ -1,1 +1,1 @@
-xmlchange RUN_STARTDATE=2001-12-30
+./xmlchange RUN_STARTDATE=2001-12-30

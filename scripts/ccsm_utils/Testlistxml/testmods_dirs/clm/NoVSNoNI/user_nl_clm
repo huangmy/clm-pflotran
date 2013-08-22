@@ -1,4 +1,5 @@
  anoxia          = .true.
+ rootlitfrac     = 0.0d00
  hist_wrtch4diag = .true.
  wrtdia          = .true.
  hist_dov2xy     = .true.,.false.

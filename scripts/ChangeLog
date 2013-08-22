@@ -1,8 +1,130 @@
 ================================================================================
-SVN $Id: ChangeLog 49798 2013-07-30 21:07:10Z muszala $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130730/ChangeLog $
+SVN $Id: ChangeLog 50222 2013-08-16 22:44:02Z muszala $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130816/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+
+================================================================================
+Originator: muszala
+Date: Aug 16 2013
+Model: scripts
+Version: scripts4_130816
+One-line: remove and modify tests so they work with new ch4 params files in clm
+
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set2_ciso
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set2_ciso/user_nl_clm
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set3_pftroot
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set3_pftroot/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: erik
+Date: Aug 09 2013
+Model: scripts
+Version: scripts4_130809b
+One-line: Do xmlchange_cmds BEFORE cesm_setup, remove some compsets move into tests
+
+Remove SNCR from compsets (never worked anyway). And remove NoVS and NoVSNoNi
+from compsets and move into testmods_dirs. For USUMB/decStart tests, make sure
+./xmlchange has "./" in front of it. Work on formatting (lining up columns)
+in testlist.xml
+
+M       create_test
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/decStart/xmlchange_cmnds
+
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/xmlchange_cmnds
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/xmlchange_cmnds
+
+
+================================================================================
+Originator: jedwards
+Date: Aug 09 2013
+Model: scripts
+Version: scripts4_130809
+One-line: adjust aprun output from taskmaker with numa flags for intel compiler (on edison)
+
+M ccsm_utils/Tools/taskmaker.pl
+
+
+================================================================================
+Originator: sacks
+Date: Aug 02 2013
+Model: scripts
+Version: scripts4_130802a
+One-line: tweak clm aux test lists, fix make_xml_entries
+
+Change / add the following clm aux tests (< is old, > is new):
+
+*** add / tweak some threading tests
+< PET.f10_f10.I1850CLM45BGC.yellowstone_pgi.clm-default
+< PET.f10_f10.ICLM45BGC.yellowstone_intel
+> PET_PT_D.f10_f10.I1850CLM45BGC.yellowstone_pgi.clm-ciso
+> PET_PT.f10_f10.ICLM45BGC.yellowstone_intel
+> PET_PT_D.f19_g16.ICLM45BGCDVCROP.yellowstone_pgi.clm-crop
+
+*** c13c14only was the same as ciso, so I deleted it
+< ERS.f10_f10.I1850CLM45BGC.frankfurt_nag.clm-c13c14only
+> ERS.f10_f10.I1850CLM45BGC.frankfurt_nag.clm-ciso
+
+*** CISM hasn't been ported to NAG, so move IG tests elsewhere; note
+    that the frankfurt pgi test is currently failing for the same
+    reason as a bunch of other frankfurt pgi tests (a netcdf problem)
+< ERS_D.f19_g16.IGRCP26CN.frankfurt_nag
+< ERS_Lm3.f19_g16.IGRCP60CN.frankfurt_nag
+> ERS_D.f19_g16.IGRCP26CN.frankfurt_pgi
+> ERS_Lm3.f19_g16.IGRCP60CN.yellowstone_intel
+
+
+
+
+M       ccsm_utils/Testlistxml/testlist.xml
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only/user_nl_clm
+
+*** work correctly with testmod dir
+M       ccsm_utils/Testlistxml/make_xml_entries
+
+================================================================================
+Originator: erik
+Date: Aug 02 2013
+Model: scripts
+Version: scripts4_130802
+One-line: Sync up testlist and compsets for "I" compsets
+
+Make sure every "I" compset has a test for it (except I20TRCRUCLM45CN).
+And remove unneeded "I" compsets. Add in a 1x1_US-UMB test and a SNICAR_FRC test for aux_clm.
+Also add a 1x1_US-UMB test for prebeta, and prebeta test on yellowstone_intel for ICLM45CRUBGC. 
+Make a IG1850, f19_g16 test on yellowstone_pgi be for IG1850CN instead.
+
+Consistently use alias names for "I" compset tests. A few were using snames.
+(move I_2000_CRUFRC_CN ICRUCN [ERS_D hcru], move I_2000_CRUFRC_CLM45_BGC to ICRUCLM45BGC [ERS_D hcru], 
+I_1948-2004 to I4804[ERB ne30])
+
+Update PTCLM version.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Jul 31 2013
+Model: scripts
+Version: scripts4_130731
+One-line: testreporter bug fix in HTTP POST method. 
+
+M       ccsm_utils/Tools/testreporter.pl
+
 ================================================================================
 Originator: muszala
 Date: Jul 30 2013

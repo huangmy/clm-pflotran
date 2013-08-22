@@ -1,0 +1,1 @@
+./xmlchange CLM_CONFIG_OPTS="-bgc cn -vsoilc_centbgc no-vert:no-nitrif -clm4me on"

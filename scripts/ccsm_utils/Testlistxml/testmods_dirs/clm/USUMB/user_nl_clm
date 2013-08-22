@@ -1,9 +1,7 @@
- use_c13        = .true.
- use_c14        = .true.
  wrtdia         = .true.
  hist_dov2xy    = .true.,.false.
  hist_ndens     = 1,1
- hist_nhtfrq    =-24,-8
+ hist_nhtfrq    = 0,-240
  hist_mfilt     = 1,3
  hist_fincl1    = 'TRAFFICFLUX', 'SNOWLIQ:A','SNOWICE:A'
  hist_fincl2    = 'TG','TBOT','FIRE','FIRA','FLDS','FSDS',
