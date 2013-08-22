@@ -106,7 +106,7 @@
 
 <entry id="COMP_OCN" 
  type="char"
- valid_values="pop2,docn,xocn,socn,aquap" 
+ valid_values="pop2,docn,xocn,socn,aquap,mpas-o" 
  value="pop2"  
  group="case_comp"
  sdesc="Name of ocean component"
@@ -987,6 +987,7 @@ a restart file."
  group="run_domain"
  sdesc="wav2ocn state mapping file decomp type"
 ></entry>
+-->
 
 <!-- ======================================================================= -->
 

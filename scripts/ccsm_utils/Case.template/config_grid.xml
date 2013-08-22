@@ -52,6 +52,7 @@ Each grid is associated with three names
 <GRID sname="T62_tx1v1"   alias="T62_s11" compset="(DATM|XATM|SATM)">a%T62_l%T62_oi%tx1v1_r%rx1_m%tx1v1_g%null_w%null</GRID>
 <GRID sname="T62_tx0.1v2" alias="T62_t12" compset="(DATM|XATM|SATM)">a%T62_l%T62_oi%tx0.1v2_r%rx1_m%tx0.1v2_g%null_w%null</GRID>
 <GRID sname="T62_gx1v6"   alias="T62_g16" compset="(DATM|XATM|SATM)">a%T62_l%T62_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="T62_mpas120" alias="T62_m120" compset="(DATM|XATM|SATM)">a%T62_l%T62_oi%mpas120_r%rx1_m%mpas120_g%null_w%null</GRID>
 
 <!-- finite volume grids -->
 
@@ -93,7 +94,7 @@ Each grid is associated with three names
 <GRID sname="ne30np4_ne30np4"       alias="ne30_ne30"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6_g%null_w%null</GRID>
 <GRID sname="ne60np4_ne60np4"       alias="ne60_ne60"    compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne60np4_l%ne60np4_oi%ne60np4_r%r05_m%gx1v6_g%null_w%null</GRID>
 <GRID sname="ne120np4_ne120np4"     alias="ne120_ne120"  compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne120np4_l%ne120np4_oi%ne120np4_r%r05_m%gx1v6_g%null_w%null</GRID>
-<GRID sname="ne240np4_ne240np4"     alias="ne240_ne240"  compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne240np4_l%ne240np4_oi%ne240np4_r%r01_m%gx1v6_g%null_w%null</GRID>
+<GRID sname="ne240np4_ne240np4"     alias="ne240_ne240"  compset="(DOCN|XOCN|SOCN|AQUAP)">a%ne240np4_l%ne240np4_oi%ne240np4_r%null_m%gx1v6_g%null_w%null</GRID>
 
 <!--- cism grids --> 
 
@@ -336,6 +337,13 @@ use the T62_g16 resolution instead:
 </desc >
 </gridhorz>
 
+<!-- MPAS grids -->
+
+<gridhorz name="mpas120">
+  <nx>28574</nx>  <ny>1</ny>  
+  <desc>mpas120 is a MPAS ocean grid that is roughly 1 degree resolution:</desc>
+</gridhorz>
+
 <!-- ROF (river) grids-->
 
 <gridhorz name="rx1">
@@ -404,6 +412,11 @@ use the T62_g16 resolution instead:
 <griddom grid="mp120v1" mask="mp120v1">
   <ICE_DOMAIN_FILE>domain.ocn.mp120v1.111018.nc</ICE_DOMAIN_FILE>
   <OCN_DOMAIN_FILE>domain.ocn.mp120v1.111018.nc</OCN_DOMAIN_FILE>
+</griddom>
+
+<griddom grid="mpas120" mask="mpas120">
+  <ICE_DOMAIN_FILE>domain.ocn.mpas120.121116.nc</ICE_DOMAIN_FILE>
+  <OCN_DOMAIN_FILE>domain.ocn.mpas120.121116.nc</OCN_DOMAIN_FILE>
 </griddom>
 
 <!-- ======================================================== -->
@@ -885,6 +898,8 @@ use the T62_g16 resolution instead:
 <griddom grid="ne240np4" mask="gx1v6">
   <ATM_DOMAIN_FILE>domain.lnd.ne240np4_gx1v6.111226.nc</ATM_DOMAIN_FILE>
   <LND_DOMAIN_FILE>domain.lnd.ne240np4_gx1v6.111226.nc</LND_DOMAIN_FILE>
+  <OCN_DOMAIN_FILE>domain.ocn.ne240np4_gx1v6.111226.nc</OCN_DOMAIN_FILE>
+  <ICE_DOMAIN_FILE>domain.ocn.ne240np4_gx1v6.111226.nc</ICE_DOMAIN_FILE>
 </griddom>
 
 <gridmap atm_grid="ne240np4" ocn_grid="gx1v6">
@@ -934,6 +949,11 @@ use the T62_g16 resolution instead:
   <LND_DOMAIN_FILE>domain.lnd.T62_tx0.1v2_090623.nc</LND_DOMAIN_FILE>
 </griddom>
 
+<griddom grid="T62" mask="mpas120"> <!--- datm/slnd/drof only -->
+  <ATM_DOMAIN_FILE>domain.lnd.T62_mpas120.121116.nc</ATM_DOMAIN_FILE>
+  <LND_DOMAIN_FILE>domain.lnd.T62_mpas120.121116.nc</LND_DOMAIN_FILE>
+</griddom>
+
 <gridmap atm_grid="T62" ocn_grid="gx3v7">
   <ATM2OCN_FMAPNAME>cpl/gridmaps/T62/map_T62_TO_gx3v7_aave.130322.nc</ATM2OCN_FMAPNAME>
   <ATM2OCN_SMAPNAME>cpl/gridmaps/T62/map_T62_TO_gx3v7_blin.130322.nc</ATM2OCN_SMAPNAME>
@@ -964,6 +984,14 @@ use the T62_g16 resolution instead:
   <ATM2OCN_VMAPNAME>cpl/cpl6/map_T62_to_tx0.1v2_bilin_da_090220.nc</ATM2OCN_VMAPNAME>
   <OCN2ATM_FMAPNAME>cpl/cpl6/map_tx0.1v2_to_T62_aave_da_090220.nc</OCN2ATM_FMAPNAME>
   <OCN2ATM_SMAPNAME>cpl/cpl6/map_tx0.1v2_to_T62_aave_da_090220.nc</OCN2ATM_SMAPNAME>
+</gridmap>
+
+<gridmap atm_grid="T62" ocn_grid="mpas120">
+  <ATM2OCN_FMAPNAME>cpl/gridmaps/T62/map_T62_TO_mpas120_aave.121116.nc</ATM2OCN_FMAPNAME>
+  <ATM2OCN_SMAPNAME>cpl/gridmaps/T62/map_T62_TO_mpas120_aave.121116.nc</ATM2OCN_SMAPNAME>
+  <ATM2OCN_VMAPNAME>cpl/gridmaps/T62/map_T62_TO_mpas120_aave.121116.nc</ATM2OCN_VMAPNAME>
+  <OCN2ATM_FMAPNAME>cpl/gridmaps/mpas120/map_mpas120_TO_T62_aave.121116.nc</OCN2ATM_FMAPNAME>
+  <OCN2ATM_SMAPNAME>cpl/gridmaps/mpas120/map_mpas120_TO_T62_aave.121116.nc</OCN2ATM_SMAPNAME>
 </gridmap>
 
 <!-- ====================  -->

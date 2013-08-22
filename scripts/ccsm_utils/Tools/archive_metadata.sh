@@ -7,6 +7,8 @@
 # Case metadata is now being entered and stored in 
 # mysql run db at http://csegweb.cgd.ucar.edu.
 #
+# aliceb - 2013/5/30
+# adding the archival of user_nl_xxx files to the archive list
 
 if [ $# -gt 0 ]; then
     echo ""
@@ -206,6 +208,13 @@ if [ $? -ne 0 ]; then
     archive_list="${archive_list} xmlchange"
     # aliceb archive_list="${archive_list} env_metadata"
     archive_list="${archive_list} ChangeLog"
+    # adding user_nl_xxx files
+    archive_list="${archive_list} user_nl_cam"
+    archive_list="${archive_list} user_nl_cice"
+    archive_list="${archive_list} user_nl_clm"
+    archive_list="${archive_list} user_nl_cpl"
+    archive_list="${archive_list} user_nl_pop2"
+    archive_list="${archive_list} user_nl_rtm"
 
     for item in ${archive_list}; do
 	cp -rp $item $tempdir/trunk/.

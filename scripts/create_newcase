@@ -93,11 +93,12 @@ OPTIONS
                           default: M, partially redundant with confopts _P
      -pes_file <name>     Full pathname of pes file to use (will overwrite default settings) (optional).
                           See sample_pes_file.xml for an example.
-     -user_compset        Long name for new user compset file to use (optional)
-                          This assumes that all of the compset settings in the long name have been defined.
-     -grid_file <name>    Full pathname of grid file to use (optional)
-                          See sample_grid_file.xml for an example.
-                          Note that compset components must support the new grid.
+     -user_compset        Long name for new user compset to use (optional)
+                          This assumes that all of the compset settings in the long name have been defined
+			  in ccsm_utils/Case.template/config_compsets.xml
+     -user_grid_file <name>  Full pathname of grid file to use (optional)
+                          This should be a "copy" of ccsm_utils/Case.template/config_grid.xml with the
+                          new user grid changes added to it
      -help [or -h]        Print usage to STDOUT (optional).
      -list <type>         Only list valid values, type can be [compsets, grids, machines] (optional).
      -testlist            List valid values for tests [normally only invoked by create_test] (optional).
@@ -147,7 +148,7 @@ GetOptions(
     "pecount=s"                 => \$opts{'pecount'},
     "pes_file=s"                => \$opts{'pes_file'}, 
     "compset_file=s"            => \$opts{'compset_file'},
-    "grid_file=s"               => \$opts{'grid_file'},
+    "user_grid_file=s"          => \$opts{'user_grid_file'},
     "s|silent"                  => \$opts{'silent'},
     "testname=s"                => \$opts{'testname'},
     "testlist"                  => \$opts{'testlist'},
@@ -304,8 +305,8 @@ EOF
 
 # Grid definition file.
 my $grid_file = "";
-if (defined $opts{'grid_file'}){
-  $grid_file = $opts{'grid_file'};
+if (defined $opts{'user_grid_file'}){
+  $grid_file = $opts{'user_grid_file'};
   (-f $grid_file)  or  die <<"EOF";
   ** Cannot find user specified grid definition file \"$grid_file\"  **
 EOF
@@ -538,7 +539,7 @@ my %decomp = (NTASKS_ATM=>16, NTHRDS_ATM=>1, ROOTPE_ATM=>0, NINST_ATM=>1,
               GLC_PIO_NUMTASKS=>-99, GLC_PIO_STRIDE=>-99, GLC_PIO_TYPENAME=>'nothing',GLC_PIO_ROOT=>-99,
               ROF_PIO_NUMTASKS=>-99, ROF_PIO_STRIDE=>-99, ROF_PIO_TYPENAME=>'nothing',ROF_PIO_ROOT=>-99,
               WAV_PIO_NUMTASKS=>-99, WAV_PIO_STRIDE=>-99, WAV_PIO_TYPENAME=>'nothing',WAV_PIO_ROOT=>-99,
-              PES_LEVEL=>0);
+              PES_LEVEL=>0,PIO_BUFFER_SIZE_LIMIT=>-1);
 
 # Reset the pes if a pes file is specified
 if (defined $opts{'pes_file'}) {
@@ -617,6 +618,7 @@ if (defined $opts{'pes_file'}) {
     # $cfg_ref->set('NINST_ROF', $decomp{'NINST_ROF'});
 
     $cfg_ref->set('PIO_TYPENAME'    , $decomp{'PIO_TYPENAME'});
+    $cfg_ref->set('PIO_BUFFER_SIZE_LIMIT'    , $decomp{'PIO_BUFFER_SIZE_LIMIT'});
     $cfg_ref->set('ATM_PIO_TYPENAME', $decomp{'ATM_PIO_TYPENAME'});
     $cfg_ref->set('LND_PIO_TYPENAME', $decomp{'LND_PIO_TYPENAME'});
     $cfg_ref->set('OCN_PIO_TYPENAME', $decomp{'OCN_PIO_TYPENAME'});

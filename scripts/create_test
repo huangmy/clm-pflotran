@@ -5,7 +5,7 @@
 #===================================================================
 use strict;
 use warnings;
-use Cwd qw( getcwd abs_path );
+use Cwd qw( getcwd abs_path chdir);
 use English;
 use Getopt::Long;
 use IO::File;
@@ -67,7 +67,7 @@ SYNOPSIS
       [-testroot          root_directory_for_testsuite]
       [-testid            unique_identifier_for_tests]
       [-testname          name_of_single_test]
-      [-user_nl_dir       user_namelist_directories]
+      [-user_testmods_dir user_testmods_directory]
       [-verbose           verbose]
       [-xml_list          list_of_tests (new xml format), default is 
                           $scriptsroot/ccsm_utils/Testlistxml/testlist.xml]
@@ -214,13 +214,13 @@ OPTIONS:
                            SMS.1x1_mexicocityMEX.I1PT.yellowstone_intel
                            ERI_D.1x1_camdenNJ.ICLM45CNTEST.yellowstone_intel
 
-      -user_nl_dir <dir>   Specify a directory containing user namelists, 
+      -user_testmods_dir <dir> Specify a directory containing user namelists and 
+                           possibly the file xmlchange_cmds, 
                            intended for use with single tests.  For use with 
                            test suites, see 
                            \$scriptsroot/ccsm_utils/Testlistxml/testlist.xml 
                            for examples.   
 
-      
       This script generates single tests or test suites.  It is the result of 
       merging the functionality of the old 'create_test' and 'create_test_suite'
       scripts.  It duplicates the functionality of those two scripts.  When one
@@ -349,7 +349,7 @@ sub initialize()
            testid               => $testlid,
            testname             => undef,
            testroot             => $cwd,
-           user_nl_dir          => undef,
+           user_testmods_dir    => undef,
            verbose              => 0,
            );
 }
@@ -358,34 +358,34 @@ sub initialize()
 sub options
 {
     GetOptions(
-               "autosubmit=s"      => \$opts{'autosubmit'},
-               "baselineroot=s"    => \$opts{'baselineroot'},
-               "clean=s"           => \$opts{'clean'},
-               "cesmroot=s"        => \$opts{'cesmroot'},
-               "compare=s"         => \$opts{'compare'},
-               "compiler=s"        => \$opts{'compiler'},
-               "compset_file=s"    => \$opts{'compset_file'},
-               "debug"             => \$opts{'debug'},  
-	           "dryrun"            => \$opts{'dryrun'},
-               "generate=s"        => \$opts{'generate'},
-               "h|help"            => \$opts{'help'},  
-               "input_list=s"      => \$opts{'input_list'},
-               "xml_list=s"        => \$opts{'xml_list'},
-               "xml_mach=s"        => \$opts{'xml_mach'},
-               "xml_compiler=s"    => \$opts{'xml_compiler'},
-               "xml_category=s"    => \$opts{'xml_category'},
-               "mach_dir=s"        => \$opts{'mach_dir'},
-               "mach=s"            => \$opts{'mach'},
-               "nlcompareonly"     => \$opts{'nlcompareonly'},
-               "nobatch=s"         => \$opts{'nobatch'},  
-               "nobuild=s"         => \$opts{'nobuild'}, 
-               "pes_file=s"        => \$opts{'pes_file'},
-               "reruntests=s"      => \$opts{'reruntests'}, 
-               "testid=s"          => \$opts{'testid'},
-               "testname=s"        => \$opts{'testname'},
-               "testroot=s"        => \$opts{'testroot'},
-               "user_nl_dir=s"     => \$opts{'user_nl_dir'},
-               "verbose"           => \$opts{'verbose'},  
+               "autosubmit=s"        => \$opts{'autosubmit'},
+               "baselineroot=s"      => \$opts{'baselineroot'},
+               "clean=s"             => \$opts{'clean'},
+               "cesmroot=s"          => \$opts{'cesmroot'},
+               "compare=s"           => \$opts{'compare'},
+               "compiler=s"          => \$opts{'compiler'},
+               "compset_file=s"      => \$opts{'compset_file'},
+               "debug"               => \$opts{'debug'},  
+               "dryrun"              => \$opts{'dryrun'},
+               "generate=s"          => \$opts{'generate'},
+               "h|help"              => \$opts{'help'},  
+               "input_list=s"        => \$opts{'input_list'},
+               "xml_list=s"          => \$opts{'xml_list'},
+               "xml_mach=s"          => \$opts{'xml_mach'},
+               "xml_compiler=s"      => \$opts{'xml_compiler'},
+               "xml_category=s"      => \$opts{'xml_category'},
+               "mach_dir=s"          => \$opts{'mach_dir'},
+               "mach=s"              => \$opts{'mach'},
+               "nlcompareonly"       => \$opts{'nlcompareonly'},
+               "nobatch=s"           => \$opts{'nobatch'},  
+               "nobuild=s"           => \$opts{'nobuild'}, 
+               "pes_file=s"          => \$opts{'pes_file'},
+               "reruntests=s"        => \$opts{'reruntests'}, 
+               "testid=s"            => \$opts{'testid'},
+               "testname=s"          => \$opts{'testname'},
+               "testroot=s"          => \$opts{'testroot'},
+               "user_testmods_dir=s" => \$opts{'user_testmods_dir'},
+               "verbose"             => \$opts{'verbose'},  
               ) or usage();
   usage() if $opts{'help'};
 }
@@ -616,6 +616,19 @@ sub checkSingleTestOptions
         $opts{'compset_file'} = abs_path($opts{'compset_file'});
       }
     }
+	# If user_testmods_dir is defined, we need to tack on 
+	if(defined $opts{'user_testmods_dir'})
+	{
+		my $testmods_path = $opts{'user_testmods_dir'};
+		Debug("testmods path: $testmods_path");
+		my $defaultmodspath = "ccsm_utils/Testlistxml/testmods_dirs/";
+		$testmods_path =~ s/$defaultmodspath//g;
+		$testmods_path = $1 if ($testmods_path =~ /(.*)\/$/);
+		$testmods_path =~ s/\//-/g;
+		Debug("testmods path: $testmods_path");
+		$opts{'testname'} .= ".$testmods_path";
+	}
+		
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -678,8 +691,8 @@ sub ExpandXmlList
 		      my %mach_attr = $mach_elem->get_attributes();
 		      my $testtype_val = $mach_attr{'testtype'};
 		      my $compiler_val = $mach_attr{'compiler'};
-		      my $nldir_val    = $mach_attr{'nldir'};
-		      $nldir_val =~ s/\//-/g if(defined $nldir_val);
+		      my $testmods_val = $mach_attr{'testmods'};
+		      $testmods_val =~ s/\//-/g if(defined $testmods_val);
 
 		      my $machine_val  = $mach_elem->get_text();
 		      my $testname = "$test_val" . ".$grid_val" . ".$compset_val." ;
@@ -707,8 +720,8 @@ sub ExpandXmlList
 				  }else{
 				      $testname .= "_".$compiler_val;
 				  }
-				  if ($nldir_val) {
-				      $testname = "$testname" . ".$nldir_val";
+				  if ($testmods_val) {
+				      $testname = "$testname" . ".$testmods_val";
 				  }
 				  push (@actualtests, $testname);
 				  &Debug("testname is $testname \n");
@@ -753,12 +766,12 @@ sub ParseTestName
      $testhash->{'grid'} = $2;
      $testhash->{'compset'} = $3;
      $testhash->{'cmach'} = $4;
-     $testhash->{'nldir'} = $5;
+     $testhash->{'testmods'} = $5;
      $testhash->{'testname'} =~ s/\.//g;
      $testhash->{'grid'} =~ s/\.//g;
      $testhash->{'compset'} =~ s/\.//g;
      $testhash->{'cmach'} =~ s/\.//g;
-     $testhash->{'nldir'} =~ s/\.//g;
+     $testhash->{'testmods'} =~ s/\.//g;
   }
   elsif($teststring =~ /^(\w+\.)(\w+\.)(\w+\.)(\w+)$/ )
   {
@@ -935,10 +948,10 @@ sub checkTestCase
   # fullname.grid.compset.mach_compiler
   my $basecase = $testhash->{'fullname'}.".".$testhash->{'grid'}.".".$testhash->{'compset'};    
   $basecase   .= ".".$testhash->{'mach'}."_".$testhash->{'compiler'};
-  if ($testhash->{'nldir'}) 
+  if ($testhash->{'testmods'}) 
   {
-      my $nldir = $testhash->{'nldir'};
-      $basecase = "$basecase." .$nldir;
+      my $testmods = $testhash->{'testmods'};
+      $basecase = "$basecase." .$testmods;
   }	  
   $testhash->{'casebaseid'} = $basecase;
   $testhash->{'test_argv'} = "-testname $basecase -testroot $opts{'testroot'} ";
@@ -1012,7 +1025,7 @@ sub documentTestCase
   print "  testcase:  $test{'fullname'}\n";
   print "  grid:      $test{'grid'} \n";
   print "  compset:   $test{'compset'} \n";
-  print "  nldir:     $test{'nldir'} \n" if($test{'nldir'});
+  print "  testmods:  $test{'testmods'} \n" if($test{'testmods'});
   print "  machine:   $test{'mach'} \n";
   print "  compiler:  $test{'compiler'} \n" if (defined $test{'compiler'});
   print "  pes_file:  $test{'pes_file'} \n" if(defined $test{'pes_file'});
@@ -1108,41 +1121,56 @@ sub runCreateNewcase
 }
 
 # If user namelist files need to be applied, then copy over the user_namelist files. 
-sub handleUserNLDir
+sub handleUserTestMods
 {
   my %test = %{ shift() };
   my $caseroot = "$opts{'testroot'}/$test{'case'}";
   my @user_nl_files;
-  if( $test{'nldir'} )
+  my @xmlchange_cmnds_file;
+  if( $test{'testmods'} )
   { 
-      my $nldir = $test{'nldir'};
-      $nldir =~ s/-/\//g;
-      $nldir = "$cfgdir/ccsm_utils/Testlistxml/nl_dirs/".$nldir;
-      if (! -e $nldir)
+      my $testmods = $test{'testmods'};
+      $testmods =~ s/-/\//g;
+      $testmods = "$cfgdir/ccsm_utils/Testlistxml/testmods_dirs/".$testmods;
+      if (! -e $testmods)
       {
-	  die "The specified user namelist directory $nldir does not exist. ";
+	  die "ERROR: The specified user testmods directory $testmods does not exist. ";
       }
-      @user_nl_files = glob("$nldir/user_nl*");
+      @user_nl_files = glob("$testmods/user_nl*");
+      @xmlchange_cmnds_file = glob("$testmods/xmlchange_cmnds");
   } 
   else 
   {
-      if(! -e $opts{'user_nl_dir'})
+      if(! -e $opts{'user_testmods_dir'})
       {
-	  die "The specified user namelist directory $opts{'user_nl_dir'} does not exist. ";
+	  die "ERROR: The specified user testmods directory $opts{'user_testmods_dir'} does not exist. ";
       }
-      @user_nl_files = glob("$opts{'user_nl_dir'}/user_nl*");
+      @user_nl_files = glob("$opts{'user_testmods_dir'}/user_nl*");
+      @xmlchange_cmnds_file = "$opts{'user_testmods_dir'}/xmlchange_cmnds";
   }
 
-  if(! @user_nl_files)
+  if(! @user_nl_files && ! @xmlchange_cmnds_file)
   {
-    die "There are no user_nl files ";
+    die "ERROR: There are no user_nl files or xmlchange_cmds file";
   }
   else
   {
-    foreach my $nlfile(@user_nl_files)
+    foreach my $file(@user_nl_files)
     {
-	my $sysmod = "cp $nlfile $caseroot";
-	system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
+	if (-f "$file") {
+	    copy("$file", "$caseroot");
+	}
+    }
+    foreach my $file(@xmlchange_cmnds_file)
+    {
+	if (-f "$file") {
+	    copy("$file", "$caseroot/.");
+	    chmod 0777, "$caseroot/xmlchange_cmnds";
+	    my $cwd = getcwd(); # current working directory
+	    chdir "$caseroot";
+	    system ("./xmlchange_cmnds");
+	    chdir "$cwd";
+	}
     }
   }
 }
@@ -1231,7 +1259,7 @@ sub testcaseSetup
   
   if(defined $opts{'baselineroot'})
   {
-      $sysmod = "$sysmod BASELINEROOT=$opts{'baselineroot'}";
+      $sysmod = " $sysmod BASELINE_ROOT=$opts{'baselineroot'} ";
   }
   if(defined $opts{'generate'})
   {
@@ -1287,7 +1315,7 @@ sub ExpandTestList
   $testlistfile = abs_path($testlist);
   
   my $fh = new IO::File;
-  $fh->open("< $testlistfile") or die "$testlistfile doesn't exist";
+  $fh->open("< $testlistfile") or die "ERROR: $testlistfile doesn't exist";
   my @potentialtests = <$fh>;
   chomp @potentialtests;
   close $fh;
@@ -1617,7 +1645,7 @@ sub namelistCompare
 	    mkpath $genpath, 1, 0775;
 	    system("cp -r $buildconfpath $genpath"); 
 	    system("cp $buildconfpath/../user_nl* $genpath") ;
-      warn "Couldnt create Baseline directory $genpath" unless -d "$genpath/CaseDocs"; 
+	    warn "Couldnt create Baseline directory $genpath" unless -d "$genpath/CaseDocs"; 
 	}
     }
 }
@@ -1658,13 +1686,9 @@ sub doonetest{
 	writeEnvTestXML($testhash);
 	testcaseSetup($testhash);
 	&Debug( eval {  Dumper $testhash} );
-	if( defined $opts{'user_nl_dir'})
+	if( defined $opts{'user_testmods_dir'} || $testhash->{'testmods'})
 	{
-	    handleUserNLDir($testhash);
-	}
-	if($testhash->{'nldir'})
-	{
-	    handleUserNLDir($testhash);
+	    handleUserTestMods($testhash);
 	}
     }
     return $testhash;
