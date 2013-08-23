@@ -314,8 +314,6 @@ contains
     use VOCEmissionMod  , only : VOCEmission_init
     use clm_pflotran_interfaceMod , only : clm_pf_interface_init, &
          clm_pf_set_restart_stamp
-    !use clm_pflotran_interfaceMod , only : pflotran_m
-    !use pflotran_model_module
 
 
 ! !Arguments    
@@ -495,9 +493,11 @@ contains
     if (do_restread()) then
        if (masterproc) write(iulog,*)'reading restart file ',fnamer
        call restFile_read( fnamer )
+
        if (use_pflotran) then
           call clm_pf_set_restart_stamp(fnamer)
        end if
+
        arbinit = .false.
        call initSLake(arbinit)
 #if (defined LCH4)

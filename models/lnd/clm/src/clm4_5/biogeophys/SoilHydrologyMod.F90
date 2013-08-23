@@ -818,7 +818,6 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-
     integer , intent(in)  :: lbc, ubc                     ! column bounds
     integer , intent(in)  :: num_hydrologyc               ! number of column soil points in column filter
     integer , intent(in)  :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
@@ -1310,8 +1309,6 @@ contains
     ! Renew the mass of liquid water
     ! also compute qcharge from dwat in aquifer layer
     ! update in drainage for case jwt < nlevsoi
-
-
 
     do fc = 1,num_hydrologyc
        c = filter_hydrologyc(fc)

@@ -84,7 +84,6 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-
     integer , intent(in)  :: lbc, ubc                    ! column bounds
     integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
@@ -2021,5 +2020,6 @@ contains
     end do
 
   end subroutine Phasechange_beta
+
 
 end module SoilTemperatureMod

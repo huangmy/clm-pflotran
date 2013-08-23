@@ -16,7 +16,6 @@ module Hydrology2Mod
 ! !PUBLIC TYPES:
   implicit none
   save
-
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Hydrology2        ! Calculates soil/snow hydrology
@@ -83,11 +82,6 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-
-!#include "finclude/petscvec.h"
-!#include "finclude/petscvec.h90"
-!#include "finclude/petscviewer.h"
-
     integer, intent(in) :: lbc, ubc                    ! column bounds
     integer, intent(in) :: lbp, ubp                    ! pft bounds
     integer, intent(in) :: num_nolakec                 ! number of column non-lake points in column filter
