@@ -52,7 +52,7 @@ contains
     use clm_varpar      , only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &
                                  nlevcan
     use clm_varcon      , only : istcrop
-    use clm_varcon      , only : denice, denh2o, istdlak, istslak, isturb, &
+    use clm_varcon      , only : denice, denh2o, istdlak, &
                                  istsoil, pondmx, watmin, spval, icol_roof, icol_sunwall, &
                                  icol_shadewall
     use clm_varctl      , only : allocate_all_vegpfts, nsrest, fpftdyn,    &
@@ -342,23 +342,6 @@ contains
           if (is_restart()) call endrun()
        end if
     end if
-
-    ! gridcell type water flux variable - tws
-     if (flag == 'define') then
-        call ncd_defvar(ncid=ncid, varname='TWS', xtype=ncd_double, &
-             dim1name='gridcell', long_name='total water storage', units='mm/s')
-     else if (flag == 'read' .or. flag == 'write') then
-        call ncd_io(varname='TWS', data= grc%tws, &
-             dim1name='gridcell', ncid=ncid, flag=flag, readvar=readvar)
-        if (flag == 'read' .and. .not. readvar) then
-           if (is_restart()) then
-              call endrun()
-           else
-              ! initial run, not restart: initialize flood to zero
-               grc%tws = 0._r8
-           endif
-        end if
-     end if
 
     ! column water state variable - zwt
 

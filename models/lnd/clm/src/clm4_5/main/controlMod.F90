@@ -25,7 +25,7 @@ module controlMod
                             co2_type, wrtdia, co2_ppmv, nsegspc, pertlim,       &
                             username, fsnowaging, fsnowoptics, fglcmask, &
                             create_glacier_mec_landunit, glc_dyntopo, glc_smb, &
-                            glc_topomax, glc_grid, subgridflag, &
+                            glc_grid, subgridflag, &
                             use_c13, use_c14, irrigate, &
                             use_pflotran, &
                             spinup_state, override_bgc_restart_mismatch_dump
