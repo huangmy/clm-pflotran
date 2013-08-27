@@ -387,6 +387,7 @@ contains
             num_hydrologyc, filter_hydrologyc, &
             num_snowc, filter_snowc, &
             num_nosnowc, filter_nosnowc)
+       ! TODO(2013-08-27) move to clm_driver, update all states at once?
        call clm_pf_update_soil_moisture(cws, cps, lbc, ubc, &
             num_hydrologyc, filter_hydrologyc)
     else
@@ -399,9 +400,13 @@ contains
     call CLMVICMap(lbc, ubc, num_hydrologyc, filter_hydrologyc)
 #endif
 
-    call WaterTable(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                  num_urbanc, filter_urbanc)
-                  
+    if (use_pflotran) then
+       ! TODO(2013-08-27)
+       !call clm_pf_update_water_table()
+    else
+       call WaterTable(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
+            num_urbanc, filter_urbanc)
+    end if
                   
 
     if (.not. is_perpetual()) then

@@ -613,6 +613,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      ! Update soil temperatures from PFLOTRAN
      ! ============================================================================
      if (use_pflotran) then
+        ! TODO(2013-08-27) clm_pf_update_states --> soil temperature, soil moisture, water table?
         call clm_pf_update_soil_temperature(begl, endl, begc, endc, &
              filter(nc)%num_urbanl,  filter(nc)%urbanl, &
              filter(nc)%num_nolakec, filter(nc)%nolakec)
@@ -692,14 +693,18 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      call t_stopf('ch4')
 #endif
      
+     if (use_pflotran) then
+        ! TODO(2013-08-27)
+        !call clm_pf_update_drainage()
+     else
+        call t_startf('hydro2 drainage')
+        call Hydrology2Drainage(begc, endc, begp, endp, &
+             filter(nc)%num_nolakec, filter(nc)%nolakec, &
+             filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
+             filter(nc)%num_urbanc, filter(nc)%urbanc)                 
      
-     call t_startf('hydro2 drainage')
-     call Hydrology2Drainage(begc, endc, begp, endp, &
-                     filter(nc)%num_nolakec, filter(nc)%nolakec, &
-                     filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
-                     filter(nc)%num_urbanc, filter(nc)%urbanc)                 
-     
-     call t_stopf('hydro2 drainage')     
+        call t_stopf('hydro2 drainage')     
+     end if
      ! ============================================================================
      ! Check the energy and water balance, also carbon and nitrogen balance
      ! ============================================================================
