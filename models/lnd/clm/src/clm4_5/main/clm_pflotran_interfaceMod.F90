@@ -22,13 +22,13 @@ module clm_pflotran_interfaceMod
 
   save
 
-  !type(clm_pflotran_interface_data_type),pointer,public   :: clm_pf_idata
-#ifdef CLM_PFLOTRAN
-  type(pflotran_model_type),pointer,public                :: pflotran_m
-#endif
-  !
   private    ! By default everything is private
 
+  !type(clm_pflotran_interface_data_type),pointer,public   :: clm_pf_idata
+#ifdef CLM_PFLOTRAN
+  type(pflotran_model_type), pointer, public              :: pflotran_m
+#endif
+  !
   character(len=256), private :: pflotran_prefix = ''
   character(len=32), private :: restart_stamp = ''
 
@@ -480,16 +480,16 @@ contains
     use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
     use Realization_class, only : realization_type
     use Surface_Realization_class, only : surface_realization_type
-
+    use PFLOTRAN_Constants_module
     !
     ! !ARGUMENTS:
 
     implicit none
 
+#include "finclude/petscsys.h"
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 #include "finclude/petscviewer.h"
-#include "definitions.h"
 
     !
     ! !REVISION HISTORY:
