@@ -176,7 +176,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 
   use clm_varctl, only : use_pflotran
   use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
-       clm_pf_update_soil_temperature
+       clm_pf_update_soil_temperature, clm_pf_update_drainage
 
 ! !ARGUMENTS:
   implicit none
@@ -695,7 +695,8 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      
      if (use_pflotran) then
         ! TODO(2013-08-27)
-        !call clm_pf_update_drainage()
+        call clm_pf_update_drainage(begc, endc, &
+             filter(nc)%num_hydrologyc, filter(nc)%hydrologyc)
      else
         call t_startf('hydro2 drainage')
         call Hydrology2Drainage(begc, endc, begp, endp, &

@@ -40,6 +40,7 @@ module clm_pflotran_interfaceMod
   public :: clm_pf_interface_init, &
        clm_pf_update_soil_moisture, &
        clm_pf_update_soil_temperature, &
+       clm_pf_update_drainage, &
        clm_pf_step_th, &
        clm_pf_write_restart, clm_pf_set_restart_stamp, &
        clm_pf_vecget_gflux, clm_pf_vecrestore_gflux
@@ -255,6 +256,23 @@ contains
 
 
   !-----------------------------------------------------------------------------
+  subroutine clm_pf_update_drainage(lbc, ubc, &
+       num_hydrologyc, filter_hydrologyc)
+
+    integer, intent(in) :: lbc, ubc                    ! column bounds
+    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
+    character(len=256) :: subname = "clm_pf_update_drainage"
+
+#ifdef CLM_PFLOTRAN
+    call update_drainage_clm_pf(lbc, ubc, num_hydrologyc, filter_hydrologyc)
+#else
+    call pflotran_not_available(subname)
+#endif
+
+  end subroutine clm_pf_update_drainage
+
+  !-----------------------------------------------------------------------------
   subroutine clm_pf_step_th(lbc, ubc, lbp, ubp, &
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
@@ -464,7 +482,7 @@ contains
     use fileutils       , only : getfil
     use spmdMod         , only : mpicom, masterproc
     use organicFileMod  , only : organicrd
-    use clm_varcon      , only : istice, istdlak, istwet, isturb, istice_mec,  &
+    use clm_varcon      , only : istice, istdlak, istwet, istice_mec,  &
          icol_roof, icol_sunwall, icol_shadewall, &
          icol_road_perv, icol_road_imperv, zisoi, zsoi, &
          istsoil, denice, denh2o
@@ -512,6 +530,7 @@ contains
     integer  :: gcount
 
     integer , pointer :: ctype(:)                   ! column type index
+    logical ,pointer :: urbpoi(:)                   ! true => landunit is an urban point
     real(r8), pointer :: hksat(:,:)                 ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
     real(r8), pointer :: sucsat(:,:)                ! minimum soil suction (mm) (nlevgrnd)
     real(r8), pointer :: watsat(:,:)                ! volumetric soil water at saturation (porosity) (nlevgrnd)
@@ -618,6 +637,7 @@ contains
 
     ! Assign local pointers to derived subtypes components (landunit-level)
     ltype           => lun%itype
+    urbpoi          => lun%urbpoi
 
     ! Assign local pointer to derived subtypes components (column-level)
     clandunit       => col%landunit
@@ -804,7 +824,7 @@ contains
       if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
         write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
         write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
-      else if (ltype(l)==isturb .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
+      else if (urbpoi(l) .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
         ! Urban Roof, sunwall, shadewall properties set to special value
         write (iulog,*), 'WARNING: Land Unit type is Urban '
         write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
@@ -824,7 +844,7 @@ contains
           endif
 
           ! No organic matter for urban
-          if (ltype(l)==isturb) then
+          if (urbpoi(l)) then
             om_frac = 0._r8
           end if
 
@@ -1382,6 +1402,59 @@ contains
 
     call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
   end subroutine Update_soil_temperature_clm_pf
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: update_drainage_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine update_drainage_clm_pf(lbc, ubc, &
+       num_hydrologyc, filter_hydrologyc)
+
+  !
+  ! !DESCRIPTION:
+  !
+  !
+  ! !USES:
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+    use clmtype
+    use clm_varctl    , only : iulog
+
+    implicit none
+    integer , intent(in) :: lbc, ubc                     ! column bounds
+    integer , intent(in) :: num_hydrologyc               ! number of column soil points in column filter
+    integer , intent(in) :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
+
+!
+!EOP
+!
+! !OTHER LOCAL VARIABLES:
+!
+    character(len=256) :: subname = 'update_drainage_clm_pf'
+    integer  :: c,fc                               ! indices
+    real(r8), pointer :: qflx_drain_perched(:)     ! perched wt sub-surface runoff (mm H2O /s)
+    real(r8), pointer :: qflx_drain(:)             ! sub-surface runoff (mm H2O /s)
+    real(r8), pointer :: qflx_irrig(:)             ! irrigation flux (mm H2O /s)
+    real(r8), pointer :: qflx_qrgwl(:)             ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
+    real(r8), pointer :: qflx_rsub_sat(:)          ! soil saturation excess [mm h2o/s]
+
+    qflx_drain_perched    => cwf%qflx_drain_perched
+    qflx_drain            => cwf%qflx_drain
+    qflx_irrig            => cwf%qflx_irrig
+    qflx_qrgwl            => cwf%qflx_qrgwl
+    qflx_rsub_sat         => cwf%qflx_rsub_sat
+
+    do fc = 1, num_hydrologyc
+       c = filter_hydrologyc(fc)
+       qflx_drain_perched(c) = 0._r8
+       qflx_drain(c)         = 0._r8
+       qflx_irrig(c)         = 0._r8
+       qflx_qrgwl(c)         = 0._r8
+       qflx_rsub_sat(c)      = 0._r8
+    end do
+
+    end subroutine update_drainage_clm_pf
 
 #endif
 end module clm_pflotran_interfaceMod
