@@ -740,6 +740,15 @@ sub ExpandXmlList
   my %seen = ();
   $seen{$_}++ for @actualtests;
   my @nodupes = keys %seen;
+  my $testlistsize = @nodupes;
+  Debug("test list size: $testlistsize");
+  if($testlistsize == 0)
+  {
+    print "No tests could be found with the test options given:\n";
+    print "xml_mach: $opts{'xml_mach'}, xml_compiler: $opts{'xml_compiler'}, xml_category: $opts{'xml_category'}\n";
+    print "aborting\n";
+    exit(1);
+  }
 
   #exit; #DEBUG
   # Return the sorted list of tests

@@ -2116,8 +2116,10 @@ sub list_compsets
     while ( my $e = shift @e ) {
 	my %attr = $e->get_attributes();
 	my $text = clean($e->get_text());
-#	print "compset: $text (alias $attr{'alias'})\n";
-	printf("alias: %-25s longname: %-96s \n", clean($attr{'alias'}),clean($text));
+	printf("alias: %-25s shortname: %-50s \n",
+               clean($attr{'alias'}),clean($attr{'sname'}));
+	printf("                                 longname: %-96s \n",
+               clean($text));
     }    
     print " \n";
     my @e = $xml_comp->elements_by_name( "help" );

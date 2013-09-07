@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: seq_hist_mod.F90 45286 2013-03-26 18:17:04Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/driver/seq_hist_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/driver/seq_hist_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !

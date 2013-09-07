@@ -245,7 +245,6 @@ contains
     use glide_types
     use glimmer_log
     use glimmer_filenames
-    use glimmer_global, only: dp
     use parallel
 
     implicit none
@@ -361,7 +360,6 @@ contains
 
   function glide_calc_sigma(x,n)
 
-     use glimmer_global, only: dp
      implicit none
      real(dp) :: glide_calc_sigma, x, n
       
@@ -376,7 +374,6 @@ contains
      ! Implements an alternate set of sigma levels that encourages better
      ! convergence for higher-order velocities
 
-     use glimmer_global, only:dp
      implicit none
      real(dp) :: glide_calc_sigma_pattyn, x
 
@@ -640,10 +637,11 @@ contains
          '1st order upwind                      ', &
          'thickness fixed at initial value      '  /)
 
-    character(len=*), dimension(0:2), parameter :: temperature = (/ &
-         'isothermal         ', &
-         'full prognostic    ', &
-         'constant in time   ' /)
+    character(len=*), dimension(0:3), parameter :: temperature = (/ &
+         'isothermal            ', &
+         'prognostic temperature', &
+         'constant in time      ', &
+         'prognostic enthalpy   ' /)
 
     character(len=*), dimension(0:2), parameter :: temp_init = (/ &
          'set to 0 C             ', &
@@ -724,7 +722,7 @@ contains
          'constant B^2                           ', &
          'simple pattern of B^2                  ', &
          'till yield stress (Picard)             ', &
-         'circular ice shelf                     ', &
+         'function of bwat                       ', &
          'no slip (using large B^2)              ', &
          'B^2 passed from CISM                   ', &
          'no slip (Dirichlet implementation)     ', &
@@ -767,16 +765,19 @@ contains
     write(message,*) 'Dycore                  : ',model%options%whichdycore,dycore(model%options%whichdycore)
     call write_log(message)
 
-    !NOTE : Option 3 (TEMP_REMAP_ADV) is now deprecated.  
+    !NOTE : Old option 3 (TEMP_REMAP_ADV) has been removed.
     ! If this has been set, then change to option 1 (TEMP_PROGNOSTIC), which applies to any dycore.
-    !TODO - Remove this option here and in glide_types.
-    if (model%options%whichtemp == TEMP_REMAP_ADV) model%options%whichtemp = TEMP_PROGNOSTIC
 
     if (model%options%whichtemp < 0 .or. model%options%whichtemp >= size(temperature)) then
        call write_log('Error, temperature option out of range',GM_FATAL)
     end if
     write(message,*) 'temperature calculation : ',model%options%whichtemp,temperature(model%options%whichtemp)
     call write_log(message)
+
+    !TODO - Remove this when enthalpy scheme is up and running
+    if (model%options%whichtemp == TEMP_ENTHALPY) then
+       call write_log('Error, Glissade enthalpy scheme is still under construction', GM_FATAL)
+    endif
 
     ! Forbidden options to use with the Glide dycore
     if (model%options%whichdycore == DYCORE_GLIDE) then
@@ -785,6 +786,10 @@ contains
            model%options%whichevol==EVOL_UPWIND        .or.  &
            model%options%whichevol==EVOL_NO_THICKNESS) then
           call write_log('Error, Glam/glissade thickness evolution options cannot be used with Glide dycore', GM_FATAL)
+       endif
+
+       if (model%options%whichtemp == TEMP_ENTHALPY) then
+          call write_log('Error, Enthalpy scheme cannot be used with Glide dycore', GM_FATAL)
        endif
 
        if (tasks > 1) then
@@ -884,7 +889,7 @@ contains
     write(message,*) 'geothermal heat flux    : ',model%options%gthf,gthf(model%options%gthf)
     call write_log(message)
 
-    if (model%options%isostasy < 0 .or. model%options%gthf >= size(isostasy)) then
+    if (model%options%isostasy < 0 .or. model%options%isostasy >= size(isostasy)) then
        print*, 'isostasy =', model%options%isostasy
        call write_log('Error, isostasy option out of range',GM_FATAL)
     end if
@@ -988,7 +993,7 @@ contains
     implicit none
     type(ConfigSection), pointer :: section
     type(glide_global_type)  :: model
-    real, pointer, dimension(:) :: tempvar => NULL()
+    real(dp), pointer, dimension(:) :: tempvar => NULL()
     integer :: loglevel
 
     loglevel = GM_levels-GM_ERROR
@@ -1451,6 +1456,15 @@ contains
       case default
         ! restart needs to know bwat value
         call glide_add_to_restart_variable_list('bwat')
+    end select
+
+    ! internal water option (for enthalpy scheme)
+    select case (options%whichtemp)
+      case (TEMP_ENTHALPY)
+        ! restart needs to know internal water fraction
+        call glide_add_to_restart_variable_list('waterfrac')
+      case default
+        ! no restart variables needed
     end select
 
     ! geothermal heat flux option

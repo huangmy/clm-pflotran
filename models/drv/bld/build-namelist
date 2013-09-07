@@ -1236,8 +1236,16 @@ sub expand_env_xml {
     my $value = shift;
 
     if ($value =~ /\$([\w_]+)(.*)$/) {
-	my $subst = $xmlvars{$1};
+	my $subst;
+	if(defined $xmlvars{$1}){
+	    $subst = $xmlvars{$1};
+	}elsif (defined $ENV{$1}){
+	    $subst = $ENV{$1};
+	}else{
+	    warn "Could not find suitable value for $1\n";
+	}
 	$value =~ s/\$${1}/$subst/g;
+	    
     }
     return $value; 
 }	 

@@ -31,7 +31,7 @@ cat >! $file << EOF1
 #===============================================================================
 
 #PBS -N ${jobname}
-#PBS -q medium
+#PBS -q long
 #PBS -l nodes=${mppnodes}:ppn=${taskpernode}
 #PBS -r n
 #PBS -j oe
@@ -57,18 +57,12 @@ cd \$RUNDIR
 echo "\`date\` -- CSM EXECUTION BEGINS HERE" 
 
 setenv OMP_NUM_THREADS ${maxthrds}
-if (\$MPILIB != "mpi-serial") then
-    if (\$COMPILER == "pgi") then
-       mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
-    endif
-    if (\$COMPILER == "intel") then
-       mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
-    endif
-    if (\$COMPILER == "nag") then
-       mpiexec -n ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
-    endif
-else
-     \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
+if (\$MPILIB == "mpi-serial") then
+    \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
+else if (\$MPILIB == "openmpi") then
+    mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
+else if (\$MPILIB == "mpich") then
+    mpiexec -n ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
 endif
 wait
 

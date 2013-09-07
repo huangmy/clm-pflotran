@@ -325,7 +325,7 @@ default: SHR_ORB_UNDEF_REAL (1.e36)
 </entry>
 
 <entry
-id="orb_velp"
+id="orb_mvelp"
 type="real"
 category="orbital" 
 group="seq_infodata_inparm">

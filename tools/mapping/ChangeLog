@@ -1,8 +1,37 @@
 ================================================================================
-SVN $Id: ChangeLog 46983 2013-05-09 22:08:12Z tcraig $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/ChangeLog $
+SVN $Id: ChangeLog 49095 2013-07-16 21:51:37Z mlevy@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: mlevy
+Date: July 16 2013
+Model: mapping
+Version: mapping_130716
+One-line summary: To get the rtm -> ocn mapping tool working on yellowstone, I
+                  had to set compile_threaded to false in the Makefile. Also,
+                  my last tag inadvertently changed the file paths in
+                  runoff_map.nml to the frankfurt inputdata/ directory, so I
+                  reset it to the yellowstone paths.
+
+M       gen_mapping_files/runoff_to_ocn/runoff_map.nml
+M       gen_mapping_files/runoff_to_ocn/src/Makefile
+================================================================================
+Originator: mlevy
+Date: July 10 2013
+Model: mapping
+Version: mapping_130710, mapping_130710a
+One-line summary: update homegrown tools to build on any machine that supports
+                  CESM (two tags because I forgot to update ChangeLog in the
+									first one)
+
+M       map_field/README
+D       gen_domain_files/src/build.yellowstone.csh
+M       gen_domain_files/README
+M       gen_mapping_files/runoff_to_ocn/runoff_map.nml
+D       gen_mapping_files/runoff_to_ocn/src/Macros.yellowstone
+M       gen_mapping_files/runoff_to_ocn/src/Makefile
+M       gen_mapping_files/runoff_to_ocn/README
 ================================================================================
 Originator: tcraig
 Date: May 9 2013

@@ -1,8 +1,65 @@
 ================================================================================
-SVN $Id: ChangeLog 50222 2013-08-16 22:44:02Z muszala $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130816/ChangeLog $
+SVN $Id: ChangeLog 50680 2013-08-31 03:46:02Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130830a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: Aug 30 2013
+Model: scripts
+Version: scripts4_130830a
+One-line: tweak aux_clm test list
+
+ERI.f19_g16.IG1850CN.yellowstone_pgi -> ERI_D.f19_g16.IG1850CN.yellowstone_pgi
+- so we have a _D test for IG CLM4, given that the frankfurt one is CFAILing
+
+PET_D_P1x30.ne30_g16.ICN.yellowstone_intel -> PET_D_P4x30.ne30_g16.ICN.yellowstone_intel
+- 1x30 was running out of wallclock time
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Aug 30 2013
+Model: scripts
+Version: scripts4_130830
+One-line: cesm_prestage quoting fix, create_test now properly handles no xml
+tests found. 
+
+M       create_test
+M       ccsm_utils/Tools/cesm_prestage
+
+================================================================================
+Originator: muszala
+Date: Aug 29 2013
+Model: scripts
+Version: scripts4_130829
+One-line: add _Mmpich to frankfurt nag tests and reduceOutput option for clm
+
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/reduceOutput
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/reduceOutput/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: santos
+Date: Aug 28 2013
+Model: scripts
+Version: scripts4_130828a
+One-line: Print short names from "create_newcase -list compsets".
+
+M       create_newcase
+         - Print compset short names in list_compsets.
+
+================================================================================
+Originator: santos
+Date: Aug 28 2013
+Model: scripts
+Version: scripts4_130828
+One-line: Clarify message from cesm_prestage.
+
+M       ccsm_utils/Tools/cesm_prestage
+         - Clarify message so that it doesn't seem to say that input_data_list
+           files are missing.
 
 ================================================================================
 Originator: muszala

@@ -52,7 +52,7 @@ module glide
   use glide_lithot
   use glide_profile
   use glimmer_config
-  use glimmer_global
+  use glimmer_global, only: dp
 
   use glimmer_paramets, only: oldglide
 
@@ -137,6 +137,7 @@ contains
     use glide_mask
     use isostasy
     use glimmer_map_init
+    use glimmer_coordinates, only: coordsystem_new
 !!    use fo_upwind_advect, only : fo_upwind_advect_init
 !!    use glimmer_horiz_bcs, only: horiz_bcs_unstag_scalar
 
@@ -386,7 +387,6 @@ contains
     ! Note that none of this is needed on a restart - this code ensures a complete 
     ! set of diagnostic output fields for the initial state.
 
-    use glimmer_global, only : rk
     use glide_thck
     use glide_velo
     use glide_temp
@@ -584,14 +584,13 @@ contains
     ! Part 4: Calculate other diagnostic fields that depend on velocity
     ! ------------------------------------------------------------------------    
 
-!TODO Remove this call?  Or maybe not, if we want to have tau available at time zero.
     ! ------------------------------------------------------------------------
     ! basal shear stress calculation
     ! ------------------------------------------------------------------------
 
     call calc_basal_shear(model%geomderv%stagthck,                          &
                           model%geomderv%dusrfdew, model%geomderv%dusrfdns, &
-                          model%stress%tau_x,      model%stress%tau_y)
+                          model%velocity%tau_x,    model%velocity%tau_y)
 
     ! velocity norm
     model%velocity%velnorm = sqrt(model%velocity%uvel**2 + model%velocity%vvel**2)
@@ -605,7 +604,6 @@ contains
     ! Perform first part of time-step of an ice model instance:
     ! temperature advection, vertical conduction, and internal dissipation.
 
-    use glimmer_global, only : dp
     use glide_thck
     use glide_velo
     use glide_temp
@@ -844,7 +842,7 @@ contains
 
     call calc_basal_shear(model%geomderv%stagthck,                          &
                           model%geomderv%dusrfdew, model%geomderv%dusrfdns, &
-                          model%stress%tau_x,      model%stress%tau_y)
+                          model%velocity%tau_x,    model%velocity%tau_y)
 
 ! not in old glide, but this is a useful diagnostic
 

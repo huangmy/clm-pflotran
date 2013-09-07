@@ -111,7 +111,7 @@
 </machine>
 
 <machine MACH="edison">
-         <DESC>NERSC XC30, os is CNL, 16 pes/node, batch system is PBS</DESC>
+         <DESC>NERSC XC30, os is CNL, 24 pes/node, batch system is PBS</DESC>
 	 <COMPILERS>intel,gnu,cray</COMPILERS>
 	 <MPILIBS>mpt,mpi-serial</MPILIBS>
          <RUNDIR>/scratch1/scratchdirs/$CCSMUSER/$CASE/run</RUNDIR>
@@ -126,8 +126,9 @@
          <BATCHQUERY>qstat -f</BATCHQUERY>
          <BATCHSUBMIT>qsub</BATCHSUBMIT>
          <SUPPORTED_BY>cseg</SUPPORTED_BY>
-         <GMAKE_J>4</GMAKE_J>
-         <MAX_TASKS_PER_NODE>16</MAX_TASKS_PER_NODE>
+         <GMAKE_J>16</GMAKE_J>
+         <MAX_TASKS_PER_NODE>48</MAX_TASKS_PER_NODE>
+	 <PES_PER_NODE>24</PES_PER_NODE>
 </machine>
 
 
@@ -333,8 +334,8 @@
          <BATCHQUERY>qstat</BATCHQUERY>
          <BATCHSUBMIT>csh</BATCHSUBMIT>
          <SUPPORTED_BY>   mickelso -at- mcs.anl.gov</SUPPORTED_BY>
-         <GMAKE_J>2</GMAKE_J>
-         <MAX_TASKS_PER_NODE>16</MAX_TASKS_PER_NODE>
+         <GMAKE_J>4</GMAKE_J>
+         <MAX_TASKS_PER_NODE>48</MAX_TASKS_PER_NODE>
 </machine>
 
 
@@ -434,6 +435,31 @@
          <MAX_TASKS_PER_NODE>12</MAX_TASKS_PER_NODE>
 </machine>
 
+<machine MACH="stampede">
+        <DESC>TACC DELL, os is Linux, 16 pes/node, batch system is SLURM</DESC>
+        <OS>LINUX</OS>
+        <COMPILERS>intel,intelmic</COMPILERS>
+        <MPILIBS>impi,mvapich2,mpi-serial</MPILIBS>
+        <RUNDIR>$SCRATCH/$CASE/run</RUNDIR>
+        <EXEROOT>$SCRATCH/$CASE/bld</EXEROOT>
+        <DIN_LOC_ROOT>/scratch/projects/xsede/CESM/inputdata</DIN_LOC_ROOT>
+        <DIN_LOC_ROOT_CLMFORC>/scratch/projects/xsede/CESM/inputdata/lmwg</DIN_LOC_ROOT_CLMFORC>
+        <DOUT_S_ROOT>$WORK/archive/$CASE</DOUT_S_ROOT>
+        <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>              
+        <CCSM_BASELINE>/scratch/projects/xsede/CESM/ccsm_baselines</CCSM_BASELINE>
+        <CCSM_CPRNC>/scratch/projects/xsede/CESM/tools/cprnc/cprnc</CCSM_CPRNC>
+        <BATCHQUERY>squeue</BATCHQUERY>
+        <BATCHSUBMIT>sbatch</BATCHSUBMIT>
+        <SUPPORTED_BY>srinathv -at- ucar.edu</SUPPORTED_BY>
+        <GMAKE_J>8</GMAKE_J>
+        <MAX_TASKS_PER_NODE>16</MAX_TASKS_PER_NODE>
+        <PES_PER_NODE>16</PES_PER_NODE>
+</machine>
+
+
+
+
+
 <machine MACH="titan">
          <DESC>ORNL XK6, os is CNL, 16 pes/node, batch system is PBS</DESC>
 	 <COMPILERS>pgi</COMPILERS>
@@ -462,7 +488,7 @@
         <RUNDIR>/glade/scratch/$CCSMUSER/$CASE/run</RUNDIR>
         <EXEROOT>/glade/scratch/$CCSMUSER/$CASE/bld</EXEROOT>
         <DIN_LOC_ROOT>$ENV{CESMDATAROOT}/inputdata</DIN_LOC_ROOT>
-        <DIN_LOC_ROOT_CLMFORC>/glade/p/cesm/lmwg</DIN_LOC_ROOT_CLMFORC>
+        <DIN_LOC_ROOT_CLMFORC>$ENV{CESMROOT}/lmwg</DIN_LOC_ROOT_CLMFORC>
         <DOUT_S_ROOT>/glade/scratch/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>              
         <CCSM_BASELINE>$ENV{CESMDATAROOT}/ccsm_baselines</CCSM_BASELINE>                   
@@ -475,29 +501,24 @@
         <PES_PER_NODE>16</PES_PER_NODE>
 </machine>
 
-
-<machine MACH="stampede">
-        <DESC>TACC DELL, os is Linux, 16 pes/node, batch system is SLURM</DESC>
-        <OS>LINUX</OS>
-        <COMPILERS>intel,intel-mic</COMPILERS>
-        <MPILIBS>mvapich2,impi,mpi-serial</MPILIBS>
-        <RUNDIR>/work/02463/srinathv/$CASE/run</RUNDIR>
-        <EXEROOT>/work/02463/srinathv/$CASE/bld</EXEROOT>
-        <DIN_LOC_ROOT>/work/02463/srinathv/inputdata</DIN_LOC_ROOT>
-        <DIN_LOC_ROOT_CLMFORC>/work/02463/srinathv/lmwg</DIN_LOC_ROOT_CLMFORC>
-        <DOUT_S_ROOT>/work/02463/srinathv/archive/$CASE</DOUT_S_ROOT>
-        <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>              
-        <CCSM_BASELINE>/work/02463/srinathv/ccsm_baselines</CCSM_BASELINE>
-        <CCSM_CPRNC>/work/02463/srinathv/tools/cprnc/cprnc</CCSM_CPRNC>
+<machine MACH="rosa">
+        <DESC>CSCS Cray XE6, os is CNL, 32 pes/node, batch system is SLURM</DESC>
+        <COMPILERS>pgi,cray,gnu</COMPILERS>
+        <MPILIBS>mpich,mpi-serial</MPILIBS>
+        <RUNDIR>/scratch/rosa/$CCSMUSER/$CASE/run</RUNDIR>
+        <EXEROOT>/scratch/rosa/$CCSMUSER/$CASE/bld</EXEROOT>
+        <DIN_LOC_ROOT>/project/s433/cesm_inputdata</DIN_LOC_ROOT>
+        <DIN_LOC_ROOT_CLMFORC>/project/s433/cesm_inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+        <DOUT_S_ROOT>/project/s433/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
+        <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
+        <CCSM_BASELINE>/project/s433/ccsm_baselines</CCSM_BASELINE>
+        <CCSM_CPRNC>/project/s433/cesm_tools/ccsm_cprnc/cprnc</CCSM_CPRNC>
+        <OS>CNL</OS>
         <BATCHQUERY>squeue</BATCHQUERY>
         <BATCHSUBMIT>sbatch</BATCHSUBMIT>
-        <SUPPORTED_BY>srinathv -at- ucar.edu</SUPPORTED_BY>
-        <GMAKE_J>8</GMAKE_J>
+        <SUPPORTED_BY>edouard.davin -at- env.ethz.ch</SUPPORTED_BY>
+        <GMAKE_J>12</GMAKE_J>
         <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
-        <PES_PER_NODE>16</PES_PER_NODE>
 </machine>
-
-
-
 
 </config_machines>
