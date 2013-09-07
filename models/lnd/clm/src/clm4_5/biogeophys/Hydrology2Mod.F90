@@ -75,7 +75,7 @@ contains
     use SnowHydrologyMod, only : SnowCompaction, CombineSnowLayers, DivideSnowLayers, &
                                  SnowWater, BuildSnowFilter
     use SoilHydrologyMod, only : Infiltration, SoilWater, Drainage, SurfaceRunoff, WaterTable
-    use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
+    use clm_time_manager, only : get_step_size, get_nstep
     use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture
 #if (defined VICHYDRO)
     use CLMVICMapMod    , only : CLMVICMap
@@ -409,36 +409,17 @@ contains
     end if
                   
 
-    if (.not. is_perpetual()) then
+    ! Natural compaction and metamorphosis.
 
-       ! Natural compaction and metamorphosis.
-
-       call SnowCompaction(lbc, ubc, num_snowc, filter_snowc)
-
-       ! Combine thin snow elements
-
-       call CombineSnowLayers(lbc, ubc, num_snowc, filter_snowc)
-
-       ! Divide thick snow elements
-
-       call DivideSnowLayers(lbc, ubc, num_snowc, filter_snowc)
-
-    else
-
-       do fc = 1, num_snowc
-          c = filter_snowc(fc)
-          h2osno(c) = 0._r8
-       end do
-       do j = -nlevsno+1,0
-          do fc = 1, num_snowc
-             c = filter_snowc(fc)
-             if (j >= snl(c)+1) then
-                h2osno(c) = h2osno(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
-             end if
-          end do
-       end do
-
-    end if
+    call SnowCompaction(lbc, ubc, num_snowc, filter_snowc)
+    
+    ! Combine thin snow elements
+    
+    call CombineSnowLayers(lbc, ubc, num_snowc, filter_snowc)
+    
+    ! Divide thick snow elements
+    
+    call DivideSnowLayers(lbc, ubc, num_snowc, filter_snowc)
 
     ! Set empty snow layers to zero
 
