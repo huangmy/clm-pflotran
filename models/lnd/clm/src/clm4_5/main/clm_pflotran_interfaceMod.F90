@@ -529,22 +529,7 @@ contains
     integer  :: n,g,l,c,p,lev,j  ! indices
     integer  :: gcount
 
-    integer , pointer :: ctype(:)                   ! column type index
-    logical ,pointer :: urbpoi(:)                   ! true => landunit is an urban point
-    real(r8), pointer :: hksat(:,:)                 ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-    real(r8), pointer :: sucsat(:,:)                ! minimum soil suction (mm) (nlevgrnd)
-    real(r8), pointer :: watsat(:,:)                ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    integer , pointer :: cgridcell(:)               ! gridcell index of column
-    integer , pointer :: clandunit(:)               ! landunit index of column
-    real(r8), pointer :: wtgcell(:)                 ! weight (relative to gridcell)
-    integer , pointer :: ltype(:)                   ! landunit type index
-    real(r8), pointer :: h2osoi_vol(:,:)            ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(r8), pointer :: h2osoi_liq(:,:)            ! liquid water (kg/m2)
-    real(r8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(r8), pointer :: t_soisno(:,:)              ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(r8), pointer :: topo(:)                    ! topography
 
-    real(r8), pointer :: zwt(:)                     ! water table depth (m)
 
     real(r8), pointer :: hksat_x_loc(:)         ! hydraulic conductivity in x-dir at saturation (mm H2O /s) (nlevgrnd)
     real(r8), pointer :: hksat_y_loc(:)         ! hydraulic conductivity in y-dir at saturation (mm H2O /s) (nlevgrnd)
@@ -554,11 +539,8 @@ contains
     real(r8), pointer :: bsw_loc(:)             ! Clapp and Hornberger "b" (nlevgrnd)
     real(r8), pointer :: zwt_2d_loc(:)          ! water table depth (m)
     real(r8), pointer :: topo_2d_loc(:)         ! Topogrpahy
-    real(r8), pointer :: dz(:,:)                ! layer thickness (m)
     integer :: index
     
-    real(r8), pointer :: latdeg(:)             ! latitude (radians)
-    real(r8), pointer :: londeg(:)             ! longitude (radians)
 
     !
     ! From iniTimeConst.F90
@@ -607,7 +589,6 @@ contains
     real(r8):: closelat,closelon
 
     logical :: readvar
-    logical , pointer :: lakpoi(:)      ! true => landunit is a lake point
 
     integer, pointer :: clm_cell_ids_nindex(:)
     integer, pointer :: clm_surf_cell_ids_nindex(:)
@@ -630,33 +611,34 @@ contains
     PetscScalar, pointer :: sat_clm_loc(:)     ! Saturation
     PetscErrorCode :: ierr
 
+    associate( &
+         ! Assign local pointers to derived subtypes components (landunit-level)
+         ltype      =>  lun%itype      , & !  [integer (:)]  landunit type index
+         urbpoi     =>  lun%urbpoi     , & !  [logical (:)]  true => landunit is an urban point
+         ! Assign local pointer to derived subtypes components (column-level)
+         clandunit  =>  col%landunit   , & !  [integer (:)]  landunit index of column
+         cgridcell  =>  col%gridcell   , & !  [integer (:)]  gridcell index of column
+         wtgcell    =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
+         ctype      =>  col%itype      , & !  [integer (:)]  column type index
+         hksat      =>  cps%hksat      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
+         sucsat     =>  cps%sucsat     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
+         watsat     =>  cps%watsat     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
+         h2osoi_vol =>  cws%h2osoi_vol , & !  [real(r8) (:,:)]  volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+         h2osoi_liq =>  cws%h2osoi_liq , & !  [real(r8) (:,:)]  liquid water (kg/m2)
+         h2osoi_ice =>  cws%h2osoi_ice , & !  [real(r8) (:,:)]  ice lens (kg/m2)
+         t_soisno   =>  ces%t_soisno   , & !  [real(r8) (:,:)]  soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
+         topo       =>  ldomain%topo   , & !  [real(r8) (:)]  topography
+         zwt        =>  cws%zwt        , & !  [real(r8) (:)]  water table depth (m)
+         latdeg     =>  grc%latdeg     , & !  [real(r8) (:)]  latitude (radians)
+         londeg     =>  grc%londeg     , & !  [real(r8) (:)]  longitude (radians)
+         lakpoi     =>  lun%lakpoi     , & !  [logical (:)]  true => landunit is a lake point
+         dz         =>  cps%dz           & !  [real(r8) (:,:)]  layer thickness (m)
+         )
+
     ! Determine necessary indices
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
     call get_proc_global(numg, numl, numc, nump)
-
-    ! Assign local pointers to derived subtypes components (landunit-level)
-    ltype           => lun%itype
-    urbpoi          => lun%urbpoi
-
-    ! Assign local pointer to derived subtypes components (column-level)
-    clandunit       => col%landunit
-    cgridcell       => col%gridcell
-    wtgcell         => col%wtgcell
-    ctype           => col%itype
-    hksat           => cps%hksat
-    sucsat          => cps%sucsat
-    watsat          => cps%watsat
-    h2osoi_vol      => cws%h2osoi_vol
-    h2osoi_liq      => cws%h2osoi_liq
-    h2osoi_ice      => cws%h2osoi_ice
-    t_soisno        => ces%t_soisno
-    topo            => ldomain%topo
-    zwt             => cws%zwt
-    latdeg          => grc%latdeg
-    londeg          => grc%londeg
-    lakpoi          => lun%lakpoi
-    dz              => cps%dz
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -1011,6 +993,7 @@ contains
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 
     deallocate(sand3d,clay3d,organic3d)
+    end associate
   end subroutine interface_init_clm_pf
 
 
@@ -1172,17 +1155,8 @@ contains
     real(r8) :: dtime                      ! land model time step (sec)
     integer  :: nstep                      ! time step number
 
-    real(r8), pointer :: wtcol(:)             ! pft weight relative to column
-    real(r8), pointer :: pwtcol(:)            ! weight relative to column for each pft
-    real(r8), pointer :: pwtgcell(:)          ! weight relative to gridcell for each pft
-    real(r8), pointer :: rootr_pft(:,:)       ! effective fraction of roots in each soil layer
-    real(r8), pointer :: qflx_tran_veg_pft(:) ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(r8), pointer :: qflx_tran_veg_col(:) ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(r8), pointer :: qflx_evap_soi_pft(:) ! soil evaporation (mm H2O/s) (+ = to atm)
-    integer , pointer :: pfti(:)              ! beginning pft index for each column
     !real(r8) :: den
     real(r8) :: temp(lbc:ubc)                 ! accumulator for rootr weighting
-    real(r8), pointer :: rootr_col(:,:)       ! effective fraction of roots in each soil layer
 
     PetscScalar, pointer :: sat_clm_loc(:)    !
     PetscScalar, pointer :: qflx_clm_loc(:)   !
@@ -1195,17 +1169,18 @@ contains
     !den = 998.2_r8 ! [kg/m^3]
     !den = 1000._r8 ! [kg/m^3]
 
-    qflx_tran_veg_col => pwf_a%qflx_tran_veg
-
-    ! Assign local pointers to derived type members (pft-level)
-    qflx_tran_veg_pft => pwf%qflx_tran_veg
-    qflx_evap_soi_pft => pwf%qflx_evap_soi
-    rootr_pft         => pps%rootr
-    pwtgcell          => pft%wtgcell
-    pwtcol            => pft%wtcol
-    pfti              => col%pfti
-    rootr_col         => cps%rootr_column
-    wtcol             => pft%wtcol
+    associate( &
+         qflx_tran_veg_col => pwf_a%qflx_tran_veg  , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
+         ! Assign local pointers to derived type members (pft-level)
+         qflx_tran_veg_pft => pwf%qflx_tran_veg    , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
+         qflx_evap_soi_pft => pwf%qflx_evap_soi    , & !  [real(r8) (:)]  soil evaporation (mm H2O/s) (+ = to atm)
+         rootr_pft         => pps%rootr            , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
+         pwtgcell          => pft%wtgcell          , & !  [real(r8) (:)]  weight relative to gridcell for each pft
+         pwtcol            => pft%wtcol            , & !  [real(r8) (:)]  weight relative to column for each pft
+         pfti              => col%pfti             , & !  [integer (:)]  beginning pft index for each column
+         rootr_col         => cps%rootr_column     , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
+         wtcol             => pft%wtcol              & !  [real(r8) (:)]  pft weight relative to column
+         )
 
     nstep = get_nstep()
     dtime = get_step_size()
@@ -1324,6 +1299,7 @@ contains
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
     call pflotranModelGetUpdatedStates( pflotran_m )
 
+    end associate
   end subroutine step_th_clm_pf
 
   !-----------------------------------------------------------------------------
@@ -1376,15 +1352,15 @@ contains
     integer  :: begl, endl                ! per-proc beginning and ending landunit indices
     integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
 
-    real(r8), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
-    integer , pointer :: cgridcell(:)       ! column's gridcell
     PetscScalar, pointer :: temp_clm_loc(:)  !
     PetscErrorCode :: ierr
   !EOP
   !-----------------------------------------------------------------------
 
-    t_soisno       => ces%t_soisno
-    cgridcell      => col%gridcell
+    associate( &
+         t_soisno   => ces%t_soisno  , & !  [real(r8) (:,:)]  soil temperature (Kelvin)
+         cgridcell  => col%gridcell    & !  [integer (:)]  column's gridcell
+         )
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
@@ -1401,7 +1377,8 @@ contains
     enddo
 
     call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
-  end subroutine Update_soil_temperature_clm_pf
+    end associate
+  end subroutine update_soil_temperature_clm_pf
 
   !-----------------------------------------------------------------------------
   !BOP
@@ -1433,25 +1410,14 @@ contains
 !
     character(len=256) :: subname = 'update_drainage_clm_pf'
     integer  :: c,fc                               ! indices
-    real(r8), pointer :: qflx_drain_perched(:)     ! perched wt sub-surface runoff (mm H2O /s)
-    real(r8), pointer :: qflx_drain(:)             ! sub-surface runoff (mm H2O /s)
-    real(r8), pointer :: qflx_irrig(:)             ! irrigation flux (mm H2O /s)
-    real(r8), pointer :: qflx_qrgwl(:)             ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
-    real(r8), pointer :: qflx_rsub_sat(:)          ! soil saturation excess [mm h2o/s]
-
-    qflx_drain_perched    => cwf%qflx_drain_perched
-    qflx_drain            => cwf%qflx_drain
-    qflx_irrig            => cwf%qflx_irrig
-    qflx_qrgwl            => cwf%qflx_qrgwl
-    qflx_rsub_sat         => cwf%qflx_rsub_sat
 
     do fc = 1, num_hydrologyc
        c = filter_hydrologyc(fc)
-       qflx_drain_perched(c) = 0._r8
-       qflx_drain(c)         = 0._r8
-       qflx_irrig(c)         = 0._r8
-       qflx_qrgwl(c)         = 0._r8
-       qflx_rsub_sat(c)      = 0._r8
+       cwf%qflx_drain_perched(c) = 0._r8   ! perched wt sub-surface runoff (mm H2O /s)
+       cwf%qflx_drain(c)         = 0._r8   ! sub-surface runoff (mm H2O /s)
+       cwf%qflx_irrig(c)         = 0._r8   ! irrigation flux (mm H2O /s)
+       cwf%qflx_qrgwl(c)         = 0._r8   ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
+       cwf%qflx_rsub_sat(c)      = 0._r8   ! soil saturation excess [mm h2o/s]
     end do
 
     end subroutine update_drainage_clm_pf
