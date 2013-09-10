@@ -325,7 +325,7 @@ contains
     ! always run over ice_mec landunits within the glcmask, because this is where glc
     ! might need input from virtual (0-weight) landunits
     if (lun%itype(l) == istice_mec .and. ldomain%glcmask(g) == 1) is_active_c = .true.
-    
+
   end function is_active_c
 !------------------------------------------------------------------------
 

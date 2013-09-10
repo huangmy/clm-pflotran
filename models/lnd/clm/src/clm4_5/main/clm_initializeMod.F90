@@ -88,6 +88,7 @@ contains
 #if (defined LCH4)
     use ch4varcon        , only : ch4conrd
 #endif
+    use readConstantsMod, only : readConstants
 !
 ! !ARGUMENTS:
 !
@@ -133,6 +134,11 @@ contains
     call clm_varpar_init()
     call clm_varcon_init()
     call ncd_pio_init()
+
+    ! ------------------------------------------------------------------------
+    ! Read in constants files
+    ! ------------------------------------------------------------------------
+    call readConstants()
 
     if (masterproc) call control_print()
 
@@ -309,7 +315,7 @@ contains
                                  timemgr_init, timemgr_restart_io, timemgr_restart
     use clm_time_manager, only : get_step_size, get_curr_calday
     use fileutils       , only : getfil
-    use UrbanMod        , only : UrbanClumpInit
+    use UrbanMod        , only : UrbanParamInit
     use UrbanInitMod    , only : UrbanInitTimeConst, UrbanInitTimeVar, UrbanInitAero 
     use UrbanInputMod   , only : UrbanInput
     use initSLakeMod    , only : initSLake
@@ -597,7 +603,7 @@ contains
 
     ! Initialize urban radiation model - this uses urbinp data structure
 
-    call UrbanClumpInit()
+    call UrbanParamInit(begl, endl)
 
     ! Finalize urban model initialization
     
