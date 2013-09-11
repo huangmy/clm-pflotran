@@ -172,7 +172,9 @@ contains
     integer :: ind_below
     integer :: ntim_atm_ts
     real(r8) :: twt_1, twt_2                     ! weighting fractions for interpolating
+#ifndef __GFORTRAN__
     real(r8) :: min, max
+#endif
     !-----------------------------------------------------------------------
 
    associate(& 
