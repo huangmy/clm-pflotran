@@ -1,5 +1,5 @@
 ! $Id: ESMF_RegridWeightGenCheck.F90 46983 2013-05-09 22:08:12Z tcraig $
-! $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/check_maps/src/ESMF_RegridWeightGenCheck.F90 $
+! $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/check_maps/src/ESMF_RegridWeightGenCheck.F90 $
 !
 ! Earth System Modeling Framework
 ! Copyright 2002-2012, University Corporation for Atmospheric Research,

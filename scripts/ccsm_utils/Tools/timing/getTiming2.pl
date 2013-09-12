@@ -551,7 +551,7 @@ sub gettime{
    $strw = $str;
    $strw =~ s/^\s+//;
    $strw =~ s/\s+$//;
-   @tmp=`grep -w "$strw" $fin | grep "(" | grep -v hashtable`;
+   @tmp=`grep -w "$strw" $fin | grep -E '\\(' | grep -v hashtable`;
 
 #   print ("tcx1 $#tmp $tmp[0]\n");
    if ($#tmp == 0) {
@@ -585,7 +585,7 @@ sub gettime2{
    $strw = $str;
    $strw =~ s/^\s+//;
    $strw =~ s/\s+$//;
-   @tmp=`grep -w "$strw" $fin | grep "(" | grep -v hashtable`;
+   @tmp=`grep -w "$strw" $fin | grep -E '\\(' | grep -v hashtable`;
 
    if ($#tmp == 0) {
        if ($tmp[0] =~ m/\s*${strw}\s*(\d+)\s*\d+\s*(\S+)/) {

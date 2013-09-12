@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: seq_io_mod.F90 46244 2013-04-23 16:51:27Z santos@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/shr/seq_io_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/shr/seq_io_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !

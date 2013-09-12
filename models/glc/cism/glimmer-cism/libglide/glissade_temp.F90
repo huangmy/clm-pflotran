@@ -42,6 +42,7 @@
 
 module glissade_temp
 
+    use glimmer_global, only : dp 
     use glide_types
     use glimmer_log
 
@@ -64,7 +65,6 @@ contains
 
     use glimmer_physcon, only : rhoi, shci, coni, scyr, grav, gn, lhci, rhow, trpt
     use glimmer_paramets, only : tim0, thk0, len0, vis0, vel0, tau0
-    use glimmer_global, only : dp 
     use glide_bwater, only: find_dt_wat
     use parallel, only: lhalo, uhalo
 
@@ -73,6 +73,10 @@ contains
     integer, parameter :: p1 = gn + 1  
     integer up, ns, ew
     real(dp) :: estimate
+
+    !TODO - Should these allocations be done in glide_allocarr?
+    !TODO -  Make sure the arrays allocated here are deallocated at the end of the run.
+    !        Might want to move allocation/deallocation to subroutines in glide_types.
 
     ! Note vertical dimensions here.  Dissipation is computed for each of (upn-1) layers.
     ! Temperature is defined at midpoint of each layer, plus upper and lower surfaces.
@@ -88,7 +92,7 @@ contains
     allocate(model%tempwk%dupb(model%general%upn))
     allocate(model%tempwk%dupc(model%general%upn))
 
-    allocate(model%tempwk%smth(model%general%ewn,model%general%nsn))
+    allocate(model%tempwk%smth(model%general%ewn,model%general%nsn))  !TODO - Is this used for glissade?
     allocate(model%tempwk%wphi(model%general%ewn,model%general%nsn))
     allocate(model%tempwk%bwatu(model%general%ewn,model%general%nsn))
     allocate(model%tempwk%bwatv(model%general%ewn,model%general%nsn))
@@ -368,7 +372,6 @@ contains
     ! Calculates the ice temperature 
 
     use glimmer_utils,  only : tridiag
-    use glimmer_global, only : dp
     use glimmer_paramets, only : thk0, tim0
     use glimmer_physcon, only: shci, coni, rhoi
     use glide_mask
@@ -677,7 +680,6 @@ contains
 
     ! compute matrix elements for the tridiagonal solve
 
-    use glimmer_global, only : dp
     use glimmer_paramets, only : thk0
     use glimmer_physcon,  only : rhoi, grav, coni
 
@@ -824,7 +826,6 @@ contains
 
     ! compute frictional heat source due to sliding at the bed
 
-    use glimmer_global,   only: dp 
     use glimmer_physcon,  only: rhoi, grav
     use glimmer_paramets, only: thk0, vel0, vel_scale
 
@@ -918,7 +919,6 @@ contains
     ! TODO: Moving all internal melting to the basal surface is not very realistic 
     !       and should be revisited.
 
-    use glimmer_global, only : dp 
     use glimmer_physcon, only: shci, rhoi, lhci
 
     type(glide_global_type) :: model
@@ -1006,7 +1006,6 @@ contains
     ! Note also that dissip and flwa must have the same vertical dimension 
     !  (1:upn on an unstaggered vertical grid, or 1:upn-1 on a staggered vertical grid).
     
-    use glimmer_global, only : dp
     use glimmer_physcon, only : gn
 
     type(glide_global_type) :: model
@@ -1140,7 +1139,6 @@ contains
     ! (but not at the surface or bed).
     ! Note: pmptemp and stagsigma should have dimensions (1:upn-1).
 
-    use glimmer_global, only : dp !, upn
     use glimmer_physcon, only : rhoi, grav, pmlt 
     use glimmer_paramets, only : thk0
 
@@ -1182,7 +1180,6 @@ contains
 
   subroutine glissade_calcpmpt_bed(pmptemp_bed, thck)
 
-    use glimmer_global, only : dp
     use glimmer_physcon, only : rhoi, grav, pmlt 
     use glimmer_paramets, only : thk0
 

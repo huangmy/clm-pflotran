@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: seq_frac_mct.F90 46244 2013-04-23 16:51:27Z santos@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/driver/seq_frac_mct.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/driver/seq_frac_mct.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !

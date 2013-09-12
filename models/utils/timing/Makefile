@@ -73,7 +73,7 @@ clean:
 
 
 install: libgptl.a
-	cp -p perf_mod.$(MOD_SUFFIX) $(INCROOT) 
+	cp -p *.$(MOD_SUFFIX) $(INCROOT) 
 	cp -p libgptl.a $(LIBROOT)
 
 

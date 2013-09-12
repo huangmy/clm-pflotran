@@ -1,9 +1,400 @@
 ================================================================================
-SVN $Id: ChangeLog 47582 2013-05-29 19:39:27Z erik $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130529/ChangeLog $
+SVN $Id: ChangeLog 50680 2013-08-31 03:46:02Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130830a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+Originator: sacks
+Date: Aug 30 2013
+Model: scripts
+Version: scripts4_130830a
+One-line: tweak aux_clm test list
+
+ERI.f19_g16.IG1850CN.yellowstone_pgi -> ERI_D.f19_g16.IG1850CN.yellowstone_pgi
+- so we have a _D test for IG CLM4, given that the frankfurt one is CFAILing
+
+PET_D_P1x30.ne30_g16.ICN.yellowstone_intel -> PET_D_P4x30.ne30_g16.ICN.yellowstone_intel
+- 1x30 was running out of wallclock time
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Aug 30 2013
+Model: scripts
+Version: scripts4_130830
+One-line: cesm_prestage quoting fix, create_test now properly handles no xml
+tests found. 
+
+M       create_test
+M       ccsm_utils/Tools/cesm_prestage
+
+================================================================================
+Originator: muszala
+Date: Aug 29 2013
+Model: scripts
+Version: scripts4_130829
+One-line: add _Mmpich to frankfurt nag tests and reduceOutput option for clm
+
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/reduceOutput
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/reduceOutput/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: santos
+Date: Aug 28 2013
+Model: scripts
+Version: scripts4_130828a
+One-line: Print short names from "create_newcase -list compsets".
+
+M       create_newcase
+         - Print compset short names in list_compsets.
+
+================================================================================
+Originator: santos
+Date: Aug 28 2013
+Model: scripts
+Version: scripts4_130828
+One-line: Clarify message from cesm_prestage.
+
+M       ccsm_utils/Tools/cesm_prestage
+         - Clarify message so that it doesn't seem to say that input_data_list
+           files are missing.
+
+================================================================================
+Originator: muszala
+Date: Aug 16 2013
+Model: scripts
+Version: scripts4_130816
+One-line: remove and modify tests so they work with new ch4 params files in clm
+
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set2_ciso
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set2_ciso/user_nl_clm
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set3_pftroot
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/ch4_set3_pftroot/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: erik
+Date: Aug 09 2013
+Model: scripts
+Version: scripts4_130809b
+One-line: Do xmlchange_cmds BEFORE cesm_setup, remove some compsets move into tests
+
+Remove SNCR from compsets (never worked anyway). And remove NoVS and NoVSNoNi
+from compsets and move into testmods_dirs. For USUMB/decStart tests, make sure
+./xmlchange has "./" in front of it. Work on formatting (lining up columns)
+in testlist.xml
+
+M       create_test
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/decStart/xmlchange_cmnds
+
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/xmlchange_cmnds
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/xmlchange_cmnds
+
+
+================================================================================
+Originator: jedwards
+Date: Aug 09 2013
+Model: scripts
+Version: scripts4_130809
+One-line: adjust aprun output from taskmaker with numa flags for intel compiler (on edison)
+
+M ccsm_utils/Tools/taskmaker.pl
+
+
+================================================================================
+Originator: sacks
+Date: Aug 02 2013
+Model: scripts
+Version: scripts4_130802a
+One-line: tweak clm aux test lists, fix make_xml_entries
+
+Change / add the following clm aux tests (< is old, > is new):
+
+*** add / tweak some threading tests
+< PET.f10_f10.I1850CLM45BGC.yellowstone_pgi.clm-default
+< PET.f10_f10.ICLM45BGC.yellowstone_intel
+> PET_PT_D.f10_f10.I1850CLM45BGC.yellowstone_pgi.clm-ciso
+> PET_PT.f10_f10.ICLM45BGC.yellowstone_intel
+> PET_PT_D.f19_g16.ICLM45BGCDVCROP.yellowstone_pgi.clm-crop
+
+*** c13c14only was the same as ciso, so I deleted it
+< ERS.f10_f10.I1850CLM45BGC.frankfurt_nag.clm-c13c14only
+> ERS.f10_f10.I1850CLM45BGC.frankfurt_nag.clm-ciso
+
+*** CISM hasn't been ported to NAG, so move IG tests elsewhere; note
+    that the frankfurt pgi test is currently failing for the same
+    reason as a bunch of other frankfurt pgi tests (a netcdf problem)
+< ERS_D.f19_g16.IGRCP26CN.frankfurt_nag
+< ERS_Lm3.f19_g16.IGRCP60CN.frankfurt_nag
+> ERS_D.f19_g16.IGRCP26CN.frankfurt_pgi
+> ERS_Lm3.f19_g16.IGRCP60CN.yellowstone_intel
+
+
+
+
+M       ccsm_utils/Testlistxml/testlist.xml
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only/user_nl_clm
+
+*** work correctly with testmod dir
+M       ccsm_utils/Testlistxml/make_xml_entries
+
+================================================================================
+Originator: erik
+Date: Aug 02 2013
+Model: scripts
+Version: scripts4_130802
+One-line: Sync up testlist and compsets for "I" compsets
+
+Make sure every "I" compset has a test for it (except I20TRCRUCLM45CN).
+And remove unneeded "I" compsets. Add in a 1x1_US-UMB test and a SNICAR_FRC test for aux_clm.
+Also add a 1x1_US-UMB test for prebeta, and prebeta test on yellowstone_intel for ICLM45CRUBGC. 
+Make a IG1850, f19_g16 test on yellowstone_pgi be for IG1850CN instead.
+
+Consistently use alias names for "I" compset tests. A few were using snames.
+(move I_2000_CRUFRC_CN ICRUCN [ERS_D hcru], move I_2000_CRUFRC_CLM45_BGC to ICRUCLM45BGC [ERS_D hcru], 
+I_1948-2004 to I4804[ERB ne30])
+
+Update PTCLM version.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Jul 31 2013
+Model: scripts
+Version: scripts4_130731
+One-line: testreporter bug fix in HTTP POST method. 
+
+M       ccsm_utils/Tools/testreporter.pl
+
+================================================================================
+Originator: muszala
+Date: Jul 30 2013
+Model: scripts
+Version: scripts4_130730
+One-line: Reorg. of aux_clm tests.  Add some clm test parameters to testmods.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/c13c14only/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/decStart
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/decStart/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/decStart/xmlchange_cmnds
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+	
+================================================================================
+Originator: jedwards
+Date: Jul 18 2013
+Model: scripts
+Version: scripts4_130718
+One-line: Update perl5 lib external, multiinstance and thread tests 
+
+M    SVN_EXTERNAL_DIRECTORIES
+M    ccsm_utils/Tools/cesm_setup
+M    ccsm_utils/Testcases/PET_script
+	
+================================================================================
+Originator: mlevy
+Date: Jul 15 2013
+Model: scripts
+Version: scripts4_130715
+One-line:  add support for C_MPAS compset using 120km ocean grid
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Case.template/config_definition.xml
+================================================================================
+Originator: jedwards
+Date: Jul 09 2013
+Model: scripts
+Version: scripts4_130709a
+One-line: create_test now appends testmods options to test name, query_tests 
+now appends testmods to testlists when -outputlist option invoked.  
+
+M       create_test
+M       query_tests
+
+================================================================================
+Originator: jedwards
+Date: Jul 09 2013
+Model: scripts
+Version: scripts4_130709
+One-line: fix variable expansion in SetupTools.pm (wasn't expanding env vars
+in perl)
+
+M       ccsm_utils/Tools/SetupTools.pm
+
+================================================================================
+Originator: jshollen
+Date: Jul 03 2013
+Model: scripts
+Version: scripts4_130703
+One-line:  add SMS.T42_T42.FARM95C4 test to yellowstone intel prebeta
+
+M      ccsm_utils/Testlistxml/testlist.xml
+================================================================================
+Originator: jshollen
+Date: Jul 01 2013
+Model: scripts
+Version: scripts4_130701
+One-line:  Fix create_test typo, add ERS_Ly5.f10_f10.I20TRCRUCLM45BGC to
+aux_clm testlist. 
+
+M       create_test
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: mvertens
+Date: Jun 27 2013
+Model: scripts
+Version: scripts4_130627
+One-line: Put in capability to have both xmlchange_cmds file and user_nl file in
+	testmods_dir (which was nl_dirs)
+	
+M       create_newcase
+M       create_test
+M       query_tests
+X       ccsm_utils/Tools/perl5lib
+X       ccsm_utils/Tools/lnd/clm/PTCLM
+M       ccsm_utils/Case.template/config_definition.xml
+	
+A  +    ccsm_utils/Testlistxml/testmods_dirs
+A       ccsm_utils/Testlistxml/testmods_dirs/cam
+A       ccsm_utils/Testlistxml/testmods_dirs/cam/cosp
+A       ccsm_utils/Testlistxml/testmods_dirs/cam/cosp/xmlchange_cmnds
+	
+D       ccsm_utils/Testlistxml/nl_dirs
+D       ccsm_utils/Testlistxml/nl_dirs/rtm
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnFloodOnEffvelOff
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnFloodOnEffvelOff/user_nl_rtm
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnFloodOnEffvelOn
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnFloodOnEffvelOn/user_nl_rtm
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnIceOff
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnIceOff/user_nl_rtm
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOff
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOff/user_nl_rtm
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnIceOn
+D       ccsm_utils/Testlistxml/nl_dirs/rtm/rtmOnIceOn/user_nl_rtm
+D       ccsm_utils/Testlistxml/nl_dirs/clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly_noinitial/user_nl_cpl
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vrtlay
+D       ccsm_utils/Testlistxml/nl_dirs/clm/vrtlay/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/crop
+D       ccsm_utils/Testlistxml/nl_dirs/clm/crop/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/oldhyd
+D       ccsm_utils/Testlistxml/nl_dirs/clm/oldhyd/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/cn_conly
+D       ccsm_utils/Testlistxml/nl_dirs/clm/cn_conly/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/default
+D       ccsm_utils/Testlistxml/nl_dirs/clm/default/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/voc
+D       ccsm_utils/Testlistxml/nl_dirs/clm/voc/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/voc/user_nl_cpl
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set2_ciso
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set2_ciso/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set3_pftroot
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ch4_set3_pftroot/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/glcMEC
+D       ccsm_utils/Testlistxml/nl_dirs/clm/glcMEC/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/glcMEC/user_nl_cpl
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/monthly/user_nl_cpl
+D       ccsm_utils/Testlistxml/nl_dirs/clm/rootlit
+D       ccsm_utils/Testlistxml/nl_dirs/clm/rootlit/user_nl_clm
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ciso
+D       ccsm_utils/Testlistxml/nl_dirs/clm/ciso/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: santos
+Date: Jun 19 2013
+Model: scripts
+Version: scripts4_130619
+One-line: Fix getTiming2.pl grep command that needed an extra escape (\).
+
+M       ccsm_utils/Tools/timing/getTiming2.pl
+         - Fix bug introduced in scripts4_130612.
+
+================================================================================
+Originator: jedwards
+Date: Jun 13 2013
+Model: scripts
+Version: scripts4_130613
+One-line: turn off runoff grid and add ocn/ice domain files for ne240.  
+	Fix bug in create_clone (ignoring -mach_dir arg) have 
+	check_exactrestart.pl pass S compset cases with no lines to compare.
+
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Tools/check_exactrestart.pl
+M       create_clone
+	
+================================================================================
+Originator: santos
+Date: Jun 12 2013
+Model: scripts
+Version: scripts4_130612
+One-line: Explicitly use extended regex in getTiming2.pl grep command
+
+M       ccsm_utils/Tools/timing/getTiming2.pl
+
+================================================================================
+Originator: jshollen
+Date: Jun 06 2013
+Model: scripts
+Version: scripts4_130610
+One-line: Re-Removed unneeded section from cism namelist documentation
+
+M      doc/modelnl/nldef2html_cism
+
+================================================================================
+Originator: jshollen
+Date: Jun 06 2013
+Model: scripts
+Version: scripts4_130606
+One-line: add aux_waccm tests
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Jun 03 2013
+Model: scripts
+Version: scripts4_130603
+One-line:  creat__test was not setting baseline_root properly. 
+
+M       create_test
+	   
+================================================================================
+Originator: aliceb
+Date: May 30 2013
+Model: scripts
+Version: scripts4_130530
+One-line:  updating archive_metadata.sh to include user namelists (user_nl_xxx) (Alice)
+	   Correct SST dataset for 1850-pday compsets (Jim)
+	
+M       ccsm_utils/Case.template/config_compsets.xml
+M	ccsm_utils/Tools/archive_metadata.sh
+
 ================================================================================
 Originator: erik
 Date: May 29 2013

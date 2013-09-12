@@ -33,7 +33,7 @@ module glide_diagnostics
   ! subroutines for computing various useful diagnostics
   ! Author: William Lipscomb, LANL 
  
-  use glimmer_global
+  use glimmer_global, only: dp
   use glimmer_log
   use glide_types
 
@@ -630,8 +630,8 @@ contains
           temp_diag(:) = model%temper%temp(1:upn,i,j)          
           spd_diag(:) = sqrt(model%velocity%uvel(1:upn,i,j)**2   &
                            + model%velocity%vvel(1:upn,i,j)**2) * vel0*scyr
-          lithtemp_diag(:) = model%lithot%temp(i,j,:)
-
+          if (model%options%gthf == GTHF_COMPUTE) &
+             lithtemp_diag(:) = model%lithot%temp(i,j,:)
        endif
 
        usrf_diag = parallel_reduce_max(usrf_diag)

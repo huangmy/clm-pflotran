@@ -3,14 +3,13 @@
 # -------------------------------------------------------------------------
 # Stampede build specific settings
 # -------------------------------------------------------------------------
-source /opt/apps/lmod/5.0rc2/init/csh
-
+source /etc/profile.d/tacc_modules.csh
 
 module purge
 module load  TACC TACC-paths Linux cluster cluster-paths
 
 if ( $COMPILER == "intel" ) then
-  module load intel/13.0.2.146
+  module load intel/13.1.1.163
 #  module load mkl/13.0.2.146
 # Currently trilinos is only supported with the INTEL compiler
 #  module load trilinos/11.0.3
@@ -27,8 +26,8 @@ module load netcdf
 #module load parallel-netcdf/4.2.1.1
 endif
 
-if ( $COMPILER == "intel-mic" ) then
-  module load intel/13.0.2.146
+if ( $COMPILER == "intelmic" ) then
+  module load intel/13.1.1.163
 #  module load mkl/13.0.2.146
 # Currently trilinos is only supported with the INTEL compiler
 #  module load trilinos/11.0.3

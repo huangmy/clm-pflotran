@@ -92,6 +92,9 @@ OBJS_NAN := test_shr_infnan.o shr_kind_mod.o shr_test_infnan_mod.o shr_infnan_mo
 OBJS_SPFN := test_shr_spfn.o shr_kind_mod.o shr_spfn_mod.o shr_const_mod.o test_mod.o shr_sys_mod.o \
 	        shr_mpi_mod.o shr_log_mod.o $(OBJS_NOMPI)
 
+OBJS_LOG  := test_shr_log.o shr_log_mod.o shr_kind_mod.o \
+	     test_mod.o shr_sys_mod.o shr_mpi_mod.o $(OBJS_NOMPI)
+
 WRFESMF_OBJS := ESMF_AlarmMod.o ESMF_BaseTimeMod.o ESMF_ClockMod.o ESMF_TimeMod.o \
                 Meat.o ESMF_BaseMod.o ESMF_CalendarMod.o ESMF_FractionMod.o   \
                 ESMF_TimeIntervalMod.o ESMF_Stubs.o ESMF_Mod.o \
@@ -132,11 +135,13 @@ test_shr_mpi: $(OBJS_MPI)
 	$(LD) -o test_shr_mpi $(OBJS_MPI) $(LDFLAGS)
 test_shr_scam: $(OBJS_SCAM)
 	$(LD) -o test_shr_scam $(OBJS_SCAM) $(LDFLAGS)
+test_shr_log: $(OBJS_LOG)
+	$(LD) -o test_shr_log $(OBJS_LOG) $(LDFLAGS)
 
 clean:
 	$(RM) -f *.mod *.o *.f *.f90 mpif.h test_shr_sys test_shr_orb test_shr_spfn\
 		test_shr_infnan test_shr_file tests_shr_streams tests_shr_tInterp \
-                test_shr_mpi libesmf.a test_shr_scam Depends Srcfiles Filepath
+                test_shr_mpi libesmf.a test_shr_scam test_shr_log Depends Srcfiles Filepath
 
 #
 # Dependencies

@@ -69,7 +69,6 @@ contains
         !For HO masking
         logical :: empty
         integer :: totpts
-        real(sp), dimension(model%general%ewn-1, model%general%nsn-1) :: stagmassb
 
         integer, dimension(model%general%ewn-1, model%general%nsn-1)  :: geom_mask_stag
         real(dp), dimension(model%general%ewn-1, model%general%nsn-1) :: latbc_norms_stag
@@ -104,13 +103,14 @@ contains
 !TODO - What exactly does this do?  Is it solver-dependent?
         !Augment masks with kinematic boundary condition info
 !TODO Adding the kinematic bc to thkmask is not needed.  Can be removed.
-        call augment_kinbc_mask(model%geometry%thkmask, model%velocity%kinbcmask)
-        call augment_kinbc_mask(geom_mask_stag, model%velocity%kinbcmask)
+!!        call augment_kinbc_mask(model%geometry%thkmask, model%velocity%kinbcmask)
+!!        call augment_kinbc_mask(geom_mask_stag, model%velocity%kinbcmask)
 
 !TODO - Remove this call?  Don't think it is ever used.
         !Compute the normal vectors to the marine margin for the staggered grid
 !!        call glide_marine_margin_normal(model%geomderv%stagthck, geom_mask_stag, latbc_norms_stag)
 
+!TODO - Is this mask still used?
         ! save the final mask to 'dynbcmask' for exporting to netCDF output file
         model%velocity%dynbcmask = geom_mask_stag
 
@@ -136,7 +136,7 @@ contains
                                      model%geomderv%dusrfdew, model%geomderv%dusrfdns,           &
                                      model%geomderv%dlsrfdew, model%geomderv%dlsrfdns,           & 
                                      model%geomderv%stagthck, model%temper%flwa,                 &
-                                     model%basalproc%minTauf,                                    & 
+                                     model%temper%bwat,       model%basalproc%mintauf,           & 
                                      model%velocity%btraction,                                   & 
                                      geom_mask_stag,                                             &
                                      model%options%which_ho_babc,                                &

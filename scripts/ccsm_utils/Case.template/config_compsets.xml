@@ -17,7 +17,7 @@ Where
    ATM  = [CAM4, CAM5, DATM, SATM, XATM, WRF]
    LND  = [CLM40, CLM45, DLND, SLND, XLND]
    ICE  = [CICE, DICE, SICE, SICE]
-   OCN  = [POP2, DOCN, SOCN, XOCN,AQUAP]
+   OCN  = [POP2, DOCN, SOCN, XOCN,AQUAP,MPAS]
    ROF  = [RTM, DROF, SROF, XROF]
    GLC  = [CISM1, CISM2S, CISM2P, SGLC, XGLC]
    WAV  = [WW3, DWAV, SWAV, XWAV]
@@ -153,9 +153,10 @@ value of RUN_STARTDATE will be date2.
 
 <!-- C compsets -->
 
-<COMPSET sname="C_NORMAL_YEAR"        alias="C"   >2000_DATM%NYF_SLND_DICE%SSMI_POP2_DROF%NYF_SGLC_SWAV</COMPSET>
-<COMPSET sname="C_INTERANNUAL"        alias="CIAF">2000_DATM%IAF_SLND_DICE%SIAF_POP2_DROF%IAF_SGLC_SWAV</COMPSET>
-<COMPSET sname="C_NORMAL_YEAR_ECOSYS" alias="CECO">1850_DATM%NYF_SLND_DICE%SSMI_POP2%ECO_DROF%NYF_SGLC_SWAV</COMPSET>
+<COMPSET sname="C_NORMAL_YEAR"        alias="C"    >2000_DATM%NYF_SLND_DICE%SSMI_POP2_DROF%NYF_SGLC_SWAV</COMPSET>
+<COMPSET sname="C_INTERANNUAL"        alias="CIAF" >2000_DATM%IAF_SLND_DICE%SIAF_POP2_DROF%IAF_SGLC_SWAV</COMPSET>
+<COMPSET sname="C_NORMAL_YEAR_ECOSYS" alias="CECO" >1850_DATM%NYF_SLND_DICE%SSMI_POP2%ECO_DROF%NYF_SGLC_SWAV</COMPSET>
+<COMPSET sname="C_MPAS"               alias="CMPAS">2000_DATM%NYF_SLND_DICE%SSMI_MPAS_SROF%NYF_SGLC_SWAV</COMPSET>
 
 <!-- D compsets -->
 
@@ -254,7 +255,6 @@ value of RUN_STARTDATE will be date2.
 <!-- I QIAN compsets -->
 
 <COMPSET sname="I_TEST_2003"          alias="ITEST"        >2003_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV_TEST</COMPSET>
-<COMPSET sname="I_TEST_2003_CLM45"    alias="ITESTCLM45"   >2003_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV_TEST</COMPSET>
 <COMPSET sname="I_TEST_2003_CN"       alias="ICNTEST"      >2003_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV_TEST</COMPSET>
 <COMPSET sname="I_TEST_2003_CLM45_CN" alias="ICLM45CNTEST" >2003_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV_TEST</COMPSET>
 <COMPSET sname="I_1850"               alias="I1850"        >1850_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
@@ -266,38 +266,27 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="I_1850-2000"          alias="I20TR"        >20TR_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET> 
 <COMPSET sname="I_1850-2000_CLM45"    alias="I20TRCLM45"   >20TR_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET> 
 <COMPSET sname="I_2000_CN"            alias="ICN"          >2000_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
-<COMPSET sname="I_2000_CLM45_CN"      alias="ICLM45CN"     >2000_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
 <COMPSET sname="I_1850_CN"            alias="I1850CN"      >1850_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850_CLM45_CN"      alias="I1850CLM45CN" >1850_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850_CLM45_CN_FL"   alias="I1850CLM45CNF">1850_DATM%QIA_CLM45%CN_SICE_SOCN_RTM%FLOOD_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850-2000_CN"       alias="I20TRCN"      >20TR_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850-2000_CLM45_CN" alias="I20TRCLM45CN" >20TR_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_CN"       alias="I4804CN"      >4804_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_CLM45_CN" alias="I4804CLM45CN" >4804_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP8.5_CN"          alias="IRCP85CN"     >RCP8_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP8.5_CLM45_CN"    alias="IRCP85CLM45CN">RCP8_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP6.0_CN"          alias="IRCP60CN"     >RCP6_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP6.0_CLM45_CN"    alias="IRCP60CLM45CN">RCP6_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CN"          alias="IRCP45CN"     >RCP4_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_RCP4.5_CLM45_CN"    alias="IRCP45CLM45CN">RCP4_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP2.6_CN"          alias="IRCP26CN"     >RCP2_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP2.6_CLM45_CN"    alias="IRCP26CLM45CN">RCP2_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CN_CROP"       alias="ICNCROP"      >2000_DATM%QIA_CLM40%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CLM45_CN_CROP" alias="ICLM45CNCROP" >2000_DATM%QIA_CLM45%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_RCP4.5_CLM45_BGC"   alias="IRCP45CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_RCP8.5_CLM45_BGC"   alias="IRCP85CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 
 <!---I CRUNCEP compsets -->
 
-<COMPSET sname="I_2000_CRUFRC"               alias="ICRU"              >2000_DATM%CRU_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CRUFRC_CLM45"         alias="ICRUCLM45"         >2000_DATM%CRU_CLM45_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CRUFRC_CN"            alias="ICRUCN"            >2000_DATM%CRU_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850_CRUFRC"               alias="I1850CRU"          >1850_DATM%CRU_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850_CRUFRC_CLM45"         alias="I1850CRUCLM45"     >1850_DATM%CRU_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850-2000_CRUFRC"          alias="I20TRCRU"          >20TR_DATM%CRU_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850-2000_CRUFRCCLM45"     alias="I20TRCRUCLM45"     >20TR_DATM%CRU_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850_CRUFRC_CN"            alias="I1850CRUCN"        >1850_DATM%CRU_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 
-<COMPSET sname="I_1850-2000_CRUFRC_CN"        alias="I20TRCRUCN"        >20TR_DATM%CRU_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CRUFRC_CLM45_CN"       alias="ICRUCLM45CN"       >2000_DATM%CRU_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850_CRUFRC_CLM45_CN"       alias="I1850CRUCLM45CN"   >1850_DATM%CRU_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850-2000_CRUFRC_CLM45"     alias="I20TRCRUCLM45CN"   >20TR_DATM%CRU_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_1850_CRUFRC_CLM45_BGCDV"    alias="I1850CRUCLM45BGCDV">1850_DATM%CRU_CLM45%BGCDV_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
@@ -309,23 +298,15 @@ value of RUN_STARTDATE will be date2.
 
 <!---I compset system tests (previously in clm directory) -->
 
-<COMPSET sname="I_2000_CN_f19_alaskaUSA"        alias="IalaskaCN"        >2000_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV_CLMUSRDAT%13x12pt_f19_alaskaUSA</COMPSET>
-<COMPSET sname="I_2000_CLM45_CN_f19_alaskaUSA"  alias="ICLM45alaskaCN"   >2000_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV_CLMUSRDAT%13x12pt_f19_alaskaUSA</COMPSET>
-<COMPSET sname="I_2000_1PTFRC_US-UMB"           alias="IUSUMB"           >2000_DATM%1PT_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV_CLMUSRDAT%1x1_US-UMB</COMPSET>
-<COMPSET sname="I_2000_CLM45_1PTFRC_US-UMB"     alias="ICLM45USUMB"      >2000_DATM%1PT_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV_CLMUSRDAT%1x1_US-UMB</COMPSET>
-<COMPSET sname="I_2000_SNCRFRC"                 alias="ISNCRFRC"         >2000_DATM%QIA_CLM40%SP-SNCR_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_SNCRFRC"           alias="ICLM45SNCRFRC"    >2000_DATM%QIA_CLM45%SP-SNCR_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CNDV_CROP"               alias="ICNDVCROP"        >2000_DATM%QIA_CLM40%CNDV-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CNDV"                    alias="ICNDV"            >2000_DATM%QIA_CLM40%CNDV_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>    
-<COMPSET sname="I_2000_CLM45_CNDV"              alias="ICLM45CNDV"       >2000_DATM%QIA_CLM45%CNDV_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>    
-<COMPSET sname="I_2000_CLM45_BGCDV_CROP"        alias="ICLM45BGCDVCROP"  >2000_DATM%QIA_CLM45%BGCDV-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_BGCDV"             alias="ICLM45BGCDV"      >2000_DATM%QIA_CLM45%BGCDV_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_VIC"               alias="ICLM45VIC"        >2000_DATM%QIA_CLM45%SP-VIC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_BGC"               alias="ICLM45BGC"        >2000_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_1850_CLM45_BGC"               alias="I1850CLM45BGC"    >1850_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_BGC_CROP"          alias="ICLM45BGCCROP"    >2000_DATM%QIA_CLM45%BGC-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_BGCNoVSoil"        alias="ICLM45BGCNoVS"    >2000_DATM%QIA_CLM45%NoVS_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_CRUFRC_BGC"        alias="ICLM45CRUBGC"     >2000_DATM%CRU_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CNDV_CROP"                 alias="ICNDVCROP"          >2000_DATM%QIA_CLM40%CNDV-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CLM45_CNDV"                alias="ICLM45CNDV"         >2000_DATM%QIA_CLM45%CNDV_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>    
+<COMPSET sname="I_2000_CLM45_BGCDV_CROP"          alias="ICLM45BGCDVCROP"    >2000_DATM%QIA_CLM45%BGCDV-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CLM45_VIC"                 alias="ICLM45VIC"          >2000_DATM%QIA_CLM45%SP-VIC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CLM45_BGC"                 alias="ICLM45BGC"          >2000_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_1850_CLM45_BGC"                 alias="I1850CLM45BGC"      >1850_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CLM45_BGC_CROP"            alias="ICLM45BGCCROP"      >2000_DATM%QIA_CLM45%BGC-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_2000_CLM45_CRUFRC_BGC"          alias="ICLM45CRUBGC"       >2000_DATM%CRU_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_1850-2000_CLM45_BGC"            alias="I20TRCLM45BGC"      >20TR_DATM%CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 
 <!---I cpl history MOAR forcing spinup compsets -->
 
@@ -340,30 +321,21 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="I_2000_GLC_CISM2P"              alias="IGIS2"          grid="gland">2000_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_CISM2P_SWAV</COMPSET>
 <COMPSET sname="I_2000_GLC_CLM45_CISM1"         alias="IGCLM45"        grid="gland">2000_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_2000_GLC_CLM45_CISM2P"        alias="IGCLM45IS2"     grid="gland">2000_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM2P_SWAV</COMPSET>
-<COMPSET sname="I_1850-2000_CN_GLC_CISM1"       alias="IG20TR"         grid="gland">20TR_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
+<COMPSET sname="I_1850-2000_SP_GLC_CISM1"       alias="IG20TR"         grid="gland">20TR_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_1850-2000_CLM45_GLC_CISM1"    alias="IG20TRCLM45"    grid="gland">20TR_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_GLC_CISM1"          alias="IG4804"         grid="gland">4804_DATM%QIA_CLM40%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_CLM45_GLC_CISM1"    alias="IG4804CLM45"    grid="gland">4804_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_1850_CN_GLC_CISM1"            alias="IG1850CN"       grid="gland">1850_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_2000_CN_GLC_CISM1"            alias="IGCN"           grid="gland">2000_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_2000_CLM45_CN_GLC_CISM1"      alias="IGCLM45CN"      grid="gland">2000_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_1850-2000_CN_GLC_CISM1"       alias="IG20TRCN"       grid="gland">20TR_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_CN_GLC_CISM1"       alias="IG4804CN"       grid="gland">4804_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP8.5_CN_GLC_CISM1"          alias="IGRCP85CN"      grid="gland">RCP8_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP6.0_CN_GLC_CISM1"          alias="IGRCP60CN"      grid="gland">RCP6_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CN_GLC_CISM1"          alias="IGRCP45CN"      grid="gland">RCP4_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP2.6_CN_GLC_CISM1"          alias="IGRCP26CN"      grid="gland">RCP2_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_1850_CLM45_CN_GLC_CISM1"      alias="IG1850CLM45CN"  grid="gland">1850_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_1850-2000_CLM45_CN_GLC_CISM1" alias="IG20TRCLM45CN"  grid="gland">20TR_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_1948-2004_CLM45_CN_GLC_CISM1" alias="IG4804CLM45CN"  grid="gland">4804_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP8.5_CLM45_CN_GLC_CISM1"    alias="IGRCP85CLM45CN" grid="gland">RCP8_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_RCP6.0_CLM45_CN_GLC_CISM1"    alias="IGRCP60CLM45CN" grid="gland">RCP6_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CLM45_CN_GLC_CISM1"    alias="IGRCP45CLM45CN" grid="gland">RCP4_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
-<COMPSET sname="I_RCP2.6_CLM45_CN_GLC_CISM1"    alias="IGRCP26CLM45CN" grid="gland">RCP2_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV</COMPSET>
 
 <!-- IG for clm testing -->
 
-<COMPSET sname="I_2000_GLCMECPD_CISM1"        alias="IGLCMEC"       grid="gland">2000_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_CISM1_SWAV_TEST</COMPSET>
 <COMPSET sname="I_2000_CLM45_GLCMECPD_CISM1"  alias="ICLM45GLCMEC"  grid="gland">2000_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_CISM1_SWAV_TEST</COMPSET>
 
 
@@ -437,6 +409,7 @@ value of RUN_STARTDATE will be date2.
 <COMP_OCN compset="_SOCN">socn</COMP_OCN>
 <COMP_OCN compset="_XOCN">xocn</COMP_OCN>
 <COMP_OCN compset="_AQUAP">aquap</COMP_OCN>
+<COMP_OCN compset="_MPAS">mpas-o</COMP_OCN>
 
 <COMP_GLC compset="_CISM">cism</COMP_GLC> 
 <COMP_GLC compset="_SGLC">sglc</COMP_GLC>
@@ -473,6 +446,7 @@ value of RUN_STARTDATE will be date2.
 <desc compset="_SOCN">SOCN:</desc>
 <desc compset="_XOCN">XOCN:</desc>
 <desc compset="_AQUAP">AQUAP:</desc>
+<desc compset="_MPAS">MPAS:</desc>
 
 <desc compset="_CISM">CISM:</desc>
 <desc compset="_SGLC">SGLC:</desc>
@@ -487,9 +461,7 @@ value of RUN_STARTDATE will be date2.
 <!-- SECTION: time period  -->     
 <!-- ================================================================================== -->
 
-<desc compset="PIPD_">
-1850 to present day:
-</desc>     
+<desc compset="PIPD_">1850 to present day: </desc>     
 <desc compset="1850_" >pre-industrial:         </desc>
 <desc compset="2000_" >present day:            </desc>
 <desc compset="PDAY"  >present day:            </desc>
@@ -698,22 +670,19 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <!-- SECTION: component clm -->     
 <!-- ================================================================================== -->
 
-<CLM_CONFIG_OPTS compset="_CLM40"             >-phys clm4_0</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CN"     >-bgc cn</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CNDV"   >-bgc cndv</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CROP"   >-crop on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM40%[^_]*SNCR"   >-snicar_frc on</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM40"                >-phys clm4_0</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CN"        >-bgc cn</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CNDV"      >-bgc cndv</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM40%[^_]*CROP"      >-crop on</CLM_CONFIG_OPTS>
 
-<CLM_CONFIG_OPTS compset="_CLM45"             >-phys clm4_5</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CN"     >-bgc cn</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*SP"     >-bgc none</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CNDV"   >-bgc cndv</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CROP"   >-crop on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*SNCR"   >-snicar_frc on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGC"    >-bgc cn -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*NoVS"   >-bgc cn -vsoilc_centbgc no-vert -clm4me on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*VIC"    >-vichydro on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGCDV"  >-bgc cndv -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45"                >-phys clm4_5</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CN"        >-bgc cn</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*SP"        >-bgc none</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CNDV"      >-bgc cndv</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CROP"      >-crop on</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGC"       >-bgc cn -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*VIC"       >-vichydro on</CLM_CONFIG_OPTS>
+<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGCDV"     >-bgc cndv -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->
@@ -771,18 +740,17 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <desc compset="_CLM40"          >clm4.0 physics:</desc>
 <desc compset="_CLM40%[^_]*SP"  >clm4.0 Satellite phenology:</desc>
 <desc compset="_CLM40%[^_]*CN"  >clm4.0 cn:</desc>
-<desc compset="_CLM40%[^_]*CNDV">clm4.5 cndv:</desc>
+<desc compset="_CLM40%[^_]*CNDV">clm4.0 cndv:</desc>
 <desc compset="_CLM40%[^_]*CROP">clm4.0 prognostic crop:</desc>
 
-<desc compset="_CLM45"           >clm4.5 physics:</desc>
-<desc compset="_CLM45%[^_]*SP"   >clm4.5 Satellite phenology:</desc>
-<desc compset="_CLM45%[^_]*CN"   >clm4.5 cn:</desc>
-<desc compset="_CLM45%[^_]*CNDV" >clm4.5 cndv:</desc>
-<desc compset="_CLM45%[^_]*BGC"  >clm4.5 bgc (cn and methane):</desc>
-<desc compset="_CLM45%[^_]*CROP" >clm4.5 prognostic crop:</desc>
-<desc compset="_CLM45%[^_]*NoVS" >clm4.5 no-vert soil:</desc>
-<desc compset="_CLM45%[^_]*VIC"  >clm4.5 vic hydrology:</desc>
-<desc compset="_CLM45%[^_]*BGCDV">clm4.5 bgc (cn and methane) with dynamic veg:</desc>
+<desc compset="_CLM45"               >clm4.5 physics:</desc>
+<desc compset="_CLM45%[^_]*SP"       >clm4.5 Satellite phenology:</desc>
+<desc compset="_CLM45%[^_]*CN"       >clm4.5 cn:</desc>
+<desc compset="_CLM45%[^_]*CNDV"     >clm4.5 cndv:</desc>
+<desc compset="_CLM45%[^_]*BGC"      >clm4.5 bgc (cn and methane):</desc>
+<desc compset="_CLM45%[^_]*CROP"     >clm4.5 prognostic crop:</desc>
+<desc compset="_CLM45%[^_]*VIC"      >clm4.5 vic hydrology:</desc>
+<desc compset="_CLM45%[^_]*BGCDV"    >clm4.5 bgc (cn and methane) with dynamic veg:</desc>
 
 <help>
 =========================================
@@ -796,7 +764,6 @@ CLM40%[^_]*SP    => clm4.0 Satellite phenology
 CLM40%[^_]*CN    => clm4.0 Carbon Nitrogen
 CLM40%[^_]*CNDV  => clm4.0 Carbon Nitrogen Dynamic Vegetation
 CLM40%[^_]*CROP  => clm4.0 Prognostic crop
-CLM40%[^_]*SNCR  => clm4.0 SNICAR radiative forcing calculation on
 
 CLM45            => clm4.5 Physics
 CLM45%[^_]*SP    => clm4.5 Satellite phenology
@@ -805,7 +772,6 @@ CLM45%[^_]*CNDV  => clm4.5 Carbon Nitrogen BGC with Dynamic Vegetation
 CLM45%[^_]*BGC   => clm4.5 BGC (CN with vertically resolved soil BGC, based on Century with Methane)
 CLM45%[^_]*CROP  => clm4.5 Prognostic crop
 CLM45%[^_]*VIC   => clm4.5 VIC hydrology
-CLM40%[^_]*SNCR  => clm4.0 SNICAR radiative forcing calculation on
 CLM45%[^_]*BGCDV => clm4.5 BGC (CN with vertically resolved soil BGC, based on Century with Methane) with dynamic veg
 </help>
 
@@ -1292,22 +1258,22 @@ DOCN%COPY => docn copy mode
 <SSTICE_GRID_FILENAME compset="DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.23x0.31_gx1v6_101108.nc</SSTICE_GRID_FILENAME>
 <SSTICE_DATA_FILENAME compset="DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.23x0.31_clim_c110526.nc</SSTICE_DATA_FILENAME>
 
-<SSTICE_STREAM        compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">CAMDATA</SSTICE_STREAM>
-<SSTICE_YEAR_ALIGN    compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">1850</SSTICE_YEAR_ALIGN>
-<SSTICE_YEAR_START    compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">1850</SSTICE_YEAR_START>
-<SSTICE_YEAR_END      compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">2012</SSTICE_YEAR_END> 
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">$DIN_LOC_ROOT/ocn/docn7/domain.ocn.1x1.111007.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid=".+">$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%T31.*_oi%T31"             >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.48x96_gx3v7_100114.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%T31.*_oi%T31"             >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_48x96_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%1.9x2.5.*_oi%1.9x2.5"     >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.1.9x2.5_gx1v6_090403.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%1.9x2.5.*_oi%1.9x2.5"     >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1.9x2.5_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.9x1.25.*_oi%0.9x1.25"   >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.9x1.25_gx1v6_090403.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.9x1.25.*_oi%0.9x1.25"   >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.9x1.25_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.47x0.63.*_oi%0.47x_0.63">$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.47x0.63_gx1v6_090408.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.47x0.63.*_oi%0.47x_0.63">$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.47x0.63_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
-<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.23x0.31_gx1v6_101108.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|%TSCH).*_DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.23x0.31_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_STREAM        compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">CAMDATA</SSTICE_STREAM>
+<SSTICE_YEAR_ALIGN    compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">1850</SSTICE_YEAR_ALIGN>
+<SSTICE_YEAR_START    compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">1850</SSTICE_YEAR_START>
+<SSTICE_YEAR_END      compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">2012</SSTICE_YEAR_END> 
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">$DIN_LOC_ROOT/ocn/docn7/domain.ocn.1x1.111007.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid=".+">$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1x1_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%T31.*_oi%T31"             >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.48x96_gx3v7_100114.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%T31.*_oi%T31"             >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_48x96_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%1.9x2.5.*_oi%1.9x2.5"     >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.1.9x2.5_gx1v6_090403.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%1.9x2.5.*_oi%1.9x2.5"     >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_1.9x2.5_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.9x1.25.*_oi%0.9x1.25"   >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.9x1.25_gx1v6_090403.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.9x1.25.*_oi%0.9x1.25"   >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.9x1.25_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.47x0.63.*_oi%0.47x_0.63">$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.47x0.63_gx1v6_090408.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.47x0.63.*_oi%0.47x_0.63">$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.47x0.63_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
+<SSTICE_GRID_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.23x0.31_gx1v6_101108.nc</SSTICE_GRID_FILENAME>
+<SSTICE_DATA_FILENAME compset="(AMIP_|20TR_|5505_|PIPD_|%TSCH).*_DOCN%DOM" grid="a%0.23x0.35.*_oi%0.23x03.1" >$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.23x0.31_1850_2012_c130411.nc</SSTICE_DATA_FILENAME>
 
 <SSTICE_STREAM        compset="1850.*_DOCN%DOM" grid=".+">CAMDATA</SSTICE_STREAM>
 <SSTICE_YEAR_ALIGN    compset="1850.*_DOCN%DOM" grid=".+">1</SSTICE_YEAR_ALIGN>
@@ -1458,6 +1424,7 @@ DOCN%COPY => docn copy mode
 <ATM_NCPL compset="_WRF.*_DLND.*_POP2" > 24</ATM_NCPL> 
 <ATM_NCPL compset="_CAM%ADIAB"         > 48</ATM_NCPL>  
 <ATM_NCPL compset="_CAM%IDEAL"         > 48</ATM_NCPL>  
+<ATM_NCPL compset="_MPAS"              >  1</ATM_NCPL>  
 
 <ATM_NCPL compset=".+" grid="a%0.23x0.31">96</ATM_NCPL>
 <ATM_NCPL compset=".+" grid="a%ne60np4"  >96</ATM_NCPL>
@@ -1486,6 +1453,7 @@ DOCN%COPY => docn copy mode
 <OCN_TIGHT_COUPLING compset="_DATM.*_DLND.*_DICE.*_DOCN">FALSE</OCN_TIGHT_COUPLING>
 <OCN_TIGHT_COUPLING compset="_XATM.*_XLND.*_XICE.*_XOCN">FALSE</OCN_TIGHT_COUPLING>
 <OCN_TIGHT_COUPLING compset="_SOCN"                     >FALSE</OCN_TIGHT_COUPLING>
+<OCN_TIGHT_COUPLING compset="_MPAS"                     >FALSE</OCN_TIGHT_COUPLING>
 
 <ROF_NCPL compset=".+"  >8</ROF_NCPL> 
 <ROF_NCPL compset="_DATM.*_POP2"            >$ATM_NCPL</ROF_NCPL>
@@ -1501,6 +1469,7 @@ DOCN%COPY => docn copy mode
 <GLC_NCPL compset="_DLND.*_CISM">1</GLC_NCPL>
 
 <NCPL_BASE_PERIOD compset="_DLND.*_CISM">year  </NCPL_BASE_PERIOD>
+<NCPL_BASE_PERIOD compset="_MPAS"       >hour  </NCPL_BASE_PERIOD>
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->

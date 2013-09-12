@@ -208,7 +208,9 @@ $cfg_ref->set('CASE'        , "$case");
 $cfg_ref->set('CCSMROOT'    , "$ccsmroot");
 $cfg_ref->set('CONTINUE_RUN', "FALSE");
 $cfg_ref->set('RESUBMIT'    , 0);
-
+if ($opts{'mach_dir'}) {
+   $cfg_ref->set('CCSM_MACHDIR'    , $opts{'mach_dir'});
+}
 # Set env_build variables
 my $repotag;
 if (-f "$ccsmroot/ChangeLog") { 

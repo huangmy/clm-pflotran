@@ -55,7 +55,7 @@ module glissade
 
   ! Driver for Glissade (parallel, higher-order) dynamical core
 
-  use glimmer_global
+  use glimmer_global, only: dp
   use glimmer_log
   use glide_types
   use glide_io
@@ -97,6 +97,8 @@ contains
     use glide_thck, only : glide_calclsrf
     use glam_strs2, only : glam_velo_init
     use glissade_velo_higher, only: glissade_velo_higher_init
+    use glimmer_coordinates, only: coordsystem_new
+    use glissade_enthalpy, only: glissade_init_enthalpy
 
 !!    use glimmer_horiz_bcs, only: horiz_bcs_unstag_scalar
 
@@ -208,7 +210,14 @@ contains
     !       Can remove this call provided velowk is not used elsewhere (e.g., to call wvelintg)
     call init_velo(model)
 
-    call glissade_init_temp(model)  ! temperature lives at layer centers
+    !WHL - Alternatively, could call both glissade_init_enthalpy and glissade_init_temp
+    !      to initialize the enthalpy scheme
+
+    if (model%options%whichtemp == TEMP_ENTHALPY) then
+       call glissade_init_enthalpy(model)   ! under construction
+    else
+       call glissade_init_temp(model)
+    endif    
 
     if (model%options%gthf == GTHF_COMPUTE) then
        call not_parallel(__FILE__,__LINE__)
@@ -290,7 +299,6 @@ contains
     ! Perform time-step of an ice model instance with glissade dycore
     !TODO - Reorganize to put isostasy and calving at start of step?
 
-    use glimmer_global, only : rk
     use glimmer_paramets, only: tim0, len0, vel0, thk0
     use glimmer_physcon, only: scyr
     use glissade_temp, only: glissade_temp_driver
@@ -299,6 +307,7 @@ contains
     use glide_ground, only: glide_marinlim
     use glide_grid_operators
     use isostasy
+    use glissade_enthalpy, only: glissade_enthalpy_driver
 
     use parallel
 !!    use glimmer_horiz_bcs, only: horiz_bcs_stag_vector_ew, horiz_bcs_stag_vector_ns, &
@@ -360,7 +369,12 @@ contains
 !HALO TODO - Modify glissade_temp_driver to compute over locally owned cells only?
 
       call t_startf('glissade_temp_driver')
-       call glissade_temp_driver(model, model%options%whichtemp)
+
+       if (model%options%whichtemp == TEMP_ENTHALPY) then
+          call glissade_enthalpy_driver(model)   ! under construction
+       else
+          call glissade_temp_driver(model, model%options%whichtemp)
+       endif
       call t_stopf('glissade_temp_driver')
 
        model%temper%newtemps = .true.
@@ -1106,6 +1120,7 @@ contains
     use parallel
     use glissade_transport, only: glissade_transport_driver
     use glimmer_paramets, only: len0
+    use glimmer_physcon, only: pi
 
     ! various tests of parallel model
 
@@ -1127,8 +1142,6 @@ contains
     integer :: nx, ny, nz
 
     integer, parameter :: rdiag = 0    ! rank for diagnostic prints 
-
-    real(dp), parameter :: pi = 3.14159265358979
 
     real(dp), parameter :: dt = 1.0       ! time step in yr
     integer, parameter  :: ntstep = 10     ! run for this number of timesteps

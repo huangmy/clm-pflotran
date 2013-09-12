@@ -1,6 +1,30 @@
 ================================================================================
- SVN $Id: ChangeLog 46542 2013-04-30 18:34:21Z mvertens $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/ChangeLog $
+ SVN $Id: ChangeLog 49225 2013-07-18 15:38:36Z jedwards $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/ChangeLog $
+================================================================================
+
+Information on changes to cpl7
+Originator: jedwards
+Date: 18 July 2013
+Model: cpl7
+Version: drvseq4_2_35
+One-line summary: Refactor build_namelist to allow the
+	use and expansion of multiple variables in an xml entry
+
+M   bld/build_namelist
+
+
+================================================================================
+
+Information on changes to cpl7
+Originator: jedwards
+Date: 09 July 2013
+Model: cpl7
+Version: drvseq4_2_34
+One-line summary: Fixed bug in namelist_definition of orb_mvelp
+
+M   bld/namelist_files/namelist_definition_drv.xml
+
 ================================================================================
 
 Information on changes to cpl7

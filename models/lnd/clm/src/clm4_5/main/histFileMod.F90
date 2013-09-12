@@ -1523,7 +1523,7 @@ contains
     use clmtype
     use clm_varpar  , only : nlevgrnd, nlevlak, nlevurb, numrad, &
                              maxpatch_glcmec, nlevdecomp_full
-    use clm_varctl  , only : caseid, ctitle, fsurdat, finidat, fpftcon, &
+    use clm_varctl  , only : caseid, ctitle, fsurdat, finidat, paramfile, &
                              version, hostname, username, conventions, source
     use domainMod   , only : ldomain
     use fileutils   , only : get_filename
@@ -1626,7 +1626,7 @@ contains
        str = get_filename(finidat)
     endif
     call ncd_putatt(lnfid, ncd_global, 'Initial_conditions_dataset', trim(str))
-    str = get_filename(fpftcon)
+    str = get_filename(paramfile)
     call ncd_putatt(lnfid, ncd_global, 'PFT_physiological_constants_dataset', trim(str))
 
     ! Define dimensions.
@@ -2878,7 +2878,7 @@ contains
     !
     ! !ARGUMENTS:
     implicit none
-    type(bounds_type) :: bounds                  ! bounds
+    type(bounds_type), intent(in)    :: bounds  ! bounds
     type(file_desc_t), intent(inout) :: ncid     ! netcdf file
     character(len=*) , intent(in)    :: flag     !'read' or 'write'
     character(len=*) , intent(in), optional :: rdate    ! restart file time stamp for name
@@ -2940,7 +2940,6 @@ contains
     character(len=*),parameter :: subname = 'hist_restart_ncd'
 !------------------------------------------------------------------------
 
-    call get_proc_bounds(bounds)
     call get_proc_global(numg, numl, numc, nump)
 
     ! If branch run, initialize file times and return
