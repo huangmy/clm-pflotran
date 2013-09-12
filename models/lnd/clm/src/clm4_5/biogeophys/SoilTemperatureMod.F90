@@ -582,7 +582,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) - &
+             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) - &
                   tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
           else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
@@ -625,7 +625,10 @@ contains
 
           else if(snl(c) == 0 .and. frac_h2osfc(c) == 0._r8) then
              ! Both snow and standing water absent (need to do nothing)
-             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) + &
+             rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
+             ct(c,j) = 0._r8
+
+             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) + &
                   hs_soil(c)*cwtgcell(c)
           else
              ! Snow is absent but standing water is present (This is accounted for
@@ -689,9 +692,12 @@ contains
        tvector(c,0)=t_h2osfc(c)
 
        if (use_pflotran) then
+          ! TODO(GB): Perform following checks:
+          !           - If PFLOTRAN simulation is subsurface TH mode.
+          !           - If PFLOTRAN simulation is subrface-subusrface TH mode.
           g = cgridcell(c)
 
-          if (frac_h2osfc(c) /= 0) then
+          if (frac_h2osfc(c) /= 0._r8) then
 
              if (snl(c) > 0) then
                 ! Both snow and standing water present
@@ -722,14 +728,31 @@ contains
 
                 rvector(c,0)= t_soisno(c,j) + cnfac*(dtime/c_h2osfc(c))*(fn_h2osfc(c)-fn_snow_wat)
 
+                rvector(c,0) = rvector(c,0) - bmatrix(c,2,0)*t_soisno(c,1)
+                bmatrix(c,2,0) = 0._r8
+
+                gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) - &
+                    fn_h2osfc(c)*cwtgcell(c)
+
+            else
+
+              ! Standing water present; but no snow
+              rvector(c,0) = rvector(c,0) - bmatrix(c,2,0)*t_soisno(c,1)
+              bmatrix(c,2,0) = 0._r8
+              bmatrix(c,1,-1) = 0._r8
+
              endif
 
-             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) - &
-                  fn_h2osfc(c)*cwtgcell(c)
+          else
+             ! No standing water present
+             bmatrix(c,2,0) = 0._r8
+             bmatrix(c,3,0) = 1._r8
+             bmatrix(c,4,0) = 0._r8
+
+             rvector(c,-1) = rvector(c,-1) - bmatrix(c,1,-1)*t_soisno(c,1)
+             bmatrix(c,1,-1) = 0._r8
           endif
 
-          rvector(c,0) = rvector(c,0)-bmatrix(c,2,0)*t_h2osfc(c)
-          bmatrix(c,2,0) = 0._r8
        end if ! use_pflotran
 
 !=========================================================================
