@@ -188,14 +188,18 @@ contains
 !-----------------------------------------------------------------------
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_interface_init()
+  subroutine clm_pf_interface_init(bounds)
+
+    use decompMod, only : bounds_type
 
     implicit none
+
+    type(bounds_type), intent(in) :: bounds  ! bounds
 
     character(len=256) :: subname = "clm_pf_interface_init()"
 
 #ifdef CLM_PFLOTRAN
-    call interface_init_clm_pf()
+    call interface_init_clm_pf(bounds)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -203,23 +207,24 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_soil_moisture(cws, cps, lbc, ubc, &
+  subroutine clm_pf_update_soil_moisture(cws, cps, bounds, &
        num_hydrologyc, filter_hydrologyc)
 
-    use clmtype,              only : column_wstate_type, column_pstate_type
-    use filterMod,            only : clumpfilter
+    use clmtype,   only : column_wstate_type, column_pstate_type
+    use filterMod, only : clumpfilter
+    use decompMod, only : bounds_type
 
     implicit none
 
     type(column_wstate_type), intent(inout) :: cws
     type(column_pstate_type), intent(inout) :: cps
-    integer, intent(in) :: lbc, ubc                    ! column bounds
-    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
+    type(bounds_type), intent(in) :: bounds  ! bounds
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
     character(len=256) :: subname = "clm_pf_update_soil_moisture"
 
 #ifdef CLM_PFLOTRAN
-    call update_soil_moisture_clm_pf(cws, cps, lbc, ubc, num_hydrologyc, filter_hydrologyc)
+    call update_soil_moisture_clm_pf(cws, cps, bounds, num_hydrologyc, filter_hydrologyc)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -227,26 +232,26 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_soil_temperature(lbl, ubl, lbc, ubc, &
+  subroutine clm_pf_update_soil_temperature(bounds, &
        num_urbanl, filter_urbanl, &
        num_nolakec, filter_nolakec)
 
-    use clmtype,              only : column_wstate_type, column_pstate_type
-    use filterMod,            only : clumpfilter
+    use clmtype,   only : column_wstate_type, column_pstate_type
+    use filterMod, only : clumpfilter
+    use decompMod, only : bounds_type
 
     implicit none
 
-    integer , intent(in)  :: lbc, ubc                    ! column bounds
-    integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
-    integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer , intent(in)  :: lbl, ubl                    ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                  ! number of urban landunits in clump
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
+    type(bounds_type), intent(in) :: bounds  ! bounds
+    integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
+    integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
+    integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
+    integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
 
     character(len=256) :: subname = "clm_pf_update_soil_temperature"
 
 #ifdef CLM_PFLOTRAN
-    call update_soil_temperature_clm_pf(lbl, ubl, lbc, ubc, &
+    call update_soil_temperature_clm_pf(bounds, &
        num_urbanl, filter_urbanl, &
        num_nolakec, filter_nolakec)
 #else
@@ -256,16 +261,18 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_drainage(lbc, ubc, &
-       num_hydrologyc, filter_hydrologyc)
+  subroutine clm_pf_update_drainage(num_hydrologyc, filter_hydrologyc)
 
-    integer, intent(in) :: lbc, ubc                    ! column bounds
-    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
+    use decompMod, only : bounds_type
+
+    implicit none
+
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
     character(len=256) :: subname = "clm_pf_update_drainage"
 
 #ifdef CLM_PFLOTRAN
-    call update_drainage_clm_pf(lbc, ubc, num_hydrologyc, filter_hydrologyc)
+    call update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -273,7 +280,7 @@ contains
   end subroutine clm_pf_update_drainage
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_step_th(lbc, ubc, lbp, ubp, &
+  subroutine clm_pf_step_th(bounds, &
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
@@ -281,24 +288,24 @@ contains
 
     use clmtype,              only : r8, column_wstate_type, column_pstate_type
     use filterMod,            only : clumpfilter
+    use decompMod, only : bounds_type
 
     implicit none
 
-    integer, intent(in) :: lbc, ubc                    ! column bounds
-    integer, intent(in) :: lbp, ubp                    ! pft bounds
-    integer, intent(in) :: num_nolakec                 ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
-    integer, intent(in)  :: num_snowc                  ! number of column snow points
-    integer, intent(in)  :: filter_snowc(ubc-lbc+1)    ! column filter for snow points
-    integer, intent(in)  :: num_nosnowc                ! number of column non-snow points
-    integer, intent(in)  :: filter_nosnowc(ubc-lbc+1)  ! column filter for non-snow points
+    type(bounds_type), intent(in) :: bounds  ! bounds
+    integer, intent(in) :: num_nolakec          ! number of column non-lake points in column filter
+    integer, intent(in) :: filter_nolakec(:)    ! column filter for non-lake points
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    integer, intent(in)  :: num_snowc           ! number of column snow points
+    integer, intent(in)  :: filter_snowc(:)     ! column filter for snow points
+    integer, intent(in)  :: num_nosnowc         ! number of column non-snow points
+    integer, intent(in)  :: filter_nosnowc(:)   ! column filter for non-snow points
 
     character(len=256) :: subname = "clm_pf_step_th"
 
 #ifdef CLM_PFLOTRAN
-    call step_th_clm_pf(lbc, ubc, lbp, ubp, &
+    call step_th_clm_pf(bounds, &
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
@@ -451,7 +458,7 @@ contains
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
-
+    !gflux_clm_loc = 0.0_r8
     call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
 
   end subroutine vecrestore_gflux_clm_pf
@@ -464,7 +471,7 @@ contains
   ! !IROUTINE: interface_init_clm_pf
   !
   ! !INTERFACE:
-  subroutine interface_init_clm_pf()
+  subroutine interface_init_clm_pf(bounds)
     !
     ! !DESCRIPTION:
     ! initialize the pflotran iterface
@@ -473,10 +480,10 @@ contains
     use clmtype
     use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
          use_pflotran
-    use decompMod       , only : get_proc_bounds, get_proc_global
+    use decompMod       , only : bounds_type, get_proc_global, &
+         ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
     use shr_kind_mod    , only: r8 => shr_kind_r8
-    use decompMod       , only : ldecomp
     use domainMod       , only : ldomain
     
     use fileutils       , only : getfil
@@ -509,6 +516,7 @@ contains
 #include "finclude/petscvec.h90"
 #include "finclude/petscviewer.h"
 
+    type(bounds_type), intent(in) :: bounds  ! bounds
     !
     ! !REVISION HISTORY:
     ! Created by Gautam Bisht
@@ -517,10 +525,6 @@ contains
     !
     ! LOCAL VARAIBLES:
 
-    integer  :: begp, endp       ! per-proc beginning and ending pft indices
-    integer  :: begc, endc       ! per-proc beginning and ending column indices
-    integer  :: begl, endl       ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg       ! per-proc gridcell ending gridcell indices
     integer  :: nbeg, nend
     integer  :: numg             ! total number of gridcells across all processors
     integer  :: numl             ! total number of landunits across all processors
@@ -636,8 +640,6 @@ contains
          )
 
     ! Determine necessary indices
-
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
     call get_proc_global(numg, numl, numc, nump)
 
     !------------------------------------------------------------------------
@@ -672,15 +674,15 @@ contains
     ! Assumption-2: nz = nlevsoi and nz /= nlevgrnd. Need to add a flag in input
     !               file to differenticate if PFLOTRAN grid is 'nlevsoi' or
     !               'nlevgrnd' deep.
-    clm_npts = (endg-begg+1)*nlevsoi
-    clm_surf_npts = (endg-begg+1)
+    clm_npts = (bounds%endg - bounds%begg + 1)*nlevsoi
+    clm_surf_npts = (bounds%endg - bounds%begg + 1)
     allocate(clm_cell_ids_nindex( 1:clm_npts))
     allocate(clm_surf_cell_ids_nindex(1:clm_surf_npts))
 
     ! Save cell IDs of CLM grid
     clm_npts = 0
     clm_surf_npts = 0
-    do g = begg, endg
+    do g = bounds%begg, bounds%endg
        do j = 1,nlevsoi
           clm_npts = clm_npts + 1
           clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
@@ -694,8 +696,8 @@ contains
     clm_pf_idata%ngclm_3d = clm_npts
 
     ! CLM: Surface of subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlclm_surf_3d = (endg-begg+1)
-    clm_pf_idata%ngclm_surf_3d = (endg-begg+1)
+    clm_pf_idata%nlclm_surf_3d = (bounds%endg - bounds%begg + 1)
+    clm_pf_idata%ngclm_surf_3d = (bounds%endg - bounds%begg + 1)
     ! For CLM: Same as surface of subsurface domain
     clm_pf_idata%nlclm_2d = clm_surf_npts
     clm_pf_idata%ngclm_2d = clm_surf_npts
@@ -764,8 +766,8 @@ contains
     write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     write(iulog,*) ' '
 
-    allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
-    allocate(organic3d(begg:endg,nlevsoi))
+    allocate(sand3d(bounds%begg:bounds%endg, nlevsoi), clay3d(bounds%begg:bounds%endg, nlevsoi))
+    allocate(organic3d(bounds%begg:bounds%endg, nlevsoi))
 
     ! --------------------------------------------------------------------
     ! Read soil color, sand and clay from surface dataset
@@ -796,12 +798,12 @@ contains
     call organicrd(organic3d)
 
     gcount = 0_r8 ! assumption that only 1 soil-column per grid cell
-    do c = begc, endc
+    do c = bounds%begc, bounds%endc
 
       ! Set gridcell and landunit indices
       g = cgridcell(c)
       l = clandunit(c)
-      gcount = g - begg
+      gcount = g - bounds%begg
 
       if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
         write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
@@ -932,7 +934,7 @@ contains
           endif
         enddo 
       endif
-    enddo ! do c = begc, endc
+    enddo ! do c = bounds%begc, bounds%endc
 
     call VecRestoreArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecRestoreArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -958,11 +960,11 @@ contains
     ! Initialize soil temperature
     if(pflotran_m%option%iflowmode==TH_MODE) then
       call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
-      do c = begc,endc
+      do c = bounds%begc, bounds%endc
         l = clandunit(c)
         if (.not. lakpoi(l)) then  !not lake
          g = cgridcell(c)
-         gcount = g - begg
+         gcount = g - bounds%begg
          do j = 1, nlevsoi
             t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
          enddo
@@ -975,12 +977,11 @@ contains
     ! Initialize soil moisture
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-    do c = begc,endc
+    do c = bounds%begc, bounds%endc
       l = clandunit(c)
       if (ltype(l) == istsoil) then
         g = cgridcell(c)
-        gcount = g - begg
+        gcount = g - bounds%begg
         do j = 1, nlevsoi
           h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi+j)*dz(c,j)*1.e3_r8
           h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
@@ -1003,7 +1004,7 @@ contains
   ! !IROUTINE: update_soil_moisture_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_soil_moisture_clm_pf(cws, cps, lbc, ubc, &
+  subroutine update_soil_moisture_clm_pf(cws, cps, bounds, &
        num_hydrologyc, filter_hydrologyc)
   !
   ! !DESCRIPTION:
@@ -1012,7 +1013,7 @@ contains
   ! !USES:
     use clmtype,              only : r8, col, column_wstate_type, column_pstate_type
     use clm_varctl          , only : iulog
-    use decompMod           , only : get_proc_clumps, get_clump_bounds, get_proc_bounds
+    use decompMod           , only : bounds_type
     use clm_time_manager    , only : get_nstep
     use clm_varcon,           only : denh2o, denice
     use clm_varpar,           only : nlevsoi
@@ -1027,18 +1028,13 @@ contains
 
     type(column_wstate_type), intent(inout) :: cws
     type(column_pstate_type), intent(inout) :: cps
-    integer, intent(in) :: lbc, ubc                    ! column bounds
-    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
+    type(bounds_type), intent(in) :: bounds
+    integer, intent(in) :: num_hydrologyc        ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:)  ! column filter for soil points
 
   ! !LOCAL VARIABLES:
     integer  :: nstep                    ! time step number
     integer  :: nc, fc, c, fp, p, l, g, gcount   ! indices
-    integer  :: nclumps                  ! number of clumps on this processor
-    integer  :: begg, endg               ! clump beginning and ending gridcell indices
-    integer  :: begl, endl               ! clump beginning and ending landunit indices
-    integer  :: begc, endc               ! clump beginning and ending column indices
-    integer  :: begp, endp               ! clump beginning and ending pft indices
 
     ! cps%dz(:,:) == layer thickness depth (m)
     ! cws%h2osoi_liq(:,:)  == liquid water (kg/m2)
@@ -1060,17 +1056,15 @@ contains
   !   h2osoi_vol[m^3/m^3] (water + ice)
   ! =======================================================================
 
-    nclumps = get_proc_clumps()
     nstep   = get_nstep()
 
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr); CHKERRQ(ierr)
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
     do fc = 1,num_hydrologyc
       c = filter_hydrologyc(fc)
       g = col%gridcell(c)
-      gcount = g - begg
+      gcount = g - bounds%begg
       do j = 1, nlevsoi
         cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi + j) * cps%watsat(c,j) * cps%dz(c,j) * denh2o
         cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
@@ -1098,7 +1092,7 @@ contains
   ! !IROUTINE: step_th_clm_pf
   !
   ! !INTERFACE:
-  subroutine step_th_clm_pf(lbc, ubc, lbp, ubp, &
+  subroutine step_th_clm_pf(bounds, &
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
@@ -1116,7 +1110,7 @@ contains
 
     use clm_pflotran_interface_data
     use clm_varctl                 , only : iulog
-    use decompMod                  , only : get_proc_bounds, get_proc_global
+    use decompMod                  , only : bounds_type, get_proc_global
     use clm_varpar                 , only : max_pft_per_col
     use clm_varpar      , only : nlevsoi
     use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
@@ -1128,24 +1122,19 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    integer, intent(in) :: lbc, ubc                    ! column bounds
-    integer, intent(in) :: lbp, ubp                    ! pft bounds
+    type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num_nolakec                 ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer, intent(in) :: num_hydrologyc              ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(ubc-lbc+1)! column filter for soil points
-    integer, intent(in)  :: num_snowc                  ! number of column snow points
-    integer, intent(in)  :: filter_snowc(ubc-lbc+1)    ! column filter for snow points
-    integer, intent(in)  :: num_nosnowc                ! number of column non-snow points
-    integer, intent(in)  :: filter_nosnowc(ubc-lbc+1)  ! column filter for non-snow points
+    integer, intent(in) :: filter_nolakec(:)    ! column filter for non-lake points
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    integer, intent(in)  :: num_snowc           ! number of column snow points
+    integer, intent(in)  :: filter_snowc(:)     ! column filter for snow points
+    integer, intent(in)  :: num_nosnowc         ! number of column non-snow points
+    integer, intent(in)  :: filter_nosnowc(:)   ! column filter for non-snow points
 
   ! !LOCAL VARIABLES:
     integer  :: c, fc, g, gcount, j, p   ! do loop indices
     integer  :: pftindex                        ! pft index
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
     integer  :: nbeg, nend
     integer  :: numg                      ! total number of gridcells across all processors
     integer  :: numl                      ! total number of landunits across all processors
@@ -1156,7 +1145,7 @@ contains
     integer  :: nstep                      ! time step number
 
     !real(r8) :: den
-    real(r8) :: temp(lbc:ubc)                 ! accumulator for rootr weighting
+    real(r8) :: temp(bounds%begc:bounds%endc) ! accumulator for rootr weighting
 
     PetscScalar, pointer :: sat_clm_loc(:)    !
     PetscScalar, pointer :: qflx_clm_loc(:)   !
@@ -1190,13 +1179,12 @@ contains
     call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
     ! Determine necessary indices
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
     call get_proc_global(numg, numl, numc, nump)
 
     ! Initialize to ZERO
-    do g = begg, endg
+    do g = bounds%begg, bounds%endg
       do j = 1,nlevsoi
-        gcount = g - begg
+        gcount = g - bounds%begg
         qflx_clm_loc(gcount*nlevsoi + j ) = 0.0_r8
       end do
     end do
@@ -1208,11 +1196,10 @@ contains
     ! [m^3/s] = [mm/s]/1000
     !
 
-    gcount = 1_r8 ! assumption that only 1 soil-column per grid cell
-    do c = begc, endc
+    do c = bounds%begc, bounds%endc
      ! Set gridcell indices
      g = col%gridcell(c)
-     gcount = g - begg
+     gcount = g - bounds%begg
      j = 1
      area = area_clm_loc(gcount*nlevsoi+j)
      qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
@@ -1265,7 +1252,7 @@ contains
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
         g = col%gridcell(c)
-        gcount = g - begg
+        gcount = g - bounds%begg
         if (temp(c) /= 0._r8) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
           area = area_clm_loc(gcount*nlevsoi+j)
@@ -1308,7 +1295,7 @@ contains
   ! !IROUTINE: update_soil_temperature_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_soil_temperature_clm_pf(lbl, ubl, lbc, ubc, &
+  subroutine update_soil_temperature_clm_pf(bounds, &
        num_urbanl, filter_urbanl, &
        num_nolakec, filter_nolakec)
 
@@ -1321,10 +1308,8 @@ contains
     use clmtype
     use clm_time_manager  , only : get_step_size
     use clm_varctl    , only : iulog
-    use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi 
-    use decompMod    , only : get_proc_bounds, get_proc_global
-    use decompMod                  , only : get_proc_bounds, get_proc_global
-    use clm_varpar                 , only : max_pft_per_col
+    use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi, max_pft_per_col
+    use decompMod     , only : bounds_type, get_proc_global
 
     use clm_pflotran_interface_data, only : clm_pf_idata
 
@@ -1335,22 +1320,17 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    integer , intent(in)  :: lbc, ubc                    ! column bounds
-    integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
-    integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer , intent(in)  :: lbl, ubl                    ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                  ! number of urban landunits in clump
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
+    type(bounds_type) , intent(in)  :: bounds
+    integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
+    integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
+    integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
+    integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
 
   ! !LOCAL VARIABLES:
     character(len=256) :: subname = 'Update_soil_temperature_clm_pf'
     integer  :: j,c,g                     !  indices
     integer  :: fc                        ! lake filtered column indices
     integer  :: gcount
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
 
     PetscScalar, pointer :: temp_clm_loc(:)  !
     PetscErrorCode :: ierr
@@ -1362,14 +1342,12 @@ contains
          cgridcell  => col%gridcell    & !  [integer (:)]  column's gridcell
          )
 
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-
     call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
        g = cgridcell(c)
-       gcount = g - begg
+       gcount = g - bounds%begg
        do j = 1, nlevsoi
           t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
        enddo
@@ -1386,8 +1364,7 @@ contains
   ! !IROUTINE: update_drainage_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_drainage_clm_pf(lbc, ubc, &
-       num_hydrologyc, filter_hydrologyc)
+  subroutine update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc)
 
   !
   ! !DESCRIPTION:
@@ -1399,9 +1376,8 @@ contains
     use clm_varctl    , only : iulog
 
     implicit none
-    integer , intent(in) :: lbc, ubc                     ! column bounds
-    integer , intent(in) :: num_hydrologyc               ! number of column soil points in column filter
-    integer , intent(in) :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
+    integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
 
 !
 !EOP

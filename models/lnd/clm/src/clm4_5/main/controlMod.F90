@@ -218,6 +218,10 @@ contains
     namelist /clm_inparm/  &
          use_c14_bombspike, atm_c14_filename
 
+    ! pflotran interface
+    namelist /clm_inparm/ &
+         use_pflotran
+
 !TODO: BEG ====================================================
     ! All old cpp-ifdefs are below and need to be transferred to namelist variables 
     ! The following are all the compile time settings that are left - and should be moved to namelists
@@ -271,10 +275,6 @@ contains
      else
         anoxia = .false.
      end if
-
-    ! pflotran interface
-    namelist /clm_inparm/ &
-         use_pflotran
 
 !TODO: END ====================================================
 

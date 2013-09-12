@@ -657,7 +657,7 @@ contains
     call t_stopf('clm_init2')
 
     if (use_pflotran) then
-       call clm_pf_interface_init()
+       call clm_pf_interface_init(bounds)
     !call pflotranModelGetSaturation( pflotran_m )
     end if
 

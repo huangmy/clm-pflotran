@@ -229,13 +229,13 @@ contains
                       num_urbanc, filter_urbanc, vol_liq)
 
     if (use_pflotran) then
-       call clm_pf_step_th(lbc, ubc, lbp, ubp, &
+       call clm_pf_step_th(bounds, &
             num_nolakec, filter_nolakec, &
             num_hydrologyc, filter_hydrologyc, &
             num_snowc, filter_snowc, &
             num_nosnowc, filter_nosnowc)
        ! TODO(2013-08-27) move to clm_driver, update all states at once?
-       call clm_pf_update_soil_moisture(cws, cps, lbc, ubc, &
+       call clm_pf_update_soil_moisture(cws, cps, bounds, &
             num_hydrologyc, filter_hydrologyc)
     else
        call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, &

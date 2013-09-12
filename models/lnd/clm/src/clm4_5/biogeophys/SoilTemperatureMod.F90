@@ -129,15 +129,6 @@ contains
     ! pflotran interface
     integer  :: gcount
     integer  :: pftindex                        ! pft index
-    integer  :: begp, endp                ! per-proc beginning and ending pft indices
-    integer  :: begc, endc                ! per-proc beginning and ending column indices
-    integer  :: begl, endl                ! per-proc beginning and ending landunit indices
-    integer  :: begg, endg                ! per-proc gridcell ending gridcell indices
-    integer  :: nbeg, nend
-    integer  :: numg                      ! total number of gridcells across all processors
-    integer  :: numl                      ! total number of landunits across all processors
-    integer  :: numc                      ! total number of columns across all processors
-    integer  :: nump                      ! total number of pfts across all processors
     real(r8) :: gflux
     real(r8) :: fn_snow_wat
     real(r8) :: bw
@@ -223,9 +214,6 @@ contains
    cgridcell                 =>    col%gridcell              & ! Input:  [integer  (:)] column's gridcell index
    )
     if (use_pflotran) then
-       call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-       call get_proc_global(numg, numl, numc, nump)
-
        call clm_pf_vecget_gflux(gflux_clm_loc)
        gflux_clm_loc = 0._r8
     end if
@@ -594,7 +582,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) - &
+             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) - &
                   tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
           else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
@@ -637,7 +625,7 @@ contains
 
           else if(snl(c) == 0 .and. frac_h2osfc(c) == 0._r8) then
              ! Both snow and standing water absent (need to do nothing)
-             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) + &
+             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) + &
                   hs_soil(c)*cwtgcell(c)
           else
              ! Snow is absent but standing water is present (This is accounted for
@@ -736,7 +724,7 @@ contains
 
              endif
 
-             gflux_clm_loc(g-begg+1) = gflux_clm_loc(g-begg+1) - &
+             gflux_clm_loc(g - bounds%begg + 1) = gflux_clm_loc(g - bounds%begg + 1) - &
                   fn_h2osfc(c)*cwtgcell(c)
           endif
 
