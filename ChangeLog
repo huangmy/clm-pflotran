@@ -1,4 +1,104 @@
 ===============================================================
+Tag name:  clm4_5_25
+Originator(s):  erik (Erik Kluzek)
+Date: Fri Sep 13 13:49:45 MDT 2013
+One-line Summary: Bring in Tony's changes to kick sno all the way up to the coupler layer, makes all 
+                  CESM components more similar to each other
+
+Purpose of changes:
+   Bring in Tony's cplupa branch (cplupa_n06_clm4_5_24) to trunk. This branch moves sno
+   fields all the way to the top coupler layer rather than being inside of CLM. This makes all
+   CESM components more similar to each other.
+
+   There was also some small fixes on the side that allow some more tests to work.
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 1789 (fix NoVSNoNI test)
+                                  1788 (fix US-UMB test)
+                                  1779 (fix RTM multi-instance)
+                                  1777 (fix RTM branch cases)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: Add new CPP token to CLM USE_ESMF_METADATA (with no direct machanism to use)
+   We hate CPP tokens (but had to let this go, only needed by ESMF development folks)
+
+Describe any changes made to the namelist: drv namelist changes, no changes to CLM namelist
+
+List any changes to the defaults for the boundary datasets: CLM_USRDAT fsurdat files different directory for clm4_0 than clm4_5
+     remove missing ne16np4 fpftdyn file
+
+Describe any substantial timing or memory changes: 
+
+Code reviewed by: self, tcraig
+
+List any svn externals directories updated (csm_share, mct, etc.):, scripts, drv, cism, rtm, csm_share, data and stub models
+
+    scripts             to scripts4_130912
+    drv                 to drvseq4_3_03
+    datm                to datm8_130424
+    socn/sice/sglc/swav to stubs1_4_02
+    rtm                 to rtm1_0_31
+    cism                to cism1_130905
+    csm_share           to share3_130906
+
+List all files eliminated: None
+
+List all files added and what they do: None
+
+List all existing files that have been modified, and describe the changes:
+
+  M    models/lnd/clm/bld/unit_testers/build-namelist_test.pl ------------ Remove ne16 20thC test
+  M    models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_0.xml ---- Remove missing ne16 fpftdyn file
+  M    models/lnd/clm/bld/namelist_files/namelist_defaults_usr_files.xml - Different directory for
+            clm4_0/clm4_5 surface datasets
+
+  M    models/lnd/clm/src/cpl_share/clm_cpl_indices.F90 - Field names change
+  M    models/lnd/clm/src/cpl_mct/lnd_comp_mct.F90 ------ Remove "sno" and "s" fields
+  M    models/lnd/clm/src/clm4_5/main/clm_glclnd.F90 ---- Remove rofi/rofl
+  M    models/lnd/clm/src/cpl_esmf/lnd_comp_esmf.F90 ---- Remove "sno" and "s" fields, add USE_ESMF_METADATA #ifdef
+  M    models/lnd/clm/src/cpl_esmf/lnd_comp_mct.F90 ----- Remove "sno" and "s" fields, add USE_ESMF_METADATA #ifdef
+  M    models/lnd/clm/src/clm4_0/main/clm_glclnd.F90 ---- Remove rofi/rofl
+
+CLM testing: regular
+
+  build-namelist tests:
+
+    bluefire  yes
+    frankfurt yes
+
+  regular tests (aux_clm):
+
+    yellowstone_intel yes
+    yellowstone_pgi   yes
+    frankfurt_intel   yes
+    frankfurt_pgi     yes
+    frankfurt_nag     yes
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel partial (not completed before tag made)
+    yellowstone_pgi   partial (not completed before tag made)
+
+CLM tag used for the baseline comparisons:  clm4_5_24
+
+Changes answers relative to baseline: None (bit-for-bit)
+
+    Although my "I compset" testing showed no changes, fully coupled changes
+    do show differences. Coupler namelists also change.
+
+===============================================================
+===============================================================
 Tag name:  clm4_5_24
 Originator(s):  sacks (sacks)
 Date:  Tue Sep  3 21:36:13 MDT 2013

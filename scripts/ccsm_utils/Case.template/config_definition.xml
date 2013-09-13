@@ -845,24 +845,6 @@ a restart file."
 ></entry>
 -->
 
-<entry id="ROF2LND_SMAPNAME" 
- type="char"
- valid_values="" 
- value="idmap" 
- group="run_domain"
- sdesc="rof2lnd state mapping file"
-></entry>
-
-<!--- 
-<entry id="ROF2LND_SMAPTYPE" 
- type="char"
- valid_values="X,Y" 
- value="Y" 
- group="run_domain"
- sdesc="rof2lnd state mapping file decomp type"
-></entry>
--->
-
 <entry id="LND2ROF_FMAPNAME" 
  type="char"
  valid_values="" 
@@ -914,6 +896,42 @@ a restart file."
  value="Y" 
  group="run_domain"
  sdesc="rof2ocn runoff mapping file decomp type"
+></entry>
+-->
+
+<entry id="GLC2OCN_RMAPNAME" 
+ type="char"
+ valid_values="" 
+ value="idmap" 
+ group="run_domain"
+ sdesc="glc2ocn runoff mapping file"
+></entry>
+
+<!--- 
+<entry id="GLC2OCN_RMAPTYPE" 
+ type="char"
+ valid_values="X,Y" 
+ value="Y" 
+ group="run_domain"
+ sdesc="glc2ocn runoff mapping file decomp type"
+></entry>
+-->
+
+<entry id="GLC2ICE_RMAPNAME" 
+ type="char"
+ valid_values="" 
+ value="idmap" 
+ group="run_domain"
+ sdesc="glc2ice runoff mapping file"
+></entry>
+
+<!--- 
+<entry id="GLC2ICE_RMAPTYPE" 
+ type="char"
+ valid_values="X,Y" 
+ value="Y" 
+ group="run_domain"
+ sdesc="glc2ice runoff mapping file decomp type"
 ></entry>
 -->
 
@@ -1955,24 +1973,17 @@ default is DIATREN_ANN_RX1."
 
 <entry id="DLND_MODE" 
  type="char"
- valid_values="CPLHIST,NULL" 
+ valid_values="CPLHIST,GLC_CPLHIST,NULL" 
  value="NULL" 
  group="run_component_dlnd"
- sdesc="valid values: CPLHIST,NULL" 
+ sdesc="valid values: CPLHIST,GLC_CPLHIST,NULL" 
  ldesc="
-DLND mode. Valid values are CPLHIST and NULL. In CPLHIST mode, land
+DLND mode. Valid values are CPLHIST, GLC_CPLHIST and NULL. In CPLHIST mode, land
 forcing data (produced by CLM) from a previous model run is output in
-coupler history files and read in by the data land model. In NULL
+coupler history files and read in by the data land model. IN GLC_CPLHIST,
+glc coupling fields are read in from a coupler history file.  In NULL
 mode, land forcing is set to zero and not utilized. The default is
 NULL. "
-></entry> 
-
-<entry id="DLND_SNO_MODE" 
- type="char"
- valid_values="CPLHIST,NULL" 
- value="NULL" 
- group="run_component_dlnd"
- sdesc="valid values: CPLHIST,NULL" 
 ></entry> 
 
 <entry id="DLND_CPLHIST_DIR" 

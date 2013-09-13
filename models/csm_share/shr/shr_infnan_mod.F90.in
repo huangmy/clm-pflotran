@@ -44,21 +44,14 @@ use shr_kind_mod, only: &
 
 #ifdef HAVE_IEEE_ARITHMETIC
 
-! If we have IEEE_ARITHMETIC, NaN tests are provided
-! for us.
+! If we have IEEE_ARITHMETIC, the NaN test is provided for us.
 use, intrinsic :: ieee_arithmetic, only: &
      shr_infnan_isnan => ieee_is_nan
 
 #else
 
-! If we don't use Fortran 2003 IEEE module,
-! use the old code to do all NaN/Inf testing.
-
-use shr_test_infnan_mod, only: &
-     shr_infnan_isnan => shr_test_infnan_isnan, &
-     shr_infnan_isinf => shr_test_infnan_isinf, &
-     shr_infnan_isposinf => shr_test_infnan_isposinf, &
-     shr_infnan_isneginf => shr_test_infnan_isneginf
+! Integers of correct size for bit patterns below.
+use shr_kind_mod, only: i4 => shr_kind_i4, i8 => shr_kind_i8
 
 #endif
 
@@ -72,10 +65,14 @@ public :: shr_infnan_isinf
 public :: shr_infnan_isposinf
 public :: shr_infnan_isneginf
 
-#ifdef HAVE_IEEE_ARITHMETIC
+! Locally defined isnan.
+#ifndef HAVE_IEEE_ARITHMETIC
+interface shr_infnan_isnan
+   ! TYPE double,real
+   module procedure shr_infnan_isnan_{TYPE}
+end interface
+#endif
 
-! If we do have the IEEE intrinsics, define the
-! inf test functions here.
 interface shr_infnan_isinf
    ! TYPE double,real
    module procedure shr_infnan_isinf_{TYPE}
@@ -91,16 +88,14 @@ interface shr_infnan_isneginf
    module procedure shr_infnan_isneginf_{TYPE}
 end interface
 
-#endif
-
 ! Derived types for generation of NaN/Inf
-! Even though there's no reason to "use"
-! the types directly, Lahey breaks if you make
-! shr_infnan_nan public, but shr_infnan_nan_type
-! private.
+! Even though there's no reason to "use" the types directly, some compilers
+! might have trouble with an object being used without its type.
 public :: shr_infnan_nan_type
 public :: shr_infnan_inf_type
 public :: assignment(=)
+public :: shr_infnan_to_r4
+public :: shr_infnan_to_r8
 
 ! Type representing Not A Number.
 type :: shr_infnan_nan_type
@@ -122,6 +117,17 @@ interface assignment(=)
    module procedure set_inf_{DIMS}d_{TYPE}
 end interface
 
+! Conversion functions.
+interface shr_infnan_to_r8
+   module procedure nan_r8
+   module procedure inf_r8
+end interface
+
+interface shr_infnan_to_r4
+   module procedure nan_r4
+   module procedure inf_r4
+end interface
+
 ! Initialize objects of NaN/Inf type for other modules to use.
 
 ! Default NaN is signaling, but also provide snan and qnan to choose
@@ -141,14 +147,26 @@ type(shr_infnan_inf_type), public, parameter :: shr_infnan_posinf = &
 type(shr_infnan_inf_type), public, parameter :: shr_infnan_neginf = &
      shr_infnan_inf_type(.false.)
 
-contains
+! Bit patterns for implementation without ieee_arithmetic.
+#ifndef HAVE_IEEE_ARITHMETIC
+! Single precision.
+integer(i4), parameter :: ssnan_pat = int(Z'7FA00000',i4)
+integer(i4), parameter :: sqnan_pat = int(Z'7FC00000',i4)
+integer(i4), parameter :: sposinf_pat = int(Z'7F800000',i4)
+integer(i4), parameter :: sneginf_pat = int(Z'FF800000',i4)
+! Double precision.
+integer(i8), parameter :: dsnan_pat = int(Z'7FF4000000000000',i8)
+integer(i8), parameter :: dqnan_pat = int(Z'7FF8000000000000',i8)
+integer(i8), parameter :: dposinf_pat = int(Z'7FF0000000000000',i8)
+integer(i8), parameter :: dneginf_pat = int(Z'FFF0000000000000',i8)
+#endif
 
-#ifdef HAVE_IEEE_ARITHMETIC
+contains
 
 !---------------------------------------------------------------------
 ! TEST FUNCTIONS
 !---------------------------------------------------------------------
-! The "isinf" functions simply call "isposinf" and "isneginf".
+! The "isinf" function simply calls "isposinf" and "isneginf".
 !---------------------------------------------------------------------
 
 ! TYPE double,real
@@ -159,6 +177,8 @@ elemental function shr_infnan_isinf_{TYPE}(x) result(isinf)
   isinf = shr_infnan_isposinf(x) .or. shr_infnan_isneginf(x)
 
 end function shr_infnan_isinf_{TYPE}
+
+#ifdef HAVE_IEEE_ARITHMETIC
 
 !---------------------------------------------------------------------
 ! The "isposinf" and "isneginf" functions get the IEEE class of a
@@ -192,6 +212,56 @@ elemental function shr_infnan_isneginf_{TYPE}(x) result(isneginf)
 
 end function shr_infnan_isneginf_{TYPE}
 
+#else
+! Don't have ieee_arithmetic.
+
+#ifdef CPRGNU
+! NaN testing on gfortran.
+! TYPE double,real
+elemental function shr_infnan_isnan_{TYPE}(x) result(is_nan)
+  {VTYPE}, intent(in) :: x
+  logical :: is_nan
+
+  is_nan = isnan(x)
+
+end function shr_infnan_isnan_{TYPE}
+! End GNU section.
+#endif
+
+!---------------------------------------------------------------------
+! The "isposinf" and "isneginf" functions just test against a known
+! bit pattern if we don't have ieee_arithmetic.
+!---------------------------------------------------------------------
+
+! TYPE double,real
+elemental function shr_infnan_isposinf_{TYPE}(x) result(isposinf)
+  {VTYPE}, intent(in) :: x
+  logical :: isposinf
+#if ({ITYPE} == TYPEREAL)
+  integer(i4), parameter :: posinf_pat = sposinf_pat
+#else
+  integer(i8), parameter :: posinf_pat = dposinf_pat
+#endif
+
+  isposinf = (x == transfer(posinf_pat,x))
+
+end function shr_infnan_isposinf_{TYPE}
+
+! TYPE double,real
+elemental function shr_infnan_isneginf_{TYPE}(x) result(isneginf)
+  {VTYPE}, intent(in) :: x
+  logical :: isneginf
+#if ({ITYPE} == TYPEREAL)
+  integer(i4), parameter :: neginf_pat = sneginf_pat
+#else
+  integer(i8), parameter :: neginf_pat = dneginf_pat
+#endif
+
+  isneginf = (x == transfer(neginf_pat,x))
+
+end function shr_infnan_isneginf_{TYPE}
+
+! End ieee_arithmetic conditional.
 #endif
 
 !---------------------------------------------------------------------
@@ -220,15 +290,11 @@ pure subroutine set_nan_{DIMS}d_{TYPE}(output, nan)
        ieee_value
 #else
 #if ({ITYPE} == TYPEREAL)
-  use shr_kind_mod, only: &
-       i4 => shr_kind_i4
-  integer(i4), parameter :: snan_pat = Z'7FA00000'
-  integer(i4), parameter :: qnan_pat = Z'7FC00000'
+  integer(i4), parameter :: snan_pat = ssnan_pat
+  integer(i4), parameter :: qnan_pat = sqnan_pat
 #else
-  use shr_kind_mod, only: &
-       i8 => shr_kind_i8
-  integer(i8), parameter :: snan_pat = Z'7FF4000000000000'
-  integer(i8), parameter :: qnan_pat = Z'7FF8000000000000'
+  integer(i8), parameter :: snan_pat = dsnan_pat
+  integer(i8), parameter :: qnan_pat = dqnan_pat
 #endif
 #endif
   {VTYPE}, intent(out) :: output{DIMSTR}
@@ -266,15 +332,11 @@ pure subroutine set_inf_{DIMS}d_{TYPE}(output, inf)
        ieee_value
 #else
 #if ({ITYPE} == TYPEREAL)
-  use shr_kind_mod, only: &
-       i4 => shr_kind_i4
-  integer(i4), parameter :: posinf_pat = Z'7F800000'
-  integer(i4), parameter :: neginf_pat = Z'FF800000'
+  integer(i4), parameter :: posinf_pat = sposinf_pat
+  integer(i4), parameter :: neginf_pat = sneginf_pat
 #else
-  use shr_kind_mod, only: &
-       i8 => shr_kind_i8
-  integer(i8), parameter :: posinf_pat = Z'7FF0000000000000'
-  integer(i8), parameter :: neginf_pat = Z'FFF0000000000000'
+  integer(i8), parameter :: posinf_pat = dposinf_pat
+  integer(i8), parameter :: neginf_pat = dneginf_pat
 #endif
 #endif
   {VTYPE}, intent(out) :: output{DIMSTR}
@@ -301,5 +363,43 @@ pure subroutine set_inf_{DIMS}d_{TYPE}(output, inf)
   output = tmp
 
 end subroutine set_inf_{DIMS}d_{TYPE}
+
+!---------------------------------------------------------------------
+! CONVERSION INTERFACES.
+!---------------------------------------------------------------------
+! Function methods to get reals from nan/inf types.
+!---------------------------------------------------------------------
+
+pure function nan_r8(nan) result(output)
+  class(shr_infnan_nan_type), intent(in) :: nan
+  real(r8) :: output
+
+  output = nan
+
+end function nan_r8
+
+pure function nan_r4(nan) result(output)
+  class(shr_infnan_nan_type), intent(in) :: nan
+  real(r4) :: output
+
+  output = nan
+
+end function nan_r4
+
+pure function inf_r8(inf) result(output)
+  class(shr_infnan_inf_type), intent(in) :: inf
+  real(r8) :: output
+
+  output = inf
+
+end function inf_r8
+
+pure function inf_r4(inf) result(output)
+  class(shr_infnan_inf_type), intent(in) :: inf
+  real(r4) :: output
+
+  output = inf
+
+end function inf_r4
 
 end module shr_infnan_mod

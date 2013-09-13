@@ -40,7 +40,7 @@ CONTAINS
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-    type(ESMF_Clock)            , intent(in)    :: EClock
+    type(ESMF_Clock)            , intent(inout) :: EClock
     type(seq_cdata)             , intent(inout) :: cdata
     type(mct_aVect)             , intent(inout) :: x2d, d2x
     character(len=*), optional  , intent(in)    :: NLFilename
@@ -49,7 +49,7 @@ CONTAINS
 !-------------------------------------------------------------------------------
 
    call seq_infodata_PutData(cdata%infodata, ice_present=.false., &
-        ice_prognostic=.false.)
+        ice_prognostic=.false., iceberg_prognostic=.false.)
 
 end subroutine ice_init_mct
 
@@ -71,7 +71,7 @@ subroutine ice_run_mct( EClock, cdata, x2d, d2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2d        
    type(mct_aVect)             ,intent(inout) :: d2x        

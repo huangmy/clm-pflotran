@@ -29,6 +29,7 @@ my $suitemode = 0;
 my $xmlmode = 0;
 my %progconfig;
 my %opts;
+my $commandline;
 
 sub usage()
 {
@@ -315,6 +316,8 @@ sub initialize()
   require XML::Lite;
   require ConfigCase;
   require SetupTools;
+  $commandline = "create_test @ARGV";  
+
   if($#ARGV == -1)
   {
       print "** You must specify either a single test with -testname,\n";
@@ -756,11 +759,11 @@ sub ExpandXmlList
 }  
 
 #-----------------------------------------------------------------------------------------------
-# Parse the test name. Fisrt look for 4 'words' separated by 3 periods, similar to
-# # ERS.f19_f19.B.yellowstone_intel,  denoting that the machine (and compiler) is in the test name.
-# # Next, look for 3 words separated by 2 periods. This would be a test name without the machine
-# # and/or compiler in the test name, such as ERS_PT.f19_f19.B.
-# # If neither of these match, use Tony Craig's original test parsing algorithm, ported from csh.
+# Parse the test name. First look for 5 'words' separated by 4 periods, similar to
+# ERS.f19_f19.B.yellowstone_intel.clm-default,  
+# denoting that the machine (and compiler) and testmods directory are in the test name.
+# Then look for matches where the last or last two might be taken off the list.
+# If none match fail
 #-----------------------------------------------------------------------------------------------
 sub ParseTestName
 {
@@ -769,92 +772,33 @@ sub ParseTestName
   my $testhash;
   
 
-  if($teststring =~ /^(\w+\.)(\w+\.)(\w+\.)(\w+\.)(.+)$/ )
+  if($teststring =~ /^([\w-]+)\.([\w-]+)\.([\w-]+)\.([\w-]+)\.(.+)$/ )
   {
      $testhash->{'testname'} = $1;
      $testhash->{'grid'} = $2;
      $testhash->{'compset'} = $3;
      $testhash->{'cmach'} = $4;
      $testhash->{'testmods'} = $5;
-     $testhash->{'testname'} =~ s/\.//g;
-     $testhash->{'grid'} =~ s/\.//g;
-     $testhash->{'compset'} =~ s/\.//g;
-     $testhash->{'cmach'} =~ s/\.//g;
-     $testhash->{'testmods'} =~ s/\.//g;
   }
-  elsif($teststring =~ /^(\w+\.)(\w+\.)(\w+\.)(\w+)$/ )
+  elsif($teststring =~ /^([\w-]+)\.([\w-]+)\.([\w-]+)\.([\w-]+)$/ )
   {
      $testhash->{'testname'} = $1;
      $testhash->{'grid'} = $2;
      $testhash->{'compset'} = $3;
      $testhash->{'cmach'} = $4;
-     $testhash->{'testname'} =~ s/\.//g;
-     $testhash->{'grid'} =~ s/\.//g;
-     $testhash->{'compset'} =~ s/\.//g;
-     $testhash->{'cmach'} =~ s/\.//g;
   }
-  elsif ($teststring =~ /^(\w+\.)(\w+\.)(\w+)$/ )
+  elsif ($teststring =~ /^([\w-]+)\.([\w-]+)\.([\w-]+)$/ )
   {
      $testhash->{'testname'} = $1;
      $testhash->{'grid'} = $2;
      $testhash->{'compset'} = $3;
-     $testhash->{'testname'} =~ s/\.//g;
-     $testhash->{'grid'} =~ s/\.//g;
-     $testhash->{'compset'} =~ s/\.//g;
       
   }
   else
   {
-    my $parsetest;
-    my $parsetest1;
-    $parsetest = (split('\.', $teststring))[1];
-    $parsetest1 = (split("_", $parsetest))[0];
-    return if (! defined $parsetest || ! defined $parsetest1);
-    &Debug("parsetest: $parsetest");
-    &Debug("parsetest1: $parsetest1");
-
-    if($parsetest ne $parsetest1)
-    {
-      &Debug("first parse");
-      ($testhash->{'testname'}, $testhash->{'grid'}, $testhash->{'compset'}, $testhash->{'cmach'} )  = 
-        split('\.', $teststring);
-    }
-    else
-    {
-      $parsetest = (split('\.', $teststring))[2];
-      $parsetest1 = (split('_', $parsetest))[0];
-      return if (! defined $parsetest || ! defined $parsetest1);
-      &Debug("parsetest: $parsetest");
-      &Debug("parsetest1: $parsetest1");
-      if($parsetest ne $parsetest1)
-      {
-        &Debug("second parse");
-        $testhash->{'testname'} = (split('\.', $teststring))[0];
-        $testhash->{'grid'} = (split('\.', $teststring))[1];
-        $testhash->{'grid'} .= (split('\.', $teststring))[2];
-        $testhash->{'compset'} = (split('\.', $teststring))[3];
-        $testhash->{'cmach'} = (split('\.', $teststring))[4];
-      }
-      else
-      {
-        $parsetest = (split('\.', $teststring))[3];
-        $parsetest1 = (split('_', $parsetest))[0];
-        return if (! defined $parsetest || ! defined $parsetest1);
-        &Debug("parsetest: $parsetest");
-        &Debug("parsetest1: $parsetest1");
-        if($parsetest ne $parsetest1)
-        {
-          &Debug("third parse");
-          $testhash->{'testname'} = (split('\.', $teststring))[0];    
-          $testhash->{'grid'} = (split('\.', $teststring))[1];    
-          $testhash->{'grid'} .= (split('\.', $teststring))[2];    
-          $testhash->{'grid'} .= (split('\.', $teststring))[3];    
-          $testhash->{'compset'} = (split('\.', $teststring))[4];    
-          $testhash->{'grid'} = (split('\.', $teststring))[5];    
-          $testhash->{'cmach'} = (split('\.', $teststring))[6];
-        }
-      }
-    }
+    print "Trouble parsing the test string: $teststring:\n";
+    print "aborting\n";
+    exit(1);
   }
   Debug( eval { Dumper $testhash} );
 
@@ -1099,7 +1043,8 @@ sub runCreateNewcase
   {
     $testoptstring .= "$k: $test{$k} ";
   }
-  $testoptstring .= "\n";
+  $testoptstring .= "\n\n";
+  print $readmetmp "$commandline\n\n";
   print $readmetmp $testoptstring;
   print $casestatustmp  $testoptstring;
 

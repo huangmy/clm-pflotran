@@ -122,14 +122,13 @@ subroutine shr_assert_in_domain_{DIMS}d_{TYPE}(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -356,8 +355,8 @@ pure function find_first_loc_{DIMS}d(mask) result (loc_vec)
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif

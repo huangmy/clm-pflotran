@@ -49,11 +49,7 @@ SUBROUTINE shr_sys_flush(unit)
    !----- arguments -----
    integer(SHR_KIND_IN) :: unit  ! flush output buffer for this unit
 
-#ifndef CPRLAHEY
    flush(unit)
-#else
-   call flush(unit)
-#endif
 
 END SUBROUTINE shr_sys_flush
 

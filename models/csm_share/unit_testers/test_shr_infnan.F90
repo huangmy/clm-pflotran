@@ -23,12 +23,11 @@
  real(r8) :: nans
  real(r4) :: spnan
  real(r4) :: spnans
- integer(i8), parameter :: dpinfpat = O'0777600000000000000000'
- integer(i8), parameter :: dpnanpat = O'0777700000000000000000'
- integer(i8), parameter :: dpnanspat = O'0777610000000000000000'
- integer(i4), parameter :: spnanpat =  Z"7FC00000"
- integer(i4), parameter :: spnanspat = Z"7FC10000"
- integer   :: count
+ integer(i8), parameter :: dpinfpat = int(O'0777600000000000000000',i8)
+ integer(i8), parameter :: dpnanpat = int(O'0777700000000000000000',i8)
+ integer(i8), parameter :: dpnanspat = int(O'0777610000000000000000',i8)
+ integer(i4), parameter :: spnanpat =  int(Z'7FC00000',i4)
+ integer(i4), parameter :: spnanspat = int(Z'7FC10000',i4)
  intrinsic :: count
 
  inf = transfer(dpinfpat,inf)
@@ -38,7 +37,7 @@
  spnan = transfer( spnanpat,spnan)
  spnans = transfer( spnanspat,spnans)
 
- call test_init( 37 )
+ call test_init( 45 )
 
  print *, "Unit-tester for shr_infnan_mod"
 
@@ -126,6 +125,26 @@
  call test_is(       shr_infnan_isneginf( x ),  "Test that shr_infnan_neginf sets r8 to -inf" )
  y = shr_infnan_neginf
  call test_is(       shr_infnan_isneginf( y ),  "Test that shr_infnan_neginf sets r4 to -inf" )
+
+ x = shr_infnan_to_r8(shr_infnan_qnan)
+ call test_is(       shr_infnan_isnan( x ),  "Test that shr_infnan_to_r8(shr_infnan_qnan) sets r8 to nan" )
+ y = shr_infnan_to_r4(shr_infnan_qnan)
+ call test_is(       shr_infnan_isnan( y ),  "Test that shr_infnan_to_r4(shr_infnan_qnan) sets r4 to nan" )
+
+ x = shr_infnan_to_r8(shr_infnan_snan)
+ call test_is(       shr_infnan_isnan( x ),  "Test that shr_infnan_to_r8(shr_infnan_snan) sets r8 to nan" )
+ y = shr_infnan_to_r4(shr_infnan_snan)
+ call test_is(       shr_infnan_isnan( y ),  "Test that shr_infnan_to_r4(shr_infnan_snan) sets r4 to nan" )
+
+ x = shr_infnan_to_r8(shr_infnan_posinf)
+ call test_is(       shr_infnan_isposinf( x ),  "Test that shr_infnan_to_r8(shr_infnan_posinf) sets r8 to +inf" )
+ y = shr_infnan_to_r4(shr_infnan_posinf)
+ call test_is(       shr_infnan_isposinf( y ),  "Test that shr_infnan_to_r4(shr_infnan_posinf) sets r4 to +inf" )
+
+ x = shr_infnan_to_r8(shr_infnan_neginf)
+ call test_is(       shr_infnan_isneginf( x ),  "Test that shr_infnan_to_r8(shr_infnan_neginf) sets r8 to -inf" )
+ y = shr_infnan_to_r4(shr_infnan_neginf)
+ call test_is(       shr_infnan_isneginf( y ),  "Test that shr_infnan_to_r4(shr_infnan_neginf) sets r4 to -inf" )
 
 
  call test_final()

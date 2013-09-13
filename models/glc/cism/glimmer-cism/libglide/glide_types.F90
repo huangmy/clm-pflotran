@@ -57,6 +57,7 @@ module glide_types
   use profile
   use glimmer_coordinates, only: coordsystem_type
   use glimmer_map_types
+  use glimmer_physcon
 
   implicit none
 
@@ -547,6 +548,26 @@ module glide_types
     integer, dimension(:,:),pointer :: thkmask => null()
     !*FD see glide_mask.f90 for possible values
 
+    !TODO
+    !*SFP - consider moving these to their own type at some point?
+    !* (DFM ----------------- added for BISICLES interface --------------)
+!    real(dp),dimension(:,:),pointer :: floating_mask => null()
+!    !*(DFM) Real-valued mask indicated where ice is grounded or floating
+!
+!    !* (DFM ----------------- added for BISICLES interface --------------)
+!    real(dp),dimension(:,:),pointer :: ice_mask => null()
+!    !*(DFM) Real-valued mask indicating where ice is present or absent
+!
+!
+!    !* (DFM ----------------- added for BISICLES interface --------------)
+!    real(dp),dimension(:,:),pointer :: lower_cell_loc => null()
+!    !*(DFM) The z-location of the center of the lowest ice cell center
+!
+!    !* (DFM ----------------- added for BISICLES interface --------------)
+!    real(dp),dimension(:,:),pointer :: lower_cell_temp => null()
+!    !*(DFM) The temperature in the cell located at lower_cell_loc
+
+
     !WHL - no longer used
 !!    real(dp),dimension(:,:),pointer :: marine_bc_normal => null()
     !*FD NaN for all points except those that occur on the marine
@@ -692,14 +713,16 @@ module glide_types
 !TODO - Should calving and eus be part of some other type?
 !      Commented out slidconst, used by unsupported Huybrechts basal traction option
 
-!TODO - Change to dp
+!TODO - Here, acab has units of m/y ice, whereas in Glint, acab has units of m/y water equiv.
+!       Consider renaming acab here to avoid confusion (e.g., acab_ice?)
 
   type glide_climate
      !*FD Holds fields used to drive the model
-     real(dp),dimension(:,:),pointer :: acab     => null() !*FD Annual mass balance.
-     real(dp),dimension(:,:),pointer :: acab_tavg     => null() !*FD Annual mass balance (time average).
-     real(dp),dimension(:,:),pointer :: artm     => null() !*FD Annual mean air temperature
-     real(dp),dimension(:,:),pointer :: calving  => null() !*FD Calving flux (scaled as mass balance, thickness, etc)
+     real(dp),dimension(:,:),pointer :: acab      => null() !*FD Annual mass balance (m/y ice)
+     real(dp),dimension(:,:),pointer :: acab_tavg => null() !*FD Annual mass balance (time average).
+     real(dp),dimension(:,:),pointer :: artm      => null() !*FD Annual mean air temperature (degC)
+     real(dp),dimension(:,:),pointer :: calving   => null() !*FD Calving flux 
+                                                            !    (scaled as mass balance, thickness, etc)
 
      !TODO - lati and loni are not currently used.  Are they needed?
      real(dp),dimension(:,:),pointer :: lati     => null() !*FD Latitudes of model grid points 
@@ -891,12 +914,11 @@ module glide_types
 
     !TODO - Compute ndiag as a function of dt_diag and pass to glide_diagnostics?
     !       This is more robust than computing mods of real numbers. 
-    !TODO - Change names of idiag_global and jdiag_global?
-    !       These are indices for the full ice sheet grid (before decomposition), but not a true global grid.
-    real(dp) :: dt_diag = 0.d0            ! diagnostic time interval (write diagnostics every dt_diag years)
-    integer  :: ndiag = -999              ! diagnostic period (write output every ndiag steps)
-    integer  :: idiag_global = 1          ! grid indices for diagnostic point
-    integer  :: jdiag_global = 1
+
+    real(dp) :: dt_diag = 0.d0     ! diagnostic time interval (write diagnostics every dt_diag years)
+    integer  :: ndiag = -999       ! diagnostic period (write output every ndiag steps)
+    integer  :: idiag = 1          ! grid indices for diagnostic point
+    integer  :: jdiag = 1          ! These are for the full grid; indices may vary on local processor
   end type glide_numerics
 
   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1345,6 +1367,18 @@ contains
     call coordsystem_allocate(model%general%velo_grid, model%geomderv%dusrfdns)
     call coordsystem_allocate(model%general%velo_grid, model%geomderv%stagthck)
 
+
+    !TODO
+    !*SFP: These will need to be wrapped in their own logic at some point. For now, we 
+    !      are just commenting them out by default.
+    !* (DFM) -- added floating_mask, ice_mask, lower_cell_loc, and lower_cell_temp here
+!    call coordsystem_allocate(model%general%ice_grid, model%geometry%floating_mask)
+!    call coordsystem_allocate(model%general%ice_grid, model%geometry%ice_mask)
+!    call coordsystem_allocate(model%general%ice_grid, model%geometry%lower_cell_loc)
+!    call coordsystem_allocate(model%general%ice_grid, model%geometry%lower_cell_temp)
+
+
+
 !!    call coordsystem_allocate(model%general%ice_grid, model%geometry%marine_bc_normal)   ! no longer used
 
     if (model%options%whichdycore == DYCORE_GLIDE) then
@@ -1603,6 +1637,17 @@ contains
         deallocate(model%geomderv%stagthck)
 !!    if (associated(model%geometry%marine_bc_normal)) &
 !!       deallocate(model%geometry%marine_bc_normal)
+
+    !*SFP: fields that need to be passed to POP for ice ocean coupling
+    !* (DFM -- deallocate floating_mask, ice_mask, lower_cell_loc, and lower_cell_temp)
+!    if (associated(model%geometry%floating_mask)) &
+!       deallocate(model%geometry%floating_mask)
+!    if (associated(model%geometry%ice_mask)) &
+!       deallocate(model%geometry%ice_mask)
+!    if (associated(model%geometry%lower_cell_loc)) &
+!       deallocate(model%geometry%lower_cell_loc)
+!    if (associated(model%geometry%lower_cell_temp)) &
+!       deallocate(model%geometry%lower_cell_temp)
 
     if (associated(model%geometry%thck_index)) &
         deallocate(model%geometry%thck_index)

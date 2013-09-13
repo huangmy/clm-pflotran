@@ -1,8 +1,100 @@
 ================================================================================
-SVN $Id: ChangeLog 49521 2013-07-23 15:46:06Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130723/ChangeLog $
+SVN $Id: ChangeLog 50927 2013-09-06 23:24:23Z tcraig $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130906/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+===========================
+Originator: tcraig
+Date: 2013/09/06
+Model: share
+Version: share3_130906
+One-line summary: minor change for NAG compiler
+
+M       shr/mct_mod.F90
+
+===========================
+Originator: tcraig
+Date: 2013/09/05
+Model: share
+Version: share3_130905
+One-line summary: merge cplupa branch
+ - delete shr_mct_sMatPInitnc_configfile method
+ - add shr_mct_queryConfigFile method
+ - remove access to mct_Accumulator datatypes and methods
+ - add mct_aVect_sharedFields, mct_aVect_initSharedFields
+ - update mct_aVect_avg, mct_aVect_accum
+ - add rofice_present argument to shr_scam_checkSurface
+
+M       shr/mct_mod.F90
+M       shr/shr_scam_mod.F90
+M       shr/shr_mct_mod.F90
+
+===========================
+Originator: jshollen
+Date: 2013/09/04
+Model: share
+Version: share3_130904
+One-line summary: remove shr/shr_isnan.c to fix build
+
+D       shr/shr_isnan.c
+
+===========================
+Originator: santos
+Date: 2013/08/29
+Model: share
+Version: share3_130829
+One-line summary: Remove Lahey and NAG port scaffolding, add some F2003.
+
+M       shr/shr_assert_mod.F90.in
+M       shr/shr_assert_mod.F90
+         - Simplify workaround for PGI, remove CPRLAHEY from ifdefs.
+
+D       shr/shr_test_infnan_mod.F90
+D       shr/shr_isnan.h
+M       shr/shr_infnan_mod.F90.in
+M       shr/shr_infnan_mod.F90
+         - Remove shr_test_infnan_mod.F90, as it was only needed by Lahey,
+           GNU, and some versions of Cray, and was excessively complex.
+         - Modify shr_infnan_mod.F90 to work for GNU. Any other compiler
+           without the IEEE_ARITHMETIC intrinsic module will need to add an
+           "isnan" function here, but the GNU workaround should provide all
+           the other functionality for this module.
+         - Created shr_infnan_to_r4 and shr_infnan_to_r8 as convenience
+           functions (making it unnecessary to create temporary reals in
+           some cases).
+
+M       shr/shr_spfn_mod.F90
+         - Remove references to Lahey and a workaround for older IBM
+           compilers.
+         - Remove "nonintrinsic" interfaces; cam5_3_04 and later do not use
+           them. Remove internal error function interfaces that are also no
+           longer needed.
+         - Minor simplification using the F2003 "import" statement.
+
+M       unit_testers/Makefile
+         - Remove references to deleted source files.
+         - Remove an empty file called "F" that is mysteriously generated
+           on Mira, apparently by xlf2003_r.
+
+M       unit_testers/make.Macros
+         - Change pgf90 to the more generic "pgfortran".
+         - Remove Lahey build information.
+         - Define "CPRGNU" for gfortran.
+         - If OS is Linux and compiler is xlf2003_r, use the correct
+           compiler options for Mira.
+
+M       unit_testers/test_shr_infnan.F90
+         - Set bit patterns in a standard-conforming way (F2003).
+         - Test new shr_infnan_mod functions.
+
+M       unit_testers/shr_assert_test/Makefile
+         - Add IBM compiler and remove Lahey.
+         - Remove references to deleted source files.
+
+M       unit_testers/shr_assert_test/shr_sys_mod.F90
+M       unit_testers/shr_assert_test/test_utils.F90
+         - Remove workarounds for Lahey and older PGI (<12.5)
+
 ===========================
 Originator: sacks
 Date: Jul 23, 2013

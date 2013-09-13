@@ -29,7 +29,7 @@ public :: shr_assert
 ! Assert that a numerical value satisfies certain constraints.
 public :: shr_assert_in_domain
 
-# 27 "../..//shr/shr_assert_mod.F90.in"
+# 27 "shr/shr_assert_mod.F90.in"
 interface shr_assert
    ! DIMS 0,1,2,3,4,5,6,7
    module procedure shr_assert_0d
@@ -49,7 +49,7 @@ interface shr_assert
    module procedure shr_assert_7d
 end interface
 
-# 32 "../..//shr/shr_assert_mod.F90.in"
+# 32 "shr/shr_assert_mod.F90.in"
 interface shr_assert_in_domain
    ! TYPE double,real,int,long
    ! DIMS 0,1,2,3,4,5,6,7
@@ -151,7 +151,7 @@ end interface
 
 ! Private utilities.
 
-# 40 "../..//shr/shr_assert_mod.F90.in"
+# 40 "shr/shr_assert_mod.F90.in"
 interface print_bad_loc
    ! TYPE double,real,int,long
    ! DIMS 0,1,2,3,4,5,6,7
@@ -251,7 +251,7 @@ interface print_bad_loc
    module procedure print_bad_loc_7d_long
 end interface
 
-# 46 "../..//shr/shr_assert_mod.F90.in"
+# 46 "shr/shr_assert_mod.F90.in"
 interface find_first_loc
    ! DIMS 0,1,2,3,4,5,6,7
    module procedure find_first_loc_0d
@@ -271,11 +271,11 @@ interface find_first_loc
    module procedure find_first_loc_7d
 end interface
 
-# 51 "../..//shr/shr_assert_mod.F90.in"
+# 51 "shr/shr_assert_mod.F90.in"
 contains
 
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_0d(var, msg)
 
 !-----------------------------
@@ -310,10 +310,10 @@ subroutine shr_assert_0d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_0d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_1d(var, msg)
 
 !-----------------------------
@@ -348,10 +348,10 @@ subroutine shr_assert_1d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_1d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_2d(var, msg)
 
 !-----------------------------
@@ -386,10 +386,10 @@ subroutine shr_assert_2d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_2d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_3d(var, msg)
 
 !-----------------------------
@@ -424,10 +424,10 @@ subroutine shr_assert_3d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_3d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_4d(var, msg)
 
 !-----------------------------
@@ -462,10 +462,10 @@ subroutine shr_assert_4d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_4d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_5d(var, msg)
 
 !-----------------------------
@@ -500,10 +500,10 @@ subroutine shr_assert_5d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_5d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_6d(var, msg)
 
 !-----------------------------
@@ -538,10 +538,10 @@ subroutine shr_assert_6d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_6d
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 54 "../..//shr/shr_assert_mod.F90.in"
+# 54 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_7d(var, msg)
 
 !-----------------------------
@@ -576,6 +576,7 @@ subroutine shr_assert_7d(var, msg)
 ! Undefine local macros.
 #undef GEN_ALL
 
+# 88 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_7d
 
 !--------------------------------------------------------------------------
@@ -583,7 +584,7 @@ end subroutine shr_assert_7d
 
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_0d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -599,7 +600,6 @@ subroutine shr_assert_in_domain_0d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -615,14 +615,13 @@ subroutine shr_assert_in_domain_0d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -780,14 +779,11 @@ subroutine shr_assert_in_domain_0d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_0d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_1d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -803,7 +799,6 @@ subroutine shr_assert_in_domain_1d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -819,14 +814,13 @@ subroutine shr_assert_in_domain_1d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -984,14 +978,11 @@ subroutine shr_assert_in_domain_1d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_1d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_2d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -1007,7 +998,6 @@ subroutine shr_assert_in_domain_2d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -1023,14 +1013,13 @@ subroutine shr_assert_in_domain_2d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -1188,14 +1177,11 @@ subroutine shr_assert_in_domain_2d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_2d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_3d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -1211,7 +1197,6 @@ subroutine shr_assert_in_domain_3d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -1227,14 +1212,13 @@ subroutine shr_assert_in_domain_3d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -1392,14 +1376,11 @@ subroutine shr_assert_in_domain_3d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_3d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_4d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -1415,7 +1396,6 @@ subroutine shr_assert_in_domain_4d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -1431,14 +1411,13 @@ subroutine shr_assert_in_domain_4d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -1596,14 +1575,11 @@ subroutine shr_assert_in_domain_4d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_4d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_5d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -1619,7 +1595,6 @@ subroutine shr_assert_in_domain_5d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -1635,14 +1610,13 @@ subroutine shr_assert_in_domain_5d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -1800,14 +1774,11 @@ subroutine shr_assert_in_domain_5d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_5d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_6d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -1823,7 +1794,6 @@ subroutine shr_assert_in_domain_6d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -1839,14 +1809,13 @@ subroutine shr_assert_in_domain_6d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -2004,14 +1973,11 @@ subroutine shr_assert_in_domain_6d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_6d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_7d_double(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -2027,7 +1993,6 @@ subroutine shr_assert_in_domain_7d_double(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -2043,14 +2008,13 @@ subroutine shr_assert_in_domain_7d_double(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -2208,14 +2172,11 @@ subroutine shr_assert_in_domain_7d_double(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_7d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_0d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -2231,7 +2192,6 @@ subroutine shr_assert_in_domain_0d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -2247,14 +2207,13 @@ subroutine shr_assert_in_domain_0d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -2412,14 +2371,11 @@ subroutine shr_assert_in_domain_0d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_0d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_1d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -2435,7 +2391,6 @@ subroutine shr_assert_in_domain_1d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -2451,14 +2406,13 @@ subroutine shr_assert_in_domain_1d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -2616,14 +2570,11 @@ subroutine shr_assert_in_domain_1d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_1d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_2d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -2639,7 +2590,6 @@ subroutine shr_assert_in_domain_2d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -2655,14 +2605,13 @@ subroutine shr_assert_in_domain_2d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -2820,14 +2769,11 @@ subroutine shr_assert_in_domain_2d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_2d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_3d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -2843,7 +2789,6 @@ subroutine shr_assert_in_domain_3d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -2859,14 +2804,13 @@ subroutine shr_assert_in_domain_3d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -3024,14 +2968,11 @@ subroutine shr_assert_in_domain_3d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_3d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_4d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -3047,7 +2988,6 @@ subroutine shr_assert_in_domain_4d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -3063,14 +3003,13 @@ subroutine shr_assert_in_domain_4d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -3228,14 +3167,11 @@ subroutine shr_assert_in_domain_4d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_4d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_5d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -3251,7 +3187,6 @@ subroutine shr_assert_in_domain_5d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -3267,14 +3202,13 @@ subroutine shr_assert_in_domain_5d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -3432,14 +3366,11 @@ subroutine shr_assert_in_domain_5d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_5d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_6d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -3455,7 +3386,6 @@ subroutine shr_assert_in_domain_6d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -3471,14 +3401,13 @@ subroutine shr_assert_in_domain_6d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -3636,14 +3565,11 @@ subroutine shr_assert_in_domain_6d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_6d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_7d_real(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -3659,7 +3585,6 @@ subroutine shr_assert_in_domain_7d_real(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -3675,14 +3600,13 @@ subroutine shr_assert_in_domain_7d_real(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -3840,14 +3764,11 @@ subroutine shr_assert_in_domain_7d_real(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_7d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_0d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -3863,7 +3784,6 @@ subroutine shr_assert_in_domain_0d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -3879,14 +3799,13 @@ subroutine shr_assert_in_domain_0d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -4044,14 +3963,11 @@ subroutine shr_assert_in_domain_0d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_0d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_1d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -4067,7 +3983,6 @@ subroutine shr_assert_in_domain_1d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -4083,14 +3998,13 @@ subroutine shr_assert_in_domain_1d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -4248,14 +4162,11 @@ subroutine shr_assert_in_domain_1d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_1d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_2d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -4271,7 +4182,6 @@ subroutine shr_assert_in_domain_2d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -4287,14 +4197,13 @@ subroutine shr_assert_in_domain_2d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -4452,14 +4361,11 @@ subroutine shr_assert_in_domain_2d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_2d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_3d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -4475,7 +4381,6 @@ subroutine shr_assert_in_domain_3d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -4491,14 +4396,13 @@ subroutine shr_assert_in_domain_3d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -4656,14 +4560,11 @@ subroutine shr_assert_in_domain_3d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_3d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_4d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -4679,7 +4580,6 @@ subroutine shr_assert_in_domain_4d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -4695,14 +4595,13 @@ subroutine shr_assert_in_domain_4d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -4860,14 +4759,11 @@ subroutine shr_assert_in_domain_4d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_4d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_5d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -4883,7 +4779,6 @@ subroutine shr_assert_in_domain_5d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -4899,14 +4794,13 @@ subroutine shr_assert_in_domain_5d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -5064,14 +4958,11 @@ subroutine shr_assert_in_domain_5d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_5d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_6d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -5087,7 +4978,6 @@ subroutine shr_assert_in_domain_6d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -5103,14 +4993,13 @@ subroutine shr_assert_in_domain_6d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -5268,14 +5157,11 @@ subroutine shr_assert_in_domain_6d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_6d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_7d_int(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -5291,7 +5177,6 @@ subroutine shr_assert_in_domain_7d_int(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -5307,14 +5192,13 @@ subroutine shr_assert_in_domain_7d_int(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -5472,14 +5356,11 @@ subroutine shr_assert_in_domain_7d_int(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_7d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_0d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -5495,7 +5376,6 @@ subroutine shr_assert_in_domain_0d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -5511,14 +5391,13 @@ subroutine shr_assert_in_domain_0d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -5676,14 +5555,11 @@ subroutine shr_assert_in_domain_0d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_0d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_1d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -5699,7 +5575,6 @@ subroutine shr_assert_in_domain_1d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -5715,14 +5590,13 @@ subroutine shr_assert_in_domain_1d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -5880,14 +5754,11 @@ subroutine shr_assert_in_domain_1d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_1d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_2d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -5903,7 +5774,6 @@ subroutine shr_assert_in_domain_2d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -5919,14 +5789,13 @@ subroutine shr_assert_in_domain_2d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -6084,14 +5953,11 @@ subroutine shr_assert_in_domain_2d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_2d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_3d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -6107,7 +5973,6 @@ subroutine shr_assert_in_domain_3d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -6123,14 +5988,13 @@ subroutine shr_assert_in_domain_3d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -6288,14 +6152,11 @@ subroutine shr_assert_in_domain_3d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_3d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_4d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -6311,7 +6172,6 @@ subroutine shr_assert_in_domain_4d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -6327,14 +6187,13 @@ subroutine shr_assert_in_domain_4d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -6492,14 +6351,11 @@ subroutine shr_assert_in_domain_4d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_4d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_5d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -6515,7 +6371,6 @@ subroutine shr_assert_in_domain_5d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -6531,14 +6386,13 @@ subroutine shr_assert_in_domain_5d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -6696,14 +6550,11 @@ subroutine shr_assert_in_domain_5d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_5d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_6d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -6719,7 +6570,6 @@ subroutine shr_assert_in_domain_6d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -6735,14 +6585,13 @@ subroutine shr_assert_in_domain_6d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -6900,14 +6749,11 @@ subroutine shr_assert_in_domain_6d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_6d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 95 "../..//shr/shr_assert_mod.F90.in"
+# 95 "shr/shr_assert_mod.F90.in"
 subroutine shr_assert_in_domain_7d_long(var, varname, msg, &
      is_nan, lt, gt, le, ge, eq, ne)
 
@@ -6923,7 +6769,6 @@ subroutine shr_assert_in_domain_7d_long(var, varname, msg, &
 #undef TYPEFP
 #endif
 
-# 110 "../..//shr/shr_assert_mod.F90.in"
 ! "Generalized" macro functions allow transformational intrinsic functions
 ! to handle both scalars and arrays.
 
@@ -6939,14 +6784,13 @@ subroutine shr_assert_in_domain_7d_long(var, varname, msg, &
 !   GEN_[MAX,MIN]LOC should return a 1D, size 0 (empty), integer array.
 #define GEN_ALL(x) x
 
-! Compiler workaround to construct size 0 array.
-! Newer PGI will probably not need this.
-#if (defined CPRPGI || defined CPRLAHEY)
-#define GEN_MAXLOC(x) find_first_loc(.false.)
-#define GEN_MINLOC(x) find_first_loc(.false.)
+#if (defined CPRPGI)
+! Workaround for PGI bug (still present as of 13.3).
+#define GEN_MAXLOC(x) loc_vec
+#define GEN_MINLOC(x) loc_vec
 #else
-#define GEN_MAXLOC(x) (/ integer:: /)
-#define GEN_MINLOC(x) (/ integer:: /)
+#define GEN_MAXLOC(x) [integer::]
+#define GEN_MINLOC(x) [integer::]
 #endif
 
 #endif
@@ -7104,6 +6948,7 @@ subroutine shr_assert_in_domain_7d_long(var, varname, msg, &
 #undef GEN_MAXLOC
 #undef GEN_MINLOC
 
+# 289 "shr/shr_assert_mod.F90.in"
 end subroutine shr_assert_in_domain_7d_long
 
 !--------------------------------------------------------------------------
@@ -7111,7 +6956,7 @@ end subroutine shr_assert_in_domain_7d_long
 
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_0d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7146,14 +6991,11 @@ subroutine print_bad_loc_0d_double(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_0d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_1d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7188,14 +7030,11 @@ subroutine print_bad_loc_1d_double(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_1d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_2d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7232,14 +7071,11 @@ loc_vec(2)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_2d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_3d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7278,14 +7114,11 @@ loc_vec(3)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_3d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_4d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7326,14 +7159,11 @@ loc_vec(4)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_4d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_5d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7376,14 +7206,11 @@ loc_vec(5)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_5d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_6d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7428,14 +7255,11 @@ loc_vec(6)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_6d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_7d_double(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7482,14 +7306,11 @@ loc_vec(7)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_7d_double
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_0d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7524,14 +7345,11 @@ subroutine print_bad_loc_0d_real(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_0d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_1d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7566,14 +7384,11 @@ subroutine print_bad_loc_1d_real(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_1d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_2d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7610,14 +7425,11 @@ loc_vec(2)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_2d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_3d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7656,14 +7468,11 @@ loc_vec(3)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_3d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_4d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7704,14 +7513,11 @@ loc_vec(4)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_4d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_5d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7754,14 +7560,11 @@ loc_vec(5)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_5d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_6d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7806,14 +7609,11 @@ loc_vec(6)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_6d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_7d_real(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7860,14 +7660,11 @@ loc_vec(7)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_7d_real
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_0d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7902,14 +7699,11 @@ subroutine print_bad_loc_0d_int(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_0d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_1d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7944,14 +7738,11 @@ subroutine print_bad_loc_1d_int(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_1d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_2d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -7988,14 +7779,11 @@ loc_vec(2)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_2d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_3d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8034,14 +7822,11 @@ loc_vec(3)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_3d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_4d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8082,14 +7867,11 @@ loc_vec(4)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_4d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_5d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8132,14 +7914,11 @@ loc_vec(5)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_5d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_6d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8184,14 +7963,11 @@ loc_vec(6)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_6d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_7d_int(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8238,14 +8014,11 @@ loc_vec(7)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_7d_int
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_0d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8280,14 +8053,11 @@ subroutine print_bad_loc_0d_long(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_0d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_1d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8322,14 +8092,11 @@ subroutine print_bad_loc_1d_long(var, loc_vec, varname)
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_1d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_2d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8366,14 +8133,11 @@ loc_vec(2)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_2d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_3d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8412,14 +8176,11 @@ loc_vec(3)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_3d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_4d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8460,14 +8221,11 @@ loc_vec(4)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_4d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_5d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8510,14 +8268,11 @@ loc_vec(5)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_5d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_6d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8562,14 +8317,11 @@ loc_vec(6)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_6d_long
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! TYPE double,real,int,long
 ! DIMS 0,1,2,3,4,5,6,7
-# 297 "../..//shr/shr_assert_mod.F90.in"
+# 296 "shr/shr_assert_mod.F90.in"
 subroutine print_bad_loc_7d_long(var, loc_vec, varname)
   ! Print information about a bad location in an variable.
   ! For scalars, just print value.
@@ -8616,13 +8368,14 @@ loc_vec(7)), &
 #endif
   end if
 
+# 330 "shr/shr_assert_mod.F90.in"
 end subroutine print_bad_loc_7d_long
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_0d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8645,19 +8398,16 @@ pure function find_first_loc_0d(mask) result (loc_vec)
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_0d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_1d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8680,19 +8430,16 @@ pure function find_first_loc_1d(mask) result (loc_vec)
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_1d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_2d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8716,19 +8463,16 @@ size(mask,2))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_2d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_3d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8753,19 +8497,16 @@ size(mask,3))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_3d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_4d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8791,19 +8532,16 @@ size(mask,4))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_4d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_5d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8830,19 +8568,16 @@ size(mask,5))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_5d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_6d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8870,19 +8605,16 @@ size(mask,6))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_6d
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-
 ! DIMS 0,1,2,3,4,5,6,7
-# 337 "../..//shr/shr_assert_mod.F90.in"
+# 336 "shr/shr_assert_mod.F90.in"
 pure function find_first_loc_7d(mask) result (loc_vec)
   ! Inefficient but simple subroutine for finding the location of
   ! the first .true. value in an array.
@@ -8911,12 +8643,13 @@ size(mask,7))
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI && ! defined CPRLAHEY)
-  if (.false. .and. mask) loc_vec = (/ integer:: /)
+#if (! defined CPRPGI)
+  if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
 #endif
 
+# 364 "shr/shr_assert_mod.F90.in"
 end function find_first_loc_7d
 
 end module shr_assert_mod

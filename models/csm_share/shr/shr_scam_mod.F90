@@ -566,7 +566,7 @@ end subroutine shr_scam_getCloseLatLonFile
 
 subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, &
      lnd_present, sno_present, ocn_present, ice_present, &
-     rof_present, flood_present)
+     rof_present, flood_present, rofice_present)
 
 ! !USES:
    use shr_dmodel_mod    ! shr data model stuff
@@ -586,6 +586,7 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, &
    logical,            optional, intent(inout) :: ocn_present  ! ocean point
    logical,            optional, intent(inout) :: rof_present  ! land point with rof
    logical,            optional, intent(inout) :: flood_present  ! rof doing flood
+   logical,            optional, intent(inout) :: rofice_present ! land point with rof
 
 !EOP
 
@@ -708,8 +709,9 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, &
    if (present(ice_present))   ice_present   = ice_present .and. ocn_point
 
    ! Always turn rof off.
-   if (present(rof_present))   rof_present   = .false.
-   if (present(flood_present)) flood_present = .false.
+   if (present(rof_present))    rof_present   = .false.
+   if (present(flood_present))  flood_present = .false.
+   if (present(rofice_present)) rofice_present = .false.
 
 end subroutine shr_scam_checkSurface
 

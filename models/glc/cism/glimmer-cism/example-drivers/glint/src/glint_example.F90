@@ -108,9 +108,9 @@ program glint_example
 
   real(dp),dimension(:,:,:), allocatable :: gfrac    ! fractional glacier area [0,1] 
   real(dp),dimension(:,:,:), allocatable :: gtopo    ! glacier surface elevation (m) 
-  real(dp),dimension(:,:,:), allocatable :: grofi    ! ice runoff (calving) flux (kg/m^2/s)
-  real(dp),dimension(:,:,:), allocatable :: grofl    ! ice runoff (liquid) flux (kg/m^2/s)
   real(dp),dimension(:,:,:), allocatable :: ghflx    ! heat flux from glacier interior, positive down (W/m^2)
+  real(dp),dimension(:,:),   allocatable :: grofi    ! ice runoff (calving) flux (kg/m^2/s)
+  real(dp),dimension(:,:),   allocatable :: grofl    ! ice runoff (liquid) flux (kg/m^2/s)
 
   integer, parameter :: glc_nec = 10               ! number of elevation classes
 
@@ -181,15 +181,15 @@ program glint_example
      ! output to GCM
      allocate(gfrac(nx,ny,glc_nec))
      allocate(gtopo(nx,ny,glc_nec))
-     allocate(grofi(nx,ny,glc_nec))
-     allocate(grofl(nx,ny,glc_nec))
      allocate(ghflx(nx,ny,glc_nec))
+     allocate(grofi(nx,ny))
+     allocate(grofl(nx,ny))
 
      gfrac(:,:,:) = 0.d0
      gtopo(:,:,:) = 0.d0
-     grofi(:,:,:) = 0.d0
-     grofl(:,:,:) = 0.d0
      ghflx(:,:,:) = 0.d0
+     grofi(:,:)   = 0.d0
+     grofl(:,:)   = 0.d0
 
   endif
 
@@ -259,6 +259,9 @@ program glint_example
      endif
   endif
 
+!WHL - debug                                  
+    print*, 'Glint init done'
+
   ! Do timesteps ---------------------------------------------------------------------------
 
   !TODO - Timestepping as in simple_glide?  Initialize with time = 0, then update time right after 'do'
@@ -276,7 +279,7 @@ program glint_example
      call example_climate(climate, precip, temp, real(time,dp))
 
      if (climate%gcm_smb) then   ! act as if we are receiving the SMB from a GCM
-                                  
+
         !TODO - For some reason, the gcm code is much slower than the pdd code.
         !       Figure out why.
 
@@ -310,8 +313,10 @@ program glint_example
                         topo,                              &
                         output_flag = output_flag,         &
                         ice_tstep = ice_tstep,             & 
-                        gfrac = gfrac,    gtopo = gtopo,   &
-                        grofi = grofi,    grofl = grofl,   &
+                        gfrac = gfrac,    &
+                        gtopo = gtopo,    &
+                        grofi = grofi,    &
+                        grofl = grofl,    &
                         ghflx = ghflx)
 
      else    ! standard Glint timestepping 

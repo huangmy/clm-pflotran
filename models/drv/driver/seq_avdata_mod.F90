@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_avdata_mod.F90 45286 2013-03-26 18:17:04Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/driver/seq_avdata_mod.F90 $
+! SVN $Id: seq_avdata_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/driver/seq_avdata_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -60,7 +60,6 @@ module seq_avdata_mod
    type (seq_cdata) :: cdata_ii(num_inst_ice)
    type (seq_cdata) :: cdata_rr(num_inst_rof)
    type (seq_cdata) :: cdata_gg(num_inst_glc)
-   type (seq_cdata) :: cdata_ss(num_inst_lnd)
    type (seq_cdata) :: cdata_ww(num_inst_wav)
 
    type (seq_cdata) :: cdata_ax    ! on cpl pes
@@ -69,7 +68,6 @@ module seq_avdata_mod
    type (seq_cdata) :: cdata_ix
    type (seq_cdata) :: cdata_rx
    type (seq_cdata) :: cdata_gx
-   type (seq_cdata) :: cdata_sx
    type (seq_cdata) :: cdata_wx
 
    !----------------------------------------------------------------------------
@@ -84,7 +82,6 @@ module seq_avdata_mod
    type(mct_gGrid), target :: dom_oo(num_inst_ocn)      ! ocn domain
    type(mct_gGrid), target :: dom_rr(num_inst_rof)      ! runoff domain
    type(mct_gGrid), target :: dom_gg(num_inst_glc)      ! glc domain
-   type(mct_gGrid), target :: dom_ss(num_inst_lnd)      ! sno domain
    type(mct_gGrid), target :: dom_ww(num_inst_wav)      ! wav domain
 
    type(mct_gGrid), target :: dom_ax      ! atm domain on cpl pes
@@ -93,7 +90,6 @@ module seq_avdata_mod
    type(mct_gGrid), target :: dom_ox      ! ocn domain
    type(mct_gGrid), target :: dom_rx      ! runoff domain
    type(mct_gGrid), target :: dom_gx      ! glc domain
-   type(mct_gGrid), target :: dom_sx      ! sno domain
    type(mct_gGrid), target :: dom_wx      ! wav domain
 
    !--- domain fractions (only defined on cpl pes) ---
@@ -126,23 +122,18 @@ module seq_avdata_mod
    type(mct_aVect) :: x2l_lx(num_inst_lnd)    ! Lnd import, lnd grid, cpl pes - allocated in driver
    type(mct_aVect) :: l2x_lx(num_inst_lnd)    ! Lnd export, lnd grid, cpl pes - allocated in driver
    type(mct_aVect) :: l2x_ax(num_inst_lnd)    ! Lnd export, atm grid, cpl pes - allocated in driver
-   type(mct_aVect) :: x2racc_lx(num_inst_lnd) ! Lnd export, lnd grid, cpl pes - allocated in driver
+   type(mct_aVect) :: l2x_gx(num_inst_lnd)    ! Lnd export, glc grid, cpl pes - allocated in driver
+   type(mct_aVect) :: l2racc_lx(num_inst_lnd) ! Lnd export, lnd grid, cpl pes - allocated in driver
+   type(mct_aVect) :: l2gacc_lx(num_inst_lnd) ! Lnd export, lnd grid, cpl pes - allocated in driver
 
    type(mct_aVect) :: x2r_rr(num_inst_rof)    ! Rof import, rof grid, lnd pes - allocated in lnd gc
    type(mct_aVect) :: r2x_rr(num_inst_rof)    ! Rof export, rof grid, lnd pes - allocated in lnd gc
 
    type(mct_aVect) :: x2r_rx(num_inst_rof)    ! Rof import, rof grid, lnd pes - allocated in lnd gc
    type(mct_aVect) :: r2x_rx(num_inst_rof)    ! Rof export, rof grid, cpl pes - allocated in driver
-   type(mct_aVect) :: r2xacc_rx(num_inst_rof) ! Rof export, rof grid, cpl pes - allocated in driver
-   type(mct_aVect) :: r2x_lx(num_inst_rof)    ! Rof export, lnd grid, lnd pes - allocated in lnd gc
+   type(mct_aVect) :: r2x_lx(num_inst_rof)    ! Rof export, lnd grid, cpl pes - allocated in driver
+   type(mct_aVect) :: r2x_ix(num_inst_rof)    ! Rof export, ice grid, cpl pes - allocated in driver
    type(mct_aVect) :: r2x_ox(num_inst_rof)    ! Rof export, ocn grid, cpl pes - allocated in driver
-
-   type(mct_aVect) :: x2s_ss(num_inst_lnd)    ! Sno import, sno grid, sno pes - allocated in lnd gc
-   type(mct_aVect) :: s2x_ss(num_inst_lnd)    ! Sno export, sno grid, sno pes - allocated in lnd gc
-
-   type(mct_aVect) :: x2s_sx(num_inst_lnd)    ! Sno import, sno grid, cpl pes - allocated in driver
-   type(mct_aVect) :: s2x_sx(num_inst_lnd)    ! Sno export, sno grid, cpl pes - allocated in driver
-   type(mct_aVect) :: s2x_gx(num_inst_lnd)    ! Sno export, glc grid, cpl pes - allocated in driver
 
    type(mct_aVect) :: x2i_ii(num_inst_ice)    ! Ice import, ice grid, ice pes - allocated in ice gc
    type(mct_aVect) :: i2x_ii(num_inst_ice)    ! Ice export, ice grid, ice pes - allocated in ice gc
@@ -171,7 +162,9 @@ module seq_avdata_mod
 
    type(mct_aVect) :: x2g_gx(num_inst_glc)    ! Glc import, glc grid, cpl pes - allocated in driver
    type(mct_aVect) :: g2x_gx(num_inst_glc)    ! Glc export, glc grid, cpl pes - allocated in driver
-   type(mct_aVect) :: g2x_sx(num_inst_glc)    ! Glc export, sno grid, cpl pes - allocated in driver
+   type(mct_aVect) :: g2x_lx(num_inst_glc)    ! Glc export, lnd grid, cpl pes - allocated in driver
+   type(mct_aVect) :: g2x_ox(num_inst_glc)    ! Glc export, ocn grid, cpl pes - allocated in driver
+   type(mct_aVect) :: g2x_ix(num_inst_glc)    ! Glc export, ice grid, cpl pes - allocated in driver
 
    type(mct_aVect) :: x2w_ww(num_inst_wav)    ! Wav import, wav grid, ice pes - allocated in wav gc
    type(mct_aVect) :: w2x_ww(num_inst_wav)    ! Wav export, wav grid, ice pes - allocated in wav gc
@@ -180,9 +173,9 @@ module seq_avdata_mod
    type(mct_aVect) :: w2x_wx(num_inst_wav)    ! Wav export, wav grid, cpl pes - allocated in driver
    type(mct_aVect) :: w2x_ox(num_inst_wav)    ! Wav export, ocn grid, cpl pes - allocated in driver
 
-   integer(IN)     :: r2xacc_rx_cnt ! r2xacc_rx: number of time samples accumulated
    integer(IN)     :: x2oacc_ox_cnt ! x2oacc_ox: number of time samples accumulated
-   integer(IN)     :: x2racc_lx_cnt ! x2racc_lx: number of time samples accumulated
+   integer(IN)     :: l2racc_lx_cnt ! l2racc_lx: number of time samples accumulated
+   integer(IN)     :: l2gacc_lx_cnt ! l2gacc_lx: number of time samples accumulated
 
 ! !PUBLIC MEMBER FUNCTIONS
 
