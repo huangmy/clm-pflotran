@@ -86,8 +86,8 @@ OBJS_STIN   := test_shr_tInterp.o shr_kind_mod.o shr_const_mod.o shr_sys_mod.o \
                shr_tInterp_mod.o shr_timer_mod.o shr_mpi_mod.o $(OBJS_NOMPI)
 OBJS_MPI := test_shr_mpi.o shr_mpi_mod.o shr_kind_mod.o shr_sys_mod.o shr_const_mod.o shr_log_mod.o $(OBJS_NOMPI)
 
-OBJS_NAN := test_shr_infnan.o shr_kind_mod.o shr_test_infnan_mod.o shr_infnan_mod.o test_mod.o shr_sys_mod.o \
-                shr_mpi_mod.o shr_log_mod.o shr_isnan.o $(OBJS_NOMPI)
+OBJS_NAN := test_shr_infnan.o shr_kind_mod.o shr_infnan_mod.o test_mod.o shr_sys_mod.o \
+                shr_mpi_mod.o shr_log_mod.o $(OBJS_NOMPI)
 
 OBJS_SPFN := test_shr_spfn.o shr_kind_mod.o shr_spfn_mod.o shr_const_mod.o test_mod.o shr_sys_mod.o \
 	        shr_mpi_mod.o shr_log_mod.o $(OBJS_NOMPI)
@@ -139,7 +139,7 @@ test_shr_log: $(OBJS_LOG)
 	$(LD) -o test_shr_log $(OBJS_LOG) $(LDFLAGS)
 
 clean:
-	$(RM) -f *.mod *.o *.f *.f90 mpif.h test_shr_sys test_shr_orb test_shr_spfn\
+	$(RM) -f *.mod *.o *.f *.f90 F mpif.h test_shr_sys test_shr_orb test_shr_spfn\
 		test_shr_infnan test_shr_file tests_shr_streams tests_shr_tInterp \
                 test_shr_mpi libesmf.a test_shr_scam test_shr_log Depends Srcfiles Filepath
 

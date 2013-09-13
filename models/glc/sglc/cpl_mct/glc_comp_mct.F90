@@ -40,7 +40,7 @@ CONTAINS
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-    type(ESMF_Clock)            , intent(in)    :: EClock
+    type(ESMF_Clock)            , intent(inout) :: EClock
     type(seq_cdata)             , intent(inout) :: cdata
     type(mct_aVect)             , intent(inout) :: x2d, d2x
     character(len=*), optional  , intent(in)    :: NLFilename
@@ -49,6 +49,7 @@ CONTAINS
 !-------------------------------------------------------------------------------
 
    call seq_infodata_PutData(cdata%infodata, glc_present=.false., &
+        glclnd_present=.false., glcocn_present=.false., glcice_present=.false., &
         glc_prognostic=.false.)
 
 end subroutine glc_init_mct
@@ -71,7 +72,7 @@ subroutine glc_run_mct( EClock, cdata, x2d, d2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2d        
    type(mct_aVect)             ,intent(inout) :: d2x        
@@ -97,7 +98,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2d        
    type(mct_aVect)             ,intent(inout) :: d2x        

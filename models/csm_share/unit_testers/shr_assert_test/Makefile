@@ -18,29 +18,31 @@ ifeq ($(COMPILER),INTEL)
 	CC = icc
 	FC = ifort
 	LD = $(FC)
-	CPPFLAGS:= $(CPPFLAGS) -DFORTRANUNDERSCORE
+	CPPFLAGS := $(CPPFLAGS) -DFORTRANUNDERSCORE
 else ifeq ($(COMPILER),GNU)
 	CC = gcc
 	FC = gfortran
 	LD = $(FC)
-	CPPFLAGS:= $(CPPFLAGS) -DFORTRANUNDERSCORE
+	CPPFLAGS := $(CPPFLAGS) -DFORTRANUNDERSCORE
 	FCFLAGS += -fno-range-check
 else ifeq ($(COMPILER),PGI)
 	CC = pgcc
 	FC = pgfortran
 	LD = $(FC)
-	CPPFLAGS:= $(CPPFLAGS) -DFORTRANUNDERSCORE
+	CPPFLAGS := $(CPPFLAGS) -DFORTRANUNDERSCORE
 else ifeq ($(COMPILER),NAG)
 	CC = gcc
 	FC = nagfor
 	LD = $(FC)
-	CPPFLAGS:= $(CPPFLAGS) -DFORTRANUNDERSCORE
+	CPPFLAGS := $(CPPFLAGS) -DFORTRANUNDERSCORE
 	FCFLAGS += -gline -C=all
-else ifeq ($(COMPILER),LAHEY)
-	CC = gcc
-	FC = lf95
+else ifeq ($(COMPILER),IBM)
+	CC = cc_r
+	FC = xlf2003_r
 	LD = $(FC)
-	CPPFLAGS:= $(CPPFLAGS) -DFORTRANUNDERSCORE
+	CPPFLAGS := $(CPPFLAGS) -DFORTRAN_SAME
+	cpre = $(null)-WF,-D$(null)
+	CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
 endif
 
 # Let some paths/names be changed by user.
@@ -63,9 +65,8 @@ distclean: clean
 	$(RM) *.log
 
 SOURCES := shr_kind_mod.F90 shr_log_mod.F90 shr_sys_mod.F90 \
-	shr_isnan.c shr_test_infnan_mod.F90 shr_infnan_mod.F90 \
-	shr_assert_mod.F90 test_utils.F90 logical_tests.F90 \
-	domain_tests.F90 test_shr_assert.F90
+	shr_infnan_mod.F90 shr_assert_mod.F90 test_utils.F90 \
+	logical_tests.F90 domain_tests.F90 test_shr_assert.F90
 
 OBJS := $(addsuffix .o, $(basename $(SOURCES)))
 

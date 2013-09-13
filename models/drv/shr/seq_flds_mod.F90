@@ -9,14 +9,13 @@ module seq_flds_mod
   !  ---------
   !  state-prefix
   !    first 3 characters: Sx_, Sa_, Si_, Sl_, So_ 
-  !    one letter indices: x,a,l,i,o,s,g,r 
+  !    one letter indices: x,a,l,i,o,g,r 
   !    x => coupler (mapping, merging, atm/ocn flux calc done on coupler procs)
   !    a => atm
   !    l => lnd
   !    i => ice
   !    o => ocn
   !    g => glc
-  !    s => snow (from clm to glc)
   !    r => rof
   !    w => wav
   !
@@ -189,11 +188,6 @@ module seq_flds_mod
    character(CXX) :: seq_flds_x2g_states 
    character(CXX) :: seq_flds_x2g_fluxes
 
-   character(CXX) :: seq_flds_s2x_states 
-   character(CXX) :: seq_flds_s2x_fluxes 
-   character(CXX) :: seq_flds_x2s_states 
-   character(CXX) :: seq_flds_x2s_fluxes
-
    character(CXX) :: seq_flds_w2x_states 
    character(CXX) :: seq_flds_w2x_fluxes 
    character(CXX) :: seq_flds_x2w_states 
@@ -226,8 +220,6 @@ module seq_flds_mod
    character(CXX) :: seq_flds_x2r_fields
    character(CXX) :: seq_flds_g2x_fields 
    character(CXX) :: seq_flds_x2g_fields 
-   character(CXX) :: seq_flds_s2x_fields 
-   character(CXX) :: seq_flds_x2s_fields 
    character(CXX) :: seq_flds_w2x_fields 
    character(CXX) :: seq_flds_x2w_fields 
 
@@ -241,7 +233,6 @@ module seq_flds_mod
    character(32) :: lndname='lnd'
    character(32) :: glcname='glc'
    character(32) :: wavname='wav'
-   character(32) :: snoname='sno'
    character(32) :: rofname='rof'
 
 !----------------------------------------------------------------------------
@@ -295,10 +286,6 @@ module seq_flds_mod
      character(CXX) :: g2x_fluxes = ''
      character(CXX) :: x2g_states = ''
      character(CXX) :: x2g_fluxes = ''
-     character(CXX) :: s2x_states = ''
-     character(CXX) :: s2x_fluxes = ''
-     character(CXX) :: x2s_states = ''
-     character(CXX) :: x2s_fluxes = ''
      character(CXX) :: xao_albedo = ''
      character(CXX) :: xao_states = ''
      character(CXX) :: xao_fluxes = ''
@@ -463,12 +450,6 @@ module seq_flds_mod
            case('x2g')
               if (is_state) call seq_flds_add(x2g_states,trim(fldname))
               if (is_flux ) call seq_flds_add(x2g_fluxes,trim(fldname))
-           case('s2x')
-              if (is_state) call seq_flds_add(s2x_states,trim(fldname))
-              if (is_flux ) call seq_flds_add(s2x_fluxes,trim(fldname))
-           case('x2s')
-              if (is_state) call seq_flds_add(x2s_states,trim(fldname))
-              if (is_flux ) call seq_flds_add(x2s_fluxes,trim(fldname))
            case default
               write(6,*) 'seq_flds_mod: error ',trim(cplflds_custom(n)),&
                    ' not a recognized value'
@@ -500,14 +481,14 @@ module seq_flds_mod
      call seq_flds_add(dom_other,'area')
      longname = ''
      stdname  = 'cell area'
-     units    = 'm^2'
+     units    = 'radian^2'
      attname  = 'area' 
      call metadata_set(attname, longname, stdname, units)
 
      call seq_flds_add(dom_other,'aream')
      longname = ''
      stdname  = 'cell area from mapping file'
-     units    = 'm^2'
+     units    = 'radian^2'
      attname  = 'aream'
      call metadata_set(attname, longname, stdname, units)
 
@@ -1398,40 +1379,54 @@ module seq_flds_mod
      ! TODO: put in attributes below
      !-----------------------------
 
-     call seq_flds_add(l2x_fluxes,'Flrl_rofliq')
-     call seq_flds_add(x2r_fluxes,'Flrl_rofliq')
+     call seq_flds_add(l2x_fluxes,'Flrl_rofl')
+     call seq_flds_add(x2r_fluxes,'Flrl_rofl')
      longname = 'Water flux from land (liquid)'
      stdname  = 'water_flux_into_runoff'
      units    = 'kg m-2 s-1'
-     attname  = 'Flrl_rofliq'
+     attname  = 'Flrl_rofl'
      call metadata_set(attname, longname, stdname, units)
 
-     call seq_flds_add(l2x_fluxes,'Flrl_rofice')
-     call seq_flds_add(x2r_fluxes,'Flrl_rofice')
+     call seq_flds_add(l2x_fluxes,'Flrl_rofi')
+     call seq_flds_add(x2r_fluxes,'Flrl_rofi')
      longname = 'Water flux from land (frozen)'
      stdname  = 'frozen_water_flux_into_runoff'
      units    = 'kg m-2 s-1'
-     attname  = 'Flrl_rofice'
+     attname  = 'Flrl_rofi'
      call metadata_set(attname, longname, stdname, units)
 
      !-----------------------------
      ! rof->ocn (runoff) and rof->lnd (flooding)
      !-----------------------------
 
-     call seq_flds_add(r2x_fluxes,'Forr_roff')
-     call seq_flds_add(x2o_fluxes,'Forr_roff')
+     call seq_flds_add(r2x_fluxes,'Forr_rofl')
+     call seq_flds_add(x2o_fluxes,'Foxx_rofl')
      longname = 'Water flux due to runoff (liquid)'
      stdname  = 'water_flux_into_sea_water'
      units    = 'kg m-2 s-1'
-     attname  = 'Forr_roff'
+     attname  = 'Forr_rofl'
+     call metadata_set(attname, longname, stdname, units)
+     attname  = 'Foxx_rofl'
      call metadata_set(attname, longname, stdname, units)
 
-     call seq_flds_add(r2x_fluxes,'Forr_ioff')
-     call seq_flds_add(x2o_fluxes,'Forr_ioff')
+     call seq_flds_add(r2x_fluxes,'Forr_rofi')
+     call seq_flds_add(x2o_fluxes,'Foxx_rofi')
      longname = 'Water flux due to runoff (frozen)'
      stdname  = 'frozen_water_flux_into_sea_water'
      units    = 'kg m-2 s-1'
-     attname  = 'Forr_ioff'
+     attname  = 'Forr_rofi'
+     call metadata_set(attname, longname, stdname, units)
+     attname  = 'Foxx_rofi'
+     call metadata_set(attname, longname, stdname, units)
+
+     call seq_flds_add(r2x_fluxes,'Firr_rofi')
+     call seq_flds_add(x2i_fluxes,'Fixx_rofi')
+     longname = 'Water flux due to runoff (frozen)'
+     stdname  = 'frozen_water_flux_into_sea_ice'
+     units    = 'kg m-2 s-1'
+     attname  = 'Firr_rofi'
+     call metadata_set(attname, longname, stdname, units)
+     attname  = 'Fixx_rofi'
      call metadata_set(attname, longname, stdname, units)
 
      call seq_flds_add(r2x_fluxes,'Flrr_flood')
@@ -1442,12 +1437,12 @@ module seq_flds_mod
      attname  = 'Flrr_flood'
      call metadata_set(attname, longname, stdname, units)
 
-     call seq_flds_add(r2x_states,'Slrr_volr')
-     call seq_flds_add(x2l_states,'Slrr_volr')
+     call seq_flds_add(r2x_fluxes,'Flrr_volr')
+     call seq_flds_add(x2l_fluxes,'Flrr_volr')
      longname = 'River channel water volume'
      stdname  = 'rtm_volr'
-     units    = 'm3'
-     attname  = 'Slrr_volr'
+     units    = 'm'
+     attname  = 'Flrr_volr'
      call metadata_set(attname, longname, stdname, units)
 
      !-----------------------------
@@ -1490,43 +1485,67 @@ module seq_flds_mod
      ! glc fields
      !-----------------------------
 
+     name = 'Fogg_rofl'
+     call seq_flds_add(g2x_fluxes,trim(name))
+     longname = 'glc liquid runoff flux to ocean'
+     stdname  = 'glacier_liquid_runoff_flux_to_ocean'
+     units    = 'kg m-2 s-1'
+     attname  = 'Fogg_rofl'
+     call metadata_set(attname, longname, stdname, units)
+
+     name = 'Fogg_rofi'
+     call seq_flds_add(g2x_fluxes,trim(name))
+     longname = 'glc frozen runoff flux to ocean'
+     stdname  = 'glacier_frozen_runoff_flux_to_ocean'
+     units    = 'kg m-2 s-1'
+     attname  = 'Fogg_rofi'
+     call metadata_set(attname, longname, stdname, units)
+
+     name = 'Figg_rofi'
+     call seq_flds_add(g2x_fluxes,trim(name))
+     longname = 'glc frozen runoff_iceberg flux to ice'
+     stdname  = 'glacier_frozen_runoff_flux_to_seaice'
+     units    = 'kg m-2 s-1'
+     attname  = 'Figg_rofi'
+     call metadata_set(attname, longname, stdname, units)
+
      do num = 1,seq_flds_glc_nec
         write(cnum,'(i2.2)') num
 
-        ! glc fields: sno->glc 
+        ! glc fields: lnd->glc 
 
-        name = 'Ss_tsrf' // cnum
-        call seq_flds_add(s2x_states,trim(name))
+        name = 'Sl_tsrf' // cnum
+        call seq_flds_add(l2x_states,trim(name))
         call seq_flds_add(x2g_states,trim(name))
         longname = 'Surface temperature  of glacier elevation class ' // cnum 
         stdname  = 'surface_temperature'
         units    = 'deg C'
-        attname  = 'Ss_tsrf' // cnum
+        attname  = 'Sl_tsrf' // cnum
         call metadata_set(attname, longname, stdname, units)
 
-        name = 'Ss_topo' // cnum
-        call seq_flds_add(s2x_states,trim(name))
+        name = 'Sl_topo' // cnum
+        call seq_flds_add(l2x_states,trim(name))
         call seq_flds_add(x2g_states,trim(name))
         longname = 'Surface height of glacier elevation class ' // cnum 
         stdname  = 'height'
         units    = 'm'
-        attname  = 'Ss_topo' // cnum
+        attname  = 'Sl_topo' // cnum
         call metadata_set(attname, longname, stdname, units)
 
-        name = 'Fgss_qice' // cnum
-        call seq_flds_add(s2x_fluxes,trim(name))
+        name = 'Flgl_qice' // cnum
+        call seq_flds_add(l2x_fluxes,trim(name))
         call seq_flds_add(x2g_fluxes,trim(name))
         longname = 'New glacier ice flux of elevation class ' // cnum
         stdname  = 'ice_flux_out_of_glacier'
         units    = 'kg m-2 s-1'
-        attname  = 'Fgss_qice' // cnum
+        attname  = 'Fgll_qice' // cnum
         call metadata_set(attname, longname, stdname, units)
 
-        ! glc fields: glc->sno 
+        ! glc fields: glc->lnd 
 
         name = 'Sg_frac' // cnum
         call seq_flds_add(g2x_states,trim(name))
-        call seq_flds_add(x2s_states,trim(name))
+        call seq_flds_add(x2l_states,trim(name))
         longname = 'Fraction of glacier area of elevation class ' // cnum
         stdname  = 'glacier_area_fraction'
         units    = 'unitless'    
@@ -1535,38 +1554,20 @@ module seq_flds_mod
 
         name = 'Sg_topo' // cnum
         call seq_flds_add(g2x_states,trim(name))
-        call seq_flds_add(x2s_states,trim(name))
+        call seq_flds_add(x2l_states,trim(name))
         longname = 'Surface height of glacier of elevation class ' // cnum
         stdname  = 'height'
         units    = 'm'
         attname  = 'Sg_topo' // cnum
         call metadata_set(attname, longname, stdname, units)
 
-        name = 'Fsgg_rofi' // cnum
+        name = 'Flgg_hflx' // cnum
         call seq_flds_add(g2x_fluxes,trim(name))
-        call seq_flds_add(x2s_fluxes,trim(name))
-        longname = 'Ice runoff flux of elevation class ' // cnum
-        stdname  = 'ice_runoff_flux_in_glacier'
-        units    = 'kg m-2 s-1'
-        attname  = 'Fsgg_rofi' // cnum
-        call metadata_set(attname, longname, stdname, units)
-
-        name = 'Fsgg_rofl' // cnum
-        call seq_flds_add(g2x_fluxes,trim(name))
-        call seq_flds_add(x2s_fluxes,trim(name))
-        longname = 'Liquid runoff flux of elevation class ' // cnum
-        stdname  = 'liquid_runoff_flux_in_glacier'
-        units    = 'kg m-2 s-1'
-        attname  = 'Fsgg_rofl' // cnum
-        call metadata_set(attname, longname, stdname, units)
-
-        name = 'Fsgg_hflx' // cnum
-        call seq_flds_add(g2x_fluxes,trim(name))
-        call seq_flds_add(x2s_fluxes,trim(name))
+        call seq_flds_add(x2l_fluxes,trim(name))
         longname = 'Downward heat flux from glacier interior of elevation class ' // cnum
         stdname  = 'downward_heat_flux_in_glacier'
         units    = 'W m-2'    
-        attname  = 'Fsgg_hflx' // cnum
+        attname  = 'Flgg_hflx' // cnum
         call metadata_set(attname, longname, stdname, units)
      end do
 
@@ -1748,8 +1749,6 @@ module seq_flds_mod
      seq_flds_x2o_states = trim(x2o_states)
      seq_flds_g2x_states = trim(g2x_states)
      seq_flds_x2g_states = trim(x2g_states)
-     seq_flds_s2x_states = trim(s2x_states)
-     seq_flds_x2s_states = trim(x2s_states)
      seq_flds_xao_states = trim(xao_states)
      seq_flds_xao_albedo = trim(xao_albedo)
      seq_flds_r2x_states = trim(r2x_states)
@@ -1768,8 +1767,6 @@ module seq_flds_mod
      seq_flds_x2o_fluxes = trim(x2o_fluxes)
      seq_flds_g2x_fluxes = trim(g2x_fluxes)
      seq_flds_x2g_fluxes = trim(x2g_fluxes)
-     seq_flds_s2x_fluxes = trim(s2x_fluxes)
-     seq_flds_x2s_fluxes = trim(x2s_fluxes)
      seq_flds_xao_fluxes = trim(xao_fluxes)
      seq_flds_r2x_fluxes = trim(r2x_fluxes)
      seq_flds_x2r_fluxes = trim(x2r_fluxes)
@@ -1793,10 +1790,6 @@ module seq_flds_mod
         write(6,"(A)")'seq_flds_mod: seq_flds_o2x_fluxes= ',trim(seq_flds_o2x_fluxes)
         write(6,"(A)")'seq_flds_mod: seq_flds_x2o_states= ',trim(seq_flds_x2o_states)
         write(6,"(A)")'seq_flds_mod: seq_flds_x2o_fluxes= ',trim(seq_flds_x2o_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_s2x_states= ',trim(seq_flds_s2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_s2x_fluxes= ',trim(seq_flds_s2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2s_states= ',trim(seq_flds_x2s_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2s_fluxes= ',trim(seq_flds_x2s_fluxes)
         write(6,"(A)")'seq_flds_mod: seq_flds_g2x_states= ',trim(seq_flds_g2x_states)
         write(6,"(A)")'seq_flds_mod: seq_flds_g2x_fluxes= ',trim(seq_flds_g2x_fluxes)
         write(6,"(A)")'seq_flds_mod: seq_flds_x2g_states= ',trim(seq_flds_x2g_states)
@@ -1824,8 +1817,6 @@ module seq_flds_mod
      call catFields(seq_flds_x2o_fields, seq_flds_x2o_states, seq_flds_x2o_fluxes)
      call catFields(seq_flds_g2x_fields, seq_flds_g2x_states, seq_flds_g2x_fluxes)
      call catFields(seq_flds_x2g_fields, seq_flds_x2g_states, seq_flds_x2g_fluxes)
-     call catFields(seq_flds_s2x_fields, seq_flds_s2x_states, seq_flds_s2x_fluxes)
-     call catFields(seq_flds_x2s_fields, seq_flds_x2s_states, seq_flds_x2s_fluxes)
      call catFields(stringtmp          , seq_flds_xao_albedo, seq_flds_xao_states)
      call catFields(seq_flds_xao_fields, stringtmp          , seq_flds_xao_fluxes)
      call catFields(seq_flds_r2x_fields, seq_flds_r2x_states, seq_flds_r2x_fluxes)

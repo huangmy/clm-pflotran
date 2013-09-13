@@ -46,7 +46,7 @@ subroutine atm_init_mct( EClock, cdata, x2a, a2x, NLFilename )
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-    type(ESMF_Clock)            , intent(in)    :: EClock
+    type(ESMF_Clock)            , intent(inout) :: EClock
     type(seq_cdata)             , intent(inout) :: cdata
     type(mct_aVect)             , intent(inout) :: x2a, a2x
     character(len=*), optional  , intent(in)    :: NLFilename ! Namelist filename
@@ -83,7 +83,7 @@ subroutine atm_run_mct( EClock, cdata,  x2a, a2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2a        ! driver -> dead
    type(mct_aVect)             ,intent(inout) :: a2x        ! dead   -> driver

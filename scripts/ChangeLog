@@ -1,8 +1,80 @@
 ================================================================================
-SVN $Id: ChangeLog 50680 2013-08-31 03:46:02Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130830a/ChangeLog $
+SVN $Id: ChangeLog 51119 2013-09-13 06:05:21Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130912/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: erik
+Date: Sep 12 2013
+Model: scripts
+Version: scripts4_130912
+One-line: Fix parsing bug, remove rootlitfrac from NoVSNoNI test
+          correct and add more settings for USUMB test case
+
+M       create_test
+MM      ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/user_nl_clm
+ M      ccsm_utils/Testlistxml/testmods_dirs/clm/decStart/xmlchange_cmnds
+
+================================================================================
+Originator: erik
+Date: Sep 11 2013
+Model: scripts
+Version: scripts4_130911b
+One-line: Fix NoVSNoNI and rootlit tests, make sure all numa and smallville tests 
+          use compsets with CROP, update PTCLM
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Sep 11 2013
+Model: scripts
+Version: scripts4_130911
+One-line: fixed testlist, had deleted all testmods inadvertently.  (use of add_xml_entries had deleted them)
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Sep 10 2013
+Model: scripts
+Version: scripts4_130910
+One-line: add frankfurt nag prebeta testlist. 
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: Sep 9 2013
+Model: scripts
+Version: scripts4_130909
+One-line: add frankfurt nag prealpha testlist. 
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: tcraig
+Date: Sep 5 2013
+Model: scripts
+Version: scripts4_130905
+One-line: merge cplupa branch
+
+- remove sno component
+- add support for new glc-ocn/ice and rof-ice coupling
+- update timing tool for driver modifications
+- echo command line to README.case for create_test
+svn merge $SVNREPO/scripts/trunk_tags/scripts4_130830a $SVNREPO/scripts/branch_tags/cplupa_tags/cplupa_n04_scripts4_130830a
+
+M       create_test
+M       ccsm_utils/Tools/timing/getTiming2.pl
+M       ccsm_utils/Tools/cesm_buildexe
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
 ================================================================================
 Originator: sacks
 Date: Aug 30 2013

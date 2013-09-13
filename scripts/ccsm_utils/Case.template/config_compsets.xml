@@ -1084,13 +1084,10 @@ DATM%WRF   => DATM WRF forcing
 <!-- ================================================================================== -->
 
 <DLND_MODE     compset="DLND%NULL">NULL</DLND_MODE> 
-<DLND_SNO_MODE compset="DLND%NULL">NULL</DLND_SNO_MODE> 
 
 <DLND_MODE     compset="DLND%LCPL">CPLHIST</DLND_MODE>
-<DLND_SNO_MODE compset="DLND%LCPL">NULL</DLND_SNO_MODE>
 
-<DLND_MODE     compset="DLND%SCPL">NULL</DLND_MODE>
-<DLND_SNO_MODE compset="DLND%SCPL">CPLHIST</DLND_SNO_MODE>
+<DLND_MODE     compset="DLND%SCPL">GLC_CPLHIST</DLND_MODE>
 
 <DLND_CPLHIST_DIR      compset="2000.*_DLND%SCPL.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">$DIN_LOC_ROOT/lnd/dlnd7/CPLHIST_SNO/b.e10.BG20TRCN.f09_g16.002_c121001</DLND_CPLHIST_DIR>
 <DLND_CPLHIST_CASE     compset="2000.*_DLND%SCPL.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">b.e10.BG20TRCN.f09_g16.002</DLND_CPLHIST_CASE>
@@ -1125,17 +1122,17 @@ DATM%WRF   => DATM WRF forcing
 <!-- DLND_CPLHIST_YR_END here                -->   
 <!-- ======================================= -->
 
-<desc compset="_DLND%NULL">dlnd modes are DLND_SNO_MODE=NULL, DLND_MODE=NULL:</desc>
-<desc compset="_DLND%SCPL">dlnd modes are DLND_SNO_MODE=CPLHIST, DLND_MODE=NULL:</desc>
-<desc compset="_DLND%LCPL">dlnd modes are DLND_SNO_MODE=NULL, DLND_MODE=CPLHIST:</desc>
+<desc compset="_DLND%NULL">dlnd modes are DLND_MODE=NULL:</desc>
+<desc compset="_DLND%SCPL">dlnd modes are DLND_MODE=GLC_CPLHIST:</desc>
+<desc compset="_DLND%LCPL">dlnd modes are DLND_MODE=CPLHIST:</desc>
 
 <help>
 =========================================
 DLND naming conventions
 =========================================
-DLND%NULL => dlnd_mode is NULL   , dlnd_sno_mode is NULL
-DLND%SCPL => dlnd_mode is NULL   , dlnd_sno_mode is CPLHIST (used for TG)
-DLND%LCPL => dlnd_mode is CPLHIST, dlnd_sno_mode is NULL
+DLND%NULL => dlnd_mode is NULL
+DLND%SCPL => dlnd_mode is GLC_CPLHIST (used for TG)
+DLND%LCPL => dlnd_mode is CPLHIST
 </help>
 
 <!-- ================================================================================== -->

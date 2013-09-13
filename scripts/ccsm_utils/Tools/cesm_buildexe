@@ -1,6 +1,8 @@
 echo "-------------------------------------------------------------------------"
 echo " CESM BUILDEXE SCRIPT STARTING"
 
+cd $CASEROOT
+
 set atmstr = 0
 if ($NTHRDS_ATM > 1 || $BUILD_THREADED == "TRUE") set atmstr = 1
 set lndstr = 0
@@ -108,6 +110,9 @@ if ($MPILIB == "mpi-serial" && $USE_ESMF_LIB == "TRUE") then
   echo " "
   exit -20
 endif
+
+./xmlchange -file env_build.xml -id BUILD_COMPLETE -val FALSE
+rm LockedFiles/env_build*
 
 # -------------------------------------------------------------------------
 # Build Utility Libraries

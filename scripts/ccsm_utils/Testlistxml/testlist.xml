@@ -131,6 +131,10 @@
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
+      <test name="SMS_D_Mmpich">
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
     </grid>
     <grid name="ne30_f19_g16_rx1">
       <test name="ERS">
@@ -1207,6 +1211,10 @@
       <test name="ERB">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
+      <test name="ERI_D_Mmpich">
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
       <test name="ERS">
         <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
         <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
@@ -1425,6 +1433,9 @@
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
+      <test name="SMS_D_Mmpich">
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
     </grid>
   </compset>
   <compset name="FAMIPCN">
@@ -1465,6 +1476,9 @@
       <test name="SMS">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
+      <test name="SMS_D_Mmpi-serial">
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
     </grid>
   </compset>
   <compset name="FC4AQUAP">
@@ -1478,6 +1492,7 @@
         <machine compiler="pgi" testtype="prealpha">yellowstone</machine>
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
       </test>
+
     </grid>
     <grid name="ne16_ne16">
       <test name="ERS_Ld3">
@@ -1488,6 +1503,9 @@
         <machine compiler="intel" testtype="prealpha">janus</machine>
         <machine compiler="intel" testtype="prebeta">janus</machine>
         <machine compiler="gnu" testtype="prealpha">yellowstone</machine>
+      </test>
+      <test name="SMS_D_Mmpich">
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
     </grid>
   </compset>
@@ -1777,6 +1795,11 @@
     </grid>
   </compset>
   <compset name="FW">
+    <grid name="f19_f19">
+      <test name="SMS_D_Mmpich">
+         <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
+    </grid>
     <grid name="f45_g37">
       <test name="ERS_E_Ld3">
         <machine compiler="intel" testtype="aux_esmf">yellowstone</machine>
@@ -1798,6 +1821,9 @@
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="aux_waccm">yellowstone</machine>
+      </test>
+      <test name="SMS_D_Mmpich">
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
     </grid>
   </compset>
@@ -2295,6 +2321,10 @@
   </compset>
   <compset name="I20TRCLM45BGC">
     <grid name="f10_f10">
+      <test name="ERI_D_Mmpich">
+         <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+         <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
       <test name="ERS_Mmpich">
          <machine compiler="nag"   testtype="aux_clm"      testmods="clm/decStart">frankfurt</machine>
          <machine compiler="nag"   testtype="aux_clm_short">frankfurt</machine>
@@ -2502,6 +2532,8 @@
       </test>
       <test name="ERI_D_Mmpich">
         <machine compiler="nag"   testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
       <test name="ERI">
         <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
@@ -2538,6 +2570,7 @@
       </test>
       <test name="ERI_D_Mmpich">
         <machine compiler="nag"   testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag"   testtype="prebeta">frankfurt</machine>
       </test>
       <test name="ERI_D">
         <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
@@ -2645,7 +2678,7 @@
       </test>
     </grid>
   </compset>
-  <compset name="ICN">
+  <compset name="ICNCROP">
     <grid name="1x1_numaIA">
       <test name="ERS_Lm3">
         <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
@@ -2654,6 +2687,7 @@
         <machine compiler="pgi"   testtype="prerelease">hopper</machine>
         <machine compiler="ibm"   testtype="prerelease">intrepid</machine>
         <machine compiler="intel" testtype="prebeta"   >janus</machine>
+        <machine compiler="pgi"   testtype="aux_clm"   >yellowstone</machine>
         <machine compiler="pgi"   testtype="prebeta"   >yellowstone</machine>
         <machine compiler="gnu"   testtype="prebeta"   >yellowstone</machine>
         <machine compiler="intel" testtype="prebeta"   >yellowstone</machine>
@@ -2667,6 +2701,8 @@
         <machine compiler="pgi" testtype="prebeta"   >titan</machine>
       </test>
     </grid>
+  </compset>
+  <compset name="ICN">
     <grid name="f09_g16">
       <test name="ERS">
         <machine compiler="intel" testtype="aux_science">yellowstone</machine>
@@ -2697,14 +2733,6 @@
     </grid>
   </compset>
   <compset name="ICNCROP">
-    <grid name="1x1_numaIA">
-      <test name="ERS_Lm3">
-         <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
-      </test>
-      <test name="SMS">
-         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
-      </test>
-    </grid>
     <grid name="f10_f10">
       <test name="ERS_Ld211_D_P112x1">
         <machine compiler="intel" testtype="aux_clm" testmods="clm/crop">yellowstone</machine>

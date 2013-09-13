@@ -256,7 +256,7 @@ contains
 
 !--------------------------------------------------------------------------
 
-  subroutine mrg_x2i_run_mct( cdata_i, a2x_i, o2x_i, x2i_i )
+  subroutine mrg_x2i_run_mct( cdata_i, a2x_i, o2x_i, r2x_i, g2x_i, x2i_i )
 
     !----------------------------------------------------------------------- 
     !
@@ -265,6 +265,8 @@ contains
     type(seq_cdata),intent(in) :: cdata_i
     type(mct_aVect),intent(in) :: a2x_i
     type(mct_aVect),intent(in) :: o2x_i
+    type(mct_aVect),intent(in) :: r2x_i
+    type(mct_aVect),intent(in) :: g2x_i
     type(mct_aVect),intent(inout):: x2i_i
     !
     ! Local variables
@@ -277,8 +279,12 @@ contains
     integer, save :: index_a2x_Faxa_rainl
     integer, save :: index_a2x_Faxa_snowc
     integer, save :: index_a2x_Faxa_snowl
+    integer, save :: index_g2x_Figg_rofi
+    integer, save :: index_r2x_Firr_rofi
     integer, save :: index_x2i_Faxa_rain
     integer, save :: index_x2i_Faxa_snow
+    integer, save :: index_x2i_Fixx_rofi
+
     logical, save :: first_time = .true.
     !----------------------------------------------------------------------- 
 
@@ -287,8 +293,11 @@ contains
        index_a2x_Faxa_snowl = mct_aVect_indexRA(a2x_i,'Faxa_snowl')
        index_a2x_Faxa_rainc = mct_aVect_indexRA(a2x_i,'Faxa_rainc')
        index_a2x_Faxa_rainl = mct_aVect_indexRA(a2x_i,'Faxa_rainl')
+       index_g2x_Figg_rofi  = mct_aVect_indexRA(g2x_i,'Figg_rofi') 
+       index_r2x_Firr_rofi  = mct_aVect_indexRA(r2x_i,'Firr_rofi') 
        index_x2i_Faxa_rain  = mct_aVect_indexRA(x2i_i,'Faxa_rain' )
        index_x2i_Faxa_snow  = mct_aVect_indexRA(x2i_i,'Faxa_snow' )
+       index_x2i_Fixx_rofi  = mct_aVect_indexRA(x2i_i,'Fixx_rofi') 
        first_time = .false.
     end if
 
@@ -298,6 +307,7 @@ contains
 
     call mct_aVect_copy(aVin=o2x_i, aVout=x2i_i, vector=mct_usevector)
     call mct_aVect_copy(aVin=a2x_i, aVout=x2i_i, vector=mct_usevector)
+    call mct_aVect_copy(aVin=g2x_i, aVout=x2i_i, vector=mct_usevector)
 
     ! Merge total snow and precip for ice input
     ! Scale total precip and runoff by flux_epbalfact 
@@ -307,9 +317,12 @@ contains
 	                                    a2x_i%rAttr(index_a2x_Faxa_rainl,i)
        x2i_i%rAttr(index_x2i_Faxa_snow,i) = a2x_i%rAttr(index_a2x_Faxa_snowc,i) + &
 	                                    a2x_i%rAttr(index_a2x_Faxa_snowl,i) 
+       x2i_i%rAttr(index_x2i_Fixx_rofi,i) = g2x_i%rAttr(index_g2x_Figg_rofi,i) + &
+	                                    r2x_i%rAttr(index_r2x_Firr_rofi,i) 
 
        x2i_i%rAttr(index_x2i_Faxa_rain,i) = x2i_i%rAttr(index_x2i_Faxa_rain,i) * flux_epbalfact
        x2i_i%rAttr(index_x2i_Faxa_snow,i) = x2i_i%rAttr(index_x2i_Faxa_snow,i) * flux_epbalfact
+       x2i_i%rAttr(index_x2i_Fixx_rofi,i) = x2i_i%rAttr(index_x2i_Fixx_rofi,i) * flux_epbalfact
     end do
 
   end subroutine mrg_x2i_run_mct
@@ -331,20 +344,20 @@ contains
     !
     integer :: i
     type(seq_infodata_type),pointer :: infodata
-    integer, save :: index_l2x_Flrl_rofliq
-    integer, save :: index_l2x_Flrl_rofice
-    integer, save :: index_x2r_Flrl_rofliq
-    integer, save :: index_x2r_Flrl_rofice
+    integer, save :: index_l2x_Flrl_rofl
+    integer, save :: index_l2x_Flrl_rofi
+    integer, save :: index_x2r_Flrl_rofl
+    integer, save :: index_x2r_Flrl_rofi
     integer, save :: index_lfrac
     logical, save :: first_time = .true.
     real(r8) :: lfrac
     !----------------------------------------------------------------------- 
 
     if (first_time) then
-       index_l2x_Flrl_rofliq = mct_aVect_indexRA(l2x_r,'Flrl_rofliq' )
-       index_l2x_Flrl_rofice = mct_aVect_indexRA(l2x_r,'Flrl_rofice' )
-       index_x2r_Flrl_rofliq = mct_aVect_indexRA(x2r_r,'Flrl_rofliq' )
-       index_x2r_Flrl_rofice = mct_aVect_indexRA(x2r_r,'Flrl_rofice' )
+       index_l2x_Flrl_rofl = mct_aVect_indexRA(l2x_r,'Flrl_rofl' )
+       index_l2x_Flrl_rofi = mct_aVect_indexRA(l2x_r,'Flrl_rofi' )
+       index_x2r_Flrl_rofl = mct_aVect_indexRA(x2r_r,'Flrl_rofl' )
+       index_x2r_Flrl_rofi = mct_aVect_indexRA(x2r_r,'Flrl_rofi' )
        index_lfrac = mct_aVect_indexRA(fractions_r,"lfrac")
        first_time = .false.
     end if
@@ -353,41 +366,45 @@ contains
 
     do i = 1,mct_aVect_lsize(x2r_r)
        lfrac = fractions_r%rAttr(index_lfrac,i)
-       x2r_r%rAttr(index_x2r_Flrl_rofliq,i) = l2x_r%rAttr(index_l2x_Flrl_rofliq,i) * lfrac
-       x2r_r%rAttr(index_x2r_Flrl_rofice,i) = l2x_r%rAttr(index_l2x_Flrl_rofice,i) * lfrac
+       x2r_r%rAttr(index_x2r_Flrl_rofl,i) = l2x_r%rAttr(index_l2x_Flrl_rofl,i) * lfrac
+       x2r_r%rAttr(index_x2r_Flrl_rofi,i) = l2x_r%rAttr(index_l2x_Flrl_rofi,i) * lfrac
     end do
 
   end subroutine mrg_x2r_run_mct
 
 !--------------------------------------------------------------------------
 
-  subroutine mrg_x2l_run_mct( cdata_l, a2x_l, r2l_l, x2l_l )
+  subroutine mrg_x2l_run_mct( cdata_l, a2x_l, r2x_l, g2x_l, x2l_l )
 
     !----------------------------------------------------------------------- 
     ! Arguments
     !
     type(seq_cdata), intent(in)     :: cdata_l
     type(mct_aVect), intent(in)     :: a2x_l  ! input
-    type(mct_aVect), intent(in)     :: r2l_l  ! input
+    type(mct_aVect), intent(in)     :: r2x_l  ! input
+    type(mct_aVect), intent(in)     :: g2x_l  ! input
     type(mct_aVect), intent(inout)  :: x2l_l  ! output
     !----------------------------------------------------------------------- 
 
     ! Create input land state directly from atm and runoff outputs 
     call mct_aVect_copy(aVin=a2x_l, aVout=x2l_l, vector=mct_usevector)
-    call mct_aVect_copy(aVin=r2l_l, aVout=x2l_l, vector=mct_usevector)
+    call mct_aVect_copy(aVin=r2x_l, aVout=x2l_l, vector=mct_usevector)
+    call mct_aVect_copy(aVin=g2x_l, aVout=x2l_l, vector=mct_usevector)
 
   end subroutine mrg_x2l_run_mct
 
 !--------------------------------------------------------------------------
 
-  subroutine mrg_x2o_run_mct( cdata_o, a2x_o, i2x_o, w2x_o, xao_o, fractions_o, x2o_o )
+  subroutine mrg_x2o_run_mct( cdata_o, a2x_o, i2x_o, r2x_o, w2x_o, g2x_o, xao_o, fractions_o, x2o_o )
 
     !----------------------------------------------------------------------- 
     ! Arguments
     type(seq_cdata), intent(in)    :: cdata_o
     type(mct_aVect), intent(in)    :: a2x_o
     type(mct_aVect), intent(in)    :: i2x_o
+    type(mct_aVect), intent(in)    :: r2x_o
     type(mct_aVect), intent(in)    :: w2x_o
+    type(mct_aVect), intent(in)    :: g2x_o
     type(mct_aVect), intent(in)    :: xao_o
     type(mct_aVect), intent(in)    :: fractions_o
     type(mct_aVect), intent(inout) :: x2o_o
@@ -428,10 +445,17 @@ contains
     integer, save :: index_a2x_Faxa_snowl
     integer, save :: index_a2x_Faxa_rainc
     integer, save :: index_a2x_Faxa_rainl
+    integer, save :: index_r2x_Forr_rofl
+    integer, save :: index_r2x_Forr_rofi
+    integer, save :: index_r2x_Flrr_flood
+    integer, save :: index_g2x_Fogg_rofl
+    integer, save :: index_g2x_Fogg_rofi
     integer, save :: index_x2o_Foxx_swnet
     integer, save :: index_x2o_Faxa_snow 
     integer, save :: index_x2o_Faxa_rain 
     integer, save :: index_x2o_Faxa_prec  
+    integer, save :: index_x2o_Foxx_rofl
+    integer, save :: index_x2o_Foxx_rofi
     logical, save, pointer :: amerge(:),imerge(:),xmerge(:)
     integer, save, pointer :: aindx(:), iindx(:), oindx(:), xindx(:)
     logical, save :: first_time = .true.
@@ -461,9 +485,16 @@ contains
        index_a2x_Faxa_snowl     = mct_aVect_indexRA(a2x_o,'Faxa_snowl')
        index_a2x_Faxa_rainc     = mct_aVect_indexRA(a2x_o,'Faxa_rainc')
        index_a2x_Faxa_rainl     = mct_aVect_indexRA(a2x_o,'Faxa_rainl')
+       index_r2x_Forr_rofl      = mct_aVect_indexRA(r2x_o,'Forr_rofl') 
+       index_r2x_Forr_rofi      = mct_aVect_indexRA(r2x_o,'Forr_rofi') 
+       index_r2x_Flrr_flood     = mct_aVect_indexRA(r2x_o,'Flrr_flood') 
+       index_g2x_Fogg_rofl      = mct_aVect_indexRA(g2x_o,'Fogg_rofl') 
+       index_g2x_Fogg_rofi      = mct_aVect_indexRA(g2x_o,'Fogg_rofi') 
        index_x2o_Faxa_snow      = mct_aVect_indexRA(x2o_o,'Faxa_snow')
        index_x2o_Faxa_rain      = mct_aVect_indexRA(x2o_o,'Faxa_rain')
        index_x2o_Faxa_prec      = mct_aVect_indexRA(x2o_o,'Faxa_prec') 
+       index_x2o_Foxx_rofl      = mct_aVect_indexRA(x2o_o,'Foxx_rofl') 
+       index_x2o_Foxx_rofi      = mct_aVect_indexRA(x2o_o,'Foxx_rofi') 
 
        ! Compute all other quantities based on standardized naming convention (see below)
        ! Only ocn field states that have the name-prefix Sx_ will be merged
@@ -472,7 +503,6 @@ contains
        ! All fluxes will be scaled by the corresponding afrac or ifrac 
        !   EXCEPT for 
        !    -- Faxa_snnet, Faxa_snow, Faxa_rain, Faxa_prec (derived)
-       !    -- Forr_* (treated in ccsm_comp_mod)
        ! All i2x_o fluxes that have the name-suffix "Faii" (atm/ice fluxes) will be ignored 
        ! - only ice fluxes that are Fioi_... will be used in the ocean merges
 
@@ -500,9 +530,9 @@ contains
               trim(field_ocn) == 'Faxa_prec') then
              cycle ! ignore swnet, snow, rain, prec - treated explicitly above
           end if
-          if (trim(field_ocn(1:5)) == 'Forr_') then
-             cycle ! ignore runoff fields from land - treated in coupler
-          end if
+!          if (trim(field_ocn(1:5)) == 'Foxx_') then
+!             cycle ! ignore runoff fields from land - treated in coupler
+!          end if
 
           do kaf = 1,naflds
              call getfld(kaf, a2x_o, field_atm, itemc_atm)
@@ -561,6 +591,7 @@ contains
 
     call mct_aVect_copy(aVin=a2x_o, aVout=x2o_o, vector=mct_usevector)
     call mct_aVect_copy(aVin=i2x_o, aVout=x2o_o, vector=mct_usevector)
+    call mct_aVect_copy(aVin=r2x_o, aVout=x2o_o, vector=mct_usevector)
     call mct_aVect_copy(aVin=w2x_o, aVout=x2o_o, vector=mct_usevector)
     call mct_aVect_copy(aVin=xao_o, aVout=x2o_o, vector=mct_usevector)
 
@@ -601,8 +632,8 @@ contains
        x2o_o%rAttr(index_x2o_Foxx_swnet,n) = (fswabsv + fswabsi)                 * afracr + &
                                              i2x_o%rAttr(index_i2x_Fioi_swpen,n) * ifrac
 
-       ! Derived: compute total precipitation - scale total precip 
-       ! Note that runoff is scaled by flux_epbalfact in ccsm_comp_mod
+       ! Derived: compute total precipitation - scale total precip and runoff
+
        x2o_o%rAttr(index_x2o_Faxa_snow ,n) = a2x_o%rAttr(index_a2x_Faxa_snowc,n) * afrac + &
                                              a2x_o%rAttr(index_a2x_Faxa_snowl,n) * afrac 
        x2o_o%rAttr(index_x2o_Faxa_rain ,n) = a2x_o%rAttr(index_a2x_Faxa_rainc,n) * afrac + &
@@ -613,6 +644,12 @@ contains
 
        x2o_o%rAttr(index_x2o_Faxa_prec ,n) = x2o_o%rAttr(index_x2o_Faxa_rain ,n) + &
                                              x2o_o%rAttr(index_x2o_Faxa_snow ,n)
+
+       x2o_o%rAttr(index_x2o_Foxx_rofl, n) = (r2x_o%rAttr(index_r2x_Forr_rofl , n) + &
+                                              r2x_o%rAttr(index_r2x_Flrr_flood, n) + &
+                                              g2x_o%rAttr(index_g2x_Fogg_rofl , n)) * flux_epbalfact
+       x2o_o%rAttr(index_x2o_Foxx_rofi, n) = (r2x_o%rAttr(index_r2x_Forr_rofi , n) + &
+                                              g2x_o%rAttr(index_g2x_Fogg_rofi , n)) * flux_epbalfact
     end do
 
     do kof = 1,noflds
@@ -680,7 +717,6 @@ contains
     !----------------------------------------------------------------------- 
 
     ! Create input land state directly from glc output state
-    call mct_aVect_copy(aVin=g2x_s, aVout=x2s_s, vector=mct_usevector)
 
   end subroutine mrg_x2s_run_mct
 

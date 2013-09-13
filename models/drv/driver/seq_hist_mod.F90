@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_hist_mod.F90 45286 2013-03-26 18:17:04Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/driver/seq_hist_mod.F90 $
+! SVN $Id: seq_hist_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/driver/seq_hist_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -78,7 +78,6 @@ module seq_hist_mod
    logical     :: ocn_present            ! .true.  => ocn is present
    logical     :: rof_present            ! .true.  => land runoff is present
    logical     :: glc_present            ! .true.  => glc is present
-   logical     :: sno_present            ! .true.  => land sno is present
    logical     :: wav_present            ! .true.  => wav is present
    
    logical     :: atm_prognostic         ! .true.  => atm comp expects input
@@ -88,7 +87,6 @@ module seq_hist_mod
    logical     :: ocnrof_prognostic      ! .true.  => ocn comp expects runoff input
    logical     :: rof_prognostic         ! .true.  => rof comp expects input
    logical     :: glc_prognostic         ! .true.  => glc comp expects input
-   logical     :: sno_prognostic         ! .true.  => sno comp expects input
    logical     :: wav_prognostic         ! .true.  => wav comp expects input
 
    logical     :: cdf64                  ! true => use 64 bit addressing in netCDF files
@@ -100,7 +98,6 @@ module seq_hist_mod
    integer(IN) :: ocn_nx, ocn_ny         ! nx,ny of 2d grid, if known
    integer(IN) :: rof_nx, rof_ny         ! nx,ny of 2d grid, if known
    integer(IN) :: glc_nx, glc_ny         ! nx,ny of 2d grid, if known
-   integer(IN) :: sno_nx, sno_ny         ! nx,ny of 2d grid, if known
    integer(IN) :: wav_nx, wav_ny         ! nx,ny of 2d grid, if known
 
    integer(IN) :: info_debug = 0         ! local info_debug level
@@ -149,8 +146,7 @@ subroutine seq_hist_write(EClock_d)
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present)
    call seq_infodata_getData(infodata, &
         atm_prognostic=atm_prognostic, &
         lnd_prognostic=lnd_prognostic, &
@@ -159,8 +155,7 @@ subroutine seq_hist_write(EClock_d)
         ocnrof_prognostic=ocnrof_prognostic, &
         rof_prognostic=rof_prognostic, &
         glc_prognostic=glc_prognostic, &
-        wav_prognostic=wav_prognostic, &
-        sno_prognostic=sno_prognostic  )
+        wav_prognostic=wav_prognostic)
    call seq_infodata_getData(infodata, &
         atm_nx=atm_nx, atm_ny=atm_ny, &
         lnd_nx=lnd_nx, lnd_ny=lnd_ny, &
@@ -168,7 +163,6 @@ subroutine seq_hist_write(EClock_d)
         ice_nx=ice_nx, ice_ny=ice_ny, &
         glc_nx=glc_nx, glc_ny=glc_ny, &
         wav_nx=wav_nx, wav_ny=wav_ny, &
-        sno_nx=sno_nx, sno_ny=sno_ny, &
         ocn_nx=ocn_nx, ocn_ny=ocn_ny  )
    call seq_infodata_getData(infodata, cpl_cdf64=cdf64 )
 
@@ -260,9 +254,6 @@ subroutine seq_hist_write(EClock_d)
          endif
 
          if (rof_present .and. ocnrof_prognostic) then
-            call seq_cdata_setptrs(cdata_rx,gsmap=gsmap)
-            call seq_io_write(hist_file,gsmap,r2xacc_rx,'r2xacc_rx', &
-                              nx=rof_nx,ny=rof_ny,nt=1,whead=whead,wdata=wdata,pre='r2xacc')
             call seq_cdata_setptrs(cdata_ox,gsmap=gsmap)
             call seq_io_write(hist_file,gsmap,r2x_ox,'r2x_ox', &
                               nx=ocn_nx,ny=ocn_ny,nt=1,whead=whead,wdata=wdata,pre='r2xo')
@@ -314,16 +305,6 @@ subroutine seq_hist_write(EClock_d)
                               nx=glc_nx,ny=glc_ny,nt=1,whead=whead,wdata=wdata,pre='g2x')
             call seq_io_write(hist_file,gsmap,x2g_gx,'x2g_gx', &
                               nx=glc_nx,ny=glc_ny,nt=1,whead=whead,wdata=wdata,pre='x2g')
-         endif
-
-         if (sno_present) then
-            call seq_cdata_setptrs(cdata_sx,gsmap=gsmap)
-            call seq_io_write(hist_file,gsmap,dom_sx%data,'dom_sx', &
-                              nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata,pre='doms')
-            call seq_io_write(hist_file,gsmap,s2x_sx,'s2x_sx', &
-                              nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata,pre='s2x')
-            call seq_io_write(hist_file,gsmap,x2s_sx,'x2s_sx', &
-                              nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata,pre='x2s')
          endif
 
          if (wav_present) then
@@ -385,8 +366,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
    type(mct_aVect),save  :: x2i_ix_avg(num_inst_ice)
    type(mct_aVect),save  :: g2x_gx_avg(num_inst_glc)
    type(mct_aVect),save  :: x2g_gx_avg(num_inst_glc)
-   type(mct_aVect),save  :: s2x_sx_avg(num_inst_lnd)
-   type(mct_aVect),save  :: x2s_sx_avg(num_inst_lnd)
    type(mct_aVect),save  :: w2x_wx_avg(num_inst_wav)
    type(mct_aVect),save  :: x2w_wx_avg(num_inst_wav)
 
@@ -413,8 +392,7 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present) 
    call seq_infodata_getData(infodata, &
         atm_prognostic=atm_prognostic, &
         lnd_prognostic=lnd_prognostic, &
@@ -422,8 +400,7 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
         ocn_prognostic=ocn_prognostic, &
         ocnrof_prognostic=ocnrof_prognostic, &
         glc_prognostic=glc_prognostic, &
-        wav_prognostic=wav_prognostic, &
-        sno_prognostic=sno_prognostic  )
+        wav_prognostic=wav_prognostic)
    call seq_infodata_getData(infodata, &
         atm_nx=atm_nx, atm_ny=atm_ny, &
         lnd_nx=lnd_nx, lnd_ny=lnd_ny, &
@@ -431,7 +408,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
         ice_nx=ice_nx, ice_ny=ice_ny, &
         glc_nx=glc_nx, glc_ny=glc_ny, &
         wav_nx=wav_nx, wav_ny=wav_ny, &
-        sno_nx=sno_nx, sno_ny=sno_ny, &
         ocn_nx=ocn_nx, ocn_ny=ocn_ny  )
    call seq_infodata_getData(infodata, cpl_cdf64=cdf64 )
 
@@ -499,16 +475,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
             call mct_aVect_zero(x2g_gx_avg(iidx))
          enddo
       endif
-      if (sno_present) then
-         do iidx = 1, num_inst_lnd
-            lsize = mct_aVect_lsize(s2x_sx(iidx))
-            call mct_aVect_init(s2x_sx_avg(iidx),s2x_sx(iidx),lsize)
-            call mct_aVect_zero(s2x_sx_avg(iidx))
-            lsize = mct_aVect_lsize(x2s_sx(iidx))
-            call mct_aVect_init(x2s_sx_avg(iidx),x2s_sx(iidx),lsize)
-            call mct_aVect_zero(x2s_sx_avg(iidx))
-         enddo
-      endif
       if (wav_present) then
          do iidx = 1, num_inst_wav
             lsize = mct_aVect_lsize(w2x_wx(iidx))
@@ -561,12 +527,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
             x2g_gx_avg(iidx)%rAttr = x2g_gx_avg(iidx)%rAttr + x2g_gx(iidx)%rAttr
          enddo
       endif
-      if (sno_present) then
-         do iidx = 1, num_inst_lnd
-            s2x_sx_avg(iidx)%rAttr = s2x_sx_avg(iidx)%rAttr + s2x_sx(iidx)%rAttr
-            x2s_sx_avg(iidx)%rAttr = x2s_sx_avg(iidx)%rAttr + x2s_sx(iidx)%rAttr
-         enddo
-      endif
       if (wav_present) then
          do iidx = 1, num_inst_wav
             w2x_wx_avg(iidx)%rAttr = w2x_wx_avg(iidx)%rAttr + w2x_wx(iidx)%rAttr
@@ -610,12 +570,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
          do iidx = 1, num_inst_glc
             g2x_gx_avg(iidx)%rAttr = (g2x_gx_avg(iidx)%rAttr + g2x_gx(iidx)%rAttr) / (cnt * 1.0_r8)
             x2g_gx_avg(iidx)%rAttr = (x2g_gx_avg(iidx)%rAttr + x2g_gx(iidx)%rAttr) / (cnt * 1.0_r8)
-         enddo
-      endif
-      if (sno_present) then
-         do iidx = 1, num_inst_lnd
-            s2x_sx_avg(iidx)%rAttr = (s2x_sx_avg(iidx)%rAttr + s2x_sx(iidx)%rAttr) / (cnt * 1.0_r8)
-            x2s_sx_avg(iidx)%rAttr = (x2s_sx_avg(iidx)%rAttr + x2s_sx(iidx)%rAttr) / (cnt * 1.0_r8)
          enddo
       endif
       if (wav_present) then
@@ -742,17 +696,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
                                  nx=glc_nx,ny=glc_ny,nt=1,whead=whead,wdata=wdata, &
                                  pre='x2gavg',tavg=.true.)
             endif
-            if (sno_present) then
-               call seq_cdata_setptrs(cdata_sx,gsmap=gsmap)
-               call seq_io_write(hist_file,gsmap,dom_sx%data,'dom_sx', &
-                                 nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata,pre='doms')
-               call seq_io_write(hist_file,gsmap,s2x_sx_avg,'s2x_sx', &
-                                 nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata, &
-                                 pre='s2xavg',tavg=.true.)
-               call seq_io_write(hist_file,gsmap,x2s_sx_avg,'x2s_sx', &
-                                 nx=sno_nx,ny=sno_ny,nt=1,whead=whead,wdata=wdata, &
-                                 pre='x2savg',tavg=.true.)
-            endif
             if (wav_present) then
                call seq_cdata_setptrs(cdata_wx,gsmap=gsmap)
                call seq_io_write(hist_file,gsmap,dom_wx%data,'dom_wx', &
@@ -804,12 +747,6 @@ subroutine seq_hist_writeavg(EClock_d,write_now)
                call mct_aVect_zero(x2g_gx_avg(iidx))
             enddo
          endif 
-         if (sno_present) then
-            do iidx = 1, num_inst_lnd
-               call mct_aVect_zero(s2x_sx_avg(iidx))
-               call mct_aVect_zero(x2s_sx_avg(iidx))
-            enddo
-         endif
          if (wav_present) then
             do iidx = 1, num_inst_wav
                call mct_aVect_zero(w2x_wx_avg(iidx))
@@ -899,8 +836,7 @@ subroutine seq_hist_writeaux(EClock_d,aname,dname,cdata_av,av,nx,ny,nt,write_now
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present)
    call seq_infodata_getData(infodata, cpl_cdf64=cdf64 )
 
 
@@ -1142,10 +1078,8 @@ subroutine seq_hist_spewav(aname,gsmap,av,nx,ny,nt,write_now,flds)
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present)
    call seq_infodata_getData(infodata, cpl_cdf64=cdf64 )
-
 
    lwrite_now = .true.
    useavg = .false.

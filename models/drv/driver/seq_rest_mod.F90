@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_rest_mod.F90 45286 2013-03-26 18:17:04Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_35/driver/seq_rest_mod.F90 $
+! SVN $Id: seq_rest_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/driver/seq_rest_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -80,7 +80,6 @@ module seq_rest_mod
    logical     :: rof_present            ! .true.  => land runoff is present
    logical     :: rof_prognostic         ! .true.  => rof comp expects input
    logical     :: glc_present            ! .true.  => glc is present
-   logical     :: sno_present            ! .true.  => land sno is present
    logical     :: wav_present            ! .true.  => wav is present
 
    logical     :: atm_prognostic         ! .true.  => atm comp expects input
@@ -89,7 +88,6 @@ module seq_rest_mod
    logical     :: ocn_prognostic         ! .true.  => ocn comp expects input
    logical     :: ocnrof_prognostic      ! .true.  => ocn comp expects runoff input
    logical     :: glc_prognostic         ! .true.  => glc comp expects input
-   logical     :: sno_prognostic         ! .true.  => sno comp expects input
    logical     :: wav_prognostic         ! .true.  => wav comp expects input
 
    integer(IN) :: info_debug = 0         ! local info_debug level
@@ -130,8 +128,7 @@ subroutine seq_rest_read(rest_file)
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present)
    call seq_infodata_getData(infodata, &
         atm_prognostic=atm_prognostic, &
         lnd_prognostic=lnd_prognostic, &
@@ -140,8 +137,7 @@ subroutine seq_rest_read(rest_file)
         rof_prognostic=rof_prognostic, &
         ocnrof_prognostic=ocnrof_prognostic, &
         glc_prognostic=glc_prognostic, &
-        wav_prognostic=wav_prognostic, &
-        sno_prognostic=sno_prognostic  )
+        wav_prognostic=wav_prognostic)
 
    if (iamin_CPLID) then
       if (drv_threading) call seq_comm_setnthreads(nthreads_CPLID)
@@ -154,6 +150,16 @@ subroutine seq_rest_read(rest_file)
          call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
          call seq_io_read(rest_file,gsmap,fractions_lx,'fractions_lx')
       endif
+      if (lnd_present .and. rof_prognostic) then
+         call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
+         call seq_io_read(rest_file,gsmap,l2racc_lx,'l2racc_lx')
+         call seq_io_read(rest_file,      l2racc_lx_cnt ,'l2racc_lx_cnt')
+      end if
+      if (lnd_present .and. glc_prognostic) then
+         call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
+         call seq_io_read(rest_file,gsmap,l2gacc_lx,'l2gacc_lx')
+         call seq_io_read(rest_file,      l2gacc_lx_cnt ,'l2gacc_lx_cnt')
+      end if
       if (ocn_present) then
          call seq_cdata_setptrs(cdata_ox,gsmap=gsmap)
          call seq_io_read(rest_file,gsmap,fractions_ox,'fractions_ox')
@@ -161,8 +167,6 @@ subroutine seq_rest_read(rest_file)
          call seq_io_read(rest_file,gsmap,x2oacc_ox,'x2oacc_ox')
          call seq_io_read(rest_file,gsmap,xao_ox,'xao_ox')
          call seq_io_read(rest_file,      x2oacc_ox_cnt,'x2oacc_ox_cnt')
-         call seq_cdata_setptrs(cdata_ax,gsmap=gsmap)
-         call seq_io_read(rest_file,gsmap,xao_ax,'xao_ax')
       endif
       if (ice_present) then
          call seq_cdata_setptrs(cdata_ix,gsmap=gsmap)
@@ -174,23 +178,10 @@ subroutine seq_rest_read(rest_file)
          call seq_io_read(rest_file,gsmap,fractions_rx,'fractions_rx')
          call seq_io_read(rest_file,gsmap,r2x_rx,'r2x_rx')
       endif
-      if (lnd_present .and. rof_present .and. rof_prognostic) then
-         call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
-         call seq_io_read(rest_file,gsmap,x2racc_lx,'x2racc_lx')
-         call seq_io_read(rest_file,      x2racc_lx_cnt ,'x2racc_lx_cnt')
-      end if
-      if (rof_present .and. ocnrof_prognostic) then
-         call seq_cdata_setptrs(cdata_rx,gsmap=gsmap)
-         call seq_io_read(rest_file,gsmap,r2xacc_rx,'r2xacc_rx')
-         call seq_io_read(rest_file,      r2xacc_rx_cnt,'r2xacc_rx_cnt')
-      endif
       if (glc_present) then
          call seq_cdata_setptrs(cdata_gx,gsmap=gsmap)
          call seq_io_read(rest_file,gsmap,fractions_gx,'fractions_gx')
-      endif
-      if (sno_present) then
-         call seq_cdata_setptrs(cdata_sx,gsmap=gsmap)
-         call seq_io_read(rest_file,gsmap,x2s_sx,'x2s_sx')
+         call seq_io_read(rest_file,gsmap,g2x_gx,'g2x_gx')
       endif
       if (wav_present) then
          call seq_cdata_setptrs(cdata_wx,gsmap=gsmap)
@@ -271,8 +262,7 @@ subroutine seq_rest_write(EClock_d,seq_SyncClock)
         ice_present=ice_present, &
         ocn_present=ocn_present, &
         glc_present=glc_present, &
-        wav_present=wav_present, &
-        sno_present=sno_present  )
+        wav_present=wav_present)
    call seq_infodata_getData(infodata, &
         atm_prognostic=atm_prognostic, &
         lnd_prognostic=lnd_prognostic, &
@@ -281,8 +271,7 @@ subroutine seq_rest_write(EClock_d,seq_SyncClock)
         ocn_prognostic=ocn_prognostic, &
         ocnrof_prognostic=ocnrof_prognostic, &
         glc_prognostic=glc_prognostic, &
-        wav_prognostic=wav_prognostic, &
-        sno_prognostic=sno_prognostic  )
+        wav_prognostic=wav_prognostic)
    call seq_infodata_getData(infodata, cpl_cdf64=cdf64 )
 
    ! Write out infodata and time manager data to restart file
@@ -374,6 +363,16 @@ subroutine seq_rest_write(EClock_d,seq_SyncClock)
             call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
             call seq_io_write(rest_file,gsmap,fractions_lx,'fractions_lx',whead=whead,wdata=wdata)
          endif
+         if (lnd_present .and. rof_prognostic) then
+            call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
+            call seq_io_write(rest_file,gsmap,l2racc_lx,'l2racc_lx',whead=whead,wdata=wdata)
+            call seq_io_write(rest_file,      l2racc_lx_cnt,'l2racc_lx_cnt',whead=whead,wdata=wdata)
+         end if
+         if (lnd_present .and. glc_prognostic) then
+            call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
+            call seq_io_write(rest_file,gsmap,l2gacc_lx,'l2gacc_lx',whead=whead,wdata=wdata)
+            call seq_io_write(rest_file,      l2gacc_lx_cnt,'l2gacc_lx_cnt',whead=whead,wdata=wdata)
+         end if
          if (ocn_present) then
             call seq_cdata_setptrs(cdata_ox,gsmap=gsmap)
             call seq_io_write(rest_file,gsmap,fractions_ox,'fractions_ox',whead=whead,wdata=wdata)
@@ -381,8 +380,6 @@ subroutine seq_rest_write(EClock_d,seq_SyncClock)
             call seq_io_write(rest_file,gsmap,x2oacc_ox,'x2oacc_ox',whead=whead,wdata=wdata)
             call seq_io_write(rest_file,      x2oacc_ox_cnt,'x2oacc_ox_cnt',whead=whead,wdata=wdata)
             call seq_io_write(rest_file,gsmap,xao_ox,'xao_ox',whead=whead,wdata=wdata)
-            call seq_cdata_setptrs(cdata_ax,gsmap=gsmap)
-            call seq_io_write(rest_file,gsmap,xao_ax,'xao_ax',whead=whead,wdata=wdata)
          endif
          if (ice_present) then
             call seq_cdata_setptrs(cdata_ix,gsmap=gsmap)
@@ -394,23 +391,10 @@ subroutine seq_rest_write(EClock_d,seq_SyncClock)
             call seq_io_write(rest_file,gsmap,fractions_rx,'fractions_rx',whead=whead,wdata=wdata)
             call seq_io_write(rest_file,gsmap,r2x_rx,'r2x_rx',whead=whead,wdata=wdata)
          endif
-         if (lnd_present .and. rof_present .and. rof_prognostic) then
-            call seq_cdata_setptrs(cdata_lx,gsmap=gsmap)
-            call seq_io_write(rest_file,gsmap,x2racc_lx,'x2racc_lx'    ,whead=whead,wdata=wdata)
-            call seq_io_write(rest_file,      x2racc_lx_cnt ,'x2racc_lx_cnt',whead=whead,wdata=wdata)
-         end if
-         if (rof_present .and. ocnrof_prognostic) then
-            call seq_cdata_setptrs(cdata_rx,gsmap=gsmap)
-            call seq_io_write(rest_file,gsmap,r2xacc_rx,'r2xacc_rx',whead=whead,wdata=wdata)
-            call seq_io_write(rest_file,      r2xacc_rx_cnt,'r2xacc_rx_cnt',whead=whead,wdata=wdata)
-         endif
          if (glc_present) then
             call seq_cdata_setptrs(cdata_gx,gsmap=gsmap)
             call seq_io_write(rest_file,gsmap,fractions_gx,'fractions_gx',whead=whead,wdata=wdata)
-         endif
-         if (sno_present) then
-            call seq_cdata_setptrs(cdata_sx,gsmap=gsmap)
-            call seq_io_write(rest_file,gsmap,x2s_sx,'x2s_sx',whead=whead,wdata=wdata)
+            call seq_io_write(rest_file,gsmap,g2x_gx,'g2x_gx',whead=whead,wdata=wdata)
          endif
          if (wav_present) then
             call seq_cdata_setptrs(cdata_wx,gsmap=gsmap)

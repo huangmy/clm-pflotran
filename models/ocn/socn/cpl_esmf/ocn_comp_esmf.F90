@@ -88,6 +88,7 @@ subroutine ocn_init_esmf(comp, import_state, export_state, EClock, rc)
     call ESMF_AttributeSet(export_state, name="ocnrof_prognostic", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
+#ifdef USE_ESMF_METADATA
     convCIM  = "CIM"
     purpComp = "Model Component Simulation Description"
 
@@ -111,6 +112,7 @@ subroutine ocn_init_esmf(comp, import_state, export_state, EClock, rc)
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 !    call ESMF_AttributeSet(comp, "ResponsiblePartyRole", "contact", &
 !                           convention=convCIM, purpose=purpComp, rc=rc)
+#endif
 
 end subroutine ocn_init_esmf
 
