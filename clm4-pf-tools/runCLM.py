@@ -359,15 +359,15 @@ print ("CASE rundir is: "+rundir+"\n")
 
 #pft parameter file
 # default
-pftfile = ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.'+options.site+'.nc'
-os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/pft-physiology.c130503.nc ' \
+pftfile = ccsm_input+'/lnd/clm2/paramdata/clm_params.c130821.'+options.site+'.nc'
+os.system('cp -f '+ccsm_input+'/lnd/clm2/paramdata/clm_params.c130821.nc ' \
               + pftfile)
 
 # new or user-defined pft-phys file if desired
 if (options.parm_file != ''):
-    pftfile = ccsm_input+'/lnd/clm2/pftdata/' + \
+    pftfile = ccsm_input+'/lnd/clm2/paramdata/' + \
                   options.parm_file + '.' + options.site + '.nc'
-    os.system('cp -f '+ccsm_input+'/lnd/clm2/pftdata/'+ options.parm_file + \
+    os.system('cp -f '+ccsm_input+'/lnd/clm2/paramdata/'+ options.parm_file + \
                ' '+pftfile)
 
 #set number of run years, if not user-defined
@@ -659,7 +659,7 @@ if (options.refcase == 'none'):
     
     #(6d) user-defined pft physiological file ----
     if (pftfile != ''):
-        output.write(" fpftcon=   '" + pftfile + "'\n")
+        output.write(" paramfile=   '" + pftfile + "'\n")
         
     #(6e) clm output hist user-defined file ----
     if (options.hist_file != ''):
