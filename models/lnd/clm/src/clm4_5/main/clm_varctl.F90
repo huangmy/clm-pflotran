@@ -101,6 +101,7 @@ module clm_varctl
   ! pflotran interface
   !
   logical, public :: use_pflotran = .false.
+  logical, public :: pflotran_surfaceflow = .false.
   !
   ! single column control variables
   !

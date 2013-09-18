@@ -51,13 +51,14 @@ contains
          icol_roof, icol_road_imperv, icol_road_perv, icol_sunwall, &
          icol_shadewall, istdlak, tfrz, hfus, grav
     use clm_varcon      , only : istcrop
-    use clm_varctl      , only : glc_dyntopo, use_pflotran
+    use clm_varctl      , only : glc_dyntopo, use_pflotran, pflotran_surfaceflow
     use clm_varpar      , only : nlevgrnd, nlevsno, nlevsoi, nlevurb
     use SnowHydrologyMod, only : SnowCompaction, CombineSnowLayers, DivideSnowLayers, &
          SnowWater, BuildSnowFilter
     use SoilHydrologyMod, only : Infiltration, SoilWater, Drainage, SurfaceRunoff, WaterTable
     use clm_time_manager, only : get_step_size, get_nstep
-    use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture
+    use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture, &
+         clm_pf_set_sflow_forcing, clm_pf_update_h2osfc
     use CLMVICMapMod    , only : CLMVICMap
     !
     ! !ARGUMENTS:
@@ -220,15 +221,21 @@ contains
     end if
 
     ! moved vol_liq from SurfaceRunoff to Infiltration
-    ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
-    call SurfaceRunoff(bounds, num_hydrologyc, filter_hydrologyc, &
-                       num_urbanc, filter_urbanc)
+    if (use_pflotran.and.pflotran_surfaceflow) then
+      call clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc)
+    else
+      ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
+      call SurfaceRunoff(bounds, num_hydrologyc, filter_hydrologyc, &
+                         num_urbanc, filter_urbanc)
+      ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
+      call Infiltration(bounds,  num_hydrologyc, filter_hydrologyc, &
+                        num_urbanc, filter_urbanc, vol_liq)
 
-    ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
-    call Infiltration(bounds,  num_hydrologyc, filter_hydrologyc, &
-                      num_urbanc, filter_urbanc, vol_liq)
+    endif
 
     if (use_pflotran) then
+       ! TODO (GB): Remove computation of ET flux from clm_pf_step_th and
+       ! create another subroutine clm_pf_set_et_forcing()
        call clm_pf_step_th(bounds, &
             num_nolakec, filter_nolakec, &
             num_hydrologyc, filter_hydrologyc, &
@@ -237,6 +244,9 @@ contains
        ! TODO(2013-08-27) move to clm_driver, update all states at once?
        call clm_pf_update_soil_moisture(cws, cps, bounds, &
             num_hydrologyc, filter_hydrologyc)
+       if(pflotran_surfaceflow) then
+          call clm_pf_update_h2osfc(bounds, num_hydrologyc, filter_hydrologyc)
+       endif
     else
        call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, &
                    num_urbanc, filter_urbanc, dwat, hk, dhkdw)

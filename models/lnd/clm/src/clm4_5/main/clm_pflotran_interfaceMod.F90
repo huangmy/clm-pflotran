@@ -38,9 +38,11 @@ module clm_pflotran_interfaceMod
   ! wrappers around ifdef statements to maintain sane runtime behavior
   ! when pflotran is not available.
   public :: clm_pf_interface_init, &
+       clm_pf_set_sflow_forcing, &
        clm_pf_update_soil_moisture, &
        clm_pf_update_soil_temperature, &
        clm_pf_update_drainage, &
+       clm_pf_update_h2osfc, &
        clm_pf_step_th, &
        clm_pf_write_restart, clm_pf_set_restart_stamp, &
        clm_pf_vecget_gflux, clm_pf_vecrestore_gflux
@@ -48,6 +50,7 @@ module clm_pflotran_interfaceMod
 #ifdef CLM_PFLOTRAN
   ! private work functions that truely require ifdef CLM_PFLOTRAN
   private :: interface_init_clm_pf, & ! Phase one initialization
+       set_sflow_forcing_clm_pf, &
        update_soil_moisture_clm_pf, &
        update_soil_temperature_clm_pf, &
        step_th_clm_pf, &
@@ -207,6 +210,28 @@ contains
 
 
   !-----------------------------------------------------------------------------
+  subroutine clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc)
+
+    use filterMod, only : clumpfilter
+    use decompMod, only : bounds_type
+
+    implicit none
+
+    type(bounds_type), intent(in) :: bounds     ! bounds
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    character(len=256) :: subname = "clm_pf_set_sflow_forcing"
+
+#ifdef CLM_PFLOTRAN
+    call set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+#else
+    call pflotran_not_available(subname)
+#endif
+
+  end subroutine clm_pf_set_sflow_forcing
+
+
+  !-----------------------------------------------------------------------------
   subroutine clm_pf_update_soil_moisture(cws, cps, bounds, &
        num_hydrologyc, filter_hydrologyc)
 
@@ -278,6 +303,27 @@ contains
 #endif
 
   end subroutine clm_pf_update_drainage
+
+  !-----------------------------------------------------------------------------
+  subroutine clm_pf_update_h2osfc(bounds, num_hydrologyc, filter_hydrologyc)
+
+    use decompMod, only : bounds_type
+
+    implicit none
+
+    type(bounds_type), intent(in) :: bounds  ! bounds
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    character(len=256) :: subname = "clm_pf_update_h2osfc"
+
+#ifdef CLM_PFLOTRAN
+    call update_h2osfc_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+#else
+    call pflotran_not_available(subname)
+#endif
+
+  end subroutine clm_pf_update_h2osfc
+
 
   !-----------------------------------------------------------------------------
   subroutine clm_pf_step_th(bounds, &
@@ -479,7 +525,7 @@ contains
     ! !USES:
     use clmtype
     use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
-         use_pflotran
+         use_pflotran, pflotran_surfaceflow
     use decompMod       , only : bounds_type, get_proc_global, &
          ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
@@ -742,6 +788,7 @@ contains
 
 #ifdef SURFACE_FLOW
     if(pflotran_m%option%nsurfflowdof > 0) then
+      pflotran_surfaceflow = .true.
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
                                     clm_surf_npts, PF2CLM_SURF_MAP_ID)
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
@@ -797,7 +844,7 @@ contains
 
     call organicrd(organic3d)
 
-    gcount = 0_r8 ! assumption that only 1 soil-column per grid cell
+    gcount = 0 ! assumption that only 1 soil-column per grid cell
     do c = bounds%begc, bounds%endc
 
       ! Set gridcell and landunit indices
@@ -1001,6 +1048,68 @@ contains
   !-----------------------------------------------------------------------------
   !BOP
   !
+  ! !IROUTINE: set_sflow_forcing_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+  !
+  ! !DESCRIPTION:
+  !
+  !
+  ! !USES:
+    use clmtype
+    use clm_varctl          , only : iulog
+    use decompMod           , only : bounds_type
+    use clm_time_manager, only : get_step_size
+    use filterMod,            only : clumpfilter
+    use abortutils  , only : endrun
+
+    type(bounds_type), intent(in) :: bounds
+    integer, intent(in) :: num_hydrologyc        ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:)  ! column filter for soil points
+
+  ! !LOCAL VARIABLES:
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+
+    integer  :: c,fc                       !indices
+    real(r8) :: dtime                      ! land model time step (sec)
+    integer  :: count
+    PetscScalar, pointer :: rain_clm_loc(:)
+    PetscErrorCode :: ierr
+    character(len=32) :: subname = 'set_sflow_forcing_clm_pf'  ! subroutine name
+    !-----------------------------------------------------------------------
+
+    associate(&
+    qflx_snow_h2osfc  =>    cwf%qflx_snow_h2osfc  , & ! Input:  [real(r8) (:)]  snow falling on surface water (mm/s)
+    qflx_floodc       =>    cwf%qflx_floodc       , & ! Input:  [real(r8) (:)]  column flux of flood water from RTM
+    qflx_top_soil     =>    cwf%qflx_top_soil     , & ! Input:  [real(r8) (:)]  net water input into soil from top (mm/s)
+    qflx_infl         =>    cwf%qflx_infl         , & ! Output: [real(r8) (:)] infiltration (mm H2O /s)
+    qflx_surf         =>    cwf%qflx_surf           & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
+    )
+
+    call VecGetArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
+    count = 0
+    do fc = 1, num_hydrologyc
+
+      c = filter_hydrologyc(fc)
+      qflx_surf(c) = 0._r8
+      qflx_infl(c) = 0._r8
+      count = count + 1
+
+      ! Convert mm/s to m
+      rain_clm_loc(count) = (qflx_top_soil(c) + qflx_snow_h2osfc(c) + &
+                             qflx_floodc(c))/1000._r8
+    enddo
+    call VecRestoreArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
+
+    end associate
+  end subroutine set_sflow_forcing_clm_pf
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
   ! !IROUTINE: update_soil_moisture_clm_pf
   !
   ! !INTERFACE:
@@ -1114,6 +1223,7 @@ contains
     use clm_varpar                 , only : max_pft_per_col
     use clm_varpar      , only : nlevsoi
     use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
+    use abortutils  , only : endrun
 
   ! !ARGUMENTS:
     implicit none
@@ -1397,6 +1507,62 @@ contains
     end do
 
     end subroutine update_drainage_clm_pf
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: update_h2osfc_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine update_h2osfc_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+
+  !
+  ! !DESCRIPTION:
+  !
+  !
+  ! !USES:
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+    use clmtype
+    use clm_varctl    , only : iulog
+    use decompMod, only : bounds_type
+
+    implicit none
+
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+
+    integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+
+!
+!EOP
+!
+! !OTHER LOCAL VARIABLES:
+!
+    type(bounds_type) , intent(in)  :: bounds
+    character(len=256) :: subname = 'update_drainage_clm_pf'
+    integer  :: c,fc                               ! indices
+    integer  :: ccount
+    PetscScalar, pointer :: h2osfc_clm_loc(:)
+    PetscErrorCode :: ierr
+
+    associate(&
+    h2osfc             =>    cws%h2osfc              & ! Input:  [real(r8) (:)]  surface water (mm)
+    )
+
+    call VecGetArrayF90(clm_pf_idata%h2osfc_clm, h2osfc_clm_loc, ierr); CHKERRQ(ierr)
+    ccount = 0
+    do fc = 1, num_hydrologyc
+       c = filter_hydrologyc(fc)
+       ccount = ccount + 1
+       h2osfc(c) = h2osfc_clm_loc(ccount)
+    end do
+    call VecRestoreArrayF90(clm_pf_idata%h2osfc_clm, h2osfc_clm_loc, ierr); CHKERRQ(ierr)
+
+    end associate
+
+    end subroutine update_h2osfc_clm_pf
 
 #endif
 end module clm_pflotran_interfaceMod
