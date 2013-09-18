@@ -23,8 +23,8 @@ subroutine iniTimeConst(bounds)
   use clm_varcon           , only : istice, istdlak, istwet, istsoil, istcrop, istice_mec, &
                                     icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, &
                                     icol_road_imperv, zlak, dzlak, zsoi, dzsoi, zisoi, spval, &
-                                    albsat, albdry, dzsoi_decomp, secspday
-  use clm_varcon           , only : nlvic, pc, mu
+                                    albsat, albdry, dzsoi_decomp, secspday, &
+                                    nlvic, dzvic, pc, mu
   use CLMVICMapMod         , only : initCLMVICMap
   use initSoilParVICMod    , only : initSoilParVIC
   use clm_varctl           , only : fsurdat, fsnowoptics, fsnowaging, &
@@ -56,6 +56,7 @@ subroutine iniTimeConst(bounds)
   use SoilHydrologyMod     , only : h2osfcflag
   use CNDecompCascadeCNMod , only : init_decompcascade_cn
   use CNDecompCascadeBGCMod, only : init_decompcascade_bgc
+  use CNSharedParamsMod    , only : CNParamsShareInst
   !
   ! !ARGUMENTS:
   implicit none
@@ -118,7 +119,7 @@ subroutine iniTimeConst(bounds)
   real(r8) :: om_sucsat                 ! saturated suction for organic matter (mm)(Letts, 2000)
   real(r8) :: om_b                      ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
   real(r8) :: zsapric      = 0.5_r8     ! depth (m) that organic matter takes on characteristics of sapric peat
-  real(r8) :: organic_max  = 130._r8    ! organic matter (kg/m3) where soil is assumed to act like peat 
+  real(r8) :: organic_max               ! organic matter (kg/m3) where soil is assumed to act like peat 
   real(r8) :: csol_bedrock = 2.0e6_r8   ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
   real(r8) :: pcalpha      = 0.5_r8     ! percolation threshold
   real(r8) :: pcbeta       = 0.139_r8   ! percolation exponent
@@ -238,6 +239,8 @@ subroutine iniTimeConst(bounds)
    sandfrac                            =>    pps%sandfrac                                , & ! Output: [real(r8) (:)]                                                    
    clayfrac                            =>    pps%clayfrac                                  & ! Output: [real(r8) (:)]                                                    
    )
+
+   organic_max = CNParamsShareInst%organic_max
 
   if (nlevurb > 0) then
     allocate(zurb_wall(bounds%begl:bounds%endl,nlevurb),    &
@@ -593,8 +596,17 @@ subroutine iniTimeConst(bounds)
    if (use_vichydro) then
       !define the depth of VIC soil layers here
       nlvic(1) = 3
-      nlvic(2) = 3
+      nlvic(2) = toplev_equalspace - nlvic(1)
       nlvic(3) = nlevsoi-(nlvic(1)+nlvic(2))
+      dzvic(:) = 0._r8
+      ivicstrt = 1
+      do ivic = 1,nlayer
+         ivicend = ivicstrt+nlvic(ivic)-1
+         do j = ivicstrt,ivicend
+            dzvic(ivic) = dzvic(ivic)+dzsoi(j)
+         end do
+         ivicstrt = ivicend+1
+      end do
    end if
 
    ! define a vertical grid spacing such that it is the normal dzsoi if nlevdecomp =nlevgrnd, or else 1 meter
@@ -913,12 +925,14 @@ subroutine iniTimeConst(bounds)
                cellclay(c,lev) = spval
                cellorg(c,lev)  = spval
             end if
-         end do
-         if (use_vichydro) then
-            do lev = 1, nlayer
+            if (use_vichydro) then
                sandcol(c,lev)   = spval
                claycol(c,lev)   = spval
                om_fraccol(c,lev) = spval
+            end if
+         end do
+         if (use_vichydro) then
+            do lev = 1, nlayer
                porosity(c,lev)  = spval
                max_moist(c,lev) = spval
                expt(c,lev)      = spval
@@ -947,12 +961,14 @@ subroutine iniTimeConst(bounds)
                cellclay(c,lev) = spval
                cellorg(c,lev)  = spval
             end if
+         if (use_vichydro) then
+            sandcol(c,lev)   = spval
+            claycol(c,lev)   = spval
+            om_fraccol(c,lev) = spval
+         end if
          end do
          if (use_vichydro) then
             do lev = 1, nlayer
-               sandcol(c,lev)   = spval
-               claycol(c,lev)   = spval
-               om_fraccol(c,lev) = spval
                porosity(c,lev)  = spval
                max_moist(c,lev) = spval
                expt(c,lev)      = spval
@@ -1000,6 +1016,11 @@ subroutine iniTimeConst(bounds)
                 cellsand(c,lev) = sand
                 cellclay(c,lev) = clay
                 cellorg(c,lev)  = om_frac*organic_max
+             end if
+             if (use_vichydro) then
+                claycol(c,lev)    = clay
+                sandcol(c,lev)    = sand
+                om_fraccol(c,lev) = om_frac
              end if
           else if (lun%itype(l) /= istdlak) then  ! soil columns of both urban and non-urban types
             ! No organic matter for urban
@@ -1103,6 +1124,9 @@ subroutine iniTimeConst(bounds)
                zi(c,nlevurb+1:nlevgrnd) = spval
                dz(c,nlevurb+1:nlevgrnd) = spval
             end if
+            if (use_vichydro) then
+               depth(c,:) = spval
+            end if
          else if (col%itype(c)==icol_roof) then
             z(c,1:nlevurb)  = zurb_roof(l,1:nlevurb)
             zi(c,0:nlevurb) = ziurb_roof(l,0:nlevurb)
@@ -1112,20 +1136,15 @@ subroutine iniTimeConst(bounds)
                zi(c,nlevurb+1:nlevgrnd) = spval
                dz(c,nlevurb+1:nlevgrnd) = spval
             end if
+            if (use_vichydro) then
+               depth(c,:) = spval
+            end if
          else
             z(c,1:nlevgrnd)  = zsoi(1:nlevgrnd)
             zi(c,0:nlevgrnd) = zisoi(0:nlevgrnd)
             dz(c,1:nlevgrnd) = dzsoi(1:nlevgrnd)
             if (use_vichydro) then
-               depth(c,:) = 0._r8
-               ivicstrt = 1 
-               do ivic = 1,nlayer
-                  ivicend = ivicstrt+nlvic(ivic)-1
-                  do j = ivicstrt,ivicend
-                     depth(c,ivic) = depth(c,ivic)+dz(c,j)
-                  end do
-                  ivicstrt = ivicend+1
-               end do
+               depth(c, 1:nlayer) = dzvic
                depth(c, nlayer+1:nlayert) = dz(c, nlevsoi+1:nlevgrnd)
                ! Column level initialization
                ! create weights to map soil moisture profiles (10 layer) to 3 layers for VIC hydrology, M.Huang
@@ -1138,15 +1157,7 @@ subroutine iniTimeConst(bounds)
          zi(c,0:nlevgrnd) = zisoi(0:nlevgrnd)
          dz(c,1:nlevgrnd) = dzsoi(1:nlevgrnd)
          if (use_vichydro) then
-            depth(c,:) = 0._r8
-            ivicstrt = 1
-            do ivic = 1,nlayer
-               ivicend = ivicstrt+nlvic(ivic)-1
-               do j = ivicstrt,ivicend
-                  depth(c,ivic) = depth(c,ivic)+dz(c,j)
-               end do
-               ivicstrt = ivicend+1
-            end do
+            depth(c, 1:nlayer) = dzvic
             depth(c, nlayer+1:nlayert) = dz(c, nlevsoi+1:nlevgrnd)
             ! Column level initialization
             ! create weights to map soil moisture profiles (10 layer) to 3 layers for VIC hydrology, M.Huang

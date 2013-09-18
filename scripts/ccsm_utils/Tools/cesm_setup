@@ -145,28 +145,20 @@ if (! $clean ) {
     }
 
 
-    my $ninst_fail = 0;
-    if ($xmlvars{NINST_ATM} > $xmlvars{NTASKS_ATM}) {
-	die "ERROR cesm_setup: ATM NINST value greater than ATM NTASKS";
+    my $ninst_fail = 0;    
+    foreach my $comp (qw(ATM LND ROF OCN ICE GLC WAV)){
+	my $ninst = "NINST_".$comp;
+	my $ntasks = "NTASKS_".$comp;
+	if ($xmlvars{$ninst} > $xmlvars{$ntasks}) {
+	    if($xmlvars{$ntasks}==1){
+		system("./xmlchange $ntasks=$xmlvars{$ninst}");
+		$xmlvars{$ntasks}=$xmlvars{$ninst};
+	    }else{
+		die "ERROR cesm_setup: $comp NINST value greater than $comp NTASKS";
+	    }
+	}
     }
-    if ($xmlvars{NINST_LND} > $xmlvars{NTASKS_LND}) {
-	die "ERROR cesm_setup: LND NINST value greater than LND NTASKS";
-    }
-    if ($xmlvars{NINST_ROF} > $xmlvars{NTASKS_ROF}) {
-	die "ERROR cesm_setup: ROF NINST value greater than ROF NTASKS";
-    }
-    if ($xmlvars{NINST_OCN} > $xmlvars{NTASKS_OCN}) {
-	die "ERROR cesm_setup: OCN NINST value greater than OCN NTASKS";
-    }
-    if ($xmlvars{NINST_ICE} > $xmlvars{NTASKS_ICE}) {
-	die "ERROR cesm_setup: ICE NINST value greater than ICE NTASKS";
-    }
-    if ($xmlvars{NINST_GLC} > $xmlvars{NTASKS_GLC}) {
-	die "ERROR cesm_setup: GLC NINST value greater than GLC NTASKS";
-    }
-    if ($xmlvars{NINST_WAV} > $xmlvars{NTASKS_WAV}) {
-	die "ERROR cesm_setup: WAV NINST value greater than WAV NTASKS";
-    }
+
 
     if (-f "$caseroot/$case.run") {
 	print "Machine/Decomp/Pes configuration has already been done ...skipping$eol ";

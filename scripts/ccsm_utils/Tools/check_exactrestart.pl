@@ -123,7 +123,7 @@ sub compare{
   if($bad_cnt>0){
       print "FAIL \n";
   }
-  elsif($good_cnt==0){
+  elsif($good_cnt==0 && !($ENV{CASEBASEID} =~ /\.S\./)){
       print "ERROR: No lines compared\n";
       print "FAIL \n";
   }

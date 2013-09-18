@@ -232,14 +232,14 @@ foreach my $compset ($root->findnodes('/testlist/compset')) {
 	    foreach my $mach ($test->findnodes('./machine')){
 		my $compiler = $mach->getAttribute('compiler');
 		my $testtype = $mach->getAttribute('testtype');
-		my $nldir    = $mach->getAttribute('nldir');
-		if ($nldir) {
+		my $testmods = $mach->getAttribute('testmods');
+		if ($testmods) {
 		    # do nothing
 		} else {
-		    $nldir = 'all';
+		    $testmods = 'all';
 		} 
 		my $mname = $mach->textContent;
-		$comphash->{$name}{$gname}{$tname}{$mname}{$compiler}{$testtype}{$nldir}=1;
+		$comphash->{$name}{$gname}{$tname}{$mname}{$compiler}{$testtype}{$testmods}=1;
 	    }
 	}
     }	           
@@ -265,7 +265,7 @@ foreach my $cname (sort keys %$comphash){
 if (! $opts{'verbose'} && ! $opts{'outputlist'} && ! $opts{'outputxml'}) {
     print "\n"; 
     printf("   %-50s %-20s %-20s %-20s  %-10s  %-20s\n", 
-	   "Compset", "TestName", "Grid", "Machine_compiler", "Test Category", "Namelist Dir (optional)");
+	   "Compset", "TestName", "Grid", "Machine_compiler", "Test Category", "TestMods Dir (optional)");
     print "\n";
 }
 
@@ -306,27 +306,30 @@ foreach my $cname (sort keys %$comphash){
 			if ($category_opt ne 'all') {
 			    next unless ($ttype eq $category_opt);
 			}
-			my $nldir;
+			my $testmods;
 			my $nlxmldir;
 			foreach my $dir (keys %{$comphash->{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}}){
-			    $nldir = $dir;
+			    $testmods = $dir;
 			}
 			my $compname = "$cname" . " ($csname)";
 			my $machname = "$mname" . "_$cpname";
-			if ($nldir ne 'all') {
-				$nlxmldir = $nldir;
-			    $nldir = "nldir=" . $nldir;  
+			my $outputlist_testmods = "";
+			if ($testmods ne 'all') {
+				$nlxmldir = $testmods;
+				$outputlist_testmods = ".$testmods";
+				$outputlist_testmods =~ s/\//-/;
+			    $testmods = "testmods_dir=" . $testmods;  
 			} else {
-			    $nldir = "";
+			    $testmods = "";
 			}
 			if ($opts{'verbose'}) {
-			    print "compset : $compname $clname $nldir \n";;
+			    print "compset : $compname $clname $testmods \n";;
 			    print "testname: $tname  test category: $ttype \n";
 			    print "grid    : $gname  machine: $machname \n\n";
 			} else {
 			    if($opts{'outputlist'}) {
 				#print "$tname.$gname.$csname.$machname\n";
-				print "$tname.$gname.$cname.$machname\n";
+				print "$tname.$gname.$cname.$machname$outputlist_testmods\n";
 				}elsif($opts{'outputxml'}) {
 					if(defined $nlxmldir ){
 						$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}{$nlxmldir} = 1;
@@ -334,11 +337,11 @@ foreach my $cname (sort keys %$comphash){
 						$xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype}= 1;
 					}
 			    }else{
-				if ($nldir ne 'all') {
-				    printf   ("   %-50s %-20s %-20s %-20s  %-10s  %-20s\n", 
-					      $compname, $tname, $gname, $machname, $ttype, $nldir);
+				if ($testmods ne 'all') {
+				    printf   ("   %-50s %-20s %-20s %-20s  %-13s  %-20s\n", 
+					      $compname, $tname, $gname, $machname, $ttype, $testmods);
 				} else {
-				    printf   ("   %-50s %-20s %-20s %-20s  %-10s \n", 
+				    printf   ("   %-50s %-20s %-20s %-20s  %-13s \n", 
 					      $compname, $tname, $gname, $machname, $ttype);
 				}		
 			    }		
@@ -375,8 +378,8 @@ if($opts{'outputxml'})
 							$mnode->setAttribute('testtype', $ttype);
 							my $nlval = $xmlhash{$cname}{$gname}{$tname}{$mname}{$cpname}{$ttype};
 							if(ref($nlval) eq 'HASH') {
-								my $nldir = (keys %{$nlval})[0];
-								$mnode->setAttribute('nldir', $nldir);
+								my $testmods = (keys %{$nlval})[0];
+								$mnode->setAttribute('testmods', $testmods);
 							}
 						}
 					}

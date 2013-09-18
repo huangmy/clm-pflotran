@@ -151,6 +151,8 @@ my $PESPN        = $xmlvars{'PES_PER_NODE'};
 my $PIO_NUMTASKS = $xmlvars{'PIO_NUMTASKS'};
 my $PIO_ASYNC_INTERFACE = $xmlvars{'PIO_ASYNC_INTERFACE'};
 
+my $COMPILER = $xmlvars{COMPILER};
+
 if ($MAXTPN < 1) {$MAXTPN = 1 ;}
 
 my @mcomps = (  $COMP_CPL,   $COMP_ATM,   $COMP_LND,   $COMP_ICE,   $COMP_OCN,   $COMP_GLC,   $COMP_WAV,   $COMP_ROF);
@@ -281,7 +283,12 @@ $fullsum = $fullsum + $sum;
 $taskgeom = $taskgeom.")";
 $taskpernode = $MAXTPN / $thrdcnt;
 $taskpernode = ($taskpernode > $taskcnt) ? $taskcnt : $taskpernode;
-$aprun = $aprun." -n $taskcnt -N $taskpernode -d $thrdcnt \${EXEROOT}/cesm.exe";
+if ($COMPILER eq "intel"){
+    my $taskpernuma = $taskpernode/2;
+    $aprun .= " -S $taskpernuma -cc numa_node ";
+}
+$aprun .= " -n $taskcnt -N $taskpernode -d $thrdcnt \${EXEROOT}/cesm.exe";
+
 
 $nodecnt = $taskcnt / $taskpernode ;
 $pbsrs = $pbsrs."${nodecnt}:ncpus=${MAXTPN}:mpiprocs=${taskpernode}:ompthreads=${thrdcnt}:model=${nas_node_type}";

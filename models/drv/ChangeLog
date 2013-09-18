@@ -1,6 +1,103 @@
 ================================================================================
- SVN $Id: ChangeLog 46542 2013-04-30 18:34:21Z mvertens $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_33/ChangeLog $
+ SVN $Id: ChangeLog 50929 2013-09-06 23:41:36Z tcraig $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/ChangeLog $
+================================================================================
+Information on changes to cpl7
+================================================================================
+Originator: tcraig
+Date: 06 Sept 2013
+Model: cpl7
+Version: drvseq4_3_03
+One-line summary: fix save for NAG compiler
+
+M       driver/ccsm_comp_mod.F90
+================================================================================
+Originator: tcraig
+Date: 05 Sept 2013
+Model: cpl7
+Version: drvseq4_3_02
+One-line summary: remove ifdefs from code for new features
+
+remove ifdefs BITFORBIT, MATCHOLD, AOFLUXOLD, AREAFACTOLD, CHECKGO to
+- update averaging calculation, leverage share code
+- update runoff calculation to reduce lags to ocean
+- update aoflux calculation to reduce lag to ocean, compute before mrgx2o
+- update areafact computation to remove forced 1.0 values for samegrid configurations
+- remove prototype control method
+
+M       driver/ccsm_comp_mod.F90
+M       driver/seq_map_mod.F90
+M       driver/seq_diag_mct.F90
+
+================================================================================
+Originator: tcraig
+Date: 05 Sept 2013
+Model: cpl7
+Version: drvseq4_3_01
+One-line summary: merge cplupa_n11 to trunk
+
+- remove sno coupling from land interface, merge those sno coupling fields
+  into the land avects
+- add support for new glc-ocn/ice and rof-ice coupling, including mapping,
+  merging, control, etc.
+- add ifdef USE_ESMF_METADATA around esmf attribute calls
+- modify samegrid implementation, grid names instead of samegrid vars
+  are now passed in via namelist
+- new control logic with xxx_c2_yyy flags
+- refactor runoff flow through system, reduce lag
+- reduce lag of fluxao to ocean coupling
+- change mct_accumulators to mct_avects
+- update budgets to reflect new coupling
+- implement support for mapping data reuse
+- modify runoff coupling field names for consistency
+- convert volr from state to flux variable
+- modify timers as needed
+- modify domain checked to improve robustness
+- remove npfix
+- modify how mappings are initialized, leverage new seq_mct_queryConfigFile method
+
+svn merge $SVNREPO/drv/seq_mct/trunk_tags/drvseq4_2_35 $SVNREPO/drv/seq_mct/branch_tags/cplupa_tags/cplupa_n11_drvseq4_2_35
+
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_drv.xml
+M       bld/namelist_files/namelist_definition_drv.xml
+M       shr_esmf/esmfshr_attribute_mod.F90
+M       shr_esmf/esmfshr_infodata_mod.F90
+M       driver/ccsm_comp_mod.F90
+M       driver/seq_domain_mct.F90
+M       driver/mrg_mod.F90
+M       driver/seq_map_mod.F90
+M       driver/seq_rest_mod.F90
+M       driver/seq_frac_mct.F90
+M       driver/seq_avdata_mod.F90
+M       driver/seq_flux_mct.F90
+M       driver/seq_hist_mod.F90
+M       driver/seq_diag_mct.F90
+M       shr/seq_infodata_mod.F90
+M       shr/seq_flds_mod.F90
+
+================================================================================
+Originator: jedwards
+Date: 18 July 2013
+Model: cpl7
+Version: drvseq4_2_35
+One-line summary: Refactor build_namelist to allow the
+	use and expansion of multiple variables in an xml entry
+
+M   bld/build_namelist
+
+
+================================================================================
+
+Information on changes to cpl7
+Originator: jedwards
+Date: 09 July 2013
+Model: cpl7
+Version: drvseq4_2_34
+One-line summary: Fixed bug in namelist_definition of orb_mvelp
+
+M   bld/namelist_files/namelist_definition_drv.xml
+
 ================================================================================
 
 Information on changes to cpl7

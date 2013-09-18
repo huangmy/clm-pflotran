@@ -61,22 +61,24 @@ foreach my $line(@lines)
   my $res      = $tokens[1];
   my $compset  = $tokens[2];
   my $machcomp = $tokens[3];
-  my $nldir    = $tokens[4];
+  my $testmods = $tokens[4];
 
   my @tokens   = split('_', $machcomp);
   my $machine  = $tokens[0];
   my $compiler = $tokens[1];
      
-  if ($nldir) {
-      $nldir =~ s/ //g;
-      if (! -e "./nl_dirs/$nldir") {
-	  die "./nl_dirs/$nldir does not exist \n";
+  if ($testmods) {
+      $testmods =~ s/ //g;
+      my $testmods_path = $testmods;
+      $testmods_path =~ s/-/\//g;
+      if (! -e "./testmods_dirs/$testmods_path") {
+	  die "./testmods_dirs/$testmods_path does not exist \n";
       }
       $text .=  <<"EOF";
 <compset name="$compset">
   <grid name="$res">
     <test name="$testname">
-      <machine compiler="$compiler" testtype="$testtype" nldir="$nldir">$machine</machine>
+      <machine compiler="$compiler" testtype="$testtype" testmods="$testmods_path">$machine</machine>
     </test>
   </grid>
 </compset>
@@ -116,7 +118,7 @@ sub usage {
 SYNOPSIS
      make_xml_entries [options]
 DESCRIPTION
-     translates a old-style list of testnames (testname.grid.compset[.nldir])
+     translates a old-style list of testnames (testname.grid.compset[.testmods])
      into an xml format that can be input into add_xml_entries and thereby expand the current
      testing xml table
 OPTIONS
@@ -126,8 +128,8 @@ OPTIONS
      NOT be bundled.
 
      -file <name>         Standard test filename where each line nas the form
-                               testname.grid.compset[.nldir]
-                          where nldir is the directory relative to ./nldirs/
+                               testname.grid.compset[.testmods]
+                          where testmods is the directory relative to ./testmods_dirs/
      -testtype <name>     one of current supported test type categories
      -help [or -h]        Print usage to STDOUT (optional).
 
@@ -142,7 +144,7 @@ EXAMPLE
      <compset name="I20TRCRUCLM45CN4Me">
        <grid name="f19_g16">
          <test name="ERS_Ly5">
-           <machine compiler="aux" testtype="clm_aux" nldir="clm/monthly_noinitial">yellowstone</machine>
+           <machine compiler="aux" testtype="clm_aux" testmods="clm/monthly_noinitial">yellowstone</machine>
          </test>
        </grid>
      </compset>

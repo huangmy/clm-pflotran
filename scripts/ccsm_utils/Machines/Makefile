@@ -296,6 +296,12 @@ endif
 FFLAGS += $(FPPDEFS)
 FFLAGS_NOOPT += $(FPPDEFS)
 
+
+ifeq ($(findstring -cosp,$(CAM_CONFIG_OPTS)),-cosp)
+# The following is for the COSP simulator code:
+COSP_LIBDIR:=$(EXEROOT)/atm/obj/cosp
+endif
+
 ifeq ($(MODEL),cam)
    # These RRTMG files take an extraordinarily long time to compile with optimization.
    # Until mods are made to read the data from files, just remove optimization from
@@ -316,112 +322,20 @@ wrap_mpi.o: wrap_mpi.F90
 apex_subs.o: apex_subs.F90
 	$(FC) -c $(FPPDEFS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
 endif
+ifdef COSP_LIBDIR
+INCLDIR+=-I$(COSP_LIBDIR) -I$(COSP_LIBDIR)/../
+$(COSP_LIBDIR)/libcosp.a: abortutils.o
+	$(MAKE) -C $(COSP_LIBDIR) F90='$(FC)' F90FLAGS='$(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS) $(FC_AUTO_R8)' \
+	F90FLAGS_noauto='$(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS)' \
+	F90FLAGS_fixed='$(INCLDIR) $(INCS) $(FIXEDFLAGS) $(FFLAGS) $(FC_AUTO_R8)'
 
-
-   # The following rules are for the COSP simulator code:
-
-F90             := $(FC)
-F90FLAGS         = $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS) $(FC_AUTO_R8)
-F90FLAGS_noauto  = $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS)
-F90FLAGS_fixed   = $(INCLDIR) $(INCS) $(FIXEDFLAGS) $(FFLAGS) $(FC_AUTO_R8)
-
-array_lib.o : array_lib.f90
-	$(F90) $(F90FLAGS) -c $<
-
-atmos_lib.o : atmos_lib.f90
-	$(F90) $(F90FLAGS) -c $<
-
-cosp.o : cosp.F90
-	$(F90) $(F90FLAGS) -c $<
-
-cosp_constants.o : cosp_constants.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_isccp_simulator.o : cosp_isccp_simulator.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_lidar.o : cosp_lidar.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_misr_simulator.o : cosp_misr_simulator.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_modis_simulator.o : cosp_modis_simulator.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_radar.o : cosp_radar.F90
-	$(F90) $(F90FLAGS) -c $<
-
-cosp_simulator.o: cosp_simulator.F90
-	$(F90) $(F90FLAGS) -c $<
-
-cosp_stats.o : cosp_stats.F90
-	$(F90) $(F90FLAGS) -c $<
-
-cosp_types.o : cosp_types.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-cosp_utils.o : cosp_utils.F90
-	$(F90) $(F90FLAGS) -c  $<
-
-dsd.o : dsd.f90
-	$(F90) $(F90FLAGS) -c $<
-
-format_input.o : format_input.f90
-	$(F90) $(F90FLAGS) -c $<
-
-gases.o : gases.f90
-	$(F90) $(F90FLAGS) -c $<
-
-icarus.o : icarus.f90
-	$(F90) $(F90FLAGS_fixed) -c $<
-
-lidar_simulator.o : lidar_simulator.F90
-	$(F90) $(F90FLAGS) -c $<
-
-llnl_stats.o : llnl_stats.F90
-	$(F90) $(F90FLAGS) -c $<
-
-lmd_ipsl_stats.o : lmd_ipsl_stats.F90
-	$(F90) $(F90FLAGS) -c $<
-
-load_hydrometeor_classes.o : load_hydrometeor_classes.f90
-	$(F90) $(F90FLAGS) -c $<
-
-math_lib.o : math_lib.f90
-	$(F90) $(F90FLAGS) -c $<
-
-MISR_simulator.o : MISR_simulator.f90
-	$(F90) $(F90FLAGS_fixed) -c $<
-
-modis_simulator.o : modis_simulator.F90
-	$(F90) $(F90FLAGS) -c $<
-
-mrgrnk.o : mrgrnk.f90
-	$(F90) $(F90FLAGS_noauto) -c $<
-
-optics_lib.o : optics_lib.f90
-	$(F90) $(F90FLAGS) -c $<
-
-pf_to_mr.o : pf_to_mr.f90
-	$(F90) $(F90FLAGS_fixed) -c $<
-
-prec_scops.o : prec_scops.f90
-	$(F90) $(F90FLAGS_fixed) -c $<
-
-radar_simulator_types.o : radar_simulator_types.f90
-	$(F90) $(F90FLAGS) -c $<
-
-radar_simulator.o : radar_simulator.f90
-	$(F90) $(F90FLAGS) -c $<
-
-scops.o : scops.f90
-	$(F90) $(F90FLAGS_fixed) -c $<
-
-zeff.o : zeff.f90
-	$(F90) $(F90FLAGS) -c $<
+cospsimulator_intr.o: $(COSP_LIBDIR)/libcosp.a
+endif
 
 endif
+
+
+
 
 
 
@@ -653,6 +567,11 @@ ifeq ($(ULIBDEP),$(null))
      endif
    endif
 endif
+
+ifdef COSP_LIBDIR
+  ULIBDEP += $(COSP_LIBDIR)/libcosp.a
+endif
+
 
 ifndef CLIBS
    ifdef ULIBDEP

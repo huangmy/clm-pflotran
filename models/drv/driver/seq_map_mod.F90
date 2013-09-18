@@ -15,7 +15,7 @@ module seq_map_mod
   use shr_kind_mod      ,only: CL => SHR_KIND_CL, CX => SHR_KIND_CX
   use shr_sys_mod
   use shr_const_mod
-  use shr_mct_mod, only: shr_mct_sMatPInitnc
+  use shr_mct_mod, only: shr_mct_sMatPInitnc, shr_mct_queryConfigFile
   use mct_mod
 
   use seq_comm_mct
@@ -57,25 +57,17 @@ module seq_map_mod
     logical :: esmf_map
     type(mct_rearr) :: rearr
     type(mct_sMatp) :: sMatp
+    !---- for comparing
+    integer(IN)     :: counter   ! indicates which seq_maps this mapper points to
+    character(CL)   :: strategy  ! indicates the strategy for this mapper, (copy, rearrange, X, Y)
+    character(CX)   :: mapfile   ! indicates the mapping file used
+    type(mct_gsMap),pointer :: gsmap_s
+    type(mct_gsMap),pointer :: gsmap_d
     !---- for cart3d
     character(CL) :: cart3d_init
     real(R8), pointer :: slon_s(:),clon_s(:),slat_s(:),clat_s(:)
     real(R8), pointer :: slon_d(:),clon_d(:),slat_d(:),clat_d(:)
-    !---- for npfix
-    character(CL) :: npfix_init
-    integer(IN)   :: cntfound      ! number found
-    integer(IN)   :: cntf_tot      ! cntfound total
-    integer(IN)   :: ni,nj         ! grid size
     integer(IN)   :: mpicom        ! mpicom
-    real(R8)   ,pointer :: ilon1(:)      ! lon of input grid at highest latitude
-    real(R8)   ,pointer :: ilat1(:)      ! lat of input grid at highest latitude
-    real(R8)   ,pointer :: ilon2(:)      ! lon of input grid at highest latitude
-    real(R8)   ,pointer :: ilat2(:)      ! lat of input grid at highest latitude
-    real(R8)   ,pointer :: alphafound(:) ! list of found alphas
-    real(R8)   ,pointer :: betafound(:)  ! list of found betas
-    integer(IN),pointer :: mfound(:)     ! list of found ms
-    integer(IN),pointer :: nfound(:)     ! list of found ns
-    integer(IN),pointer :: gindex(:)     ! global index 
 #ifdef USE_ESMF_LIB
     !---- import and export States for this mapper object, 
     !---- routehandle is stored in the exp_state for repeated remapping use
@@ -92,6 +84,21 @@ module seq_map_mod
 !--------------------------------------------------------------------------
 ! Private data
 !--------------------------------------------------------------------------
+
+  ! seq_map_maxcnt is the total number of mappings supported
+  ! seq_map_cnt is the total number of mappings initialized any any time
+  ! seq_maps are the mappers that have been initialized
+  
+  integer(IN),parameter :: seq_map_maxcnt = 5000
+  integer(IN)           :: seq_map_cnt = 0
+  type(seq_map),private,target  :: seq_maps(seq_map_maxcnt)
+
+!  tcraig, work-in-progress
+!  type seq_map_node
+!     type(seq_map_node), pointer :: next,prev
+!     type(seq_map), pointer :: seq_map
+!  end type seq_map_node
+!  type(seq_map_node), pointer :: seq_map_list, seq_map_curr
 
   character(*),parameter :: seq_map_stroff = 'variable_unset'
   character(*),parameter :: seq_map_stron  = 'StrinG_is_ON'
@@ -135,16 +142,17 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout) :: mapper
-    type(mct_gsmap) ,intent(in)    :: gsmap_s
+    type(seq_map)   ,intent(inout),pointer :: mapper
+    type(mct_gsmap) ,intent(in),target :: gsmap_s
     integer(IN)     ,intent(in)    :: ID_s
-    type(mct_gsmap) ,intent(in)    :: gsmap_d
+    type(mct_gsmap) ,intent(in),target :: gsmap_d
     integer(IN)     ,intent(in)    :: ID_d
     integer(IN)     ,intent(in)    :: ID_join
     character(len=*),intent(in),optional :: string
     !
     ! Local Variables
     !
+    integer(IN) :: mapid, mapidmin, mapidmax
     integer(IN) :: mpicom_s, mpicom_d, mpicom_join
     type(mct_gsmap) :: gsmap_s_join
     type(mct_gsmap) :: gsmap_d_join
@@ -156,21 +164,24 @@ contains
        write(logunit,'(A)') subname//' called for '//trim(string)
     endif
 
-    mapper%copy_only = .false.
-    mapper%rearrange_only = .false.
-    mapper%esmf_map = .false.
-
     call seq_comm_setptrs(ID_join,mpicom=mpicom_join)
-    mapper%mpicom = mpicom_join
 
     if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
-       mapper%copy_only = .true.
+       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
+
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom_join,gsmap_s,gsmap_d)
+          mapper%copy_only = .true.
+          mapper%strategy = "copy"
+       endif
+
        if (seq_comm_iamroot(ID_join)) then
           write(logunit,'(2A,L2)') subname,' gsmaps ARE IDENTICAL, copyoption = ',mapper%copy_only
        endif
     else
        if (seq_comm_iamroot(ID_join)) write(logunit,'(2A)') subname,' gsmaps are not identical'
-       mapper%rearrange_only = .true.
 
        call seq_comm_setptrs(ID_s ,mpicom=mpicom_s)
        call seq_comm_setptrs(ID_d ,mpicom=mpicom_d)
@@ -183,14 +194,46 @@ contains
 
        ! --- Initialize rearranger based on join gsmaps
 
-       call seq_map_gsmapcheck(gsmap_s_join, gsmap_d_join)
-       call mct_rearr_init(gsmap_s_join, gsmap_d_join, mpicom_join, mapper%rearr)
+       ! --- test for the gsmaps instead of the gsmap joins because the gsmap joins are temporary
+       mapid = -1
+! -------------------------------
+! tcx  tcraig mapmatch is a problem here because we're comparing gsmaps that may not be defined
+!      on some pes.  first issue is whether gsmap_identical in underlying routine will abort.
+!      second issue is whether different pes return different values.  use mapidmin, mapidmax to
+!      confirm all mapids returned are the same.  if not, then just set mapid to -1 and compute
+!      a new rearranger.
+! tcx  not clear this works all the time, so just do not do map matching here for time being
+!      Sept 2013.
+! -------------------------------
+!       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="rearrange")
+!       call shr_mpi_min(mapid,mapidmin,mpicom_join,subname//' min')
+!       call shr_mpi_max(mapid,mapidmax,mpicom_join,subname//' max')
+!       if (mapidmin /= mapidmax) mapid = -1
+
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          ! --- the gsmap joins are temporary so store the regular gsmaps in the mapper
+          call seq_map_mapinit(mapper,mpicom_join,gsmap_s,gsmap_d)
+          mapper%rearrange_only = .true.
+
+          ! --- Initialize rearranger
+          call seq_map_gsmapcheck(gsmap_s_join, gsmap_d_join)
+          call mct_rearr_init(gsmap_s_join, gsmap_d_join, mpicom_join, mapper%rearr)
+          mapper%strategy = "rearrange"
+       endif
 
        ! --- Clean up temporary gsmaps
 
        call mct_gsMap_clean(gsmap_s_join)
        call mct_gsMap_clean(gsmap_d_join)
 
+    endif
+
+    if (seq_comm_iamroot(CPLID)) then
+       write(logunit,'(2A,I6,4A)') subname,' mapper counter, strategy, mapfile = ', &
+          mapper%counter,' ',trim(mapper%strategy),' ',trim(mapper%mapfile)
+       call shr_sys_flush(logunit)
     endif
 
   end subroutine seq_map_init_rearrsplit
@@ -205,9 +248,9 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout) :: mapper
-    type(mct_gsmap) ,intent(in)    :: gsmap_s
-    type(mct_gsmap) ,intent(in)    :: gsmap_d
+    type(seq_map)   ,intent(inout),pointer :: mapper
+    type(mct_gsmap) ,intent(in),target :: gsmap_s
+    type(mct_gsmap) ,intent(in),target :: gsmap_d
     integer(IN)     ,intent(in)    :: mpicom
     character(len=*),intent(in)    :: maprcfile
     character(len=*),intent(in)    :: maprcname
@@ -218,7 +261,10 @@ contains
     !
     ! Local Variables
     !
-    integer(IN) :: ssize,dsize
+    character(CX) :: mapfile
+    character(CL) :: maptype
+    integer(IN)   :: mapid
+    integer(IN)   :: ssize,dsize
     character(len=*),parameter :: subname = "(seq_map_init_rcfile) "
 
 #ifdef USE_ESMF_LIB
@@ -239,129 +285,157 @@ contains
        write(logunit,'(A)') subname//' called for '//trim(string)
     endif
 
-    mapper%copy_only = .false.
-    mapper%rearrange_only = .false.
-    mapper%esmf_map = .false.
-    mapper%mpicom = mpicom
-
-    if (present(esmf_map)) then
-       mapper%esmf_map = esmf_map
-    endif
-
     if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
-       mapper%copy_only = .true.
-    elseif (samegrid) then
-       mapper%rearrange_only = .true.
+       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
 
-       ! --- Initialize rearranger
-       call seq_map_gsmapcheck(gsmap_s, gsmap_d)
-       call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          mapper%copy_only = .true.
+          mapper%strategy = "copy"
+       endif
+
+    elseif (samegrid) then
+       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="rearrange")
+
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          mapper%rearrange_only = .true.
+
+          ! --- Initialize rearranger
+          call seq_map_gsmapcheck(gsmap_s, gsmap_d)
+          call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
+          mapper%strategy = "rearrange"
+       endif
 
     else
 
        ! --- Initialize Smatp
-       call shr_mct_sMatPInitnc(mapper%sMatp,gsMap_s,gsMap_d, &
-            trim(maprcfile),trim(maprcname),trim(maprctype),mpicom)
+       call shr_mct_queryConfigFile(mpicom,maprcfile,maprcname,mapfile,maprctype,maptype)
 
-       if (mapper%esmf_map) then
-#ifdef USE_ESMF_LIB
-          !------------------------------------------------------
-          ! ESMF:
-          ! Set up routehandle
-          !   This section of the code handles the creation of routehandle
-          ! for ESMF SMM communication calls. First, the existing MCT
-          ! sparsematmul descriptor is reused (although this part can be
-          ! done completely without MCT, doing a distributed IO from maprcfile).
-          ! The weight matrix and indicies vectors are wrapped into ESMF Arrays
-          ! based on simple block distributed DistGrid. 
-          !   These Arrays are passed into a coupler component set up during
-          ! CESM driver initialization and stored in global seq_comm_type array
-          ! at the driver level. The coupler component is indexed by CPLID in
-          ! the seq_comm_type array. In the coupler component initialization phase
-          ! the SMM routehandle is computed and attached to export state of
-          ! a specific mapper object. Routehandle in a mapper object can be reused
-          ! for the same regridding model component pair.
-          !
-          ! Fei Liu
-          !------------------------------------------------------
-          ! has_weight can be controlled through namelist to determine
-          ! if weights are computed offline or to be computed online
-          ! during initialization.
-          if(has_weight) then
-            ! Retrieve weights and indicies from mapper object
-            row_idx = mct_sMat_indexIA(mapper%sMatp%matrix, 'grow')
-            col_idx = mct_sMat_indexIA(mapper%sMatp%matrix, 'gcol')
-            wgt_idx = mct_sMat_indexRA(mapper%sMatp%matrix, 'weight')
-            nwgt = size(mapper%sMatp%matrix%data%rattr(wgt_idx, :))
-            !write(logunit,*) trim(string), row_idx, col_idx, wgt_idx, nwgt
-            allocate(factorIndexList(2, nwgt), factorList(nwgt), stat=rc)
-            if(rc /= 0) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-            factorIndexList(1,:) = mapper%sMatp%matrix%data%iattr(col_idx, :)
-            factorIndexList(2,:) = mapper%sMatp%matrix%data%iattr(row_idx, :)
-            factorList = mapper%sMatp%matrix%data%rattr(wgt_idx,:)
+       call seq_map_mapmatch(mapid,gsMap_s=gsMap_s,gsMap_d=gsMap_d,mapfile=mapfile,strategy=maptype)
 
-            ! Get coupler pet map in global setting
-            call seq_comm_petlist(CPLID, petmap)
-
-            ! Set up temporary arrays to compute ESMF SMM routes.
-            gindex_s = mct2esmf_create(gsMap_s, mpicom=mpicom, petmap=petmap, &
-                name="gindex_s", rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            gindex_d = mct2esmf_create(gsMap_d, mpicom=mpicom, petmap=petmap, &
-                name="gindex_d", rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            factorArray = mct2esmf_create(factorList, mpicom=mpicom, petmap=petmap, &
-                name="factorArray", rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            factorIndexArray = mct2esmf_create(factorIndexList, mpicom=mpicom, &
-                petmap=petmap, name="factorIndexArray", rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            ! Get the coupler component
-            ! Create mapper specific import and export States
-            call seq_comm_getcompstates(CPLID, comp=comp)
-
-            mapper%imp_state = ESMF_StateCreate(name="import", stateintent=ESMF_STATEINTENT_IMPORT, rc=rc)
-            if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create import atm state')
-            mapper%exp_state = ESMF_StateCreate(name="export", stateintent=ESMF_STATEINTENT_EXPORT, rc=rc)
-            if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create export atm state')
-
-            ! Attach Arrays to the States
-            call ESMF_StateAdd(mapper%imp_state, (/gindex_s/), rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            call ESMF_StateAdd(mapper%exp_state, (/gindex_d/), rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            call ESMF_StateAdd(mapper%exp_state, (/factorArray/), rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            call ESMF_StateAdd(mapper%exp_state, (/factorIndexArray/), rc=rc)
-            if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            ! Call into ESMF init method
-            call ESMF_GridCompInitialize(comp, importState=mapper%imp_state, exportState=mapper%exp_state, &
-                 userRc=urc, rc=rc)
-            if (urc /= ESMF_SUCCESS) call ESMF_Finalize(rc=urc, endflag=ESMF_END_ABORT)
-            if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-            deallocate(factorIndexList, factorList)
-
-          else
-            ! Compute the routehandle online here:
-            ! 1. Read in source and destination Grid description files
-            ! 2. Construct Grids or Meshes and dummy Fields on top
-            ! 3. Call FieldRegridStore to compute routehandle
-            ! 4. Save routehandle in mapper
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          call shr_mct_sMatPInitnc(mapper%sMatp,gsMap_s,gsMap_d, &
+               trim(mapfile),trim(maptype),mpicom)
+          mapper%mapfile =trim(mapfile)
+          mapper%strategy=trim(maptype)
+          if (present(esmf_map)) then
+             mapper%esmf_map = esmf_map
           endif
-#else
-          call shr_sys_abort(subname//' ERROR: esmf SMM not allowed without USE_ESMF_LIB')
-#endif
-       endif  ! esmf_map
 
+          if (mapper%esmf_map) then
+#ifdef USE_ESMF_LIB
+             !------------------------------------------------------
+             ! ESMF:
+             ! Set up routehandle
+             !   This section of the code handles the creation of routehandle
+             ! for ESMF SMM communication calls. First, the existing MCT
+             ! sparsematmul descriptor is reused (although this part can be
+             ! done completely without MCT, doing a distributed IO from maprcfile).
+             ! The weight matrix and indicies vectors are wrapped into ESMF Arrays
+             ! based on simple block distributed DistGrid. 
+             !   These Arrays are passed into a coupler component set up during
+             ! CESM driver initialization and stored in global seq_comm_type array
+             ! at the driver level. The coupler component is indexed by CPLID in
+             ! the seq_comm_type array. In the coupler component initialization phase
+             ! the SMM routehandle is computed and attached to export state of
+             ! a specific mapper object. Routehandle in a mapper object can be reused
+             ! for the same regridding model component pair.
+             !
+             ! Fei Liu
+             !------------------------------------------------------
+             ! has_weight can be controlled through namelist to determine
+             ! if weights are computed offline or to be computed online
+             ! during initialization.
+             if(has_weight) then
+               ! Retrieve weights and indicies from mapper object
+               row_idx = mct_sMat_indexIA(mapper%sMatp%matrix, 'grow')
+               col_idx = mct_sMat_indexIA(mapper%sMatp%matrix, 'gcol')
+               wgt_idx = mct_sMat_indexRA(mapper%sMatp%matrix, 'weight')
+               nwgt = size(mapper%sMatp%matrix%data%rattr(wgt_idx, :))
+               !write(logunit,*) trim(string), row_idx, col_idx, wgt_idx, nwgt
+               allocate(factorIndexList(2, nwgt), factorList(nwgt), stat=rc)
+               if(rc /= 0) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+               factorIndexList(1,:) = mapper%sMatp%matrix%data%iattr(col_idx, :)
+               factorIndexList(2,:) = mapper%sMatp%matrix%data%iattr(row_idx, :)
+               factorList = mapper%sMatp%matrix%data%rattr(wgt_idx,:)
+   
+               ! Get coupler pet map in global setting
+               call seq_comm_petlist(CPLID, petmap)
+   
+               ! Set up temporary arrays to compute ESMF SMM routes.
+               gindex_s = mct2esmf_create(gsMap_s, mpicom=mpicom, petmap=petmap, &
+                   name="gindex_s", rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               gindex_d = mct2esmf_create(gsMap_d, mpicom=mpicom, petmap=petmap, &
+                   name="gindex_d", rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               factorArray = mct2esmf_create(factorList, mpicom=mpicom, petmap=petmap, &
+                   name="factorArray", rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               factorIndexArray = mct2esmf_create(factorIndexList, mpicom=mpicom, &
+                   petmap=petmap, name="factorIndexArray", rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               ! Get the coupler component
+               ! Create mapper specific import and export States
+               call seq_comm_getcompstates(CPLID, comp=comp)
+   
+               mapper%imp_state = ESMF_StateCreate(name="import", stateintent=ESMF_STATEINTENT_IMPORT, rc=rc)
+               if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create import atm state')
+               mapper%exp_state = ESMF_StateCreate(name="export", stateintent=ESMF_STATEINTENT_EXPORT, rc=rc)
+               if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create export atm state')
+   
+               ! Attach Arrays to the States
+               call ESMF_StateAdd(mapper%imp_state, (/gindex_s/), rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               call ESMF_StateAdd(mapper%exp_state, (/gindex_d/), rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               call ESMF_StateAdd(mapper%exp_state, (/factorArray/), rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               call ESMF_StateAdd(mapper%exp_state, (/factorIndexArray/), rc=rc)
+               if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+   
+               ! Call into ESMF init method
+               call ESMF_GridCompInitialize(comp, importState=mapper%imp_state, exportState=mapper%exp_state, &
+                 userRc=urc, rc=rc)
+               if (urc /= ESMF_SUCCESS) call ESMF_Finalize(rc=urc, endflag=ESMF_END_ABORT)
+               if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+               deallocate(factorIndexList, factorList)
+
+             else
+               ! Compute the routehandle online here:
+               ! 1. Read in source and destination Grid description files
+               ! 2. Construct Grids or Meshes and dummy Fields on top
+               ! 3. Call FieldRegridStore to compute routehandle
+               ! 4. Save routehandle in mapper
+             endif
+#else
+             call shr_sys_abort(subname//' ERROR: esmf SMM not allowed without USE_ESMF_LIB')
+#endif
+          endif  ! esmf_map
+
+       endif  ! mapid >= 0
+    endif
+
+    if (seq_comm_iamroot(CPLID)) then
+       write(logunit,'(2A,I6,4A)') subname,' mapper counter, strategy, mapfile = ', &
+          mapper%counter,' ',trim(mapper%strategy),' ',trim(mapper%mapfile)
+       call shr_sys_flush(logunit)
     endif
 
   end subroutine seq_map_init_rcfile
@@ -375,14 +449,15 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout) :: mapper
-    type(mct_gsmap) ,intent(in)    :: gsmap_s
-    type(mct_gsmap) ,intent(in)    :: gsmap_d
+    type(seq_map)   ,intent(inout),pointer :: mapper
+    type(mct_gsmap) ,intent(in)   ,target  :: gsmap_s
+    type(mct_gsmap) ,intent(in)   ,target  :: gsmap_d
     integer(IN)     ,intent(in)    :: mpicom
     character(len=*),intent(in),optional :: string
     !
     ! Local Variables
     !
+    integer(IN)   :: mapid
     character(len=*),parameter :: subname = "(seq_map_init_rearrolap) "
 
     !-----------------------------------------------------
@@ -391,19 +466,38 @@ contains
        write(logunit,'(A)') subname//' called for '//trim(string)
     endif
 
-    mapper%copy_only = .false.
-    mapper%rearrange_only = .false.
-    mapper%mpicom = mpicom
-
     if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
-       mapper%copy_only = .true.
+       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
+
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          mapper%copy_only = .true.
+          mapper%strategy = "copy"
+       endif
+
     else
-       mapper%rearrange_only = .true.
+       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="rearrange")
 
-       ! --- Initialize rearranger
-       call seq_map_gsmapcheck(gsmap_s, gsmap_d)
-       call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
+       if (mapid > 0) then
+          call seq_map_mappoint(mapid,mapper)
+       else
+          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          mapper%rearrange_only = .true.
 
+          ! --- Initialize rearranger
+          call seq_map_gsmapcheck(gsmap_s, gsmap_d)
+          call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
+          mapper%strategy = "rearrange"
+       endif
+
+    endif
+
+    if (seq_comm_iamroot(CPLID)) then
+       write(logunit,'(2A,I6,4A)') subname,' mapper counter, strategy, mapfile = ', &
+          mapper%counter,' ',trim(mapper%strategy),' ',trim(mapper%mapfile)
+       call shr_sys_flush(logunit)
     endif
 
   end subroutine seq_map_init_rearrolap
@@ -534,25 +628,7 @@ contains
        lstring = trim(string)
     endif
 
-    if (trim(type) == 'npfix') then
-
-       if (mapper%npfix_init == trim(seq_map_stron)) return
-
-       if (.not.present(gsmap_s)) then
-          call shr_sys_abort(trim(subname)//' ERROR gsmap_s required for npfix')
-       endif
-       if (.not.present(ni)) then
-          call shr_sys_abort(trim(subname)//' ERROR ni required for npfix')
-       endif
-       if (.not.present(nj)) then
-          call shr_sys_abort(trim(subname)//' ERROR nj required for npfix')
-       endif
-       mapper%ni = ni
-       mapper%nj = nj
-       call map_npFixNew4R(mapper,'init',gsmapi=gsmap_s,domi=dom_s,domo=dom_d)
-       mapper%npfix_init = trim(seq_map_stron)
-
-    elseif (trim(type(1:6)) == 'cart3d') then
+    if (trim(type(1:6)) == 'cart3d') then
        if (mapper%cart3d_init == trim(seq_map_stron)) return
 
        !--- compute these up front for vector mapping ---
@@ -630,12 +706,7 @@ contains
        lnorm = norm
     endif
 
-    if (trim(type) == 'npfix') then
-       if (mapper%npfix_init /= trim(seq_map_stron)) then
-          call shr_sys_abort(trim(subname)//' ERROR: npfix not initialized '//trim(lstring))
-       endif
-       call map_npFixNew4R(mapper,'run',buni=av_s,buno=av_d,fld1=fldu,fld2=fldv)
-    elseif (trim(type(1:6)) == 'cart3d') then
+    if (trim(type(1:6)) == 'cart3d') then
        if (mapper%cart3d_init /= trim(seq_map_stron)) then
           call shr_sys_abort(trim(subname)//' ERROR: cart3d not initialized '//trim(lstring))
        endif
@@ -1201,375 +1272,10 @@ contains
 
  end subroutine seq_map_avNormArr
 
-!=======================================================================
-
- subroutine map_npFixNew4R(mapper,mode,buni,buno,fld1,fld2,gsmapi,domi,domo)
-
-   !===============================================================================
-   !    Correct the north pole mapping of velocity fields from the atm to ocn
-   !    grids.  This assumes the input grid is a regular lat/lon with the north
-   !    pole surrounded by the last latitude line in the input array.  The
-   !    longitudes in the last latitude must be ordered and equally spaced.
-   !
-   !    4R is a low memory version of 3R.
-   !    This version (New4R) is the same as 3R except it uses a lot less memory
-   !    and is a bit faster.  Like 3R, it saves data between calls and so
-   !    assumes the input grid remains constant for all calls.  This is bfb
-   !    with 3R on bluevista as of 2/15/07.
-   !
-   !    !REVISION HISTORY:
-   !    2007-Feb-12 - T. Craig -- modified New3R to reduce memory
-   !    2007-Apr-27 - M. Vertenstein - implemented in sequential system
-   !===============================================================================
-   
-#include <mpif.h>  
-   ! 
-   ! Arguments
-   !
-   type(seq_map)  ,intent(inout):: mapper  ! mapper
-   character(*)   ,intent(in)   :: mode    ! init or run
-   type(mct_Avect),intent(in)   ,optional:: buni    ! input  attribute vec
-   type(mct_Avect),intent(inout),optional:: buno    ! output attribute vec
-   character(*)   ,intent(in)   ,optional:: fld1    ! name of first input field
-   character(*)   ,intent(in)   ,optional:: fld2    ! name of second input field
-   type(mct_gsMap),intent(in)   ,optional:: gsmapi  ! input gsmap
-   type(mct_gGrid),intent(in)   ,optional:: domi    ! input domain 
-   type(mct_gGrid),intent(in)   ,optional:: domo    ! output domain 
-   !
-   ! Local Variables
-   !
-   integer(IN)  :: n,m                     ! generic indices
-   integer(IN)  :: n1,n2,n3                ! generic indices
-   integer(IN)  :: kui,kvi                 ! field indices
-   integer(IN)  :: kuo,kvo                 ! field indices
-   integer(IN)  :: kin                     ! index index
-   integer(IN)  :: nmin,nmax               ! indices of highest latitude in input
-   integer(IN)  :: npts                    ! local number of points in an aV
-   integer(IN)  :: num                     ! number of points at highest latitude
-   integer(IN)  :: kloni                   ! longitude index on input domain
-   integer(IN)  :: klati                   ! latitude index on input domain
-   integer(IN)  :: klono                   ! longitude index on output domain
-   integer(IN)  :: klato                   ! latitude index on output domain
-   integer(IN)  :: index                   ! index value
-   real(R8)     :: rindex                  ! index value
-   real(R8)     :: latmax                  ! value of highest latitude
-   real(R8)     :: olon,olat               ! output bundle lon/lat
-   real(R8)     :: ilon,ilat               ! input bundle lon/lat
-   real(R8)     :: npu,npv                 ! np velocity fields relative to lon
-   real(R8)     :: theta1,theta2           ! angles for trig functions
-   real(R8),allocatable :: rarray(:)       ! temporary array
-   real(R8),allocatable :: rarray2(:,:)    ! temporary array
-   real(R8)     :: w1,w2,w3,w4             ! weights
-   real(R8)     :: f1,f2,f3,f4             ! function values
-   real(R8)     :: alpha,beta              ! used to generate weights
-   real(R8)     :: rtmp                    ! real temporary
-   real(R8),allocatable :: lData(:,:)      ! last lat local input bundle data
-   integer      :: mpicom                  ! mpi communicator group 
-   real(R8)   ,allocatable :: rfound(:)    ! temporary for copy
-   integer(IN),allocatable :: ifound(:)    ! temporary for copy
-   integer(IN)  :: cnt                     ! loop counter
-   logical      :: found                   ! search for new interpolation
-   integer(IN)  :: rcode                   ! error code
-   integer(IN)  :: np1                     ! n+1 or tmp
-   integer(IN)  :: mype
-
-   !--- formats ---
-   character(*),parameter :: subName = '(map_npFixNew4R) '
-   character(*),parameter :: F00 = "('(map_npFixNew4R) ',8a)"
-   character(*),parameter :: F01 = "('(map_npFixNew4R) ',a,i12)"
-   !-------------------------------------------------------------------------------
-
-   mpicom = mapper%mpicom
-   call MPI_COMM_RANK(mpicom,mype,rcode)
-
-   nmin = (mapper%ni)*(mapper%nj-1) + 1
-   nmax = mapper%ni*mapper%nj
-   num  = mapper%ni
-
-   !---------------------------------------------------------------------------
-   ! Initialization only
-   !---------------------------------------------------------------------------
-
-   if (trim(mode) == 'init') then
-
-     if (loglevel > 0) write(logunit,F00) " compute bilinear weights & indicies for NP region."
-
-!    tcx 3/19/08, don't use GlobGridNum, it's not set properly in models
-!    kin   = mct_aVect_indexIA(domi%data,"GlobGridNum",perrWith=subName)
-     klati = mct_aVect_indexRA(domi%data,"lat"        ,perrWith=subName)
-     kloni = mct_aVect_indexRA(domi%data,"lon"        ,perrWith=subName)
-     klato = mct_aVect_indexRA(domo%data,"lat"        ,perrWith=subName)
-     klono = mct_aVect_indexRA(domo%data,"lon"        ,perrWith=subName)
-
-     allocate(mapper%ilon1(num))
-     allocate(mapper%ilon2(num))
-     allocate(mapper%ilat1(num))
-     allocate(mapper%ilat2(num))
-
-     mapper%ilon1 = 0._r8
-     mapper%ilon2 = 0._r8
-     mapper%ilat1 = 0._r8
-     mapper%ilat2 = 0._r8
-
-     npts = mct_aVect_lSize(domi%data)
-     call mct_gsMap_orderedPoints(gsMapi, mype, mapper%gindex)
-     do m=1,npts
-       if (mapper%gindex(m).ge.nmin) then               ! are on highest latitude
-         n = mapper%gindex(m) - nmin + 1                ! n is 1->mapper%ni lon index on highest latitude
-         rtmp = domi%data%rAttr(kloni,m)      ! rtmp is longitude value on highest latitude
-         mapper%ilon1(n) = mod(rtmp+360._R8,360._R8) ! ilon1(n) is longitude val mapped from 0->360
-         mapper%ilat1(n) = domi%data%rAttr(klati,m)  ! ilat1(n) values should all be the same (i.e. highest lat)
-       endif
-     enddo
-
-     !--- all gather local data, MPI_SUM is low memory and simple
-     !--- but is a performance penalty compared to gatherv and copy
-     !--- or a fancy send/recv 
-
-     allocate(rarray(num))
-     rarray = mapper%ilat1
-     call MPI_ALLREDUCE(rarray,mapper%ilat1,num,MPI_REAL8,MPI_SUM,mpicom,rcode)
-     if (rcode.ne.0) then
-       write(logunit,*) trim(subName),' ilat1 rcode error ',rcode
-       call shr_sys_abort()
-     endif
-     rarray = mapper%ilon1
-     call MPI_ALLREDUCE(rarray,mapper%ilon1,num,MPI_REAL8,MPI_SUM,mpicom,rcode)
-     if (rcode.ne.0) then
-       write(logunit,*) trim(subName),' ilon1 rcode error ',rcode
-       call shr_sys_abort()
-     endif
-
-     do n = 1,num
-       np1 = mod(n,num)+1
-       mapper%ilat2(n) = mapper%ilat1(np1)
-       mapper%ilon2(n) = mapper%ilon1(np1)
-       if (mapper%ilon2(n) < mapper%ilon1(n)) mapper%ilon2(n) = mapper%ilon2(n) + 360._R8
-     enddo
-
-     do n = 1,num
-       if (mapper%ilat1(n) /= mapper%ilat2(n)) then
-          write(logunit,*) trim(subname),' ERROR: ilat1 ne ilat2 ',n,mapper%ilat1(n),mapper%ilat2(n)
-          call shr_sys_abort(trim(subname)//' ERROR: ilat1 ne ilat2')
-       endif
-       if (mapper%ilon2(n) < mapper%ilon1(n)) then
-          write(logunit,*) trim(subname),' ERROR: ilon2 lt ilon1 ',n,mapper%ilon1(n),mapper%ilon2(n)
-          call shr_sys_abort(trim(subname)//' ERROR: ilon2 ilon1 error')
-       endif
-       ! tcraig check that lon diffs are reasonable 4x average dlon seems like reasonable limit
-       if (mapper%ilon2(n) - mapper%ilon1(n) > (360.0_R8/(num*1.0_R8))*4.0) then
-          write(logunit,*) trim(subname),' ERROR: ilon1,ilon2 ',n,mapper%ilon1(n),mapper%ilon2(n)
-          call shr_sys_abort(trim(subname)//' ERROR: ilon2 ilon1 size diff')
-       endif
-     enddo
-
-     latmax = maxval(mapper%ilat1)
-
-     !--- compute weights and save them ---
-
-     npts = mct_aVect_lSize(domo%data)
-     allocate(mapper%mfound(npts),mapper%nfound(npts),mapper%alphafound(npts),mapper%betafound(npts))
-     mapper%cntfound = 0
-
-     do m = 1,npts
-       olat = domo%data%rAttr(klato,m)
-       if (olat >= latmax) then
-         rtmp = domo%data%rAttr(klono,m)
-         olon = mod(rtmp,360._R8)
-         n = 1
-         found = .false.
-         do while (n <= num .and. .not.found )
-           if (    olon         >= mapper%ilon1(n) .and. olon < mapper%ilon2(n) .or.   &
-                   olon+360._R8 >= mapper%ilon1(n) .and. olon < mapper%ilon2(n)) then
-
-
-!tcx ilat2==ilat1 so don't average
-!--->        ilat = (mapper%ilat1(n) + mapper%ilat2(n)) * 0.5_R8
-             ilat = mapper%ilat1(n)
-             if (mapper%ilon2(n) == mapper%ilon1(n)) then
-               alpha = 0.5_R8
-             else if (    olon >= mapper%ilon1(n) .and. olon < mapper%ilon2(n)) then
-               alpha = (olon - mapper%ilon1(n)) / (mapper%ilon2(n) - mapper%ilon1(n))
-             else if (olon+360._R8>= mapper%ilon1(n) .and. olon < mapper%ilon2(n)) then
-               alpha = (olon+360._R8 - mapper%ilon1(n)) / (mapper%ilon2(n) - mapper%ilon1(n))
-             else
-               write(logunit,*) subName,' ERROR: olon ',olon,mapper%ilon1(n),mapper%ilon2(n)
-             endif
-             if (ilat >= 90._R8) then
-               beta  = 1.0_R8
-             else
-               beta  = (olat - ilat) / (90._R8 - ilat)
-             endif
-
-             mapper%cntfound = mapper%cntfound + 1
-             mapper%mfound(mapper%cntfound) = m
-             mapper%nfound(mapper%cntfound) = n
-             mapper%alphafound(mapper%cntfound) = alpha
-             mapper%betafound(mapper%cntfound) = beta
-             found = .true.
-
-           endif
-           n = n + 1     ! normal increment
-         enddo
-         if ( .not.found ) then
-           write(logunit,*) subName,' ERROR: found = false ',found,m,olon,olat
-         endif
-       endif
-     end do
-
-     allocate(ifound(npts))
-     ifound(1:mapper%cntfound) = mapper%mfound(1:mapper%cntfound)
-     deallocate(mapper%mfound)
-     if (mapper%cntfound > 0) then
-        allocate(mapper%mfound(mapper%cntfound))
-        mapper%mfound(1:mapper%cntfound) = ifound(1:mapper%cntfound)
-     endif
-
-     ifound(1:mapper%cntfound) = mapper%nfound(1:mapper%cntfound)
-     deallocate(mapper%nfound)
-     if (mapper%cntfound > 0) then
-        allocate(mapper%nfound(mapper%cntfound))
-        mapper%nfound(1:mapper%cntfound) = ifound(1:mapper%cntfound)
-     endif
-     deallocate(ifound)
-
-     allocate(rfound(npts))
-     rfound(1:mapper%cntfound) = mapper%alphafound(1:mapper%cntfound)
-     deallocate(mapper%alphafound)
-     if (mapper%cntfound > 0) then
-        allocate(mapper%alphafound(mapper%cntfound))
-        mapper%alphafound(1:mapper%cntfound) = rfound(1:mapper%cntfound)
-     endif
-
-     rfound(1:mapper%cntfound) = mapper%betafound(1:mapper%cntfound)
-     deallocate(mapper%betafound)
-     if (mapper%cntfound > 0) then
-        allocate(mapper%betafound(mapper%cntfound))
-        mapper%betafound(1:mapper%cntfound) = rfound(1:mapper%cntfound)
-     endif
-     deallocate(rfound)
-
-     call MPI_ALLREDUCE(mapper%cntfound,mapper%cntf_tot,1,MPI_INTEGER,MPI_SUM,mpicom,rcode)
-     if (mype == 0) then
-        write(logunit,F01) ' total npfix points found = ',mapper%cntf_tot
-     endif
-
-   elseif (trim(mode) == 'run') then
-
-      !---------------------------------------------------------------------------
-      ! Return if there is nothing to do; must be no points on any pes
-      ! If there are any npfix points, all pes must continue to the np u,v calc
-      !---------------------------------------------------------------------------
-
-      if (mapper%cntf_tot < 1) then
-         return
-      endif
-
-      !---------------------------------------------------------------------------
-      ! Non-initialization, run-time fix
-      !---------------------------------------------------------------------------
-
-      !--- barrier not required but interesting for timing. ---
-      !  call shr_mpi_barrier(mpicom,subName//" barrier")
-
-      !--- extract index, u, v from buni ---
-      kui   = mct_aVect_indexRA(buni,fld1,perrWith=subName)
-      kvi   = mct_aVect_indexRA(buni,fld2,perrWith=subName)
-      kuo   = mct_aVect_indexRA(buno,fld1,perrWith=subName)
-      kvo   = mct_aVect_indexRA(buno,fld2,perrWith=subName)
-
-      allocate(lData(3,num))
-      lData = 0._R8
-      npts = mct_aVect_lSize(buni)
-      do n=1,npts
-        if (mapper%gindex(n).ge.nmin) then
-          m = mapper%gindex(n) - nmin + 1
-          lData(1,m) = mapper%gindex(n)
-          lData(2,m) = buni%rAttr(kui,n)
-          lData(3,m) = buni%rAttr(kvi,n)
-        endif
-      enddo
-   
-      !--- all gather local data, MPI_SUM is low memory and simple
-      !--- but is a performance penalty compared to gatherv and copy
-      !--- KLUDGE - this should be looked at when it becomes a performance/memory
-      !--- penalty   
-   
-      allocate(rarray2(3,num))
-      rarray2=lData
-      call MPI_ALLREDUCE(rarray2,lData,3*num,MPI_REAL8,MPI_SUM,mpicom,rcode)
-      deallocate(rarray2)
-   
-      if (rcode.ne.0) then
-        write(logunit,*) trim(subName),' rcode error ',rcode
-        call shr_sys_abort()
-      endif
-   
-      do n2=1,num
-        if (lData(1,n2).lt.0.1_R8) then
-          write(logunit,*) trim(subName),' error allreduce ',n2
-        endif
-      enddo
-   
-      !--- compute npu, npv (pole data) and initialize ilon,ilat arrays ---
-   
-      npu = 0._R8
-      npv = 0._R8
-      do n = 1,num
-        theta1 = mapper%ilon1(n)*deg2rad
-        npu = npu + cos(theta1)*lData(2,n) &
-                  - sin(theta1)*lData(3,n)
-        npv = npv + sin(theta1)*lData(2,n) &
-                  + cos(theta1)*lData(3,n)
-      enddo
-      npu = npu / real(num,R8)
-      npv = npv / real(num,R8)
-   
-      !--- compute updated pole vectors ---
-   
-   !DIR$ CONCURRENT
-      do cnt = 1,mapper%cntfound
-         m     = mapper%mfound(cnt)
-         n     = mapper%nfound(cnt)
-         np1   = mod(n,num)+1
-         alpha = mapper%alphafound(cnt)
-         beta  = mapper%betafound(cnt)
-   
-         w1 = (1.0_R8-alpha)*(1.0_R8-beta)
-         w2 = (    alpha)*(1.0_R8-beta)
-         w3 = (    alpha)*(    beta)
-         w4 = (1.0_R8-alpha)*(    beta)
-   
-         theta1 = mapper%ilon1(n)*deg2rad
-         theta2 = mapper%ilon2(n)*deg2rad
-   
-         f1 = lData(2,n)
-         f2 = lData(2,np1)
-         f3 =  cos(theta1)*npu + sin(theta1)*npv
-         f4 =  cos(theta2)*npu + sin(theta2)*npv
-         rtmp = w1*f1 + w2*f2 + w3*f3 + w4*f4
-         buno%rAttr(kuo,m) = w1*f1 + w2*f2 + w3*f3 + w4*f4
-   
-         f1 = lData(3,n)
-         f2 = lData(3,np1)
-         f3 = -sin(theta1)*npu + cos(theta1)*npv
-         f4 = -sin(theta2)*npu + cos(theta2)*npv
-         rtmp = w1*f1 + w2*f2 + w3*f3 + w4*f4
-         buno%rAttr(kvo,m) = w1*f1 + w2*f2 + w3*f3 + w4*f4
-      enddo
-   
-      deallocate(lData)
-
-   else
-
-      call shr_sys_abort(trim(subname)//' ERROR: mode not valid '//trim(mode))
-
-   endif
-
-end subroutine map_npFixNew4R
-
 !===============================================================================
  subroutine seq_map_gsmapcheck(gsmap1,gsmap2)
+
+    ! This method verifies that two gsmaps are of the same global size
 
     implicit none
     type(mct_gsMap),intent(in) :: gsmap1
@@ -1586,6 +1292,103 @@ end subroutine map_npFixNew4R
     endif
 
  end subroutine seq_map_gsmapcheck
+
+!===============================================================================
+ subroutine seq_map_mapmatch(mapid,gsMap_s,gsMap_d,mapfile,strategy)
+
+    ! This method searches through the current seq_maps to find a 
+    ! mapping file that matches the values passed in
+
+    implicit none
+    integer         ,intent(out) :: mapid
+    type(mct_gsMap) ,intent(in),optional :: gsMap_s
+    type(mct_gsMap) ,intent(in),optional :: gsMap_d
+    character(len=*),intent(in),optional :: mapfile
+    character(len=*),intent(in),optional :: strategy
+
+    integer(IN) :: m
+    logical     :: match
+    character(*),parameter :: subName = '(seq_map_mapmatch) '
+
+    mapid = -1
+! tcraig - this return turns off the mapping reuse
+!    return
+
+    do m = 1,seq_map_cnt
+       match = .true.
+
+       if (match .and. present(mapfile)) then
+          if (trim(mapfile) /= trim(seq_maps(m)%mapfile)) match = .false.
+       endif
+       if (match .and. present(strategy)) then
+          if (trim(strategy) /= trim(seq_maps(m)%strategy)) match = .false.
+       endif
+       if (match .and. present(gsMap_s)) then
+          if (.not.mct_gsmap_Identical(gsmap_s,seq_maps(m)%gsmap_s)) match = .false.
+       endif
+       if (match .and. present(gsMap_d)) then
+          if (.not.mct_gsmap_Identical(gsmap_d,seq_maps(m)%gsmap_d)) match = .false.
+       endif
+
+       if (match) then
+          mapid = m
+          if (seq_comm_iamroot(CPLID)) then
+             write(logunit,'(A,i6)') subname//' found match ',mapid
+             call shr_sys_flush(logunit)
+          endif
+          return
+       endif
+    enddo
+
+ end subroutine seq_map_mapmatch
+
+!===============================================================================
+ subroutine seq_map_mapinit(mapper,mpicom,gsMap_s,gsMap_d)
+
+    ! This method initializes a new seq_maps map datatype and
+    ! has the mapper passed in point to it
+
+    implicit none
+    type(seq_map)   ,intent(inout),pointer :: mapper
+    integer(IN)     ,intent(in)            :: mpicom
+    type(mct_gsMap) ,intent(in)   ,target  :: gsMap_s
+    type(mct_gsMap) ,intent(in)   ,target  :: gsMap_d
+
+    character(*),parameter :: subName = '(seq_map_mapinit) '
+
+    ! set the seq_map data
+    seq_map_cnt = seq_map_cnt + 1
+    if (seq_map_cnt > seq_map_maxcnt) then
+      write(logunit,*) trim(subname),'seq_map_cnt too large',seq_map_cnt
+      call shr_sys_abort(subName // "seq_map_cnt bigger than seq_map_maxcnt")
+    endif
+    mapper => seq_maps(seq_map_cnt)
+    mapper%counter = seq_map_cnt
+
+    mapper%copy_only = .false.
+    mapper%rearrange_only = .false.
+    mapper%mpicom = mpicom
+    mapper%strategy = "undefined"
+    mapper%mapfile  = "undefined"
+    mapper%gsmap_s => gsmap_s
+    mapper%gsmap_d => gsmap_d
+
+ end subroutine seq_map_mapinit
+
+!===============================================================================
+ subroutine seq_map_mappoint(mapid,mapper)
+
+    ! This method searches through the current seq_maps to find a 
+    ! mapping file that matches the values passed in
+
+    implicit none
+    integer         ,intent(in) :: mapid
+    type(seq_map)   ,intent(inout),pointer :: mapper
+
+    mapper => seq_maps(mapid)
+
+ end subroutine seq_map_mappoint
+
 !===============================================================================
 
 end module seq_map_mod

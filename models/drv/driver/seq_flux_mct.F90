@@ -4,7 +4,7 @@ module seq_flux_mct
   use shr_sys_mod,       only: shr_sys_abort
   use shr_flux_mod,      only: shr_flux_atmocn
   use shr_orb_mod,       only: shr_orb_params, shr_orb_cosz, shr_orb_decl
-  use shr_mct_mod
+  use shr_mct_mod,       only: shr_mct_queryConfigFile, shr_mct_sMatReaddnc
 
   use mct_mod
   use seq_flds_mod
@@ -264,26 +264,8 @@ contains
           call shr_sys_abort(trim(subname)//' do error1')
        endif
 
-       call I90_allLoadF(ConfigFileName,0,mpicom_o,ier)
-       if(ier /= 0) then
-          write(logunit,*) trim(subname)," Cant find config file = ",ConfigFileName
-          call mct_die("mct_sMapP_initnc","File Not Found")
-       endif
-       call i90_label(trim(MapLabel),ier)
-       if(ier /= 0) then
-          write(logunit,*) trim(subname)," Cant find label = ",MapLabel
-          call mct_die("mct_sMapP_initnc","Label Not Found")
-       endif
-       call i90_gtoken(fileName,ier)
-       if(ier /= 0) then
-          write(logunit,*) trim(subname)," Error reading token = ",fileName
-          call mct_die("mct_sMapP_initnc","Error on read")
-       endif
-       write(logunit,*) trim(subname)," map weight filename = ",trim(fileName)
-       call i90_label(trim(MapTypeLabel),ier)
-       call i90_gtoken(maptype,ier)
-
-       call i90_Release(ier)
+       call shr_mct_queryConfigFile(mpicom_o,ConfigFilename, &
+          trim(MapLabel),fileName,trim(MapTypeLabel),maptype)
 
        !--- hardwire decomposition to gsmap_o
        if (n == 1) then

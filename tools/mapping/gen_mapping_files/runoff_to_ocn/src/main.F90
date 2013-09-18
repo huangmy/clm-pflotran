@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: main.F90 46983 2013-05-09 22:08:12Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/runoff_to_ocn/src/main.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/gen_mapping_files/runoff_to_ocn/src/main.F90 $
 !===============================================================================
 
 PROGRAM main
@@ -78,7 +78,7 @@ PROGRAM main
 
    write(6,F10) "correct/smooth/sort runoff -> ocean map"
    write(6,F10) "SVN &
-   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
+   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
 
    call shr_timer_init()
 

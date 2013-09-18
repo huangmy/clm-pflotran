@@ -325,7 +325,7 @@ default: SHR_ORB_UNDEF_REAL (1.e36)
 </entry>
 
 <entry
-id="orb_velp"
+id="orb_mvelp"
 type="real"
 category="orbital" 
 group="seq_infodata_inparm">
@@ -364,53 +364,66 @@ default: false
 </entry>
 
 <entry 
-id="samegrid_al"
-type="logical"
+id="atm_gnam"
+type="char*64"
 category="mapping" 
 group="seq_infodata_inparm">
-tells the coupler to treat the atm and land grids as "the same".  
-automatically set by comparison of ATM_GRID and LND_GRID which are set in env_case.xml.  
-default: true
+ATM_GRID values passed into driver.
+default: undefined
 </entry>
 
 <entry 
-id="samegrid_ao"
-type="logical"
+id="lnd_gnam"
+type="char*64"
 category="mapping" 
 group="seq_infodata_inparm">
-tells the coupler to treat the atm and ocean grids as "the same".  
-automatically set by comparison of ATM_GRID and OCN_GRID which are set in env_case.xml.  
-default: true
+LND_GRID values passed into driver.
+default: undefined
 </entry>
 
 <entry 
-id="samegrid_ro"
-type="logical"
+id="ocn_gnam"
+type="char*64"
 category="mapping" 
 group="seq_infodata_inparm">
-tells the coupler to treat the runoff and ocean grids as "the same".  
-automatically set by comparison of LND_GRID and OCN_GRID which are set in env_case.xml.  
-default: false
+OCN_GRID values passed into driver.
+default: undefined
 </entry>
 
 <entry 
-id="samegrid_aw"
-type="logical"
+id="ice_gnam"
+type="char*64"
 category="mapping" 
 group="seq_infodata_inparm">
-tells the coupler to treat the atm and wave grids as "the same".  
-automatically set by comparison of ATM_GRID and WAV_GRID which are set in env_case.xml.  
-default: false
+ICE_GRID values passed into driver.
+default: undefined
 </entry>
 
 <entry 
-id="samegrid_ow"
-type="logical"
+id="rof_gnam"
+type="char*64"
 category="mapping" 
 group="seq_infodata_inparm">
-tells the coupler to treat the ocean and wave grids as "the same".  
-automatically set by comparison of OCN_GRID and WAV_GRID which are set in env_case.xml.  
-default: false
+ROF_GRID values passed into driver.
+default: undefined
+</entry>
+
+<entry 
+id="glc_gnam"
+type="char*64"
+category="mapping" 
+group="seq_infodata_inparm">
+GLC_GRID values passed into driver.
+default: undefined
+</entry>
+
+<entry 
+id="wav_gnam"
+type="char*64"
+category="mapping" 
+group="seq_infodata_inparm">
+WAV_GRID values passed into driver.
+default: undefined
 </entry>
 
 <entry 
@@ -669,7 +682,7 @@ default: false
 </entry>
 
 <entry 
-id="histaux_s2x1yr"
+id="histaux_l2x1yr"
 type="logical"
 category="history" 
 group="seq_infodata_inparm">
@@ -2121,16 +2134,16 @@ grid.
 </entry>
 
 <entry 
-id="rof2lnd_smapname"
+id="rof2ocn_fmapname"
 type="char*256"
 category="mapping" 
 input_pathname="abs"
 group="seq_maps">
-runoff to lnd conservative mapping file
+runoff to ocn area overlap conservative mapping file
 </entry>
 
 <entry 
-id="rof2lnd_smaptype"
+id="rof2ocn_fmaptype"
 type="char*256"
 category="mapping" 
 group="seq_maps">
@@ -2142,16 +2155,37 @@ grid.
 </entry>
 
 <entry 
-id="rof2ocn_fmapname"
+id="glc2ocn_rmapname"
 type="char*256"
 category="mapping" 
 input_pathname="abs"
 group="seq_maps">
-runoff to ocn area overlap conservative mapping file
+glc to ocn runoff conservative mapping file
 </entry>
 
 <entry 
-id="rof2ocn_fmaptype"
+id="glc2ocn_rmaptype"
+type="char*256"
+category="mapping" 
+group="seq_maps">
+The type of mapping desired, either "source" or "destination" mapping.
+X is associated with rearrangement of the source grid to the
+destination grid and then local mapping.  Y is associated with mapping
+on the source grid and then rearrangement and sum to the destination
+grid.
+</entry>
+
+<entry 
+id="glc2ice_rmapname"
+type="char*256"
+category="mapping" 
+input_pathname="abs"
+group="seq_maps">
+glc to ice runoff conservative mapping file
+</entry>
+
+<entry 
+id="glc2ice_rmaptype"
 type="char*256"
 category="mapping" 
 group="seq_maps">

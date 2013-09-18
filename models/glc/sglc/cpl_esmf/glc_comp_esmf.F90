@@ -82,9 +82,19 @@ subroutine glc_init_esmf(comp, import_state, export_state, EClock, rc)
     call ESMF_AttributeSet(export_state, name="glc_present", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
+    call ESMF_AttributeSet(export_state, name="glclnd_present", value=.false., rc=rc)
+    if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="glcocn_present", value=.false., rc=rc)
+    if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="glcice_present", value=.false., rc=rc)
+    if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
     call ESMF_AttributeSet(export_state, name="glc_prognostic", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
+#ifdef USE_ESMF_METADATA
     convCIM  = "CIM"
     purpComp = "Model Component Simulation Description"
 
@@ -108,6 +118,7 @@ subroutine glc_init_esmf(comp, import_state, export_state, EClock, rc)
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 !    call ESMF_AttributeSet(comp, "ResponsiblePartyRole", "contact", &
 !                           convention=convCIM, purpose=purpComp, rc=rc)
+#endif
 
 end subroutine glc_init_esmf
 

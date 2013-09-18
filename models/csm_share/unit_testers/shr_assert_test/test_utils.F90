@@ -52,10 +52,7 @@ function start_suite(name, log_unit) result(suite)
   integer(shr_kind_in), intent(in) :: log_unit
   type(CESM_UT_Suite) :: suite
 
-! Should be able to do the following, but PGI 11 has bug.
-!  suite = CESM_UT_Suite(trim(name), log_unit)
-  suite%name = trim(name)
-  suite%log_unit = log_unit
+  suite = CESM_UT_Suite(trim(name), log_unit)
 
   write(suite%log_unit,*) "Starting suite: ",trim(suite%name)
   write(suite%log_unit,*) ""

@@ -63,7 +63,7 @@ if sys.version_info < (2, 4):
     error( "The version of Python being used is too old for PTCLM" )
 
 
-svnurl="$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/PTCLM/trunk_tags/PTCLM1_130529/PTCLM.py $"
+svnurl="$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/PTCLM/trunk_tags/PTCLM1_130910/PTCLM.py $"
 if   ( svnurl.split('/')[4] == "trunk"       ):
    svnvers="scripts_trunk"
 elif ( svnurl.split('/')[4] == "trunk_tags"  ):
@@ -163,7 +163,7 @@ indatgengroup.add_option("--pftgrid", dest="pftgrid", help = \
 indatgengroup.add_option("--soilgrid", dest="soilgrid", help = \
                   "Use soil information from global gridded file (rather than site data)",\
                    action="store_true", default=False)
-versiongroup  = OptionGroup( parser, "Main Script Version Id: $Id: PTCLM.py 47576 2013-05-29 19:11:16Z erik $ Scripts URL: "+svnurl )
+versiongroup  = OptionGroup( parser, "Main Script Version Id: $Id: PTCLM.py 50670 2013-08-30 22:39:07Z erik $ Scripts URL: "+svnurl )
 parser.add_option_group(versiongroup)
 
 (options, args) = parser.parse_args()
@@ -177,11 +177,25 @@ if len(args) != 0:
 def system( cmd ):
      "system function with error checking and debug prining"
      if plev>0: print "Run command: "+cmd
+     # Error check that command exists
+     firstspace = cmd.index(" ");
+     if ( firstspace == -1 ):
+        justcmd = cmd
+     else:
+        justcmd = cmd[:firstspace]
+     if ( cmd.index("/") != -1 ):
+        if ( not os.path.exists(justcmd) ): 
+           error( "Error command does NOT exist: "+justcmd );
+     else:
+        rcode = os.system( "which "+justcmd )
+        if ( rcode != 0 ):
+           error( "Error command is NOT in path: "+justcmd )
+     # Now actually run the command if not debug or if create_newcase
      if ( not options.debug or cmd.startswith( "./create_newcase" ) ):
         rcode = os.system( cmd )
      else: rcode = 0
      if ( rcode != 0 ):
-        error( "Error running command"+cmd )
+        error( "Error running command: "+cmd )
         if ( os.path.isfile(filen) ):
            output = open( filen,'a')
            output.write(cmd+"\n")
@@ -434,15 +448,13 @@ if ( suprtclm1pt ):
       error( suprtclm1ptSettings )
    clmusrdatname    = ""
    clmres           = mysite
-   pft_phys_out     = ""
    clmusrdat        = ""
    myres            = mysite
 else:
    clmusrdatname    = "1x1pt_"+mysite
    clmusrdat        = " -usrname "+clmusrdatname
    clmres           = clmusrdatname
-   pft_phys_file    = queryFilename( " ", "fpftcon" )
-   pft_phys_out     = re.search( "(.+)\.nc$", pft_phys_file ).group(1)+"."+mysite+".nc"
+   clmmask          = "navy"
    myres            = "CLM_USRDAT"  #single-point mode (don't change)
 
 if plev>0: print "----------------------------------------------------------------\n"
@@ -570,31 +582,35 @@ if makeptfiles:
     if plev>0: print("Making input files for the point (this may take a while if creating transient datasets)")
 
     surffile   = queryFilename( queryOpts, "fsurdat"    )
-    domainfile    = Get_env_Value( "ATM_DOMAIN_FILE"      )
-    ocndomainfile = domainfile.replace( "lnd", "ocn" )
-
-    mksrf_fnavyoro  = queryFilename( queryOptsNavy+" -namelist clmexp", "mksrf_fnavyoro" )
 
     os.chdir(ptclm_dir)
     #make map grid file and atm to ocean map ############################################
     if plev>0: print "Creating map file for a point with no ocean"
     print "lat="+str(lat)
     ptstr = str(lat)+","+str(lon)
+    if ( os.system( "which ncl" ) != 0 ): error( "ncl is NOT in path" )  # check for ncl
     system(mkmapdat_dir+"/mknoocnmap.pl -p "+ptstr+" -name "+clmres+" > "+mycase+"/mknoocnmap.log")
-    stdout        = os.popen( "ls -1t1 "+mkmapdat_dir+"/map_"+clmres+"_noocean_to_"+clmres+"_"+"nomask_aave_da_c*.nc | head -1" );
+    stdout        = os.popen( "ls -1t1 "+mkmapdat_dir+"/map_"+clmres+"_noocean_to_"+clmres+"_"+"nomask_aave_da_*.nc | head -1" );
     mapfile       = stdout.read().rstrip( );
+    if ( not os.path.exists( mapfile) ): error( "mapfile does NOT exist" )
     print "mapfile="+mapfile+"\n";
     cmd           = "ls -1t1 "+mkmapgrd_dir+"/SCRIPgrid_"+clmres+"_nomask_c*.nc | head -1"
     print "cmd="+cmd
     stdout        = os.popen( cmd )
     scripgridfile = stdout.read().rstrip( );
     print "scripgridfile="+scripgridfile+"\n";
-    #make mapping files needed for mksurfdata_map #######################################
-    stdout = os.popen( "date +%y%m%d" );
-    sdate  = stdout.read().rstrip( );
-    mapdir = ptclm_dir
-    cmd = mkmapdat_dir+"/mkmapdata.sh --gridfile "+scripgridfile+" --res "+clmres+" --gridtype regional > "+mycase+"/mkmapdata.log";
+    if ( not os.path.exists( scripgridfile) ): error( "scripgridfile does NOT exist" )
+
+    #make domain file needed by datm ####################################################
+    if plev>0: print "Creating data domain"
+    cmd = gen_dom_dir+"/gen_domain -m "+mapfile+" -o "+clmmask+" -l "+clmres+" -c 'Running gen_domain from PTCLM' > "+mycasedir+"/gen_domain.log"
     system(cmd);
+    cmd        = "ls -1t1 domain.lnd."+clmres+"_"+clmmask+"*.nc | head -1"
+    print "cmd="+cmd
+    stdout     = os.popen( cmd )
+    domainfile = stdout.read().rstrip( );
+    if ( not os.path.exists( domainfile) ): error( "domainfile does NOT exist" )
+
 
     #make surface data and dynpft #######################################################
     if (sim_year_range != "constant"):
@@ -612,6 +628,18 @@ if makeptfiles:
         else:
            mksrfyears = sim_year_range
 
+        #make mapping files needed for mksurfdata_map #######################################
+        stdout = os.popen( "date +%y%m%d" );
+        sdate  = stdout.read().rstrip( );
+        mapdir = ptclm_dir
+        stdout = os.popen( "ls -1t1 "+mapdir+"/map_*_to_"+clmres+"*"+sdate+".nc | head -1" );
+        mapfile= stdout.read().rstrip( );
+        if ( not os.path.exists( mapfile) ): 
+           if plev>0: print "\n\nRe-create mapping files for surface dataset:"
+           cmd = mkmapdat_dir+"/mkmapdata.sh --gridfile "+scripgridfile+" --res "+clmres+" --gridtype regional > "+mycase+"/mkmapdata.log";
+           system(cmd);
+        else:
+           if plev>0: print "\n\nDo NOT re-create mapping files:"
         # --- use site-level data for mksurfdata_map when available ----
         #PFT information for the site
         if (options.pftgrid == False):
@@ -707,21 +735,11 @@ if makeptfiles:
         #move surface data and pftdyn file to correct location
         system("/bin/mv -f ./surfdata_"+clmres+"_*_c*.nc  "+surffile )
         system("/bin/mv -f ./surfdata_"+clmres+"_*_c*.log "+clm_input+"/surfdata" )
+        if ( not os.path.exists( surffile ) ): error( "surface file does NOT exist" )
         if (sim_year_range != "constant"):
             system("/bin/mv -f surfdata.pftdyn_"+clmres+"_*.nc "+pftdynfile )
+            if ( not os.path.exists( pftdynfile ) ): error( "pftdyn file does NOT exist" )
 
-    #make domain file needed by datm ####################################################
-    if plev>0: print "Creating data domain"
-    cmd = gen_dom_dir+"/gen_domain -m "+mapfile+" -o "+ocndomainfile+" -l "+domainfile+" -c 'Running gen_domain from PTCLM' > "+mycasedir+"/gen_domain.log"
-    system(cmd);
-
-    # Default PFT-physiology file used to make site-level file ##########################
-    pft_phys_file  = queryFilename( queryOptsNousr, "fpftcon" )
-
-    #create site-specific pft-physiology file (only if does NOT exist)
-    if ( not os.path.exists( pft_phys_out ) ):
-       system("/bin/cp "+pft_phys_file+" "+pft_phys_out )
-    if plev>0: print "pft_phys_file = "+pft_phys_out+"\n"
 
 else:
     print "WARNING: nopointdata option was selected.  Model will crash if the site level data have not been created\n"    
@@ -732,6 +750,11 @@ else:
 ###### SET ENV_RUN.XML VALUES ###########################################################
    
 os.chdir(mycase)
+if makeptfiles:
+    xmlchange_env_value( "ATM_DOMAIN_PATH", ptclm_dir  )
+    xmlchange_env_value( "LND_DOMAIN_PATH", ptclm_dir  )
+    xmlchange_env_value( "ATM_DOMAIN_FILE", domainfile )
+    xmlchange_env_value( "LND_DOMAIN_FILE", domainfile )
 hist_nhtfrq = 0
 if(options.stdurbpt):
    hist_mfilt  = str(myrun_n)+", "+str(myrun_n)+", "+str(myrun_n)
@@ -766,8 +789,6 @@ if ( options.coldstart ):
 output = open("user_nl_clm",'w')
 output.write(   " hist_nhtfrq = "+str(hist_nhtfrq)+"\n" )
 output.write(   " hist_mfilt  = "+str(hist_mfilt)+"\n" )
-if( pft_phys_out != "" ):
-   output.write(" fpftcon = '"+pft_phys_out+"'\n" )
 if(options.namelist != " "):
    output.write(options.namelist+"\n")
 if(finidat != " "):

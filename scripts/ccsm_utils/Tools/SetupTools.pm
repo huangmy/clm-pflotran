@@ -11,10 +11,11 @@ sub expand_env_var
 
     if ($value =~ /\$\{*([\w_]+)}*(.*)$/) {
        my $subst = $vars->{$1};
+       $subst = $ENV{$1} unless defined $subst;
        $value =~ s/\$\{*${1}\}*/$subst/g;
     }
+    
     $value = expand_env_var($value,$vars) if ($value =~ /\$\{*[\w_]+\}*.*$/) ;
-
     return $value; 
 }       
 
