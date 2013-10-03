@@ -1,8 +1,46 @@
 ================================================================================
-SVN $Id: ChangeLog 51119 2013-09-13 06:05:21Z erik $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130912/ChangeLog $
+SVN $Id: ChangeLog 51195 2013-09-16 19:40:56Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130916/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: Sep 16 2013
+Model: scripts
+Version: scripts4_130916
+One-line: Rework PET and PEM tests in aux_clm test list
+
+Get better test coverage of PET tests, and to a lesser extent PEM tests, in the
+aux_clm test list. Explicitly specify PE layout of PET tests, both to get more
+reasonable PE layouts and to force multiple threads even if config_pes says not
+to. Include some longer PET tests.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: erik
+Date: Sep 15 2013
+Model: scripts
+Version: scripts4_130915
+One-line: Add PRS test that does restart testing from startup with changed PE count
+
+PRS test halves the number of tasks and threads and does a restart test. Thus
+making sure that writing and read of restart files is NOT sensitive to PE count.
+
+M       ccsm_utils/Testcases/config_tests.xml
+A       ccsm_utils/Testcases/PRS_script
+A       ccsm_utils/Testcases/PRS_build.csh
+
+================================================================================
+Originator: jshollen
+Date: Sep 13 2013
+Model: scripts
+Version: scripts4_130913
+One-line: add_xml_entry: now handles testmods correctly, now sorts testlist.xml
+
+D       ccsm_utils/Testlistxml/sort_xml_entries
+M       ccsm_utils/Testlistxml/add_xml_entries
+
 ================================================================================
 Originator: erik
 Date: Sep 12 2013
