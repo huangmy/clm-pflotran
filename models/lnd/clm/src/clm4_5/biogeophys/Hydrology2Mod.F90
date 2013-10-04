@@ -80,10 +80,6 @@ contains
     integer  :: gcount
     integer  :: nstep                      ! time step number
     real(r8) :: dtime                      ! land model time step (sec)
-    real(r8) :: vol_liq(bounds%begc:bounds%endc,1:nlevgrnd)! partial volume of liquid water in layer
-    real(r8) :: dwat(bounds%begc:bounds%endc,1:nlevgrnd)   ! change in soil water
-    real(r8) :: hk(bounds%begc:bounds%endc,1:nlevgrnd)     ! hydraulic conductivity (mm h2o/s)
-    real(r8) :: dhkdw(bounds%begc:bounds%endc,1:nlevgrnd)  ! d(hk)/d(vol_liq)
     real(r8) :: psi,vwc,fsattmp,psifrz     ! temporary variables for soilpsi calculation
     real(r8) :: watdry                     ! temporary
     real(r8) :: rwat(bounds%begc:bounds%endc)              ! soil water wgted by depth to maximum depth of 0.5 m
@@ -230,7 +226,6 @@ contains
       ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
       call Infiltration(bounds,  num_hydrologyc, filter_hydrologyc, &
                         num_urbanc, filter_urbanc, vol_liq)
-
     endif
 
     if (use_pflotran) then
@@ -249,7 +244,7 @@ contains
        endif
     else
        call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, &
-                   num_urbanc, filter_urbanc, dwat, hk, dhkdw)
+                   num_urbanc, filter_urbanc)
     end if
 
     if (use_vichydro) then

@@ -41,6 +41,15 @@
           CCSM_TCOST="1"
           DOUT_S="FALSE" />
 
+<ccsmtest NAME="PRS"
+          DESC="pes counts hybrid (open-MP/MPI) restart bfb test from startup, default 6 days + 5 days"
+          INFO_DBUG="2"
+          BFBFLAG="TRUE"
+          CCSM_TCOST="1"
+          STOP_OPTION="ndays"
+          STOP_N="11"
+          DOUT_S="FALSE" />
+
 <ccsmtest NAME="ERS"
           DESC="exact restart from startup, default 6 days + 5 days"
           INFO_DBUG="2"

@@ -1,5 +1,15 @@
 Tag                   Who      Date  Summary
 ============================================================================================================================
+   clm4_5_35        sacks 10/01/2013 get CLM running on edison
+   clm4_5_34         erik 09/30/2013 Get PTCLM working, fix a few small bugs
+   clm4_5_33      muszala 09/26/2013 clean up from mistakes in previous tag
+   clm4_5_32      muszala 09/26/2013 bug fix tag - 1798, 1810
+   clm4_5_31        sacks 09/25/2013 fix bug 1820: incomplete conditional in CNSoyfix leads to buggy results and decomposition dependence
+   clm4_5_30        sacks 09/24/2013 fix performance bug in decomposition initialization
+   clm4_5_29        sacks 09/24/2013 fix threading in CLM4.5, and other misc fixes
+   clm4_5_28        sacks 09/20/2013 fix FracH2oSfc bug
+   clm4_5_27        sacks 09/20/2013 fix crop nyrs bug
+   clm4_5_26      muszala 09/19/2013 water balance and SMS_Ly1.f19_g16.ICLM45BGCCROP fix
    clm4_5_25         erik 09/13/2013 Bring in Tony's changes to kick sno all the way up to the coupler layer, makes all 
                                      CESM components more similar to each other
    clm4_5_24        sacks 09/03/2013 update externals to cesm1_3_beta02 or later

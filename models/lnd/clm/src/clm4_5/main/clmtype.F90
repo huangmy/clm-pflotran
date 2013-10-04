@@ -1259,7 +1259,6 @@ type, public :: column_pstate_type
    real(r8), pointer :: frac_sno(:)           !fraction of ground covered by snow (0 to 1)
    real(r8), pointer :: frac_sno_eff(:)       !fraction of ground covered by snow (0 to 1)
    real(r8), pointer :: frac_h2osfc(:)        !fractional area with surface water greater than zero
-   real(r8), pointer :: frac_h2osfc_temp(:)   !temporay fractional area with surface water greater than zero
    real(r8), pointer :: topo_std(:)           !gridcell topographic standard deviation (m)
    real(r8), pointer :: topo_ndx(:)           !gridcell topographic index
    real(r8), pointer :: topo_slope(:)         !gridcell topographic slope
@@ -2334,11 +2333,6 @@ type, public :: gridcell_type
    real(r8), pointer :: lon(:)          !longitude (radians)
    real(r8), pointer :: latdeg(:)       !latitude (degrees)
    real(r8), pointer :: londeg(:)       !longitude (degrees)
-   integer , pointer :: gindex_a(:)     !"atm" global index
-   real(r8), pointer :: lat_a(:) 	!"atm" latitude (radians) for albedo
-   real(r8), pointer :: lon_a(:)        !"atm" longitude (radians) for albedo
-   real(r8), pointer :: latdeg_a(:)     !"atm" latitude (degrees) for albedo
-   real(r8), pointer :: londeg_a(:)     !"atm" longitude (degrees) for albedo
 
    real(r8), pointer :: gris_mask(:)    !Greenland ice sheet mask 
    real(r8), pointer :: gris_area(:)    !Greenland ice-covered area per gridcell (km^2)

@@ -283,7 +283,7 @@ $fullsum = $fullsum + $sum;
 $taskgeom = $taskgeom.")";
 $taskpernode = $MAXTPN / $thrdcnt;
 $taskpernode = ($taskpernode > $taskcnt) ? $taskcnt : $taskpernode;
-if ($COMPILER eq "intel"){
+if ($COMPILER eq "intel" && $taskpernode>1){
     my $taskpernuma = $taskpernode/2;
     $aprun .= " -S $taskpernuma -cc numa_node ";
 }

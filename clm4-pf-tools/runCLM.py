@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, csv
+import os, sys, stat, csv
 from optparse import OptionParser
 #import Scientific.IO.NetCDF
 #from Scientific.IO import NetCDF
@@ -165,6 +165,9 @@ parser.add_option("--ypts", dest="ypts", default=1, \
                   help = 'for regional: ypts')
 parser.add_option("--refcase", dest="refcase" , default='none', \
                   help = 'Use already compiled CLM case')
+parser.add_option("--update-datm-domain", dest="update_datm_domain",
+                  action="store_true", default=False, \
+                  help = 'point the datm path for the domain to the datm directory instead of the share directory.')
 
 (options, args) = parser.parse_args()
 
@@ -636,6 +639,24 @@ if (options.refcase == 'none'):
         print("Warning:  No case configure performed.  PTCLM will not " \
                   +"make any requested modifications to env_*.xml files.  Exiting.")
         sys.exit()    
+
+# 5.5 datm domain path -----------
+
+    # if using a single point datm on a multi-point clm, we need to
+    # update the datm domain path. This must be done after cesm_setup
+    # is called. Any changes to the user_nl_datm after this point will
+    # not affect the contents of datm.streams.txt.
+
+    # need to copy CaseDocs/datm.streams.txt.CLM1PT.CLM_USRDAT
+    # to user_datm.streams.txt.CLM1PT.CLM_USRDAT
+    # then replace share/domains/domain.clm with atm/datm7/domain.clm in the domainInfo filePath
+    if (options.update_datm_domain is True):
+        print("--- Updating datm domain ---")
+        os.system('cp -f CaseDocs/datm.streams.txt.CLM1PT.CLM_USRDAT user_datm.streams.txt.CLM1PT.CLM_USRDAT')
+        # add user write permissions to the datm.streams file
+        mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+        os.chmod('user_datm.streams.txt.CLM1PT.CLM_USRDAT', mode)
+        os.system('perl -w -i -p -e "s@share/domains/domain.clm@atm/datm7/domain.clm@" user_datm.streams.txt.CLM1PT.CLM_USRDAT')
 
 # (6) clm user-defined namelist modification ('user_nl_clm') -----
     output = open("user_nl_clm",'w')

@@ -56,6 +56,8 @@ defSitesGroup = "EXAMPLE" #default site group name
 
 ccsm_input=" "
 filen = " "
+histrcp = str(-999.9)
+mydatadir   = "mydatafiles"
 
 ######  GET VERSION INFORMATION #########################################################
 
@@ -63,7 +65,7 @@ if sys.version_info < (2, 4):
     error( "The version of Python being used is too old for PTCLM" )
 
 
-svnurl="$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/PTCLM/trunk_tags/PTCLM1_130910/PTCLM.py $"
+svnurl="$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/PTCLM/trunk_tags/PTCLM1_130929/PTCLM.py $"
 if   ( svnurl.split('/')[4] == "trunk"       ):
    svnvers="scripts_trunk"
 elif ( svnurl.split('/')[4] == "trunk_tags"  ):
@@ -95,7 +97,7 @@ required.add_option("-s", "--site", dest="mysite", default="none", \
                   help="Site-code to run, FLUXNET code or CLM1PT name (-s list to list valid names)")
 parser.add_option_group(required)
 options  = OptionGroup( parser, "Configure and Run Options" )
-options.add_option("-c", "--compset", dest="mycompset", default="ICRUCLM45BGC", \
+options.add_option("-c", "--compset", dest="mycompset", default="I1PTCLM45", \
                   help="Compset for CCSM simulation (Must be a valid 'I' compset [other than IG compsets], use -c list to list valid compsets)")
 options.add_option("--coldstart", dest="coldstart", action="store_true", default=False, \
                   help="Do a coldstart with arbitrary initial conditions")
@@ -110,12 +112,14 @@ options.add_option("--finidat", dest="finidat", default=" ", \
                   help="Name of finidat initial conditions file to start CLM from")
 options.add_option("--list", dest="list", default=False, action="store_true", \
                   help="List all valid: sites, compsets, and machines")
+options.add_option("--mydatadir", dest="mydatadir", default=mydatadir \
+                  ,help="Directory of where to put (or expect) your data files (files will be under subdirectories for each site)" )
 options.add_option("--namelist", dest="namelist", default=" " \
                   ,help="List of namelist items to add to CLM namelist "+ \
                         "(example: --namelist=\"hist_fincl1='TG',hist_nhtfrq=-1\"" )
-options.add_option("--QIAN_tower_yrs",action="store_true",\
-                  dest="QIAN_tower_yrs",default=False,\
-                  help="Use the QIAN forcing data year that correspond to the tower years")
+options.add_option("--use_tower_yrs",action="store_true",\
+                  dest="use_tower_yrs",default=False,\
+                  help="Use the global forcing data year that corresponds to the tower years (for compsets with global forcing)")
 options.add_option("--rmold", dest="rmold", action="store_true", default=False, \
                   help="Remove the old case directory before starting")
 options.add_option("--run_n", dest="myrun_n", default=defmyrun_n, \
@@ -125,14 +129,14 @@ options.add_option("--run_units", dest="myrun_units", default=defmyrun_units, \
 options.add_option("--quiet", action="store_true", \
                   dest="quiet", default=False, \
                   help="Print minimul information on what the script is doing")
+options.add_option("--cycle_forcing", action="store_true", \
+                  dest="cycle_forcing", default=False, \
+                  help="Cycle over the forcing data rather than do one run through (modifies start/end year to get this to work)")
 options.add_option("--sitegroupname", dest="sitegroup", default=defSitesGroup, \
                   help="Name of the group of sites to search for you selected site in "+ \
                   "(look for prefix group names in the PTCLM_sitedata directory)")
 options.add_option("--stdurbpt", dest="stdurbpt", default=False, action="store_true", \
                   help="If you want to setup for standard urban namelist settings")
-options.add_option("--useQIAN", dest="useQIAN", help= \
-                  "use QIAN input forcing data instead of tower site meterology data", \
-                  default=False, action="store_true")
 options.add_option("--verbose", action="store_true", \
                   dest="verbose", default=False, \
                   help="Print out extra information on what the script is doing")
@@ -163,7 +167,7 @@ indatgengroup.add_option("--pftgrid", dest="pftgrid", help = \
 indatgengroup.add_option("--soilgrid", dest="soilgrid", help = \
                   "Use soil information from global gridded file (rather than site data)",\
                    action="store_true", default=False)
-versiongroup  = OptionGroup( parser, "Main Script Version Id: $Id: PTCLM.py 50670 2013-08-30 22:39:07Z erik $ Scripts URL: "+svnurl )
+versiongroup  = OptionGroup( parser, "Main Script Version Id: $Id: PTCLM.py 51816 2013-09-30 00:17:21Z erik $ Scripts URL: "+svnurl )
 parser.add_option_group(versiongroup)
 
 (options, args) = parser.parse_args()
@@ -261,25 +265,40 @@ class MachineList( ContentHandler ):
        self.list.append( str( attrs.get('MACH',"") ) )
 
    def endDocument(self):
-     print "\nValid Machines: "+str(self.list)+"\n\n";
+     print "\nValid Machines: "
+     for machine in self.list:
+        print str(machine)
+     print "\n\n";
 #
 # List the compsets  in the config_compsets.xml file
 #
 class ICompSetsList( ContentHandler ):
 
    def startDocument(self):
-     self.list = [];
+     self.list     = [];
+     self.map      = {};
+     self.tag      = "comment"
    
    def startElement(self, name, attrs):
+     self.tag = "comment"
      if name == 'COMPSET':
-       name = str( attrs.get('sname',"") )
-       if ( name.startswith( "I" ) and not "GLC" in name and "CLM45" in name ): 
-          nlen = len(self.list)
-          if (   nlen == 0                 ): self.list.append( name )
-          elif ( name != self.list[nlen-1] ): self.list.append( name )
+       sname  = str( attrs.get('sname',"") )
+       alias  = str( attrs.get('alias',"") )
+       desc   = ("%30s  %25s") % (sname, "("+alias+")" )
+       if ( sname.startswith( "I" ) and not "GLC" in sname ): 
+          self.list.append(  desc )
+          self.tag = desc
+          self.map[self.tag] = ""
+
+   def characters(self, content):
+     if ( self.tag != "comment" ): 
+        self.map[self.tag] += content.replace("\n","")
 
    def endDocument(self):
-     print "\nValid Compsets: "+str(self.list)+"\n\n";
+     print "\nValid Compsets: "
+     for compset in self.list:
+        print str(compset)+"\t"+self.map[compset]
+     print "\n\n";
 
 
 ###### SET OPTIONS BASED ON INPUT FROM PARSER  ##########################################
@@ -322,9 +341,6 @@ else:
 
 mycasename=mycasename+"_"+mycompset
   
-if options.useQIAN:
-   mycasename+="_QIAN"
-  
 if plev>0: print "CESM Component set:\t\t\t\t\t"+mycompset
 if plev>0: print "CESM machine:\t\t\t\t\t\t"+options.mymachine
 
@@ -353,9 +369,6 @@ else:
    mycasename = mycase.rpartition("/")[2]
 if plev>0: print "Case name:\t\t\t\t\t\t"+mycasename
 if plev>0: print "Case directory:\t\t\t\t\t"+mycasedir
-
-useQIAN=options.useQIAN
-if plev>0: print "Using QIAN climate inputs\t\t\t\t"+str(useQIAN)
 
 finidat    = options.finidat
 if (finidat == " "):
@@ -413,6 +426,7 @@ for row in AFdatareader:
         startyear=int(row[6])
         endyear=int(row[7])
         alignyear = int(row[8])
+        timestep  = int(row[9])
 
 if ( mysite == "list" ): 
   print "\nSupported CLM1PT name dataset names are:\n";
@@ -431,15 +445,8 @@ ccsm_input=options.ccsm_input
 if ccsm_input == " ":
    parser.error( "inputdatadir is a required argument, set it to the directory where you have your inputdata"+infohelp )
 if plev>0: print "CCSM input data directory:\t\t\t\t"+ccsm_input
-#define data and utility directroies
-clm_tools   = abs_base_cesm+'/models/lnd/clm/tools'
-gen_dom_dir = abs_base_cesm+'/tools/mapping/gen_domain_files'
-mkmapgrd_dir= clm_tools+'/shared/mkmapgrids'
-mkmapdat_dir= clm_tools+'/shared/mkmapdata'
-clm_input   = ccsm_input+'/lnd/clm2'
-datm_input  = ccsm_input+'/atm/datm7'
-
-mask = "navy"
+#define data and utility directories
+mask        = "navy"
 if ( suprtclm1pt ):
    if plev>0: print "Did NOT find input sitename:"+mysite+" in sitedata:"+sitedata
    if plev>0: print "Assuming that this is a supported CLM1PT single-point dataset"
@@ -456,6 +463,22 @@ else:
    clmres           = clmusrdatname
    clmmask          = "navy"
    myres            = "CLM_USRDAT"  #single-point mode (don't change)
+
+clm_tools   = abs_base_cesm+'/models/lnd/clm/tools'
+gen_dom_dir = abs_base_cesm+'/tools/mapping/gen_domain_files'
+mkmapgrd_dir= clm_tools+'/shared/mkmapgrids'
+mkmapdat_dir= clm_tools+'/shared/mkmapdata'
+clm_input   = ccsm_input+'/lnd/clm2'
+datm_input  = ccsm_input+'/atm/datm7'
+
+if ( options.mydatadir.startswith("/") ):
+   data_dir    = options.mydatadir
+else:
+   data_dir    = ptclm_dir+'/mydatafiles'
+
+if ( not suprtclm1pt ):
+   data_dir    = data_dir+"/"+clmusrdatname
+   if ( not os.path.exists( data_dir ) ): system( "mkdir -p "+data_dir )
 
 if plev>0: print "----------------------------------------------------------------\n"
 
@@ -482,11 +505,6 @@ clmnmlusecase    = Get_env_Value( "CLM_NML_USE_CASE" )
 clmconfigopts    = Get_env_Value( "CLM_CONFIG_OPTS" )
 datmpresaero     = Get_env_Value( "DATM_PRESAERO" )
 
-if ( "-bgc" in clmconfigopts ):
-   bgctypeCN = re.search('-bgc (cn[a-z]*)', clmconfigopts )
-else:
-   bgctypeCN = None;
-
 filen = mycase+"/README.PTCLM"
 if plev>0: print "Write "+filen+" with command line"
 output = open( filen,'w')
@@ -503,12 +521,12 @@ if (   clmnmlusecase.endswith("_transient") ):
         sim_year_range = transient.group(1)
         sim_year       = re.search( '^([0-9]+)-',    transient.group(1) ).group(1)
         rcpcase        = re.search( '^rcp([0-9.]+)', transient.group(2) )
-        if ( rcpcase == None ): rcp = -999.9
+        if ( rcpcase == None ): rcp = histrcp
         else:                   rcp = rcpcase.group(1)
      elif ( clmnmlusecase.startswith("20thC_") ):
         sim_year_range = "1850-2000"
         sim_year       = "1850"
-        rcp            = "-999.9"
+        rcp            = histrcp
      else:
         error( "Can not parse use-case name, does not follow conventions:"+clmnmlusecase )
 
@@ -519,13 +537,18 @@ elif ( clmnmlusecase.endswith("_control") ):
           if ( sim_year == None ): error( "Trouble finding sim_year from:"+clmnmlusecase )
           sim_year       = str(sim_year)
           sim_year_range = "constant"
-          rcp            = str(-999.9)
+          rcp            = histrcp
 elif ( clmnmlusecase.endswith("_pd") or clmnmlusecase == "UNSET" ):
           sim_year       = "2000"   
           sim_year_range = "constant"
-          rcp            = str(-999.9)
+          rcp            = histrcp
 else:
           error( "Can not parse use-case name:, does not follow conventions"+clmnmlusecase )
+
+if ( rcp == histrcp ):
+   pftdyntype = "hist"
+else:
+   pftdyntype = "rcp"+rcp
 
 qoptionsbase   = " -options mask="+mask+",rcp="+rcp
    
@@ -539,6 +562,29 @@ if ( suprtclm1pt ):
     startyear  = Get_env_Value( "DATM_CLMNCEP_YR_START" )
     endyear    = Get_env_Value( "DATM_CLMNCEP_YR_END"   )
     alignyear  = startyear
+
+#
+# If you are trying to cycle the forcing years you need to be careful about
+# the number of years cycling over and taking leap years into account.
+#
+if ( options.cycle_forcing ):
+    numyears = endyear - startyear + 1
+    numfour = int(numyears/4)
+    # If have three years or less (numfour = 0) just repeat first year  
+    # unless first year is leap year then use next year.
+    # Since just using one year that is not a leap year endyear is startyear
+    if (numfour == 0):
+      if (startyear % 4 == 0):
+        startyear = startyear + 1
+
+      endyear  = startyear
+    else:
+      endyear = startyear + numfour * 4 - 1
+
+    alignyear = startyear
+
+clmphysvers = (re.search('-phys (clm[405_]+)', clmconfigopts )).group(1)
+if plev>0: print "CLM Physics Version: "+clmphysvers
 
 ####### ANY OTHER LAST SETTINGS BEFORE CREATING DATASETS ################################
 
@@ -558,16 +604,10 @@ if plev>0: print "Number of simulation "+myrun_units+" to run:\t\t\t\t"+str(myru
 if ( clmusrdatname != "" ):
    xmlchange_env_value( "CLM_USRDAT_NAME", clmusrdatname )
 
-if(useQIAN):
-    xmlchange_env_value(        "DATM_MODE",             "CLM_QIAN" )
-    if(options.QIAN_tower_yrs):
-       xmlchange_env_value(     "DATM_CLMNCEP_YR_START", str(startyear) )
-       if(endyear < 2005):
-           xmlchange_env_value( "DATM_CLMNCEP_YR_END",   str(endyear) )
-       else:
-           xmlchange_env_value( "DATM_CLMNCEP_YR_END",   "2004" )
-else:
-    xmlchange_env_value( "DATM_MODE",             "CLM1PT" )
+datm_mode= Get_env_Value( "DATM_MODE" )
+if(datm_mode == "CLM_QIAN" and endyear > 2004):
+    endyear = 2004
+if(datm_mode == "CLM1PT" or options.use_tower_yrs):
     xmlchange_env_value( "DATM_CLMNCEP_YR_START", str(startyear) )
     xmlchange_env_value( "DATM_CLMNCEP_YR_END",   str(endyear) )
 
@@ -575,15 +615,27 @@ xmlchange_env_value( "CLM_BLDNML_OPTS", "'-mask "+mask+"'" )
 
 xmlchange_env_value( "MPILIB", "mpi-serial" )
 
+# Find surface datasets if one exists
+if ( sim_year_range == "constant" ):
+  pftdynfile = None
+
+surffile   = queryFilename( queryOpts, "fsurdat"    )
+if ( sim_year_range != "constant" ):
+  pftdynfile = queryFilename( queryOpts, "fpftdyn" )
+if ( not os.path.exists( surffile ) ):
+  stdout     = os.popen( "ls -1t1 "+data_dir+"/surfdata_"+clmres+"*_simyr"+sim_year+"_"+clmphysvers+"_*.nc | head -1" );
+  surffile   = stdout.read().rstrip( );
+if ( sim_year_range != "constant" and not os.path.exists( pftdynfile )):
+  stdout     = os.popen( "ls -1t1 "+data_dir+"/surfdata.pftdyn_"+clmres+"*_"+pftdyntype+"*_simyr"+actual_sim_year_range+"_"+clmphysvers+"_*.nc | head -1" );
+  pftdynfile = stdout.read().rstrip( );
+
 ############# BEGIN CREATE POINT DATASETS ###############################################
 
 
 if makeptfiles:
     if plev>0: print("Making input files for the point (this may take a while if creating transient datasets)")
 
-    surffile   = queryFilename( queryOpts, "fsurdat"    )
-
-    os.chdir(ptclm_dir)
+    os.chdir(data_dir)
     #make map grid file and atm to ocean map ############################################
     if plev>0: print "Creating map file for a point with no ocean"
     print "lat="+str(lat)
@@ -613,16 +665,11 @@ if makeptfiles:
 
 
     #make surface data and dynpft #######################################################
-    if (sim_year_range != "constant"):
-       pftdynfile = queryFilename( queryOpts, "fpftdyn" )
-    else:
-       pftdynfile = None
     if ( (not options.owritesrf) and os.path.exists( surffile) and \
          ((pftdynfile == None) or os.path.exists( pftdynfile ) ) ):
         print "\n\nWARNING: Use existing surface file rather than re-creating it:\t"+surffile
     else:
-        if plev>0: print "\n\nRe-create surface dataset:\t"+surffile
-        if ( os.path.exists( surffile ) ): print "Over write file: "+surffile
+        if plev>0: print "\n\nRe-create surface dataset:\t"
         if ( sim_year_range == "constant" ):
            mksrfyears = sim_year
         else:
@@ -631,22 +678,18 @@ if makeptfiles:
         #make mapping files needed for mksurfdata_map #######################################
         stdout = os.popen( "date +%y%m%d" );
         sdate  = stdout.read().rstrip( );
-        mapdir = ptclm_dir
-        stdout = os.popen( "ls -1t1 "+mapdir+"/map_*_to_"+clmres+"*"+sdate+".nc | head -1" );
-        mapfile= stdout.read().rstrip( );
-        if ( not os.path.exists( mapfile) ): 
-           if plev>0: print "\n\nRe-create mapping files for surface dataset:"
-           cmd = mkmapdat_dir+"/mkmapdata.sh --gridfile "+scripgridfile+" --res "+clmres+" --gridtype regional > "+mycase+"/mkmapdata.log";
-           system(cmd);
-        else:
-           if plev>0: print "\n\nDo NOT re-create mapping files:"
+        mapdir = data_dir
+        # mkmapdata.sh remembers where it is (although it starts over for a new date)
+        if plev>0: print "\n\nRe-create mapping files for surface dataset:"
+        cmd = mkmapdat_dir+"/mkmapdata.sh --gridfile "+scripgridfile+" --res "+clmres+" --gridtype regional --phys "+clmphysvers+" > "+mycase+"/mkmapdata.log";
+        system(cmd);
         # --- use site-level data for mksurfdata_map when available ----
         #PFT information for the site
         if (options.pftgrid == False):
             if plev>0: print "Replacing PFT information in surface data file"
             os.chdir(ptclm_dir+"/PTCLM_sitedata")
             AFdatareader = csv.reader(open(pftdata, "rb"))
-            os.chdir(ptclm_dir)
+            os.chdir(data_dir)
             pft_frac=[0,0,0,0,0]
             pft_code=[0,0,0,0,0]
             found=0
@@ -680,7 +723,7 @@ if makeptfiles:
             os.chdir(ptclm_dir+"/PTCLM_sitedata")
             if plev>0: print "Replacing soil information in surface data file"
             AFdatareader = csv.reader(open(soildata, "rb"))
-            os.chdir(ptclm_dir)
+            os.chdir(data_dir)
             found=0
             for row in AFdatareader:
                 if plev>1: print " site = %9s" % row[0]
@@ -730,19 +773,35 @@ if makeptfiles:
         mksurfopts = "-res usrspec -usr_gname "+clmres+" -usr_gdate "+sdate+ \
                      " -usr_mapdir "+mapdir+" -dinlc "+ccsm_input+" -y "+mksrfyears+ \
                      " -rcp "+rcp+soilopts+pftopts+dynpftopts
-        system(clm_tools+"/clm4_5/mksurfdata_map/mksurfdata.pl "+mksurfopts+" > "+mycasedir+"/mksurfdata_map.log")
+        system(clm_tools+"/"+clmphysvers+"/mksurfdata_map/mksurfdata.pl "+mksurfopts+" > "+mycasedir+"/mksurfdata_map.log")
 
-        #move surface data and pftdyn file to correct location
-        system("/bin/mv -f ./surfdata_"+clmres+"_*_c*.nc  "+surffile )
-        system("/bin/mv -f ./surfdata_"+clmres+"_*_c*.log "+clm_input+"/surfdata" )
-        if ( not os.path.exists( surffile ) ): error( "surface file does NOT exist" )
+        stdout  = os.popen( "ls -1t1 "+data_dir+"/surfdata_"+clmres+"_simyr"+sim_year+"_*.nc | head -1" );
+        surffile= stdout.read().rstrip( );
+        stdout  = os.popen( "ls -1t1 "+data_dir+"/surfdata_"+clmres+"_simyr"+sim_year+"_*.log | head -1" );
+        logfile = stdout.read().rstrip( );
+        if ( not os.path.exists( surffile ) ): error( "surface file does NOT exist"     )
+        if ( not os.path.exists( logfile  ) ): error( "surface log file does NOT exist" )
+        if ( sim_year_range != "constant" ):
+           stdout     = os.popen( "ls -1t1 "+data_dir+"/surfdata.pftdyn_"+clmres+"_"+pftdyntype+"_simyr"+actual_sim_year_range+"_"+"_*.nc | head -1" );
+           pftdynfile = stdout.read().rstrip( );
+           if ( not os.path.exists( pftdynfile ) ): error( "pftdynfile file does NOT exist" )
+        # rename files with clm version in the filename
+        newsurffile = "surfdata_"+clmres+"_simyr"+sim_year+"_"+clmphysvers+"_c"+sdate+".nc"
+        newlogfile  = "surfdata_"+clmres+"_simyr"+sim_year+"_"+clmphysvers+"_c"+sdate+".log"
+        system("/bin/mv -f "+surffile+" "+newsurffile )
+        system("/bin/mv -f "+logfile+" "+newlogfile   )
+        surffile    = data_dir+"/"+newsurffile
         if (sim_year_range != "constant"):
-            system("/bin/mv -f surfdata.pftdyn_"+clmres+"_*.nc "+pftdynfile )
-            if ( not os.path.exists( pftdynfile ) ): error( "pftdyn file does NOT exist" )
+            newpftdynfile = "surfdata.pftdyn"+clmres+"_"+pftdyntype+"_simyr"+actual_sim_year_range+"_"+clmphysvers+"_c"+sdate+".nc"
+            system("/bin/mv -f "+pftdynfile+" "+newpftdynfile )
+            pftdynfile = data_dir+"/"+newpftdynfile
 
 
 else:
-    print "WARNING: nopointdata option was selected.  Model will crash if the site level data have not been created\n"    
+    # Make sure surface dataset exists for --nopointdata option
+    if ( not os.path.exists( surffile ) ): error( "surface dataset does NOT exist" )
+
+
    
 ####### END CREATE POINT DATASETS #######################################################
 
@@ -751,8 +810,8 @@ else:
    
 os.chdir(mycase)
 if makeptfiles:
-    xmlchange_env_value( "ATM_DOMAIN_PATH", ptclm_dir  )
-    xmlchange_env_value( "LND_DOMAIN_PATH", ptclm_dir  )
+    xmlchange_env_value( "ATM_DOMAIN_PATH", data_dir   )
+    xmlchange_env_value( "LND_DOMAIN_PATH", data_dir   )
     xmlchange_env_value( "ATM_DOMAIN_FILE", domainfile )
     xmlchange_env_value( "LND_DOMAIN_FILE", domainfile )
 hist_nhtfrq = 0
@@ -770,6 +829,10 @@ if ( suprtclm1pt ):
    clmconfigopts = Get_env_Value( "CLM_CONFIG_OPTS" )
    xmlchange_env_value( "CLM_CONFIG_OPTS", "'"+clmconfigopts+" -sitespf_pt "+ \
                              clmres+"'")
+else:
+   atm_ncpl = int((60 // timestep) * 24)
+   xmlchange_env_value(    "ATM_NCPL", str(atm_ncpl) )
+   xmlchange_env_value( "RUN_STARTDATE", str(alignyear)+"-01-01" )
 
 xmlchange_env_value( "STOP_N",      str(myrun_n) )
 xmlchange_env_value( "STOP_OPTION", myrun_units )
@@ -784,9 +847,13 @@ if ( options.coldstart ):
    if ( Get_env_Value( "RUN_TYPE" ) == "hybrid" ): 
       xmlchange_env_value( "RUN_TYPE", "startup" )
 
+
 ####  SET NAMELIST OPTIONS ##############################################################
 
 output = open("user_nl_clm",'w')
+output.write(   " fsurdat = '"+surffile+"'\n" )
+if (sim_year_range != "constant"):
+   output.write(   " fpftdyn = "+pftdynfile+"\n" )
 output.write(   " hist_nhtfrq = "+str(hist_nhtfrq)+"\n" )
 output.write(   " hist_mfilt  = "+str(hist_mfilt)+"\n" )
 if(options.namelist != " "):

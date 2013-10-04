@@ -96,7 +96,7 @@ REQUIRED ARGUMENTS:
                                 to be built with.  
 
       -xml_category <CATEGORY>  The 'category' of the test suite being run.  
-                                Examples include: prelapha, prebeta, prerelease,
+                                Examples include: prealpha, prebeta, prerelease,
                                 aux_clm, etc. 
 
       For using the legacy text-based test lists:
@@ -250,14 +250,14 @@ EXAMPLES
       cesm1_2_alpha08a tag, and comparing against the cesm1_2_alpha07c 
       baselines.  
 
-      3. create_test xml_mach yellowstone -xml_compiler pgi -xml_category 
+      3. create_test -xml_mach yellowstone -xml_compiler pgi -xml_category 
          prealpha -testroot /path/to/testroot -nobuild on -autosubmit off
 
       Creates a suite of Yellowstone pgi prealpha tests, similar to 1, but 
       disabling the automatic test build and submission.  Sometimes useful if 
       one wants to see if cases are generating successfully.  
  
-      4. create_test xml_mach yellowstone -xml_compiler pgi -xml_category 
+      4. create_test -xml_mach yellowstone -xml_compiler pgi -xml_category 
          prealpha -testroot /path/to/testroot -autosubmit off
        
       Just like 3, but the tests will be built.  Useful if one wants to check 

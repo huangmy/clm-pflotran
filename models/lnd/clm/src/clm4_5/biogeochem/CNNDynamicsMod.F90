@@ -395,7 +395,9 @@ contains
    fert_to_sminn =>    cnf%fert_to_sminn   & ! Output: [real(r8) (:)]                                                    
    )
 
-   call p2c(bounds, num_soilc, filter_soilc, fert, fert_to_sminn)
+   call p2c(bounds, num_soilc, filter_soilc, &
+        fert(bounds%begp:bounds%endp), &
+        fert_to_sminn(bounds%begc:bounds%endc))
 
  end associate
  end subroutine CNNFert
@@ -493,12 +495,16 @@ contains
 
             GDDfrac = hui(p) / gddmaturity(p)
 
-            if (GDDfrac > GDDfracthreshold1 .and. GDDfrac <= GDDfracthreshold2) then
+            if (GDDfrac <= GDDfracthreshold1) then
+               fxg = 0._r8
+            else if (GDDfrac > GDDfracthreshold1 .and. GDDfrac <= GDDfracthreshold2) then
                fxg = 6.67_r8 * GDDfrac - 1._r8
             else if (GDDfrac > GDDfracthreshold2 .and. GDDfrac <= GDDfracthreshold3) then
                fxg = 1._r8
             else if (GDDfrac > GDDfracthreshold3 .and. GDDfrac <= GDDfracthreshold4) then
                fxg = 3.75_r8 - 5._r8 * GDDfrac
+            else  ! GDDfrac > GDDfracthreshold4
+               fxg = 0._r8
             end if
 
             ! calculate the nitrogen fixed by the soybean
@@ -521,7 +527,9 @@ contains
       end if
    end do
    
-   call p2c(bounds, num_soilc,filter_soilc,soyfixn,soyfixn_to_sminn)
+   call p2c(bounds, num_soilc, filter_soilc, &
+        soyfixn(bounds%begp:bounds%endp), &
+        soyfixn_to_sminn(bounds%begc:bounds%endc))
    
  end associate
  end subroutine CNSoyfix

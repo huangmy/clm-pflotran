@@ -48,13 +48,13 @@ else
 endif
 
 # For the PBS stanza always use this formula (mppnppn is broken)
-if( $maxthrds > 1) then
-  set mppsum = `${CASEROOT}/Tools/taskmaker.pl -sumpes` 
+
+set mppsum = `${CASEROOT}/Tools/taskmaker.pl -sumpes` 
+if ( $mppsum > 1 ) then
   @ mppwidth = $mppsum / 2
 else
-  set mppwidth = $mppsize
+  @ mppwidth = 1
 endif
-
 
 cat >! $file << EOF1
 #!/bin/csh -f
@@ -76,9 +76,9 @@ else if ($PHASE == set_exe) then
 set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
 set myaprun = `${CASEROOT}/Tools/taskmaker.pl -aprun`
 
-if ($maxthrds > 1) then
-  set myaprun = "-j 2 $myaprun "
-endif
+#if ($maxthrds > 1) then
+set myaprun = "-j 2 $myaprun "
+#endif
 
 cat >> ${CASEROOT}/${CASE}.run << EOF1
 sleep 25
