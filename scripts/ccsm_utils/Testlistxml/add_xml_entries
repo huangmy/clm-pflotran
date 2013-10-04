@@ -57,7 +57,7 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
     my($test_val) = $test_new->getAttribute('name'); 
     my($testtype) = $mach_new->getAttribute('testtype'); 
     my($compiler) = $mach_new->getAttribute('compiler'); 
-    my($nldir)    = $mach_new->getAttribute('nldir'); 
+    my($testmods) = $mach_new->getAttribute('testmods'); 
     my($machine)  = $mach_new->textContent;
 
     my $found = 0;
@@ -77,8 +77,8 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
 	$new3->setAttribute ('name', $test_val); 
 	$new4->setAttribute ('compiler', $compiler); 
 	$new4->setAttribute ('testtype', $testtype); 
-	if ($nldir) {
-	    $new4->setAttribute ('nldir', $nldir);
+	if ($testmods) {
+	    $new4->setAttribute ('testmods', $testmods);
 	} 
 	$new4->appendText($machine); 
 	$roottest->appendChild($new1);
@@ -104,8 +104,8 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
 		    $new2->setAttribute ('name', $test_val); 
 		    $new3->setAttribute ('compiler', $compiler); 
 		    $new3->setAttribute ('testtype', $testtype); 
-		    if ($nldir) {
-			$new3->setAttribute ('nldir', $nldir);
+		    if ($testmods) {
+			$new3->setAttribute ('testmods', $testmods);
 		    } 
 		    $new3->appendText($machine); 
 		    $compset->appendChild($new1);
@@ -132,8 +132,8 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
 				    	$new1->setAttribute ('name', $test_val); 
 				    	$new2->setAttribute ('compiler', $compiler); 
 				    	$new2->setAttribute ('testtype', $testtype); 
-					if ($nldir) {
-					    $new2->setAttribute ('nldir', $nldir);
+					if ($testmods) {
+					    $new2->setAttribute ('testmods', $testmods);
 					} 
 				    	$new2->appendText($machine); 
 				    	$res->appendChild($new1);
@@ -153,16 +153,16 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
 								    my($testtype_test) = $mach->getAttribute('testtype'); 
 								    my($compiler_test) = $mach->getAttribute('compiler'); 
 								    my($mach_test) = $mach->textContent; 
-								    my($nldir_test) = $mach->getAttribute('nldir'); 
+								    my($testmods_test) = $mach->getAttribute('testmods'); 
 								    if (($testtype_test eq $testtype) && 
 									($compiler_test eq $compiler) && 
 									($mach_test eq $machine)) {
-									if ($nldir) {
-									    if ($nldir_test eq $nldir) {
+									if ($testmods) {
+									    if ($testmods_test  eq $testmods) {
 										$found = 1;
 									    }
 									} else {
-									    if (!$nldir_test) {
+									    if (!$testmods_test) {
 										$found = 1;
 									    }
 									}
@@ -172,8 +172,9 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
 								    my $new1 = $testlist->createElement('machine');  
 								    $new1->setAttribute ('compiler', $compiler); 
 								    $new1->setAttribute ('testtype', $testtype); 
-								    if ($nldir) {
-									$new1->setAttribute ('nldir', $nldir);
+								    if ($testmods) {
+									print "found testmods: $testmods\n";
+									$new1->setAttribute ('testmods', $testmods);
 								    } 
 								    $new1->appendText($machine); 
 								    $test->appendChild($new1);
@@ -195,17 +196,71 @@ foreach my $comp_new ($rootnew->findnodes('/newlist/compset')) {
     }	
 }
 
-my $fh = IO::File->new('temp.xml', '>' ) or die "can't open file: temp.xml\n";
-print $fh $testlist->toString;
+# Sort the xml entries.  Drill down to the machine element, sort the machine elements
+# by machine name, testtype, then compiler.  Then sort the tests, then the grids, 
+# finally the compsets.  
+foreach my $compset ($roottest->findnodes('/testlist/compset'))
+{
+    foreach my $grid($compset->findnodes('./grid')) 
+    {
+        foreach my $test($grid->findnodes('./test'))
+        {	
+	    my @machnodes = $test->findnodes('./machine');
+
+            # sort by machine first, then testtype, then compiler 
+            my @sortednodes = sort {
+                $a->textContent() cmp $b->textContent() || 
+                $a->getAttribute('testtype') cmp $b->getAttribute('testtype') ||
+                $a->getAttribute('compiler') cmp $b->getAttribute('compiler')
+	    } @machnodes;
+	
+	    # remove the unsorted nodes
+            $test->removeChildNodes();
+	
+            # add the sorted nodes back into the test nodes 
+            map { $test->addChild($_) } @sortednodes;
+	
+        }
+	
+	# Sort the test nodes by name. 
+        my @testnodes = $grid->findnodes('./test');
+	
+	my @sortedTestNodes = sort {
+            $a->getAttribute('name') cmp $b->getAttribute('name');
+        } @testnodes;
+   
+        $grid->removeChildNodes();
+	map { $grid->addChild($_) } @sortedTestNodes;
+    }
+	
+   # sort the grid nodes by name
+    my @gridnodes = $compset->findnodes('./grid');
+    my @sortedGridNodes = sort {
+       $a->getAttribute('name') cmp $b->getAttribute('name');
+    } @gridnodes;
+
+    $compset->removeChildNodes();
+    map { $compset->addChild($_) } @sortedGridNodes;
+}
+	
+# Finally, sort the compset nodes by name
+my @compsetnodes = $roottest->findnodes('/testlist/compset');
+my @sortedcompsets = sort {
+    $a->getAttribute('name') cmp $b->getAttribute('name');
+} @compsetnodes;
+$roottest->removeChildNodes();
+map { $roottest->addChild($_) } @sortedcompsets;
+
+#my $fh = IO::File->new('temp.xml', '>' ) or die "can't open file: temp.xml\n";
+#print $fh $testlist->toString;
+my $fh = IO::File->new('testlistnew.xml', '>' ) or die "can't open file: temp.xml\n";
+print $fh $testlist->toString(1);
 $fh->close;
 
-#my $sysmod = 'xmllint --format temp.xml --output testlist_new.xml';
+#my $sysmod = 'xmllint --format temp.xml --output testlistnew.xml';
 #system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 
-my $sysmod = 'perl sort_xml_entries -testlist temp.xml';
-system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
-
-unlink('temp.xml');
+#unlink('temp.xml');
 
 print " Successfully created new file testlistnew.xml \n";
 print " Examine this file - and if it looks acceptable overwrite the testlist.xml file with this file \n";
