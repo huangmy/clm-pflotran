@@ -3055,6 +3055,27 @@ This is for expert users ONLY and requires expert knowledge. We will
 not document this further in this guide."
 ></entry> 
 
+<entry id="DOUT_S_SAVE_ALL_ON_DISK" 
+ type="logical"
+ valid_values="TRUE,FALSE"  
+ value="FALSE" 
+ group="run_dout"
+ sdesc="logical to save contents of the short term archive on disk"
+ ldesc="
+If TRUE, replicate the short term archive DOUT_S_ROOT in DOUT_S_SAVE_ROOT
+before calling lt_archive.sh to write DOUT_S_ROOT to the HPSS and delete
+from the disk. This keeps the output data on disk after the long term
+archiver is run. The rest directory is not saved."
+></entry> 
+
+<entry id="DOUT_S_SAVE_ROOT" type="char" valid_values="" value="UNSET"
+group="run_dout" sdesc="local root directory for saving output on disk"
+ldesc="
+Root directory for saving on disk the contents of the short term archival directory. This directory must be
+visible to compute nodes."
+
+></entry> 
+
 <entry id="DOUT_L_MS" 
  type="logical"
  valid_values="TRUE,FALSE"  

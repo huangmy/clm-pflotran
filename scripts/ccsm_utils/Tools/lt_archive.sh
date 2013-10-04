@@ -171,6 +171,47 @@ if [ $found -ne 1 ] ; then
 fi
 
 #----------------------------------------------------------------------
+# If requested by user, save output on disk in $DOUT_S_SAVE_ROOT
+#----------------------------------------------------------------------
+if [ $DOUT_S_SAVE_ALL_ON_DISK == "TRUE" ] ; then
+    if [ ! -e $DOUT_S_SAVE_ROOT ]; then
+        mkdir -p $DOUT_S_SAVE_ROOT
+        if [ $? -ne 0 ] ; then
+            echo "Exit lt_archive.sh -- Cannot make save directory $DOUT_S_SAVE_ROOT"
+            exit
+        fi
+    fi
+
+    # ..Test that $DOUT_S_SAVE_ROOT is a valid directory
+    if [ ! -d $DOUT_S_SAVE_ROOT ]; then
+        if [ ! -h $DOUT_S_SAVE_ROOT ]; then
+            echo "Exit lt_archive.sh -- $DOUT_S_SAVE_ROOT is not a valid directory"
+            exit
+        else
+            if [ ! -d `readlink -f $DOUT_S_SAVE_ROOT` ] ; then
+                echo "Exit lt_archive.sh -- $DOUT_S_SAVE_ROOT is not a valid directory"
+                exit
+            fi
+        fi
+    fi
+
+    # ..Test that hard links are possible between $DOUT_S_ROOT and $DOUT_S_SAVE_ROOT
+    cd $DOUT_S_ROOT
+    echo 'TestHardLink' > TESTHARDLINK
+    cp -al TESTHARDLINK $DOUT_S_SAVE_ROOT
+    if [ $? -ne 0 ]; then
+        echo "Exit lt_archive.sh -- hard links not possible between $DOUT_S_ROOT and $DOUT_S_SAVE_ROOT"
+        rm -f TESTHARDLINK
+        exit
+    fi
+    rm -f TESTHARDLINK $DOUT_S_SAVE_ROOT/TESTHARDLINK
+
+    # ..Replicate directory trees (except rest) in $DOUT_S_SAVE_ROOT
+    dlist=`ls -1 | sed -e 's/rest//'`
+    cp -al $dlist $DOUT_S_SAVE_ROOT
+fi
+
+#----------------------------------------------------------------------
 
 if [ "$mode" == "copy_dirs_hsi" ]; then
 

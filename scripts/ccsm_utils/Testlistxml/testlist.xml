@@ -16,6 +16,7 @@
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_D">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
         <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -62,6 +63,7 @@
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
       <test name="ERS_N2_D">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -110,6 +112,7 @@
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
       </test>
       <test name="NCK">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -138,6 +141,7 @@
     </grid>
     <grid name="ne30_f19_g16_rx1">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="pgi" testtype="prerelease">titan</machine>
@@ -229,6 +233,7 @@
   <compset name="B1850BPRP">
     <grid name="f09_g16">
       <test name="CME">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -281,6 +286,7 @@
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
       <test name="PET_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -351,6 +357,7 @@
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="PFS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">edison</machine>
         <machine compiler="ibm" testtype="prebeta">mira</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -431,6 +438,7 @@
         <machine compiler="intel" testtype="aux_esmf">yellowstone</machine>
       </test>
       <test name="ERI_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -487,6 +495,7 @@
     </grid>
     <grid name="ne30_g16">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -553,6 +562,7 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -609,6 +619,7 @@
   <compset name="B20TRBDRD">
     <grid name="f09_g16">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -645,6 +656,7 @@
         <machine compiler="intel" testtype="aux_esmf">yellowstone</machine>
       </test>
       <test name="ERS_N2">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -665,6 +677,7 @@
   <compset name="B20TRC5CN">
     <grid name="f09_g16">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -700,6 +713,7 @@
         <machine compiler="intel" testtype="aux_science">yellowstone</machine>
       </test>
       <test name="ERT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -722,6 +736,7 @@
         <machine compiler="intel" testtype="aux_science">yellowstone</machine>
       </test>
       <test name="ERS_Ld7">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="pgi" testtype="prerelease">titan</machine>
@@ -745,6 +760,7 @@
   <compset name="B55TRWCN">
     <grid name="f19_g16">
       <test name="ERI">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -876,6 +892,7 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERS_Ld7">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -945,6 +962,7 @@
   <compset name="BRCP26WCN">
     <grid name="f19_g16">
       <test name="ERI">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -987,6 +1005,7 @@
   <compset name="BRCP60CN">
     <grid name="f09_g16">
       <test name="ERI_E">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1039,6 +1058,7 @@
     </grid>
     <grid name="T62_s11">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1067,6 +1087,7 @@
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1199,6 +1220,7 @@
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
       <test name="PET_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1211,10 +1233,6 @@
       <test name="ERB">
         <machine compiler="intel" testtype="aux_cice">yellowstone</machine>
       </test>
-      <test name="ERI_D_Mmpich">
-        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
-        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
-      </test>
       <test name="ERS">
         <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
         <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
@@ -1224,7 +1242,12 @@
       <test name="ERS_D">
         <machine compiler="intel" testtype="aux_drv">yellowstone</machine>
       </test>
+      <test name="ERS_D_Mmpich">
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+      </test>
       <test name="PET_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1258,6 +1281,7 @@
     </grid>
     <grid name="ne240_f02_g16">
       <test name="SMS_Ld2">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1308,6 +1332,7 @@
     </grid>
     <grid name="ne120_g16">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1315,7 +1340,7 @@
         <machine compiler="pgi" testtype="prerelease">titan</machine>
       </test>
     </grid>
-    <grid name="ne30_g16">
+    <grid name="ne30_ne30">
       <test name="ERS_IOP">
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
@@ -1335,6 +1360,7 @@
   <compset name="F1850C5">
     <grid name="f02_f02">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1344,6 +1370,7 @@
     </grid>
     <grid name="f19_f19">
       <test name="CME_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1444,6 +1471,7 @@
         <machine compiler="intel" testtype="aux_science">yellowstone</machine>
       </test>
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1468,16 +1496,6 @@
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
-    </grid>
-  </compset>
-  <compset name="FARM95C4">
-    <grid name="T42_T42">
-      <test name="SMS">
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-      </test>
-      <test name="SMS_D_Mmpi-serial">
-        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
     </grid>
   </compset>
@@ -1511,6 +1529,7 @@
   <compset name="FC5">
     <grid name="T31_T31">
       <test name="SMS_D_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1564,6 +1583,7 @@
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="PFS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">edison</machine>
         <machine compiler="ibm" testtype="prebeta">mira</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1703,6 +1723,7 @@
   <compset name="FMOZ">
     <grid name="f19_f19">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1714,6 +1735,7 @@
   <compset name="FMOZMAM">
     <grid name="f19_f19">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1725,6 +1747,7 @@
   <compset name="FMOZSOA">
     <grid name="f19_f19">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1733,9 +1756,25 @@
       </test>
     </grid>
   </compset>
+  <compset name="FSCM4A95">
+    <grid name="T42_T42">
+      <test name="SMS">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
+      </test>
+    </grid>
+  </compset>
+  <compset name="FSCM5A97">
+    <grid name="T42_T42">
+      <test name="SMS_D_Mmpi-serial">
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="pgi" testtype="prealpha">yellowstone</machine>
+      </test>
+    </grid>
+  </compset>
   <compset name="FSDBAM">
     <grid name="f19_f19">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1851,6 +1890,7 @@
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
       <test name="PET_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1906,6 +1946,7 @@
     </grid>
     <grid name="T62_t12">
       <test name="ERS">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -2021,7 +2062,7 @@
   <compset name="I1850">
     <grid name="T31_g37">
       <test name="ERI_D">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="T85_g16">
@@ -2096,7 +2137,7 @@
     </grid>
     <grid name="T31_g37">
       <test name="ERI_D">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -2149,7 +2190,7 @@
         <machine compiler="intel" testtype="aux_clm" testmods="rtm/rtmOnIceOff">yellowstone</machine>
       </test>
       <test name="SSP">
-        <machine compiler="intel" testtype="prebeta">frankfurt</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/default">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
@@ -2191,7 +2232,7 @@
     </grid>
     <grid name="f10_f10">
       <test name="ERS">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -2204,7 +2245,7 @@
     </grid>
     <grid name="f45_g37">
       <test name="ERS">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="ne120_g16">
@@ -2373,32 +2414,30 @@
   </compset>
   <compset name="I20TRCLM45BGC">
     <grid name="f10_f10">
-      <test name="ERI_D_Mmpich">
-        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
-        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
-      </test>
       <test name="ERS">
-        <machine compiler="intel" testtype="aux_clm_short">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
       <test name="ERS_D">
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/decStart">frankfurt</machine>
-        <machine compiler="intel" testtype="aux_clm_short">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
       <test name="ERS_D_Mmpich">
-        <machine compiler="nag" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
       <test name="ERS_Mmpich">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/decStart">frankfurt</machine>
-        <machine compiler="nag" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
       <test name="PET_P15x2_Lm13">
-        <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -2411,6 +2450,7 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERS_Ld3">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -2512,7 +2552,7 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERI_D">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="f45_f45">
@@ -2543,30 +2583,30 @@
     </grid>
     <grid name="f10_f10">
       <test name="ERI">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
       <test name="ERI_D">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
       </test>
-      <test name="ERI_D_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
-      </test>
       <test name="ERI_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
       <test name="ERS_D">
         <machine compiler="intel" testtype="aux_clm" testmods="clm/NoVSNoNI">frankfurt</machine>
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/ciso">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/rootlit">yellowstone</machine>
       </test>
+      <test name="ERS_D_Mmpich">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta" testmods="clm/reduceOutput">frankfurt</machine>
+      </test>
       <test name="ERS_Ld42_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
       <test name="SMS_Ln48_D_Mmpich">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/oldhyd">frankfurt</machine>
@@ -2574,30 +2614,32 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERI">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
       <test name="ERI_D">
-        <machine compiler="intel" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
       <test name="ERI_D_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
-        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
       <test name="ERI_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="ne30_g16">
       <test name="ERI_D">
         <machine compiler="intel" testtype="aux_clm" testmods="clm/vrtlay">yellowstone</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
+      </test>
+      <test name="ERS_D_Mmpich">
+        <machine compiler="nag" testtype="prealpha">frankfurt</machine>
+        <machine compiler="nag" testtype="prebeta">frankfurt</machine>
       </test>
     </grid>
   </compset>
@@ -2617,7 +2659,7 @@
         <machine compiler="intel" testtype="aux_clm" testmods="clm/crop">frankfurt</machine>
       </test>
       <test name="PET_P15x2_Ly3">
-        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -2642,7 +2684,7 @@
     </grid>
     <grid name="f10_f10">
       <test name="PET_P15x2_Lm25">
-        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -2740,14 +2782,14 @@
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
       </test>
       <test name="ERS_D">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
-        <machine compiler="intel" testtype="aux_clm_short">frankfurt</machine>
-        <machine compiler="pgi" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="intel" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
       <test name="ERS_D_Mmpich">
-        <machine compiler="nag" testtype="aux_clm_short">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="ne30_g16">
@@ -2762,7 +2804,7 @@
   <compset name="ICNCROP">
     <grid name="1x1_numaIA">
       <test name="ERS_Lm3">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
       <test name="SMS">
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
@@ -2879,7 +2921,7 @@
   <compset name="IG">
     <grid name="T31_g37">
       <test name="CME_Ly5">
-        <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_glc" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
       <test name="ERS">
         <machine compiler="pgi" testtype="prealpha">frankfurt</machine>
@@ -2907,6 +2949,7 @@
     </grid>
     <grid name="f09_g16">
       <test name="ERS_PT">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -3016,7 +3059,7 @@
   <compset name="IGIS2">
     <grid name="T31_g37_gl10">
       <test name="SMS_Ly3">
-        <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_glc" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -3028,7 +3071,7 @@
     </grid>
     <grid name="f19_g16">
       <test name="ERS_D">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
   </compset>
@@ -3112,7 +3155,7 @@
     </grid>
     <grid name="f10_f10">
       <test name="SMS_Mmpich">
-        <machine compiler="nag" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -3152,7 +3195,7 @@
     </grid>
     <grid name="f10_f10">
       <test name="SMS">
-        <machine compiler="pgi" testtype="aux_clm">frankfurt</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">frankfurt</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -3453,7 +3496,7 @@
         <machine compiler="pgi" testtype="aux_glc">titan</machine>
       </test>
       <test name="NCK_Ly3">
-        <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_glc" testmods="clm/reduceOutput">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -3467,6 +3510,7 @@
     </grid>
     <grid name="f09_g16">
       <test name="CME">
+        <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>

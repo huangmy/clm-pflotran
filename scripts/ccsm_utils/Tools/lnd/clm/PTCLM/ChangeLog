@@ -4,6 +4,58 @@ This file describes changes made to the PTCLM tool
 
 ================================================================================        
 Originator: erik
+Date: Sep/29/2013
+Tag: PTCLM1_130929
+cesm_baseline:  scripts4_130929
+One-line:  default compset: I1PTCLM45, files go under site subdir, add script to rename maps
+Testing:  limited ran mexicocity, US-UMB, US-Ha1, and BE-Vie cases
+
+M    PTCLM.py -------------------- Make default compset: I1PTCLM45, make files in resolution
+                                   subdiretory (under mydatadir)
+M    README ---------------------- Update documentation
+A    mydatafiles/renamemapfiles -- Script to rename mapping files creation date, so don't have
+                                   to recreate mapping files again.
+
+Remove directory NOT needed anymore...
+
+D         usr_files/mkgriddata.TEMPLATE
+D         usr_files
+
+================================================================================        
+Originator: erik
+Date: Sep/23/2013
+Tag: PTCLM1_130923
+cesm_baseline:  scripts4_130916
+One-line:  Add --cycle_forcing, and --mydatadir options, remove useQIAN, rename --QIAN_tower_yrs to --use_tower_yrs
+Testing:  limited ran a couple cases
+
+M       PTCLM.py -------- Changes from Keith Oleson to cycle_forcing, check
+                          what model version is being used (clm4_0 or clm4_5) 
+                          set time-step.
+D       testcases.csh --- Remove as not working well on yellowstone
+
+================================================================================        
+Originator: erik
+Date: Sep/20/2013
+Tag: PTCLM1_130920
+cesm_baseline:  scripts4_130920
+One-line:  Make datafiles in mydatafiles directory
+Testing: Ran basic US-UMB, US-NR1 and 1x1_mexicocityMEX cases
+
+M       PTCLM.py
+---------------- File changes from Keith Oleson
+M       PTCLM_sitedata/Fluxnet-Canada_sitedata.txt
+M       PTCLM_sitedata/EXAMPLE_sitedata.txt
+M       PTCLM_sitedata/Fluxnet-Canada_soildata.txt
+M       PTCLM_sitedata/AmeriFlux_sitedata.txt
+M       PTCLM_sitedata/EXAMPLE_soildata.txt
+M       PTCLM_sitedata/AmeriFlux_soildata.txt
+M       PTCLM_sitedata/Fluxnet-Canada_pftdata.txt
+M       PTCLM_sitedata/EXAMPLE_pftdata.txt
+M       PTCLM_sitedata/AmeriFlux_pftdata.txt
+
+================================================================================        
+Originator: erik
 Date: Sep/10/2013
 Tag: PTCLM1_130910
 cesm_baseline:  scripts4_130910
