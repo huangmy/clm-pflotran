@@ -84,6 +84,8 @@ data: update datm streams forcing data path (clm4_5_25)
 
 * for more details see: http://www.cesm.ucar.edu/models/cesm1.2/data8/doc/c72.html#streams_description_file
 
+* above changes regarding datm have been incorporated in runCLM.py with a new command line option (--update-datm-domain).
+
 src: bounds_type refactor (clm4_5_21)
 -------------------------------------
 
