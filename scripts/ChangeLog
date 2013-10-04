@@ -1,8 +1,44 @@
 ================================================================================
-SVN $Id: ChangeLog 51830 2013-09-30 01:57:21Z erik $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130929/ChangeLog $
+SVN $Id: ChangeLog 51888 2013-10-01 15:56:44Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131001/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: 1 Oct 2013
+Model: scripts
+Version: scripts4_131001
+One-line: Remove some duplicate aux_clm edison tests
+
+Six tests were in both the aux_clm_ys_intel and aux_clm_ys_pgi test lists. In
+all cases, I removed the test from the aux_clm_ys_intel list.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: sacks
+Date: 30 Sep 2013
+Model: scripts
+Version: scripts4_130930a
+One-line:  add aux_clm test lists for edison
+
+Add temporary aux_clm test lists for edison, for while yellowstone is
+down. (These were added in a somewhat kludgey way, since they are
+intended to be temporary.) Also remove some duplicated sections in
+testlist.xml.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+
+================================================================================
+Originator: sacks
+Date: 30 Sep 2013
+Model: scripts
+Version: scripts4_130930
+One-line:  add an estimated run cost associated with STOP_OPTION
+
+M       ccsm_utils/Tools/cesm_setup
+
 ================================================================================
 Originator: erik
 Date: 29 Sep 2013
