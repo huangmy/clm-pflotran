@@ -1,8 +1,128 @@
 ================================================================================
-SVN $Id: ChangeLog 51195 2013-09-16 19:40:56Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130916/ChangeLog $
+SVN $Id: ChangeLog 51888 2013-10-01 15:56:44Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131001/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: 1 Oct 2013
+Model: scripts
+Version: scripts4_131001
+One-line: Remove some duplicate aux_clm edison tests
+
+Six tests were in both the aux_clm_ys_intel and aux_clm_ys_pgi test lists. In
+all cases, I removed the test from the aux_clm_ys_intel list.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: sacks
+Date: 30 Sep 2013
+Model: scripts
+Version: scripts4_130930a
+One-line:  add aux_clm test lists for edison
+
+Add temporary aux_clm test lists for edison, for while yellowstone is
+down. (These were added in a somewhat kludgey way, since they are
+intended to be temporary.) Also remove some duplicated sections in
+testlist.xml.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+
+================================================================================
+Originator: sacks
+Date: 30 Sep 2013
+Model: scripts
+Version: scripts4_130930
+One-line:  add an estimated run cost associated with STOP_OPTION
+
+M       ccsm_utils/Tools/cesm_setup
+
+================================================================================
+Originator: erik
+Date: 29 Sep 2013
+Model: scripts
+Version: scripts4_130929
+One-line:  Update PTCLM, add more I1PT compsets, fix PRS_build add reduceOutput to most frankfurt I tests
+
+Update PTCLM
+
+M       ccsm_utils/Case.template/config_compsets.xml - Add BGC, and CN I1PT compsets
+M       ccsm_utils/Testlistxml/testlist.xml ---------- Add reduceOutput to most frankfurt I tests
+M       ccsm_utils/Testcases/PRS_build.csh ----------- Reset build to first PE layout after done
+
+================================================================================
+Originator: mai
+Date: 25 Sep 2013
+Model: scripts
+Version: scripts4_130925
+One-line: add option to keep data on disk when running long-term archiver
+
+M            51592   ccsm_utils/Tools/lt_archive.sh
+M            51592   ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: sacks
+Date: Sep 24 2013
+Model: scripts
+Version: scripts4_130924
+One-line: Fix PEM test
+
+Fix PEM test so that it passes the first time around, rather than requiring
+resubmission. Previously, the job script was incorrectly set up to use the
+smaller number of processors, rather than the larger number.
+
+M       ccsm_utils/Testcases/PEM_build.csh
+
+================================================================================
+Originator: jshollen
+Date: Sep 20 2013
+Model: scripts
+Version: scripts4_130920
+One-line: Move frankfurt nag ERI to ERS, move ne30_g16.F1850 to ne30_ne30 
+for yellowstone. 
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jedwards
+Date: Sep 19 2013
+Model: scripts
+Version: scripts4_130919
+One-line: Move taskmaker.pl to Machines
+
+D      ccsm_utils/Tools/taskmaker.pl
+M      create_newcase
+
+================================================================================
+Originator: santos
+Date: Sep 18 2013
+Model: scripts
+Version: scripts4_130918
+One-line: Add new SCAM compset, ARM97 with CAM5.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+         - Add new compset, F_ARM97_SCAM5.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+         - Change NAG SCAM test to be a prealpha test of the new compset,
+           and also test it with PGI on yellowstone.
+
+M       create_test
+         - Fix some typos in the help message.
+
+================================================================================
+Originator: jshollen
+Date: Sep 17 2013
+Model: scripts
+Version: scripts4_130917
+One-line: add bluewaters test list, minor fix in ConfigCase.pm
+
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       ccsm_utils/Testlistxml/add_xml_entries
+M       ccsm_utils/Testlistxml/testlist.xml
+
 ================================================================================
 Originator: sacks
 Date: Sep 16 2013

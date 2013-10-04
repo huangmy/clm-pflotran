@@ -172,6 +172,7 @@ if (! $clean ) {
 	$sysmod = "./xmlchange -file env_mach_pes.xml -id TOTALPES -val $pestot";
 	system ($sysmod); if ($? == -1) {die "$sysmod failed: $!\n";}
 	
+        # Compute cost based on PE count
 	my $pval = 1;
 	my $pcnt = 0;
 	while ($pval < $pestot) {
@@ -180,13 +181,29 @@ if (! $clean ) {
 	    $pcnt = $pcnt + 6;       # (scaling like sqrt(6/10))
 	}
 	my $pcost = 3 - int($pcnt / 10); # (3 is 64 with 6)
+
+        # Compute cost based on DEBUG
 	my $ccsm_dcost = 0;
 	if ($xmlvars{'DEBUG'} == "TRUE") {$ccsm_dcost = 3;}
+
+        # Compute cost based on run length 
+        # For simplicity, we use a heuristic just based on STOP_OPTION (not considering
+        # STOP_N), and only deal with options longer than ndays
+        my $ccsm_lcost = 0;
+        if ($xmlvars{'STOP_OPTION'} =~ /nmonth/) {
+           # N months costs 30x as much as N days; since cost is based on log-base-2, add 5
+           $ccsm_lcost = 5;
+        }
+        elsif ($xmlvars{'STOP_OPTION'} =~ /nyear/) {
+           # N years costs 365x as much as N days; since cost is based on log-base-2, add 9
+           $ccsm_lcost = 9;
+        }
+           
 	my $CCSM_CCOST = $xmlvars{'CCSM_CCOST'};
 	my $CCSM_GCOST = $xmlvars{'CCSM_GCOST'};
 	my $CCSM_TCOST = $xmlvars{'CCSM_TCOST'};
 	my $CCSM_MCOST = $xmlvars{'CCSM_MCOST'};
-	my $estcost = $CCSM_CCOST + $CCSM_GCOST + $CCSM_MCOST + $CCSM_TCOST + $pcost + $ccsm_dcost;
+	my $estcost = $CCSM_CCOST + $CCSM_GCOST + $CCSM_MCOST + $CCSM_TCOST + $pcost + $ccsm_dcost + $ccsm_lcost;
 	
 	$sysmod = "./xmlchange -file env_mach_pes.xml -id TOTALPES -val $pestot";
 	system ($sysmod); if ($? == -1) {die "$sysmod failed: $!\n";}

@@ -253,7 +253,7 @@ map { $roottest->addChild($_) } @sortedcompsets;
 
 #my $fh = IO::File->new('temp.xml', '>' ) or die "can't open file: temp.xml\n";
 #print $fh $testlist->toString;
-my $fh = IO::File->new('testlistnew.xml', '>' ) or die "can't open file: temp.xml\n";
+my $fh = IO::File->new('testlistnew.xml', '>' ) or die "can't open file: testlistnew.xml\n";
 print $fh $testlist->toString(1);
 $fh->close;
 

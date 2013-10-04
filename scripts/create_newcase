@@ -829,7 +829,6 @@ system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 	  "$scriptsroot/ccsm_utils/Tools/cesm_buildexe", 
 	  "$scriptsroot/ccsm_utils/Tools/ccsm_getenv", 
 	  "$scriptsroot/ccsm_utils/Tools/ccsm_check_lockedfiles", 
-	  "$scriptsroot/ccsm_utils/Tools/taskmaker.pl", 
 	  "$scriptsroot/ccsm_utils/Tools/xml2env",
 	  "$scriptsroot/ccsm_utils/Tools/lt_archive.sh", 
 	  "$scriptsroot/ccsm_utils/Tools/st_archive.sh", 
@@ -843,10 +842,11 @@ system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 	  "$scriptsroot/ccsm_utils/Case.template/ConfigCase.pm",
 	  "$scriptsroot/ccsm_utils/Tools/SetupTools.pm",
 	  "$scriptsroot/ccsm_utils/Tools/compare_namelists.pl",
-	  "$scriptsroot/ccsm_utils/Machines/Makefile",
-	  "$scriptsroot/ccsm_utils/Machines/mkSrcfiles", 
-	  "$scriptsroot/ccsm_utils/Machines/mkDepends", 
-	  "$scriptsroot/ccsm_utils/Machines/mkbatch.$mach");
+	  "$machdir/taskmaker.pl", 
+	  "$machdir/Makefile",
+	  "$machdir/mkSrcfiles", 
+	  "$machdir/mkDepends", 
+	  "$machdir/mkbatch.$mach");
 foreach my $file (@files) {
     $sysmod = "cp -p $file $caseroot/Tools/."; 
     system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";

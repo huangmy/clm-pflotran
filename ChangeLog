@@ -1,4 +1,499 @@
 ===============================================================
+Tag name:  clm4_5_35
+Originator(s):  sacks (Bill Sacks)
+Date: Tue Oct  1 09:47:45 PDT 2013
+One-line Summary: get CLM running on edison
+
+Purpose of changes:
+
+   Update scripts and Machines externals to get the CLM test suite running on
+   edison; this will be our replacement for yellowstone while yellowstone is
+   down.
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: N/A
+
+List any svn externals directories updated (csm_share, mct, etc.):
+
+-scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_130929
+-scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_130927
++scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131001
++scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_130930b
+
+List all files eliminated: none
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes: 
+
+========= Remove PEM test that should pass now; add xFails for edison
+M       models/lnd/clm/bld/unit_testers/xFail/expectedClmTestFails.xml
+
+
+CLM testing:
+
+  NOTE: Testing was done on tag port_to_edison_02_clm4_5_34. Since then, scripts
+  has been updated from scripts4_130930a to scripts4_131001. However, the only
+  difference is the removal of some duplicated tests from the test list.
+
+  regular tests (aux_clm):
+
+    edison_intel (aux_clm_ys_intel & aux_clm_ys_pgi lists): OK
+       All pass except:
+
+               <entry testID="ERH_D.f19_g16.I1850CLM45CN.edison_intel.clm-default"               failType="FAIL" >See "ERH_D.f19_g16.I1850CLM45CN.yellowstone_pgi.clm-default</entry>
+               <entry testID="SMS_D_Lm1_Mmpi-serial.CLM_USRDAT.I1PTCLM45.edison_intel.clm-USUMB" failType="SFAIL" >Can't find user datasets</entry>
+               <entry testID="ERI_D.ne30_g16.ICLM45BGC.edison_intel.clm-vrtlay"                  failType="FAIL" >Seg fault while writing h1 file</entry>
+               <entry testID="ERS_Ld211_D_P144x1.f10_f10.ICNCROP.edison_intel.clm-crop"          failType="FAIL" bugz="1696" >See ERS_Ld211_D_P112x1.f10_f10.ICNCROP in yellowstone intel list</entry>
+
+       #1 and #4 have been failing on yellowstone, #2 and #3 are new failures on edison
+
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    NOTE: only generate done here, because no baselines existed
+
+    edison_intel: aux_clm_ys_intel list: OK
+    edison_intel: aux_clm_ys_pgi list: OK
+
+CLM tag used for the baseline comparisons: clm4_5_34
+
+   NOTE: Baseline comparisons only done for frankfurt tests; no baseline
+   comparisons done with component_gen_comp, because no baselines existed on
+   edison.
+
+Changes answers relative to baseline: NO
+	
+===============================================================
+===============================================================
+Tag name:  clm4_5_34
+Originator(s):  erik (Erik Kluzek)
+Date: Mon Sep 30 01:30:25 MDT 2013
+One-line Summary: Get PTCLM working, fix a few small bugs
+
+Purpose of changes:
+
+Get PTCLM fully working. Allow PTCLM to work with ALL I compsets including clm4_0 compsets.
+Add a new option to PTCLM from Keith Oleson --cycle_forcing to set it up to cycle over the forcing.
+Another option is to build datasets in the "-mydatafiles" directory (by default under PTCLM
+directory). The datasets now have creation time-stamps in them as well. Rename QIAN_tower_yrs
+to -use_tower_yrs and remove QIANforcing (now chosen by compset).
+scripts now has four different I1PT compsets two new ones for CLM40CN and CLM45BGC. datm
+CLM_USRDAT domain file for CLM1PT forcing points to the ATM_DOMAIN_FILE/PATH. Add some new
+datasets to the siteDIR from Keith Oleson. Update documenation, remove unused template dir.
+Add a script to rename creation dates for map files, so you don't have to regenerate them
+each day.
+
+Fix a few small bugs. Allow clm4_5 to have suplnitro and bgc_spinup to only give a warning
+rather than die. Fix a corrupted rawdata PFT file. Fix mkscripgrid.ncl for regional SCRIP
+grid creation. Remove some leftover fine-mesh variables that aren't needed anymore. Remove
+reference to scaled_harvest in CLM build-namelist which was removed a long time ago.
+
+Remove a mapping file that didn't seem to be needed for clm4_0 mkmapdata (a default
+didn't exist for it either). Add -usr_mapdir option to clm4_0 mksurfdata.pl which is needed
+for PTCLM for clm4_0 compsets.
+
+Requirements for tag: Update scripts and get PTCLM working
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+                                 1826 (allow clm4_5 and suplnitro to be ALL for bgc_spinup)
+                                 1818 (two new options to PTCLM)
+                                 1762 (Fix corrupted rawdata PFT file)
+                                 1757 (Bug in mkscripgrid.ncl for regional/global SCRIP grid creation)
+                                 1623 (Remove some leftover fine-mesh variables _a arrays)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: None
+
+Describe any changes made to the namelist: Allow two options to go without dying
+
+List any changes to the defaults for the boundary datasets: None
+
+Describe any substantial timing or memory changes: None
+
+Code reviewed by: self
+
+List any svn externals directories updated (csm_share, mct, etc.): scripts, Machines, datm, and csm_share
+     scripts   to scripts4_130929
+     Machines  to Machines_130927
+     datm      to datm8_130919
+     csm_share to share3_130918
+
+List all files eliminated: None
+
+List all files added and what they do: None
+
+List all existing files that have been modified, and describe the changes:
+
+   M models/lnd/clm/tools/shared/mkmapdata/mkmapdata.sh ------- Remove 10x10min_IGBPmergeICESatGIS for clm4_0
+   M models/lnd/clm/tools/shared/mkmapgrids/mkscripgrid.ncl --- Fix bug 1757 for regional grid creation
+   M models/lnd/clm/tools/clm4_0/mksurfdata_map/mksurfdata.pl - Add usr_mapdir option
+
+   M models/lnd/clm/bld/build-namelist - Allow missing clm_usrdat files to continue, remove scaled_harvest (long gone)
+                                         allow bgc_spinup and suplnitro to coexist with warning
+
+   M models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_0_tools.xml - Fix corrupted 856 raw PFT file
+   M models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_5_tools.xml - Fix corrupted 856 raw PFT file, remove 1000-1004 testyrs
+
+   M models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90 - Remove finemesh _a variables
+   M models/lnd/clm/src/clm4_5/main/clmtype.F90 -------- Remove finemesh _a variables
+   M models/lnd/clm/src/clm4_0/main/clmtypeInitMod.F90 - Remove finemesh _a variables
+   M models/lnd/clm/src/clm4_0/main/clmtype.F90 -------- Remove finemesh _a variables
+
+CLM testing: regular, build_namelist, tools
+
+  build-namelist tests:
+
+    yellowstone   yes
+    frankfurt     yes
+
+  regular tests (aux_clm):
+
+    yellowstone_intel       yes
+    yellowstone_pgi         yes
+    frankfurt_intel         yes
+    frankfurt_pgi           yes
+    frankfurt_nag           yes
+
+  tools testing:
+
+    yellowstone interactive yes
+
+CLM tag used for the baseline comparisons:  clm4_5_33
+
+Changes answers relative to baseline: no bit-for-bit
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_33
+Originator(s):  muszala (Stefan Muszala,UCAR/TSS,303-497-1320)
+Date: Thu Sep 26 10:42:56 MDT 2013
+One-line Summary: clean up from mistakes in previous tag
+
+Purpose of changes: clean up time-stamps and a mistake in clm4_5_32
+
+Requirements for tag: N/A
+
+Test level of tag: N/A
+
+Bugs fixed (include bugzilla ID): N/A
+
+Known bugs (include bugzilla ID): N/A
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: N/A
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes: N/A
+
+CLM testing: N/A
+
+CLM tag used for the baseline comparisons: N/A
+
+Changes answers relative to baseline: N/A
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_32
+Originator(s):  muszala (Stefan Muszala,UCAR/TSS,303-497-1320)
+Date: Thu Sep 26 10:07:14 MDT 2013
+One-line Summary: bug fix tag - 1798, 1810
+
+Purpose of changes: fix bug 1798 and 1810.
+
+http://bugs.cgd.ucar.edu/show_bug.cgi?id=1798
+http://bugs.cgd.ucar.edu/show_bug.cgi?id=1810
+
+Requirements for tag: N/A
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 1798 and 1810
+
+Known bugs (include bugzilla ID): N/A
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: self
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+- for bug 1798
+M       models/lnd/clm/src/clm4_5/main/pftdynMod.F90
+- for bug 1810
+M       models/lnd/clm/src/clm4_5/main/controlMod.F90
+M       models/lnd/clm/src/clm4_0/main/controlMod.F90
+
+CLM testing:
+
+  regular tests (aux_clm):
+
+    yellowstone_intel - OK
+    yellowstone_pgi - OK
+    frankfurt_intel - OK
+    frankfurt_pgi - OK
+    frankfurt_nag - OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel - OK
+
+CLM tag used for the baseline comparisons:  clm4_5_31
+
+Changes answers relative to baseline: no
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_31
+Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
+Date: Wed Sep 25 10:12:47 MDT 2013
+One-line Summary: fix bug 1820: incomplete conditional in CNSoyfix leads to buggy results and decomposition dependence
+
+Purpose of changes:
+
+   Fix bug 1820: incomplete conditional in CNSoyfix leads to buggy results and
+   decomposition dependence. Fix for this is based on analysis of the original
+   Agro-IBIS code.
+
+Requirements for tag: fix bug 1820, the following tests should now pass:
+             PET_P15x2_Lm25.f10_f10.ICLM45BGCDVCROP.yellowstone_intel
+             PET_P15x2_Ly3.f10_f10.ICLM45BGCCROP.yellowstone_intel
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 
+     1820: incomplete conditional in CNSoyfix leads to buggy results and decomposition dependence
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: Beth Drewniak, Sam Levis
+
+List any svn externals directories updated (csm_share, mct, etc.): none
+
+List all files eliminated: none 
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/biogeochem/CNNDynamicsMod.F90
+
+========= Remove now-passing PET tests
+M       models/lnd/clm/bld/unit_testers/xFail/expectedClmTestFails.xml
+
+CLM testing:
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+CLM tag used for the baseline comparisons: clm4_5_30
+
+Changes answers relative to baseline: YES
+
+  If a tag changes answers relative to baseline comparison the
+  following should be filled in (otherwise remove this section):
+
+  Summarize any changes to answers, i.e.,
+    - what code configurations: CLM45 with CROP
+    - what platforms/compilers: ALL
+    - nature of change (roundoff; larger than roundoff/same climate; new climate): 
+       larger than roundoff, but not investigated in detail
+
+       Note that no changes were observed in the test suite, but this is due to
+       a limitation of the test suite (there are very few multi-year crop tests;
+       the only global multi-year tests are the newly-passing PET tests, which
+       don't have baselines)
+
+   If bitwise differences were observed, how did you show they were no worse
+   than roundoff? N/A
+
+   If this tag changes climate describe the run(s) done to evaluate the new
+   climate (put details of the simulations in the experiment database)
+       - casename: N/A
+
+   URL for LMWG diagnostics output used to validate new climate: N/A
+	
+===============================================================
+===============================================================
+Tag name:  clm4_5_30
+Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
+Date: Tue Sep 24 13:08:01 MDT 2013
+One-line Summary: fix performance bug in decomposition initialization
+
+Purpose of changes:
+
+Fix performance bug in decomposition initialization (bug 1771). Code mods from
+Tony Craig.
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 1771 ( Fix for an initialization performance bug)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes:
+
+   Improves timing of initialization for high resolution casse
+
+Code reviewed by: tcraig
+
+List any svn externals directories updated (csm_share, mct, etc.): none
+
+List all files eliminated: none
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/main/decompInitMod.F90
+M       models/lnd/clm/src/clm4_0/main/decompInitMod.F90
+
+CLM testing:
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+CLM tag used for the baseline comparisons: clm4_5_29
+
+Changes answers relative to baseline: NO
+	
+===============================================================
+===============================================================
 Tag name:  clm4_5_29
 Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
 Date: Tue Sep 24 10:55:42 MDT 2013

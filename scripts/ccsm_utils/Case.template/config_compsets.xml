@@ -226,7 +226,8 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="FGEOS_C4WSF_L40CN"                       >GEOS_CAM4%WCSF_CLM40%CN_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="FGEOS_C4MOZ_L40CN"    alias="FSDCHM"     >GEOS_CAM4%TMOZ_CLM40%CN_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="FGEOS_C4BAM_L40CN"    alias="FSDBAM"     >GEOS_CAM4%TBAM_CLM40%CN_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="F_ARM95_SCAM4"        alias="FARM95C4"   >AR95_CAM4%SCAM_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="F_ARM95_SCAM4"        alias="FSCM4A95"   >AR95_CAM4%SCAM_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="F_ARM97_SCAM5"        alias="FSCM5A97"   >AR97_CAM5%SCAM_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 
 <COMPSET sname="F_2000_CAM4_AQUAPLANET" alias="FC4AQUAP" >2000_CAM4_SLND_SICE_AQUAP_SROF_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_2000_CAM5_AQUAPLANET" alias="FC5AQUAP" >2000_CAM5_SLND_SICE_AQUAP_SROF_SGLC_SWAV</COMPSET>
@@ -249,8 +250,10 @@ value of RUN_STARTDATE will be date2.
 
 <!-- I single point forcing -->
 
-<COMPSET sname="I_2000_1PTFRC"        alias="I1PT"         >2000_DATM%1PT_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
-<COMPSET sname="I_2000_1PTFRC_CLM45"  alias="I1PTCLM45"    >2000_DATM%1PT_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC"          alias="I1PT"         >2000_DATM%1PT_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC_CLM45"    alias="I1PTCLM45"    >2000_DATM%1PT_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC_CN"       alias="I1PTCN"       >2000_DATM%1PT_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC_CLM45BGC" alias="I1PTCLM45BGC" >2000_DATM%1PT_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
 
 <!-- I QIAN compsets -->
 
@@ -276,7 +279,7 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="I_RCP6.0_CLM45_CN"    alias="IRCP60CLM45CN">RCP6_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CN"          alias="IRCP45CN"     >RCP4_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP2.6_CN"          alias="IRCP26CN"     >RCP2_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_RCP2.6_CLM45_CN"    alias="IRCP26CLM45CN">RCP2_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_RCP2.6_CLM45_BGC"   alias="IRCP26CLM45BGC">RCP2_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CN_CROP"       alias="ICNCROP"      >2000_DATM%QIA_CLM40%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CLM45_CN_CROP" alias="ICLM45CNCROP" >2000_DATM%QIA_CLM45%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CLM45_BGC"   alias="IRCP45CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
@@ -594,7 +597,8 @@ GEOS => GEOS5 metereology for "stand-alone" CAM
 <CAM_NML_USE_CASE compset="_CAM5%SMA3"       >2000_cam5_trop_strat_mam3</CAM_NML_USE_CASE>
 <CAM_NML_USE_CASE compset="_CAM5%SMA7"       >2000_cam5_trop_strat_mam7</CAM_NML_USE_CASE>
 <CAM_NML_USE_CASE compset="_CAM4%SSOA"       >2000_cam4_trop_strat_soa</CAM_NML_USE_CASE>
-<CAM_NML_USE_CASE compset="AR95_CAM4"        >scam_arm95</CAM_NML_USE_CASE>
+<CAM_NML_USE_CASE compset="AR95_CAM[45]"     >scam_arm95</CAM_NML_USE_CASE>
+<CAM_NML_USE_CASE compset="AR97_CAM[45]"     >scam_arm97</CAM_NML_USE_CASE>
 <CAM_NML_USE_CASE compset="PIPD_CAM5"        >1850-PD_cam5</CAM_NML_USE_CASE>
 
 <CAM_NAMELIST_OPTS compset="_CAM[45]%RCO2">
@@ -637,7 +641,8 @@ GEOS => GEOS5 metereology for "stand-alone" CAM
 <desc compset="_CAM[45]%SMA7">CAM trop_strat_mam7 chemistry:</desc>
 <desc compset="_CAM[45]%SSOA">CAM trop_strat_soa chemistry: </desc>
 <desc compset="_CAM[45]%RCO2">CAM CO2 ramp: </desc>
-<desc compset="AR95_CAM4%SCAM">stand-alone single column CAM ARM95 IOP test case:</desc>
+<desc compset="AR95_CAM[45]%SCAM">stand-alone single column CAM ARM95 IOP test case:</desc>
+<desc compset="AR97_CAM[45]%SCAM">stand-alone single column CAM ARM97 IOP test case:</desc>
 <desc compset="GEOS_CAM[45]"  >driven by GEOS5 meteorology with radiation feedbacks turned off</desc>
 <desc compset="ADIAB"         >CAM adiabatic physics</desc>
 <desc compset="IDEAL"         >CAM ideal physics</desc>
@@ -1350,6 +1355,9 @@ DOCN%COPY => docn copy mode
 <RUN_STARTDATE compset="AR95_CAM">1995-07-18</RUN_STARTDATE>
 <START_TOD     compset="AR95_CAM">19800</START_TOD>
 
+<RUN_STARTDATE compset="AR97_CAM">1997-06-18</RUN_STARTDATE>
+<START_TOD     compset="AR97_CAM">84585</START_TOD>
+
 <RUN_STARTDATE compset="_DATM.*_CLM" grid="a%1x1_mexicocityMEX">1993-12-01</RUN_STARTDATE> 
 <STOP_OPTION   compset="_DATM.*_CLM" grid="a%1x1_mexicocityMEX">nsteps</STOP_OPTION> 
 <STOP_N        compset="_DATM.*_CLM" grid="a%1x1_mexicocityMEX">158</STOP_N> 
@@ -1508,6 +1516,7 @@ DOCN%COPY => docn copy mode
 <CCSM_CO2_PPMV compset="^GEOS.+CAM"      >0.000001</CCSM_CO2_PPMV>
 <CCSM_CO2_PPMV compset="^AMIP.+CAM"      >0.000001</CCSM_CO2_PPMV>
 <CCSM_CO2_PPMV compset="^AR95"           >368.9</CCSM_CO2_PPMV> 
+<CCSM_CO2_PPMV compset="^AR97"           >368.9</CCSM_CO2_PPMV>
 <CCSM_CO2_PPMV compset="^2003"           >367.0</CCSM_CO2_PPMV> 
 
 <!-- Override values based on CAM (WACCM) chemistry -->

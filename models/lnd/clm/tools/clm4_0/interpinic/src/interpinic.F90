@@ -1383,7 +1383,7 @@ contains
     character(len= 5) :: zone
     character(len=18) :: datetime
     character(len=256):: version = &
-         "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_29/models/lnd/clm/tools/clm4_0/interpinic/src/interpinic.F90 $"
+         "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_35/models/lnd/clm/tools/clm4_0/interpinic/src/interpinic.F90 $"
     character(len=256)  :: revision_id = "$Id: interpinic.F90 43810 2013-02-07 06:12:57Z erik $"
     character(len=16)   :: logname
     character(len=16)   :: hostname

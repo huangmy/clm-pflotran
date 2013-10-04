@@ -5,6 +5,7 @@ source ./Tools/ccsm_getenv     || exit -2
 
 cd $CASEROOT
 
+# Build with default PE layout
 ./cesm_setup -clean
 ./cesm_setup
 ./$CASE.build
@@ -12,6 +13,7 @@ mv -f $EXEROOT/cesm.exe $EXEROOT/cesm.exe.prs1
 cp -f env_build.xml env_build.xml.prs1
 cp -f env_mach_pes.xml env_mach_pes.xml.prs1
 
+# Halve the number of tasks and threads
 source ./Tools/ccsm_getenv || exit -3
 
 if ( $NTASKS_ATM > 1 ) then
@@ -79,6 +81,7 @@ if ( $NTHRDS_CPL > 1 ) then
   ./xmlchange -file env_mach_pes.xml -id NTHRDS_CPL  -val $ntask
 endif
 
+# Build with half the tasks and threads
 ./cesm_setup -clean
 ./cesm_setup
 ./$CASE.build
@@ -90,4 +93,10 @@ cp -f env_build.xml.prs1 env_build.xml
 cp -f env_mach_pes.xml.prs1 env_mach_pes.xml
 cp -f env_mach_pes.xml LockedFiles/env_mach_pes.xml.locked
 cp -f env_build.xml LockedFiles/env_build.xml.locked
+
+# Go back to original default layout
+./cesm_setup -clean
+cp env_build.xml.prs1 env_build.xml
+cp env_mach_pes.xml.prs1 env_mach_pes.xml
+./cesm_setup
 

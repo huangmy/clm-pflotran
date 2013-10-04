@@ -265,8 +265,8 @@ Currently the following streams are supported (term definitions precede the stre
 <strm_year_align stream="CLM1PT.CLM_USRDAT">$DATM_CLMNCEP_YR_ALIGN</strm_year_align>
 <strm_year_start stream="CLM1PT.CLM_USRDAT">$DATM_CLMNCEP_YR_START</strm_year_start>
 <strm_year_end   stream="CLM1PT.CLM_USRDAT">$DATM_CLMNCEP_YR_END</strm_year_end>
-<strm_domdir     stream="CLM1PT.CLM_USRDAT">$DIN_LOC_ROOT/share/domains/domain.clm</strm_domdir>
-<strm_domfil     stream="CLM1PT.CLM_USRDAT">domain.lnd.${CLM_USRDAT_NAME}_navy.nc</strm_domfil>
+<strm_domdir     stream="CLM1PT.CLM_USRDAT">$ATM_DOMAIN_PATH</strm_domdir>
+<strm_domfil     stream="CLM1PT.CLM_USRDAT">$ATM_DOMAIN_FILE</strm_domfil>
 <strm_datdir     stream="CLM1PT.CLM_USRDAT">$DIN_LOC_ROOT/atm/datm7/CLM1PT_data/$CLM_USRDAT_NAME</strm_datdir>
 <strm_datfil     stream="CLM1PT.CLM_USRDAT">%ym.nc</strm_datfil>
 <strm_offset     stream="CLM1PT.CLM_USRDAT">0</strm_offset>

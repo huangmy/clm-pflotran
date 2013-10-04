@@ -195,17 +195,29 @@ cd $CASEROOT
 source ./Tools/ccsm_getenv || exit -1
 
 #----------------------------------------------
-# compress ice and ocn history files
+# Compress selected history files
+#   1. Uncomment the following block of code
+#   2. Set complist to desired components
 #----------------------------------------------
-if (-e /glade/apps/opt/bin/pigz) then
-   set cmd = /glade/apps/opt/bin/pigz
-else
-   set cmd = gzip
-endif
-cd \$DOUT_S_ROOT/ice/hist
-\$cmd *
-cd \$DOUT_S_ROOT/ocn/hist
-\$cmd *
+# set complist="atm cpl ice lnd rof ocn"
+# date
+# echo ""
+# echo "Compression Timing" 
+# echo "------------------"
+# if (-e /glade/apps/opt/bin/pigz) then
+#    set cmd = /glade/apps/opt/bin/pigz
+# else
+#    set cmd = gzip
+# endif
+# set time=(3600 "%E %P %Uu %Ss")
+# foreach comp ( \$complist )
+#    cd \$DOUT_S_ROOT/\$comp/hist
+#    echo -n " \${comp}: "
+#    time \$cmd *
+# end
+# unset time
+# echo ""
+
 
 #----------------------------------------------
 # run the long term archiver

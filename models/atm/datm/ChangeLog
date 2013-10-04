@@ -1,8 +1,17 @@
 ================================================================================
- SVN $Id: ChangeLog 50840 2013-09-05 17:41:45Z tcraig $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_130905/ChangeLog $
+ SVN $Id: ChangeLog 51342 2013-09-19 22:14:03Z erik $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_130919/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: erik
+Date: Sep 19 2013
+Model: datm7
+Version: datm8_130919
+One-line summary:  By default for CLM_USRDAT use ATM_DOMAIN_PATH/FILE rather than explict path for file
+
+M       bld/namelist_files/namelist_defaults_datm.xml
+
 ================================================================================
 Originator: tcraig
 Date: Sep 05 2013
