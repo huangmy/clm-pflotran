@@ -1,1 +1,0 @@
-./xmlchange CLM_CONFIG_OPTS="-snicar_frc on" -append
