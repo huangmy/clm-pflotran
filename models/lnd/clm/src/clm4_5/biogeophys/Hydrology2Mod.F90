@@ -225,7 +225,7 @@ contains
                          num_urbanc, filter_urbanc)
       ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
       call Infiltration(bounds,  num_hydrologyc, filter_hydrologyc, &
-                        num_urbanc, filter_urbanc, vol_liq)
+                        num_urbanc, filter_urbanc)
     endif
 
     if (use_pflotran) then
