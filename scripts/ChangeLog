@@ -1,8 +1,56 @@
 ================================================================================
-SVN $Id: ChangeLog 51888 2013-10-01 15:56:44Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131001/ChangeLog $
+SVN $Id: ChangeLog 53968 2013-10-03 21:38:13Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131003/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: 3 Oct 2013
+Model: scripts
+Version: scripts4_131003
+One-line: tweak aux_clm test list
+
+Turn irrigation on for a long test instead of a short one (because for
+the short test, it's likely that irrigation never actually happens);
+in particular, use irrigation for this test:
+PET_P15x2_Ly3.f10_f10.ICLM45BGCCROP.yellowstone_intel.clm-irrigOn_reduceOutput
+instead of:
+ERI_N2.f19_g16.ICRUCLM45BGCCROP.yellowstone_intel
+
+A  +    scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn_reduceOutput
+M  +    scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn_reduceOutput/user_nl_clm
+D       scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn
+D       scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm
+D       scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm_0001
+D       scripts/ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm_0002
+M       scripts/ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: sacks
+Date: 2 Oct 2013
+Model: scripts
+Version: scripts4_131002
+One-line: add user_nl_clm files for use in multi-instance tests
+
+Note that this changes answers for any multi-instance test that uses
+the clm-irrigOn testmods directory; it changes behavior (but not
+answers) for multi-instance tests using the clm-default testmods directory.
+
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/default/user_nl_clm_0001
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/default/user_nl_clm_0002
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm_0001
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn/user_nl_clm_0002
+
+================================================================================
+Originator: jedwards
+Date: 1 Oct 2013
+Model: scripts
+Version: scripts4_131001a
+One-line: fix namelist compare in create_test (sometimes tested wrong case)
+
+M     create_test
+
+
 ================================================================================
 Originator: sacks
 Date: 1 Oct 2013
