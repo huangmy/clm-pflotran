@@ -855,10 +855,12 @@ contains
       if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
         write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
         write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
       else if (urbpoi(l) .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
         ! Urban Roof, sunwall, shadewall properties set to special value
         write (iulog,*), 'WARNING: Land Unit type is Urban '
         write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
       else  ! soil columns of both urban and non-urban types
 
         do lev = 1,nlevgrnd
