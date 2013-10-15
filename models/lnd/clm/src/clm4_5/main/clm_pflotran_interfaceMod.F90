@@ -838,6 +838,12 @@ contains
     call ncd_io(ncid=ncid, varname='PCT_CLAY', flag='read', data=clay3d, dim1name=grlnd,readvar=readvar)
     if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfadata file' )
 
+
+    ! Check if there is only 1 column per 1 CLM grid cell
+    if (bounds%endg-bounds%begg .ne. bounds%endc-bounds%begc) then
+      call endrun( trim(subname)//' ERROR: More than 1 col per grid cell' )
+    endif
+
     ! --------------------------------------------------------------------
     ! If a organic matter dataset has been specified, read it
     ! --------------------------------------------------------------------
