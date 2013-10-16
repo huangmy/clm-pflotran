@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_infodata_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/shr/seq_infodata_mod.F90 $
+! SVN $Id: seq_infodata_mod.F90 51415 2013-09-20 17:12:57Z mvertens $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_02/shr/seq_infodata_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -233,7 +233,7 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
    use shr_file_mod,   only : shr_file_getUnit, shr_file_freeUnit
    use shr_string_mod, only : shr_string_toUpper, shr_string_listAppend
    use shr_mpi_mod,    only : shr_mpi_bcast
-   use seq_io_mod,     only : seq_io_read
+   use seq_io_read_mod
 
    implicit none
 

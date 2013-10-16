@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_io_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/shr/seq_io_mod.F90 $
+! SVN $Id: seq_io_mod.F90 51415 2013-09-20 17:12:57Z mvertens $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_02/driver/seq_io_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -41,6 +41,7 @@ module seq_io_mod
   use seq_flds_mod, only : seq_flds_lookup
   use mct_mod           ! mct wrappers
   use pio
+  use component_type_mod
 
   implicit none
   private
@@ -70,6 +71,7 @@ module seq_io_mod
   interface seq_io_read
      module procedure seq_io_read_av
      module procedure seq_io_read_avs
+     module procedure seq_io_read_avscomp
      module procedure seq_io_read_int
      module procedure seq_io_read_int1d
      module procedure seq_io_read_r8
@@ -79,6 +81,7 @@ module seq_io_mod
   interface seq_io_write
      module procedure seq_io_write_av
      module procedure seq_io_write_avs
+     module procedure seq_io_write_avscomp
      module procedure seq_io_write_int
      module procedure seq_io_write_int1d
      module procedure seq_io_write_r8
@@ -107,8 +110,6 @@ module seq_io_mod
 
    character(CL) :: charvar   ! buffer for string read/write
    integer(IN) :: io_comm
- 
-
 
 !=================================================================================
 contains
@@ -477,7 +478,6 @@ end function seq_io_sec2hms
           call mct_aVect_getRList(mstring,k,AV)
           itemc = mct_string_toChar(mstring)
           call mct_string_clean(mstring)
-! "v0"    name1 = trim(prefix)//trim(dname)//'_'//trim(itemc)
           name1 = trim(lpre)//'_'//trim(itemc)
           call seq_flds_lookup(itemc,longname=lname,stdname=sname,units=cunit)
 	  if (luse_float) then 
@@ -508,7 +508,6 @@ end function seq_io_sec2hms
           call mct_aVect_getRList(mstring,k,AV)
           itemc = mct_string_toChar(mstring)
           call mct_string_clean(mstring)
-! "v0"    name1 = trim(prefix)//trim(dname)//'_'//trim(itemc)
           name1 = trim(lpre)//'_'//trim(itemc)
           rcode = pio_inq_varid(cpl_io_file,trim(name1),varid)
           if (present(nt)) then
@@ -671,7 +670,6 @@ end function seq_io_sec2hms
           call mct_aVect_getRList(mstring,k,AVS(1))
           itemc = mct_string_toChar(mstring)
           call mct_string_clean(mstring)
-! "v0"    name1 = trim(prefix)//trim(dname)//'_'//trim(itemc)
           name1 = trim(lpre)//'_'//trim(itemc)
           call seq_flds_lookup(itemc,longname=lname,stdname=sname,units=cunit)
 	  if (luse_float) then 
@@ -717,7 +715,6 @@ end function seq_io_sec2hms
           call mct_aVect_getRList(mstring,k,AVS(1))
           itemc = mct_string_toChar(mstring)
           call mct_string_clean(mstring)
-! "v0"    name1 = trim(prefix)//trim(dname)//'_'//trim(itemc)
           name1 = trim(lpre)//'_'//trim(itemc)
           rcode = pio_inq_varid(cpl_io_file,trim(name1),varid)
           if (present(nt)) then
@@ -742,6 +739,231 @@ end function seq_io_sec2hms
 
     end if
   end subroutine seq_io_write_avs
+
+  !===============================================================================
+  !BOP ===========================================================================
+  !
+  ! !IROUTINE: seq_io_write_avs - write AVS to netcdf file
+  !
+  ! !DESCRIPTION:
+  !    Write AV to netcdf file
+  !
+  ! !REVISION HISTORY:
+  !    2007-Oct-26 - T. Craig - initial version
+  !
+  ! !INTERFACE: ------------------------------------------------------------------
+
+  subroutine seq_io_write_avscomp(filename, comp, flow, dname, &
+       whead, wdata, nx, ny, nt, fillval, pre, tavg, use_float)
+
+    ! !INPUT/OUTPUT PARAMETERS:
+    implicit none
+    character(len=*) ,intent(in)          :: filename  ! file
+    type(component_type)  ,intent(in)          :: comp(:)   ! data to be written
+    character(len=3) ,intent(in)          :: flow      ! 'c2x' or 'x2c'
+    character(len=*) ,intent(in)          :: dname     ! name of data
+    logical          ,optional,intent(in) :: whead     ! write header
+    logical          ,optional,intent(in) :: wdata     ! write data
+    integer(in)      ,optional,intent(in) :: nx        ! 2d grid size if available
+    integer(in)      ,optional,intent(in) :: ny        ! 2d grid size if available
+    integer(in)      ,optional,intent(in) :: nt        ! time sample
+    real(r8)         ,optional,intent(in) :: fillval   ! fill value
+    character(len=*) ,optional,intent(in) :: pre       ! prefix to variable name
+    logical          ,optional,intent(in) :: tavg      ! is this a tavg
+    logical          ,optional,intent(in) :: use_float ! write output as float rather than double
+
+    !EOP
+
+    type(mct_gsMap), pointer :: gsmap     ! global seg map on coupler processes
+    type(mct_avect), pointer :: avcomp1
+    type(mct_avect), pointer :: avcomp
+    integer(in)              :: rcode
+    integer(in)              :: mpicom
+    integer(in)              :: iam
+    integer(in)              :: nf,ns,ng,ni
+    integer(in)              :: i,j,k,n,k1,k2
+    integer(in),target       :: dimid2(2)
+    integer(in),target       :: dimid3(3)
+    integer(in),target       :: dimid4(4)
+    integer(in),pointer      :: dimid(:)
+    type(var_desc_t)         :: varid
+    type(io_desc_t)          :: iodesc
+    integer(kind=PIO_OffSet) :: frame
+    type(mct_string)         :: mstring     ! mct char type
+    character(CL)            :: itemc       ! string converted to char
+    character(CL)            :: name1       ! var name
+    character(CL)            :: cunit       ! var units
+    character(CL)            :: lname       ! long name
+    character(CL)            :: sname       ! standard name
+    character(CL)            :: lpre        ! local prefix
+    logical                  :: exists
+    logical                  :: lwhead, lwdata
+    logical                  :: luse_float
+    integer(in)              :: lnx,lny
+    real(r8)                 :: lfillvalue
+    real(r8), allocatable    :: data(:)
+    character(*),parameter   :: subName = '(seq_io_write_avs) '
+    integer                  :: lbnum
+    integer, pointer         :: Dof(:)
+    integer, pointer         :: Dofn(:)
+
+    !-------------------------------------------------------------------------------
+    !
+    !-------------------------------------------------------------------------------
+
+    lfillvalue = fillvalue
+    if (present(fillval)) then
+       lfillvalue = fillval
+    endif
+
+    lpre = trim(dname)
+    if (present(pre)) then
+       lpre = trim(pre)
+    endif
+
+    lwhead = .true.
+    lwdata = .true.
+    if (present(whead)) lwhead = whead
+    if (present(wdata)) lwdata = wdata
+
+    if (.not.lwhead .and. .not.lwdata) then
+       ! should we write a warning?
+       return
+    endif
+
+    luse_float = .false.
+    if (present(use_float)) luse_float = use_float
+
+    call seq_comm_setptrs(CPLID,iam=iam)	
+
+    ni = size(comp)
+    if (trim(flow) == 'x2c') avcomp1 => component_get_x2c_cx(comp(1))  
+    if (trim(flow) == 'c2x') avcomp1 => component_get_c2x_cx(comp(1))  
+    gsmap => component_get_gsmap_cx(comp(1))  
+    ns = mct_aVect_lsize(avcomp1)
+    ng = mct_gsmap_gsize(gsmap)
+    lnx = ng
+    lny = 1
+	
+    nf = mct_aVect_nRattr(avcomp1)
+    if (nf < 1) then
+       write(logunit,*) subname,' ERROR: nf = ',nf,trim(dname)
+       call shr_sys_abort()
+    endif
+
+    if (present(nx)) then
+       if (nx /= 0) lnx = nx
+    endif
+    if (present(ny)) then
+       if (ny /= 0) lny = ny
+    endif
+    if (lnx*lny /= ng) then
+       if(iam==0) then
+          write(logunit,*) subname,' ERROR: grid2d size not consistent ',&
+               ng,lnx,lny,trim(dname)
+       end if
+       call shr_sys_abort()
+    endif
+
+    if (lwhead) then
+       rcode = pio_def_dim(cpl_io_file,trim(lpre)//'_nx',lnx,dimid2(1))
+       rcode = pio_def_dim(cpl_io_file,trim(lpre)//'_ny',lny,dimid2(2))
+
+       if (ni > 1) then
+          rcode = pio_def_dim(cpl_io_file,trim(lpre)//'_ni',ni,dimid3(3))
+          if (present(nt)) then
+             dimid4(1:2) = dimid2
+             dimid4(3) = dimid3(3)
+             rcode = pio_inq_dimid(cpl_io_file,'time',dimid4(4))
+             dimid => dimid4
+          else
+             dimid3(1:2) = dimid2
+             dimid => dimid3
+          endif
+       else
+          if (present(nt)) then
+             dimid3(1:2) = dimid2
+             rcode = pio_inq_dimid(cpl_io_file,'time',dimid3(3))
+             dimid => dimid3
+          else
+             dimid => dimid2
+          endif
+       endif
+
+       do k = 1,nf
+          call mct_aVect_getRList(mstring,k,avcomp1)
+          itemc = mct_string_toChar(mstring)
+          call mct_string_clean(mstring)
+          name1 = trim(lpre)//'_'//trim(itemc)
+          call seq_flds_lookup(itemc,longname=lname,stdname=sname,units=cunit)
+	  if (luse_float) then 
+             rcode = pio_def_var(cpl_io_file,trim(name1),PIO_REAL,dimid,varid)
+          else
+             rcode = pio_def_var(cpl_io_file,trim(name1),PIO_DOUBLE,dimid,varid)
+          end if
+          rcode = pio_put_att(cpl_io_file,varid,"_FillValue",lfillvalue)
+          rcode = pio_put_att(cpl_io_file,varid,"units",trim(cunit))
+          rcode = pio_put_att(cpl_io_file,varid,"long_name",trim(lname))
+          rcode = pio_put_att(cpl_io_file,varid,"standard_name",trim(sname))
+          rcode = pio_put_att(cpl_io_file,varid,"internal_dname",trim(dname))
+          if (present(tavg)) then
+             if (tavg) then
+                rcode = pio_put_att(cpl_io_file,varid,"cell_methods","time: mean")
+             endif
+          endif
+       enddo
+       if (lwdata) call seq_io_enddef(filename)
+    end if
+
+    if (lwdata) then
+       allocate(data(ns*ni))
+       ! note: size of dof is ns
+       call mct_gsmap_OrderedPoints(gsmap, iam, Dof)
+       if (ni > 1) then
+          allocate(dofn(ns*ni))
+          n = 0
+          do k1 = 1,ni
+          do k2 = 1,ns
+             n = n + 1
+             dofn(n) = (k1-1)*ng + dof(k2)
+          enddo
+          enddo
+          call pio_initdecomp(cpl_io_subsystem, pio_double, (/lnx,lny,ni/), dofn, iodesc)
+          deallocate(dofn)
+       else
+          call pio_initdecomp(cpl_io_subsystem, pio_double, (/lnx,lny/), dof, iodesc)
+       endif
+       deallocate(dof)
+
+       do k = 1,nf
+          call mct_aVect_getRList(mstring,k,avcomp1)
+          itemc = mct_string_toChar(mstring)
+          call mct_string_clean(mstring)
+          name1 = trim(lpre)//'_'//trim(itemc)
+          rcode = pio_inq_varid(cpl_io_file,trim(name1),varid)
+          if (present(nt)) then
+             frame = nt
+          else
+             frame = 1
+          endif
+          call pio_setframe(varid,frame)
+          n = 0
+          do k1 = 1,ni
+             if (trim(flow) == 'x2c') avcomp => component_get_x2c_cx(comp(k1))  
+             if (trim(flow) == 'c2x') avcomp => component_get_c2x_cx(comp(k1))  
+             do k2 = 1,ns
+                n = n + 1
+                data(n) = avcomp%rAttr(k,k2)
+             enddo
+          enddo
+          call pio_write_darray(cpl_io_file, varid, iodesc, data, rcode, fillval=lfillvalue)
+       enddo
+
+       deallocate(data)
+       call pio_freedecomp(cpl_io_file, iodesc)
+
+    end if
+  end subroutine seq_io_write_avscomp
 
   !===============================================================================
   !BOP ===========================================================================
@@ -1502,6 +1724,185 @@ subroutine seq_io_write_time(filename,time_units,time_cal,time_val,nt,whead,wdat
     call pio_closefile(pioid)
 
   end subroutine seq_io_read_avs
+
+!===============================================================================
+  !BOP ===========================================================================
+  !
+  ! !IROUTINE: seq_io_read_avs - read AV from netcdf file
+  !
+  ! !DESCRIPTION:
+  !    Read AV from netcdf file
+  !
+  ! !REVISION HISTORY:
+  !    2007-Oct-26 - T. Craig - initial version
+  !
+  ! !INTERFACE: ------------------------------------------------------------------
+
+  subroutine seq_io_read_avscomp(filename, comp, flow, dname, pre)
+
+    ! !INPUT/OUTPUT PARAMETERS:
+    implicit none
+    character(len=*), intent(in)          :: filename ! file
+    type(component_type),  intent(inout)       :: comp(:)
+    character(len=3), intent(in)          :: flow     ! 'c2x' or 'x2c'
+    character(len=*), intent(in)          :: dname    ! name of data
+    character(len=*), intent(in),optional :: pre      ! prefix name
+
+    !EOP
+
+    type(mct_gsMap), pointer :: gsmap
+    type(mct_aVect), pointer :: avcomp  
+    type(mct_aVect), pointer :: avcomp1 
+    integer(in)              :: rcode
+    integer(in)              :: iam,mpicom
+    integer(in)              :: nf,ns,ng,ni
+    integer(in)              :: i,j,k,n,n1,n2,ndims
+    type(file_desc_t)        :: pioid
+    integer(in)              :: dimid(4)
+    type(var_desc_t)         :: varid
+    integer(in)              :: lnx,lny,lni
+    type(mct_string)         :: mstring ! mct char type
+    character(CL)            :: itemc   ! string converted to char
+    logical                  :: exists
+    type(io_desc_t)          :: iodesc
+    integer(in), pointer     :: dof(:)
+    integer(in), pointer     :: dofn(:)
+    real(r8), allocatable    :: data(:)
+    character(CL)            :: lversion
+    character(CL)            :: name1
+    character(CL)            :: lpre
+    character(*),parameter   :: subName = '(seq_io_read_avs) '
+    !-------------------------------------------------------------------------------
+    !
+    !-------------------------------------------------------------------------------
+
+    lversion = trim(version0)
+
+    lpre = trim(dname)
+    if (present(pre)) then
+       lpre = trim(pre)
+    endif
+
+    gsmap => component_get_gsmap_cx(comp(1))
+    if (trim(flow) == 'x2c') avcomp1 => component_get_x2c_cx(comp(1))  
+    if (trim(flow) == 'c2x') avcomp1 => component_get_c2x_cx(comp(1))  
+
+    call seq_comm_setptrs(CPLID,iam=iam,mpicom=mpicom)
+    call mct_gsmap_OrderedPoints(gsmap, iam, Dof)
+
+    ni = size(comp)
+    ns = mct_aVect_lsize(avcomp1)
+    nf = mct_aVect_nRattr(avcomp1)
+    ng = mct_gsmap_gsize(gsmap)
+
+    if (iam==0) inquire(file=trim(filename),exist=exists)
+    call shr_mpi_bcast(exists,mpicom,'seq_io_read_avs exists')
+    if (exists) then
+       rcode = pio_openfile(cpl_io_subsystem, pioid, cpl_pio_iotype, trim(filename),pio_nowrite)
+       if(iam==0) write(logunit,*) subname,' open file ',trim(filename)
+       call pio_seterrorhandling(pioid,PIO_BCAST_ERROR)
+       rcode = pio_get_att(pioid,pio_global,"file_version",lversion)
+       call pio_seterrorhandling(pioid,PIO_INTERNAL_ERROR)
+    else
+       if(iam==0) write(logunit,*) subname,' ERROR: file invalid ',trim(filename),' ',trim(dname)
+       call shr_sys_abort()
+    endif
+
+    allocate(data(ni*ns))
+
+    do k = 1,nf
+       call mct_aVect_getRList(mstring,k,avcomp1)
+       itemc = mct_string_toChar(mstring)
+       call mct_string_clean(mstring)
+       if (trim(lversion) == trim(version)) then
+          name1 = trim(lpre)//'_'//trim(itemc)
+       else
+          name1 = trim(prefix)//trim(dname)//'_'//trim(itemc)
+       endif
+       call pio_seterrorhandling(pioid, PIO_BCAST_ERROR)
+       rcode = pio_inq_varid(pioid,trim(name1),varid)
+       if (rcode == pio_noerr) then
+          if (k==1) then
+             rcode = pio_inq_varndims(pioid, varid, ndims)
+             rcode = pio_inq_vardimid(pioid, varid, dimid(1:ndims))
+             rcode = pio_inq_dimlen(pioid, dimid(1), lnx)
+             if (ndims>=2) then
+                rcode = pio_inq_dimlen(pioid, dimid(2), lny)
+             else
+                lny = 1
+             end if
+             if (lnx*lny /= ng) then
+                write(logunit,*) subname,' ERROR: dimensions do not match',&
+                     lnx,lny,mct_gsmap_gsize(gsmap)
+                call shr_sys_abort()
+             end if
+             if (ndims>=3) then
+                rcode = pio_inq_dimlen(pioid, dimid(3), lni)
+             else
+                lni = 1
+             end if
+             if (ni /= lni) then
+                write(logunit,*) subname,' ERROR: ni dimensions do not match',ni,lni
+                call shr_sys_abort()
+             end if
+             if (ni > 1) then
+                allocate(dofn(ns*ni))
+                n = 0
+                do n1 = 1,ni
+                do n2 = 1,ns
+                   n = n + 1
+                   dofn(n) = (n1-1)*ng + dof(n2)
+                enddo
+                enddo
+                call pio_initdecomp(cpl_io_subsystem, pio_double, (/lnx,lny,lni/), dofn, iodesc)
+                deallocate(dofn)
+             else
+                call pio_initdecomp(cpl_io_subsystem, pio_double, (/lnx,lny/), dof, iodesc)
+             endif
+             deallocate(dof)
+          end if
+
+          call pio_read_darray(pioid,varid,iodesc, data, rcode)
+          n = 0
+          do n1 = 1,ni
+             if (trim(flow) == 'x2c') avcomp => component_get_x2c_cx(comp(n1))  
+             if (trim(flow) == 'c2x') avcomp => component_get_c2x_cx(comp(n1))  
+             do n2 = 1,ns
+                n = n + 1
+                avcomp%rAttr(k,n2) = data(n)
+             enddo
+          enddo
+       else
+          write(logunit,*)'seq_io_readav warning: field ',trim(itemc),' is not on restart file'
+          write(logunit,*)'for backwards compatibility will set it to 0'
+          do n1 = 1,ni
+             if (trim(flow) == 'x2c') avcomp => component_get_x2c_cx(comp(n1))  
+             if (trim(flow) == 'c2x') avcomp => component_get_c2x_cx(comp(n1))  
+             avcomp%rattr(k,:) = 0.0_r8
+          enddo
+       end if
+       call pio_seterrorhandling(pioid,PIO_INTERNAL_ERROR)
+    enddo
+
+    deallocate(data)
+
+    !--- zero out fill value, this is somewhat arbitrary
+    do n1 = 1,ni
+       if (trim(flow) == 'x2c') avcomp => component_get_x2c_cx(comp(n1))  
+       if (trim(flow) == 'c2x') avcomp => component_get_c2x_cx(comp(n1))  
+       do n2 = 1,ns
+          do k = 1,nf
+             if (avcomp%rAttr(k,n2) == fillvalue) then
+                avcomp%rAttr(k,n2) = 0.0_r8
+             endif
+          enddo
+       enddo
+    enddo
+
+    call pio_freedecomp(pioid, iodesc)
+    call pio_closefile(pioid)
+
+  end subroutine seq_io_read_avscomp
 
   !===============================================================================
   !BOP ===========================================================================

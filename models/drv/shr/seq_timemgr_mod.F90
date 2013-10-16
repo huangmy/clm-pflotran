@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_timemgr_mod.F90 50879 2013-09-05 21:54:46Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/shr/seq_timemgr_mod.F90 $
+! SVN $Id: seq_timemgr_mod.F90 51415 2013-09-20 17:12:57Z mvertens $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_02/shr/seq_timemgr_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -235,7 +235,7 @@ subroutine seq_timemgr_clockInit(SyncClock, nmlfile, restart, restart_file, mpic
    use shr_string_mod, only : shr_string_toupper
    use shr_file_mod,   only : shr_file_getunit, shr_file_freeunit
    use shr_mpi_mod,    only : shr_mpi_bcast
-   use seq_io_mod,     only : seq_io_read
+   use seq_io_read_mod
 
    implicit none
 

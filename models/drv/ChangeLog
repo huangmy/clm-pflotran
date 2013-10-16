@@ -1,8 +1,102 @@
 ================================================================================
- SVN $Id: ChangeLog 50929 2013-09-06 23:41:36Z tcraig $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_3_03/ChangeLog $
+ SVN $Id: ChangeLog 53906 2013-10-02 19:10:22Z mvertens $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_02/ChangeLog $
 ================================================================================
 Information on changes to cpl7
+================================================================================
+Originator: mvertens
+Date: 2 Oct 2013
+Model: cpl7
+Version: drvseq5_0_02
+One-line summary: Removed cdata_cx and fixed FIDEAL and FADIABATIC problem
+	
+M       driver/component_mod.F90
+M       driver/component_type_mod.F90
+M       driver/ccsm_comp_mod.F90
+
+================================================================================
+Originator: mvertens
+Date: 1 Oct 2013
+Model: cpl7
+Version: drvseq5_0_01
+One-line summary: Retag of drvseq4_3_06 as drvseq5_0_01
+
+New tag line for major infrastructure changes	
+	
+================================================================================
+Originator: mvertens
+Date: 24 Sept 2013
+Model: cpl7
+Version: drvseq4_3_06
+One-line summary: bug fix for single column mode
+
+M       driver/component_type_mod.F90 (just comment changes)
+M       driver/ccsm_comp_mod.F90      (bug fix)
+	
+================================================================================
+Originator: mvertens
+Date: 20 Sept 2013
+Model: cpl7
+Version: drvseq4_3_05
+One-line summary: major coupler refactoring
+
+- added new routines prep_xxx_mod.F90 which are modules that
+contain all mapping and merging from components other than
+xxx (e.g. prep_atm_mod./F90 does the mapping from lnd, ice and ocn
+to the atm grid and then merges then via scaling by the
+appropriate fractions. Note that ALL prep_xxx_mod.F90 routines are
+nly called on the cpl processes
+	
+- added new module, component_mod.F90, and new derived type in
+component_type_mod.f90, that permits a new layer to be added
+between the driver (ccsm_comp_mod.F90) and the components that
+allows the driver to be independent of the coupling infrastructure
+use. It also eliminates the need for xxx_comp_mct.F90 IN the
+cpl_esmf/ directories.
+
+Files added: 	
+A  +    driver/seq_map_type_mod.F90
+A  +    driver/t_driver_timers_mod.F90
+A  +    driver/component_mod.F90
+A  +    driver/component_type_mod.F90
+A  +    driver/prep_atm_mod.F90
+A  +    driver/prep_lnd_mod.F90
+A  +    driver/prep_ocn_mod.F90
+A  +    driver/prep_ice_mod.F90
+A  +    driver/prep_rof_mod.F90
+A  +    driver/prep_glc_mod.F90
+A  +    driver/prep_wav_mod.F90
+A  +    driver/seq_io_mod.F90
+A  +    shr/seq_io_read_mod.F90
+
+Files deleted:
+D       driver/mrg_mod.F90
+D       driver/seq_avdata_mod.F90
+D       shr/seq_io_mod.F90
+
+Files modified:	
+M       driver/seq_domain_mct.F90
+M       driver/seq_map_mod.F90
+M       driver/seq_rest_mod.F90
+M       driver/seq_frac_mct.F90
+M       driver/seq_flux_mct.F90
+M       driver/seq_map_esmf.F90
+M       driver/ccsm_driver.F90
+M       driver/ccsm_comp_mod.F90
+M       driver/seq_hist_mod.F90
+M       driver/seq_diag_mct.F90p
+M       shr/seq_cdata_mod.F90
+M       shr/seq_timemgr_mod.F90
+M       shr/seq_infodata_mod.F90
+================================================================================
+Originator: tcraig
+Date: 17 Sept 2013
+Model: cpl7
+Version: drvseq4_3_04
+One-line summary: fix single column mode, areafact==1.0
+
+M       driver/ccsm_comp_mod.F90
+
 ================================================================================
 Originator: tcraig
 Date: 06 Sept 2013
