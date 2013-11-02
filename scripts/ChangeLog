@@ -1,8 +1,45 @@
 ================================================================================
-SVN $Id: ChangeLog 54352 2013-10-18 17:49:10Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131018/ChangeLog $
+SVN $Id: ChangeLog 54693 2013-10-30 16:40:56Z mvertens $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131030/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: mvertens
+Date: 30 Oct 2013
+Model: scripts
+Version: scripts4_131030
+One-line: merged in changes from scripts/branches/clm_controlMod_cpp (Ben Andre)
+
+This removes all CPP flags from CLM and replaces them with run-time namelist settings	
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/xmlchange_cmnds
+M       ccsm_utils/Testcases/config_tests.xml
+M       ccsm_utils/Testcases/SSP_script
+
+================================================================================
+Originator: jshollen 
+Date: 28 Oct 2013
+Model: scripts
+Version: scripts4_131028
+One-line: single-test create_test bug fix, namelistCompare should be using the
+casebaseid
+
+M       create_test
+
+================================================================================
+Originator: jedwards (via Cecile Hannay)
+Date: 24 Oct 2013
+Model: scripts
+Version: scripts4_131024
+One-line: 1. Change in the initial condition for FAMIP_CAM5_CN at ne30 (to use a better spunup condition)
+2. Change in the initial condition for F_1850-PDAY_CAM5 at ne30 and f09 (to use a better spunup condition)
+3. Add time-varying PFT from RCP4.5 in F_1850-PDAY_CAM5  ( to be more consistent with what is made in the atmosphere).
+
+	M ccsm_utils/Case.template/config_compsets.xml
+
 ================================================================================
 Originator: sacks
 Date: 18 Oct 2013
