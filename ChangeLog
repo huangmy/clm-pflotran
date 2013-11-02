@@ -1,4 +1,83 @@
 ===============================================================
+Tag name:  clm4_5_39
+Originator(s):  muszala (Stefan Muszala,UCAR/TSS,303-497-1320)
+Date: Wed Oct 23 08:24:47 MDT 2013
+One-line Summary: bug fix from santos - h2osoi_vol not passed to atmosphere model on restart
+
+Purpose of changes:
+
+Update soilw for atmosphere at every timestep.
+
+- Fix bug where soilw was only being set from h2osoi_vol on the first
+timestep. This field is used by some CARMA dust models.
+
+Requirements for tag: N/A
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 1787
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: self, santos
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+M        models/lnd/clm/src/clm4_0/main/clm_atmlnd.F90
+M        models/lnd/clm/src/clm4_0/main/clm_initializeMod.F90
+M        models/lnd/clm/src/clm4_5/main/clm_atmlnd.F90
+M        models/lnd/clm/src/clm4_5/main/clm_initializeMod.F90
+   - Create a new subroutine, clm_map2gcell_minimal, which updates
+     only the fields needed at initialization.
+   - Have the regular clm_map2cell call clm_map2gcell_minimal, thus
+     guaranteeing that fields updated on the first time step will
+     always be a subset of the fields updated on every time step.
+
+CLM testing:
+
+  build-namelist tests: N/A
+
+  regular tests (aux_clm):
+
+    yellowstone_intel-OK
+    yellowstone_pgi-OK
+    frankfurt_intel-OK
+    frankfurt_pgi-OK
+    frankfurt_nag-OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel - OK
+
+CLM tag used for the baseline comparisons:  clm4_5_38
+
+Changes answers relative to baseline: No.  Tag is BFB.
+
+===============================================================
+===============================================================
 Tag name:  clm4_5_38
 Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
 Date:  Fri Oct 18 12:36:03 MDT 2013
