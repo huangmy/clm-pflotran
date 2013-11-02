@@ -1,4 +1,121 @@
 ===============================================================
+Tag name:  clm4_5_38
+Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
+Date:  Fri Oct 18 12:36:03 MDT 2013
+One-line Summary: change irrigation variables to be pft-level
+
+Purpose of changes:
+
+   Irrigation variables were previously defined on the column-level. That is
+   fine with the current operation of the code (for which there is only one pft
+   per column), but is not robust to changes that might put multiple irrigated
+   pfts (or some irrigated & some unirrigated pfts) on the same column. This
+   changes these variables to be pft-level, so that the code is robust to these
+   types of changes.
+
+   Also, remove some unnecessary setting of qflx_irrig to 0.
+
+   WARNING: USE CAUTION WHEN USING THIS TAG WITH AN OLDER RESTART FILE IN WHICH
+   IRRIGATION WAS TURNED ON (this is not the case for any out-of-the-box initial
+   conditions files, but could apply if you have your own initial file from a
+   run that included irrigation): Using this tag with old initial conditions
+   files will give incorrect irrigation results for the first day, if the old
+   initial conditions files had non-zero irrigation. Similarly, if you use
+   interpinic on an old initial conditions file that had non-zero irrigation,
+   the irrigation in the new file will cause incorrect behavior for the first
+   day.
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: ncdio_pio design review by erik; other changes just reviewed
+by self
+
+List any svn externals directories updated (csm_share, mct, etc.):
+
+   scripts: Update to scripts4_131018 to get new test
+
+List all files eliminated: none
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes:
+
+========= Change irrigation variables to pft-level, and add column-level qflx_irrig in pwf_a
+M       models/lnd/clm/src/clm4_5/main/clmtype.F90
+M       models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90
+M       models/lnd/clm/src/clm4_5/main/pft2colMod.F90
+M       models/lnd/clm/src/clm4_5/main/mkarbinitMod.F90
+          - also remove unnecessary initialization of qflx_irrig to 0
+M       models/lnd/clm/src/clm4_5/main/histFldsMod.F90
+          - also remove unnecessary set_lake
+M       models/lnd/clm/src/clm4_5/biogeophys/BalanceCheckMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SLakeHydrologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Hydrology1Mod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/BiogeophysRestMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/CanopyFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/Hydrology2Mod.F90
+          - also remove unnecessary setting of qflx_irrig to 0
+
+========= Remove unnecessary setting of qflx_irrig to 0
+M       models/lnd/clm/src/clm4_5/main/CNiniTimeVar.F90
+M       models/lnd/clm/src/clm4_5/main/CNiniSpecial.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SoilHydrologyMod.F90
+
+========= Add a routine to get the dimension length of a given dimension of a variable
+M       models/lnd/clm/src/util_share/ncdio_pio.F90
+
+========= Add the new 5-year ERS test and one other to the xFail list
+M       models/lnd/clm/bld/unit_testers/xFail/expectedClmTestFails.xml
+
+
+CLM testing:
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+
+       Note: added the following to the xFail list:
+               <entry testID="ERI_D.ne30_g16.ICLM45BGC.yellowstone_intel.clm-vrtlay"      failType="FAIL" >Seg fault while writing h1 file. This used to pass on yellowstone, but it failed on edison; now it is failing on yellowstone, too (it fails in clm4_5_37, too).</entry>
+
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+CLM tag used for the baseline comparisons: clm4_5_37
+
+Changes answers relative to baseline: NO
+
+===============================================================
+===============================================================
 Tag name:  clm4_5_37
 Originator(s):  muszala (Stefan Muszala)
 Date: Thu Oct 10 09:48:50 MDT 2013
