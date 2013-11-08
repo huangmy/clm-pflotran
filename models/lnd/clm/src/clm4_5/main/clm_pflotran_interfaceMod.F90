@@ -55,7 +55,7 @@ module clm_pflotran_interfaceMod
        update_soil_temperature_clm_pf, &
        step_th_clm_pf, &
        write_restart_clm_pf, &
-       vecget_gflux_clm_pf, vecrestore_gflux_clm_pf
+       vecget_gflux_subsurf_clm_pf, vecrestore_gflux_subsurf_clm_pf
 #endif
 
 contains
@@ -363,17 +363,17 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_vecget_gflux(gflux_clm_loc)
+  subroutine clm_pf_vecget_gflux(gflux_subsurf_clm_loc)
 
     use clmtype , only: r8
 
     implicit none
-    real(r8), pointer :: gflux_clm_loc(:)
+    real(r8), pointer :: gflux_subsurf_clm_loc(:)
 
     character(len=256) :: subname = "clm_pf_vecget_gflux()"
 
 #ifdef CLM_PFLOTRAN
-    call vecget_gflux_clm_pf(gflux_clm_loc)
+    call vecget_gflux_subsurf_clm_pf(gflux_subsurf_clm_loc)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -382,17 +382,17 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_vecrestore_gflux(gflux_clm_loc)
+  subroutine clm_pf_vecrestore_gflux(gflux_subsurf_clm_loc)
 
     use clmtype    , only: r8
 
     implicit none
-    real(r8), pointer :: gflux_clm_loc(:)
+    real(r8), pointer :: gflux_subsurf_clm_loc(:)
 
     character(len=256) :: subname = "clm_pf_vecrestore_gflux()"
 
 #ifdef CLM_PFLOTRAN
-    call vecrestore_gflux_clm_pf(gflux_clm_loc)
+    call vecrestore_gflux_subsurf_clm_pf(gflux_subsurf_clm_loc)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -452,10 +452,10 @@ contains
   !-----------------------------------------------------------------------------
   !BOP
   !
-  ! !IROUTINE: vecget_gflux_clm_pf
+  ! !IROUTINE: vecget_gflux_subsurf_clm_pf
   !
   ! !INTERFACE:
-  subroutine vecget_gflux_clm_pf(gflux_clm_loc)
+  subroutine vecget_gflux_subsurf_clm_pf(gflux_subsurf_clm_loc)
   !
   ! !DESCRIPTION:
   ! Wrapper around pflotran init
@@ -469,23 +469,23 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    real(r8), pointer :: gflux_clm_loc(:)
+    real(r8), pointer :: gflux_subsurf_clm_loc(:)
   ! !LOCAL VARIABLES:
     PetscErrorCode ierr
   !EOP
   !-----------------------------------------------------------------------
-    call VecGetArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
-  end subroutine vecget_gflux_clm_pf
+    call VecGetArrayF90(clm_pf_idata%gflux_subsurf_clm, gflux_subsurf_clm_loc, ierr); CHKERRQ(ierr)
+  end subroutine vecget_gflux_subsurf_clm_pf
 
 
 
   !-----------------------------------------------------------------------------
   !BOP
   !
-  ! !IROUTINE: vecrestore_gflux_clm_pf
+  ! !IROUTINE: vecrestore_gflux_subsurf_clm_pf
   !
   ! !INTERFACE:
-  subroutine vecrestore_gflux_clm_pf(gflux_clm_loc)
+  subroutine vecrestore_gflux_subsurf_clm_pf(gflux_subsurf_clm_loc)
   !
   ! !DESCRIPTION:
   ! Wrapper around pflotran init
@@ -499,15 +499,15 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    real(r8), pointer :: gflux_clm_loc(:)
+    real(r8), pointer :: gflux_subsurf_clm_loc(:)
     PetscErrorCode ierr
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
-    !gflux_clm_loc = 0.0_r8
-    call VecRestoreArrayF90(clm_pf_idata%gflux_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
+    !gflux_subsurf_clm_loc = 0.0_r8
+    call VecRestoreArrayF90(clm_pf_idata%gflux_subsurf_clm, gflux_subsurf_clm_loc, ierr); CHKERRQ(ierr)
 
-  end subroutine vecrestore_gflux_clm_pf
+  end subroutine vecrestore_gflux_subsurf_clm_pf
 
 
 

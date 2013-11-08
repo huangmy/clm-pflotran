@@ -136,7 +136,7 @@ contains
     real(r8) :: bw
     real(r8) :: thk_snow_wat
     real(r8) :: thk_snow
-    real(r8), pointer :: gflux_clm_loc(:)
+    real(r8), pointer :: gflux_subsurf_clm_loc(:)
 
     ! Enforce expected array sizes
     call shr_assert((ubound(xmf)        == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
@@ -222,8 +222,8 @@ contains
    endc                      =>    bounds%endc               &
    )
     if (use_pflotran) then
-       call clm_pf_vecget_gflux(gflux_clm_loc)
-       gflux_clm_loc = 0._r8
+       call clm_pf_vecget_gflux(gflux_subsurf_clm_loc)
+       gflux_subsurf_clm_loc = 0._r8
     end if
 
     ! Get step size
@@ -593,7 +593,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) - &
+             gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) - &
                   tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
           else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
@@ -639,7 +639,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) + &
+             gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) + &
                   hs_soil(c)*cwtgcell(c)
           else
              ! Snow is absent but standing water is present (This is accounted for
@@ -742,7 +742,7 @@ contains
                 rvector(c,0) = rvector(c,0) - bmatrix(c,2,0)*t_soisno(c,1)
                 bmatrix(c,2,0) = 0._r8
 
-                gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) - &
+                gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) - &
                     fn_h2osfc(c)*cwtgcell(c)
 
             else
@@ -956,7 +956,7 @@ contains
     end do
 
     if (use_pflotran) then
-       call clm_pf_vecrestore_gflux(gflux_clm_loc)
+       call clm_pf_vecrestore_gflux(gflux_subsurf_clm_loc)
     end if
 
     end associate 
