@@ -156,6 +156,12 @@
           INFO_DBUG="2"
           CCSM_TCOST="-1"
           DOUT_S="FALSE" />
+
+<ccsmtest NAME="NOC"
+          DESC="multi-instance validation for single instance ocean (default length)"
+          INFO_DBUG="2"
+          CCSM_TCOST="-1"
+          DOUT_S="FALSE" />
           
 <ccsmtest NAME="CME"
           DESC="compare mct and esmf interfaces (10 days)"

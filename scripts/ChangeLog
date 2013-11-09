@@ -1,8 +1,73 @@
 ================================================================================
-SVN $Id: ChangeLog 54693 2013-10-30 16:40:56Z mvertens $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131030/ChangeLog $
+SVN $Id: ChangeLog 55028 2013-11-07 19:42:18Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131107a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: sacks
+Date: 07 Nov 2013
+Model: scripts
+Version: scripts4_131107a
+One-line: change default testid to include yymmdd; tweak CLM aux test list
+
+*** Change default testid from hhmmss to yymmdd-hhmmss
+M       create_test
+
+*** Change CME_Ly5.f10_f10.I1850CLM45BGC.yellowstone_intel.clm-default to
+    CME_Ly4.f10_f10.I1850CLM45BGC.yellowstone_intel.clm-monthly to avoid running
+    out of time; add
+    ERS_D_Mmpich.f10_f10.ICLM45BGCCROP.frankfurt_nag.clm-allActive
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/allActive
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/allActive/user_nl_clm
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: 07 Nov 2013
+Model: scripts
+Version: scripts4_131107
+One-line: replace query_tests, add/make_xml_tests with manage_xml_entries, add
+NOC test to yellowstone intel prebeta
+
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.eosadded.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/frankfurtnagprealpha.orig.txt
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.5by5amazonremoved.15Oct2013.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/aux_clm_short.original.txt
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.testwithwithouttestmods.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.xcompsetremoved.15Oct2013.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.nagremoved.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testmods_dupes_test
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.testmods.clmdecStartremoved.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/test_manage_xml_entries.t
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/frankfurt_nag_prealpha
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.fakecompsetXA.added.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.olympusremoved.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.auxclmshortremoved.15Oct2013.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/aux_clm_short.07Oct2013
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.testmodstesting.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.SEQ_PFCremoved.15Oct2013.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.original.15Oct2013.xml
+A  + ccsm_utils/Testlistxml/test_manage_xml_entries/testlist.adds.existing.xml
+D    ccsm_utils/Testlistxml/add_xml_entries
+A  + ccsm_utils/Testlistxml/manage_xml_entries
+D    ccsm_utils/Testlistxml/make_xml_entries
+M    ccsm_utils/Testlistxml/testlist.xml
+A  + ccsm_utils/Testlistxml/README
+M    ccsm_utils/Testcases
+D    query_tests
+================================================================================
+Originator: tcraig
+Date: 06 Nov 2013
+Model: scripts
+Version: scripts4_131106
+One-line: fix NCK test and add NOC test
+
+M       ccsm_utils/Testcases/NCK_script
+A       ccsm_utils/Testcases/NOC_script
+M       ccsm_utils/Testcases/config_tests.xml
+A       ccsm_utils/Testcases/NOC_build.csh
+
 ================================================================================
 Originator: mvertens
 Date: 30 Oct 2013
