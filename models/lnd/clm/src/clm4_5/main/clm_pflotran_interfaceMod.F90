@@ -775,22 +775,22 @@ contains
 
     ! Initialize maps for transferring data between CLM and PFLOTRAN.
     call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, CLM2PF_FLUX_MAP_ID)
+                                  clm_npts, CLM_SUB_TO_PF_SUB)
     call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, CLM2PF_SOIL_MAP_ID)
+                                  clm_npts, CLM_SUB_TO_PF_EXTENDED_SUB)
     call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, PF2CLM_FLUX_MAP_ID)
+                                  clm_npts, PF_SUB_TO_CLM_SUB)
 
     if(pflotran_m%option%nsurfflowdof > 0) then
       pflotran_surfaceflow = .true.
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                    clm_surf_npts, PF2CLM_SURF_MAP_ID)
+                                    clm_surf_npts, PF_SRF_TO_CLM_SRF)
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                    clm_surf_npts, CLM2PF_RFLUX_MAP_ID)
+                                    clm_surf_npts, CLM_SRF_TO_PF_SRF)
     else
       if (pflotran_m%option%iflowmode == TH_MODE) then
         call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                      clm_surf_npts, CLM2PF_GFLUX_MAP_ID)
+                                      clm_surf_npts, CLM_SRF_TO_PF_2DSUB)
       endif
     endif
 
