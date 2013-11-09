@@ -738,36 +738,36 @@ contains
     enddo
 
     ! CLM: Subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlclm_3d = clm_npts
-    clm_pf_idata%ngclm_3d = clm_npts
+    clm_pf_idata%nlclm_sub = clm_npts
+    clm_pf_idata%ngclm_sub = clm_npts
 
     ! CLM: Surface of subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlclm_surf_3d = (bounds%endg - bounds%begg + 1)
-    clm_pf_idata%ngclm_surf_3d = (bounds%endg - bounds%begg + 1)
+    clm_pf_idata%nlclm_2dsub = (bounds%endg - bounds%begg + 1)
+    clm_pf_idata%ngclm_2dsub = (bounds%endg - bounds%begg + 1)
     ! For CLM: Same as surface of subsurface domain
-    clm_pf_idata%nlclm_2d = clm_surf_npts
-    clm_pf_idata%ngclm_2d = clm_surf_npts
+    clm_pf_idata%nlclm_srf = clm_surf_npts
+    clm_pf_idata%ngclm_srf = clm_surf_npts
 
     ! PFLOTRAN: Subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlpf_3d = realization%patch%grid%nlmax
-    clm_pf_idata%ngpf_3d = realization%patch%grid%ngmax
+    clm_pf_idata%nlpf_sub = realization%patch%grid%nlmax
+    clm_pf_idata%ngpf_sub = realization%patch%grid%ngmax
 
     ! PFLOTRAN: Surface of subsurface domain (local and ghosted cells)
     if(pflotran_m%option%iflowmode == TH_MODE) then
-      clm_pf_idata%nlpf_surf_3d = pflotranModelNSurfCells3DDomain(pflotran_m)
-      clm_pf_idata%ngpf_surf_3d = pflotranModelNSurfCells3DDomain(pflotran_m)
+      clm_pf_idata%nlpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
+      clm_pf_idata%ngpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
     else
-      clm_pf_idata%nlpf_surf_3d = 0
-      clm_pf_idata%ngpf_surf_3d = 0
+      clm_pf_idata%nlpf_2dsub = 0
+      clm_pf_idata%ngpf_2dsub = 0
     endif
     
     ! PFLOTRAN: Surface domain (local and ghosted cells)
     if(associated(surf_realization) .and. pflotran_m%option%nsurfflowdof > 0) then
-      clm_pf_idata%nlpf_2d = surf_realization%patch%grid%nlmax
-      clm_pf_idata%ngpf_2d = surf_realization%patch%grid%ngmax
+      clm_pf_idata%nlpf_srf = surf_realization%patch%grid%nlmax
+      clm_pf_idata%ngpf_srf = surf_realization%patch%grid%ngmax
     else
-      clm_pf_idata%nlpf_2d = 0
-      clm_pf_idata%ngpf_2d = 0
+      clm_pf_idata%nlpf_srf = 0
+      clm_pf_idata%ngpf_srf = 0
     endif
 
     ! Allocate vectors for data transfer between CLM and PFLOTRAN.
