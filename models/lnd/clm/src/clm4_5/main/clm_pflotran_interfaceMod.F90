@@ -10,7 +10,6 @@ module clm_pflotran_interfaceMod
   !
   ! !USES:
 
-  !use clm_pflotran_interface_type
 #ifdef CLM_PFLOTRAN
   use clm_pflotran_interface_data
   use pflotran_model_module
@@ -1083,6 +1082,7 @@ contains
     real(r8) :: dtime                      ! land model time step (sec)
     integer  :: count
     PetscScalar, pointer :: rain_clm_loc(:)
+    PetscScalar, pointer :: rain_temp_clm_loc(:)
     PetscErrorCode :: ierr
     character(len=32) :: subname = 'set_sflow_forcing_clm_pf'  ! subroutine name
     !-----------------------------------------------------------------------
@@ -1092,10 +1092,12 @@ contains
     qflx_floodc       =>    cwf%qflx_floodc       , & ! Input:  [real(r8) (:)]  column flux of flood water from RTM
     qflx_top_soil     =>    cwf%qflx_top_soil     , & ! Input:  [real(r8) (:)]  net water input into soil from top (mm/s)
     qflx_infl         =>    cwf%qflx_infl         , & ! Output: [real(r8) (:)] infiltration (mm H2O /s)
-    qflx_surf         =>    cwf%qflx_surf           & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
+    qflx_surf         =>    cwf%qflx_surf         , & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
+    forc_t            =>    ces%forc_t              & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
     )
 
     call VecGetArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
+    call VecGetArrayF90(clm_pf_idata%rain_clm,rain_temp_clm_loc,ierr)
     count = 0
     do fc = 1, num_hydrologyc
 
@@ -1107,8 +1109,13 @@ contains
       ! Convert mm/s to m/s
       rain_clm_loc(count) = (qflx_top_soil(c) + qflx_snow_h2osfc(c) + &
                              qflx_floodc(c))/1000._r8
+
+      ! Assumption: Rain water is at air-temperature
+      ! Convert Kelvin to degC
+      rain_temp_clm_loc(count) = forc_t(c) - 273.15_r8
     enddo
     call VecRestoreArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
+    call VecRestoreArrayF90(clm_pf_idata%rain_clm,rain_temp_clm_loc,ierr)
 
     end associate
   end subroutine set_sflow_forcing_clm_pf
