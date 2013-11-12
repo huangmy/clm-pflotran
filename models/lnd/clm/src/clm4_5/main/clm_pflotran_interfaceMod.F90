@@ -1104,7 +1104,7 @@ contains
       qflx_infl(c) = 0._r8
       count = count + 1
 
-      ! Convert mm/s to m
+      ! Convert mm/s to m/s
       rain_clm_loc(count) = (qflx_top_soil(c) + qflx_snow_h2osfc(c) + &
                              qflx_floodc(c))/1000._r8
     enddo
