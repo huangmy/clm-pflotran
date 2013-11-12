@@ -524,7 +524,7 @@ contains
     ! !USES:
     use clmtype
     use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
-         use_pflotran, pflotran_surfaceflow
+         use_pflotran, pflotran_surfaceflow, pflotran_th_mode
     use decompMod       , only : bounds_type, get_proc_global, &
          ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
@@ -779,6 +779,8 @@ contains
                                   clm_npts, CLM_SUB_TO_PF_EXTENDED_SUB)
     call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
                                   clm_npts, PF_SUB_TO_CLM_SUB)
+
+    if (pflotran_m%option%iflowmode == TH_MODE) pflotran_th_mode = .true.
 
     if(pflotran_m%option%nsurfflowdof > 0) then
       pflotran_surfaceflow = .true.

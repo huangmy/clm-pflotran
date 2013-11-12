@@ -53,7 +53,8 @@ contains
     use clmtype
     use clm_atmlnd      , only : clm_a2l
     use clm_time_manager, only : get_step_size
-    use clm_varctl      , only : iulog, use_pflotran, pflotran_surfaceflow
+    use clm_varctl      , only : iulog, use_pflotran, pflotran_surfaceflow, &
+                                 pflotran_th_mode
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : sb, capr, cnfac, hvap, &
                                  icol_roof, icol_sunwall, icol_shadewall, &
@@ -221,7 +222,7 @@ contains
    begc                      =>    bounds%begc             , &
    endc                      =>    bounds%endc               &
    )
-    if (use_pflotran) then
+    if (use_pflotran .and. pflotran_th_mode) then
        call clm_pf_vecget_gflux(gflux_clm_loc)
        gflux_clm_loc = 0._r8
     end if
@@ -560,7 +561,7 @@ contains
 
     enddo
 
-    if (use_pflotran) then
+    if (use_pflotran .and. pflotran_th_mode) then
        ! Do not evolve soil temperature
        do j = 1,nlevgrnd
           do fc = 1,num_nolakec
@@ -729,7 +730,7 @@ contains
 
        tvector(c,0)=t_h2osfc(c)
 
-       if (use_pflotran) then
+       if (use_pflotran .and. pflotran_th_mode) then
           g = cgridcell(c)
 
           if (frac_h2osfc(c) /= 0._r8) then
@@ -832,7 +833,7 @@ contains
        bmatrix(c,4,1:nlevgrnd)=at(c,1:nlevgrnd)
        ! top soil layer has sub coef shifted to 2nd super diagonal
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-          if (.not. use_pflotran) then
+          if (.not. (use_pflotran .and. pflotran_th_mode)) then
              bmatrix(c,4,1)=  - frac_h2osfc(c) * (1._r8-cnfac) * fact(c,1) &
                   * tk_h2osfc(c)/dzm !flux from h2osfc
           end if
@@ -842,7 +843,7 @@ contains
        bmatrix(c,5,1)=at(c,1)
        ! diagonal element correction for presence of h2osfc
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-          if (.not. use_pflotran) then
+          if (.not. (use_pflotran .and. pflotran_th_mode)) then
              bmatrix(c,3,1)=bmatrix(c,3,1)+ frac_h2osfc(c) &
                   *((1._r8-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
           end if
@@ -851,7 +852,7 @@ contains
        rvector(c,1:nlevgrnd)=rt(c,1:nlevgrnd)
        ! rhs correction for h2osfc
        if ( frac_h2osfc(c) /= 0.0_r8 )then
-          if (.not. use_pflotran) then
+          if (.not. (use_pflotran .and. pflotran_th_mode)) then
              rvector(c,1)=rvector(c,1) &
                   -frac_h2osfc(c)*fact(c,1)*((hs_soil(c) - dhsdT(c)*t_soisno(c,1)) &
                   +cnfac*fn_h2osfc(c))
@@ -1014,7 +1015,7 @@ contains
        end do
     end do
 
-    if (use_pflotran) then
+    if (use_pflotran .and. pflotran_th_mode) then
        call clm_pf_vecrestore_gflux(gflux_clm_loc)
     end if
 
