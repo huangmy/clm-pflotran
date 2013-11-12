@@ -1312,6 +1312,8 @@ contains
     ! [m^3/s] = [mm/s]/1000
     !
 
+    ! Note: When surface-flows are turned on in PFLOTRAN, qflx_infl(c) is set
+    !       to 0.0_r8.
     do c = bounds%begc, bounds%endc
      ! Set gridcell indices
      g = col%gridcell(c)
