@@ -1381,21 +1381,6 @@ contains
       end do
     end do
 
-
-    ! Set the 'new' saturation states; which PFLOTRAN will evolve.
-    ! NOTE: The 'new' saturation states arise because of the phase
-    !       change of water during the evolution of soil temperature
-    !       states
-    do j = 1, nlevsoi
-      do fc = 1, num_nolakec
-        c = filter_nolakec(fc)
-        ! Set gridcell and landunit indices
-        g = col%gridcell(c)
-        !clm_pf_data%sat(g,j) = clm_pf_data%sat(g,j) + &
-        !     h2osoi_liq(c,j)/dz(c,j)/denh2o/watsat(c,j) * col%wtgcell(c)
-      end do
-    end do
-
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
