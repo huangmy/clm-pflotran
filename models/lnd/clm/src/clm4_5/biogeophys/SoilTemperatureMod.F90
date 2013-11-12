@@ -53,7 +53,7 @@ contains
     use clmtype
     use clm_atmlnd      , only : clm_a2l
     use clm_time_manager, only : get_step_size
-    use clm_varctl      , only : iulog, use_pflotran
+    use clm_varctl      , only : iulog, use_pflotran, pflotran_surfaceflow
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : sb, capr, cnfac, hvap, &
                                  icol_roof, icol_sunwall, icol_shadewall, &
@@ -136,7 +136,7 @@ contains
     real(r8) :: bw
     real(r8) :: thk_snow_wat
     real(r8) :: thk_snow
-    real(r8), pointer :: gflux_subsurf_clm_loc(:)
+    real(r8), pointer :: gflux_clm_loc(:)
 
     ! Enforce expected array sizes
     call shr_assert((ubound(xmf)        == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
@@ -222,8 +222,8 @@ contains
    endc                      =>    bounds%endc               &
    )
     if (use_pflotran) then
-       call clm_pf_vecget_gflux(gflux_subsurf_clm_loc)
-       gflux_subsurf_clm_loc = 0._r8
+       call clm_pf_vecget_gflux(gflux_clm_loc)
+       gflux_clm_loc = 0._r8
     end if
 
     ! Get step size
@@ -580,6 +580,30 @@ contains
        !
        ! New connection order:
        ! 1) snow <---> h2osfc <---> soil layer
+       !
+       ! a) snow <---> h2osfc: being modeled by CLM; while soil layers are
+       !    modeled by PFLOTRAN
+       ! a.1) When snow and h2osfc are both present.
+       ! a_{0} T_{-1} + b_{0} T_{ 0} + c_{0} T_{ H}                               = r_{0}
+       !                a_{H} T_{ 0} + b_{H} T_{ H}                               = r_{H} - c_{H} T_{ 1}
+       !                                 0   T_{ H} +   1   T_{ 1} +   0   T_{ 0} = r_{1}
+       !
+       ! a.2) When only snow is present
+       ! a_{0} T_{-1} + b_{0} T_{ 0}                                              = r_{0} - c_{0} T_{ 1}
+       !                a_{H} T_{ 0} + b_{H} T_{ H}                               = r_{H} -   0   T_{ 1}
+       !                                 0   T_{ H} +   1   T_{ 1} +   0   T_{ 0} = r_{1}
+       !
+       ! b) snow: being modeled by CLM; while h2osfc <---> soil layers are
+       !    modeled by PFLOTRAN
+       ! b.1) When snow and h2osfc are both present.
+       ! a_{0} T_{-1} + b_{0} T_{ 0}                                              = r_{0} - c_{0} T_{ H}
+       !                  0   T_{ 0} +   1 T_{ H}                                 = r_{H} -   0   T_{ 1}
+       !                                 0   T_{ H} +   1   T_{ 1} +   0   T_{ 0} = r_{1}
+       !
+       ! b.2) When only snow is present
+       ! a_{0} T_{-1} + b_{0} T_{ 0}                                              = r_{0} - c_{0} T_{ 1}
+       !                  0   T_{ 0} +   1   T_{ H}                               = r_{H} -   0   T_{ 1}
+       !                                 0   T_{ H} +   1   T_{ 1} +   0   T_{ 0} = r_{1}
        j = 0
        do fc = 1,num_nolakec
           c = filter_nolakec(fc)
@@ -593,7 +617,7 @@ contains
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) - &
+             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) - &
                   tk(c,j)/dzp*(t_soisno(c,j)-t_soisno(c,j+1))*cwtgcell(c)
 
           else if (snl(c) > 0 .and. frac_h2osfc(c) /= 0) then
@@ -631,15 +655,18 @@ contains
 
              rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
 
-             ! Note (GB): Need to add a check if surface water temperature is being
-             ! evolved by PFLOTRAN
+             ! Check if surface-water is included in PFLOTRAN.
+             if (pflotran_surfaceflow) then
+                rt(c,j) = rt(c,j) - ct(c,j)*t_h2osfc(c)
+                ct(c,j) = 0._r8
+             endif
 
           else if(snl(c) == 0 .and. frac_h2osfc(c) == 0._r8) then
              ! Both snow and standing water absent (need to do nothing)
              rt(c,j) = rt(c,j) - ct(c,j)*t_soisno(c,j+1)
              ct(c,j) = 0._r8
 
-             gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) + &
+             gflux_clm_loc(g-bounds%begg+1) = gflux_clm_loc(g-bounds%begg+1) + &
                   hs_soil(c)*cwtgcell(c)
           else
              ! Snow is absent but standing water is present (This is accounted for
@@ -703,9 +730,6 @@ contains
        tvector(c,0)=t_h2osfc(c)
 
        if (use_pflotran) then
-          ! TODO(GB): Perform following checks:
-          !           - If PFLOTRAN simulation is subsurface TH mode.
-          !           - If PFLOTRAN simulation is subrface-subusrface TH mode.
           g = cgridcell(c)
 
           if (frac_h2osfc(c) /= 0._r8) then
@@ -742,8 +766,23 @@ contains
                 rvector(c,0) = rvector(c,0) - bmatrix(c,2,0)*t_soisno(c,1)
                 bmatrix(c,2,0) = 0._r8
 
-                gflux_subsurf_clm_loc(g-bounds%begg+1) = gflux_subsurf_clm_loc(g-bounds%begg+1) - &
-                    fn_h2osfc(c)*cwtgcell(c)
+                ! Check if surface-water is included in PFLOTRAN.
+                if (pflotran_surfaceflow) then
+                   ! surface-temperature is not evolved by CLM.
+                   bmatrix(c,2,0) = 0._r8
+                   bmatrix(c,3,0) = 1._r8
+                   bmatrix(c,4,0) = 0._r8
+                   rvector(c,0) = t_h2osfc(c)
+
+                   gflux_clm_loc(g-bounds%begg+1) = &
+                      gflux_clm_loc(g-bounds%begg+1) - &
+                      fn_snow_wat*cwtgcell(c)
+                else
+                   ! surface-temperature is evolved by CLM.
+                   gflux_clm_loc(g-bounds%begg+1) = &
+                      gflux_clm_loc(g-bounds%begg+1) - &
+                      fn_h2osfc(c)*cwtgcell(c)
+                endif
 
             else
 
@@ -751,6 +790,26 @@ contains
               rvector(c,0) = rvector(c,0) - bmatrix(c,2,0)*t_soisno(c,1)
               bmatrix(c,2,0) = 0._r8
               bmatrix(c,1,-1) = 0._r8
+
+              ! Check if surface-water is included in PFLOTRAN.
+              if (pflotran_surfaceflow) then
+                 ! surface-temperature is not evolved by CLM.
+                 bmatrix(c,2,0) = 0._r8
+                 bmatrix(c,3,0) = 1._r8
+                 bmatrix(c,4,0) = 0._r8
+                 rvector(c,0) = t_h2osfc(c)
+
+                 gflux_clm_loc(g-bounds%begg+1) = &
+                   gflux_clm_loc(g-bounds%begg+1) + &
+                   hs_h2osfc(c)*cwtgcell(c)
+              else
+                 ! surface-temperature is evolved by CLM.
+                 dzp = (0.5*dz_h2osfc(c)+z(c,1))
+                 fn_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
+                 gflux_clm_loc(g-bounds%begg+1) = &
+                    gflux_clm_loc(g-bounds%begg+1) - &
+                    fn_h2osfc(c)*cwtgcell(c)
+              endif
 
              endif
 
@@ -956,7 +1015,7 @@ contains
     end do
 
     if (use_pflotran) then
-       call clm_pf_vecrestore_gflux(gflux_subsurf_clm_loc)
+       call clm_pf_vecrestore_gflux(gflux_clm_loc)
     end if
 
     end associate 
