@@ -54,10 +54,10 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_N2">
@@ -174,10 +174,10 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
     </grid>
@@ -494,10 +494,10 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_Ld7">
@@ -679,10 +679,10 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_N2">
@@ -1285,10 +1285,10 @@
       </test>
     </grid>
     <grid name="ne30_g16">
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_PT">
@@ -1326,10 +1326,10 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4p">
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOP4c">
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_Ld3">
@@ -2782,7 +2782,7 @@
     <grid name="f19_g16">
       <test name="ERS_D">
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/glcMEC">edison</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/glcMEC">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/glcMEC_changeFlags">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -3027,7 +3027,7 @@
       </test>
       <test name="PEM_D">
         <machine compiler="intel" testtype="aux_clm_ys_pgi">edison</machine>
-        <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/glcMEC">yellowstone</machine>
       </test>
     </grid>
   </compset>
