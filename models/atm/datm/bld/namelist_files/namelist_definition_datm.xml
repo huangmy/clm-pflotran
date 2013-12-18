@@ -268,6 +268,27 @@ default="".
 <!--- datm_nml (in file datm_in)                -->
 <!-- =========================================  -->
 
+<!--- anomaly forcing - bias correction -->
+<entry id="bias_correct" 
+type="char*256" 
+category="datm"
+group="datm_nml"
+valid_values="BC.QIAN.CMAP.Precip,BC.QIAN.GPCP.Precip,BC.CRUNCEP.CMAP.Precip,BC.CRUNCEP.GPCP.Precip">
+If set, include bias correction streams in namelist.
+default = ""
+</entry>
+
+<entry id="anomaly_forcing" 
+type="char*50(10)" 
+category="datm"
+group="datm_nml"
+valid_values="Anomaly.Forcing.Precip,Anomaly.Forcing.Temperature,Anomaly.Forcing.Pressure,Anomaly.Forcing.Humidity,Anomaly.Forcing.Uwind,Anomaly.Forcing.Vwind,Anomaly.Forcing.Shortwave,Anomaly.Forcing.Longwave">
+If set, include anomaly forcing streams in namelist.
+default = ""
+</entry>
+
+<!--- for anomaly forcing -->
+
 <entry id="atm_in" 
 type="char*256" 
 category="datm"
