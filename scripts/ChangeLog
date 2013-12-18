@@ -1,8 +1,76 @@
 ================================================================================
-SVN $Id: ChangeLog 55028 2013-11-07 19:42:18Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131107a/ChangeLog $
+SVN $Id: ChangeLog 55442 2013-11-19 18:53:04Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_131119/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: erik
+Date: 19 Nov 2013
+Model: scripts
+Version: scripts4_131119
+One-line: Also copy SourceMods for -user_mods_dir option
+
+M       create_newcase -- also copy files under SourceMods if they exist and
+           are in the new case. And print what doing under the verbose option.
+
+================================================================================
+Originator: erik
+Date: 18 Nov 2013
+Model: scripts
+Version: scripts4_131118
+One-line: add -user_mods_dir option to create_newcase
+
+See bug 1868 for a full discussion this. But, adding an option to look for
+user_nl_* files and xmlchange_cmnds file to execute to create_newcase similar
+to the user_testmod_dir option in create_test, but allowing you to do this 
+as a general user setting up a case. Eventually, we'll change create_test to
+make use of the option in create_newcase rather than replicating it.
+
+M       create_newcase -- add -user_mods_dir option
+
+================================================================================
+Originator: jedwards
+Date: 14 Nov 2013
+Model: scripts
+Version: scripts4_131114
+One-line: add netcdf4p and 4c to IOP tests 
+
+M            ccsm_utils/Tools/testcase_begin
+M            ccsm_utils/Testlistxml/testlist.xml
+
+
+================================================================================
+Originator: jshollen
+Date: 13 Nov 2013
+Model: scripts
+Version: scripts4_131113a
+One-line: Removed doc directory from scripts, now an external. 
+
+D       doc
+
+================================================================================
+Originator: jshollen
+Date: 13 Nov 2013
+Model: scripts
+Version: scripts4_131113
+One-line: manage_xml_entries file path bug fix, script should now be usable
+from any directory
+
+M       ccsm_utils/Testlistxml/manage_xml_entries
+
+================================================================================
+Originator: jshollen
+Date: 07 Nov 2013
+Model: scripts
+Version: scripts4_131107b
+One-line: manage_xml_entries test add bug fix, doc fixes. Found stray nldir in
+testlist.xml
+
+manage_xml_entries was not adding tests due to incomplete XPath query. 
+
+M       ccsm_utils/Testlistxml/manage_xml_entries
+M       ccsm_utils/Testlistxml/testlist.xml
+
 ================================================================================
 Originator: sacks
 Date: 07 Nov 2013

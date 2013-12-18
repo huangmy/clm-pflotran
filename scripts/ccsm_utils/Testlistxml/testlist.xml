@@ -54,10 +54,11 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      </test>
+      <test name="ERS_IOP4c">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_N2">
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -159,16 +160,6 @@
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
-      <test name="SMS_IOP">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
-      <test name="SMS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
     </grid>
     <grid name="ne30_g16_rx1">
       <test name="ERS">
@@ -183,10 +174,11 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      </test>
+      <test name="ERS_IOP4c">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -202,13 +194,6 @@
       <test name="PEA_P1_M">
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
-      </test>
-    </grid>
-    <grid name="ne30_g16">
-      <test name="SMS_IOP">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -509,10 +494,11 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      </test>
+      <test name="ERS_IOP4c">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_Ld7">
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
@@ -693,10 +679,11 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      </test>
+      <test name="ERS_IOP4c">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_N2">
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
@@ -1298,23 +1285,13 @@
       </test>
     </grid>
     <grid name="ne30_g16">
-      <test name="ERS_IOP">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4c">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_PT">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
-      <test name="SMS_IOP">
-        <machine compiler="intel" testtype="prebeta">janus</machine>
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
@@ -1349,10 +1326,11 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="ERS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
+      <test name="ERS_IOP4p">
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      </test>
+      <test name="ERS_IOP4c">
+        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
       </test>
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
@@ -1655,16 +1633,6 @@
       <test name="SMS_D">
         <machine compiler="ibm" testtype="prebeta">intrepid</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
-      </test>
-      <test name="SMS_IOP">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
-      <test name="SMS_IOPACGI">
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -2507,7 +2475,7 @@
   <compset name="I20TRCRUCLM45BGC">
     <grid name="f10_f10">
       <test name="ERS_Ly5">
-        <machine compiler="intel" testtype="aux_clm" nldir="clm/monthly_noinitial">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/monthly_noinitial">yellowstone</machine>
       </test>
       <test name="ERS_Ly5_P48x1">
         <machine compiler="intel" testtype="aux_clm_ys_intel">edison</machine>

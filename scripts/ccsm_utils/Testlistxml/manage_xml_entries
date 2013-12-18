@@ -4,11 +4,14 @@ use IO::File;
 use Data::Dumper;
 use Getopt::Long;
 use POSIX qw(strftime);
+use Cwd qw(abs_path);
+use File::Basename;
 #==========================================================================
 # Globals
 #==========================================================================
 my %opts;
-my $testlist = "./testlist.xml";
+my $scriptdir = dirname(abs_path(__FILE__));
+my $testlist = "$scriptdir/testlist.xml";
 my $banner = "==========================================================================";
 
 {
@@ -23,7 +26,7 @@ my $banner = "==================================================================
 		
 		my $self = {
 			compset => $params{'compset'} || undef, 	
-			grid => $params{'grid'} || undef, 	
+			grid    => $params{'grid'} || undef, 	
 			testname => $params{'testname'} || undef, 	
 			machine  => $params{'machine'} || undef, 	
 			compiler  => $params{'compiler'} || undef, 	
@@ -79,11 +82,11 @@ USAGE, OPTIONS, AND EXAMPLES
 
     Example:
     To clone and add a new set of prebeta tests for a machine, one would do the following: 
-    use ./query_tests with -outputlist and the appropriate flags, and save the output. 
+    use ./manage_xml_entries -query -outputlist and the appropriate flags, and save the output. 
 
     Modify the test list, change the machine, compiler, and add comments if necessary.  
 
-    run manage_xml_entries -file newfile.txt -category prebeta.   
+    run manage_xml_entries -addlist -file newfile.txt -category prebeta.   
 
 
     -synclist: 
@@ -98,11 +101,12 @@ USAGE, OPTIONS, AND EXAMPLES
  
     Example:  
     To modify the yellowstone PGI prebeta test list for example, one would do the following: 
-	query_tests -outputlist -machine yellowstone -compiler pgi -category prebeta > yellowstone.txt
+	manage_xml_entries  -outputlist -machine yellowstone -compiler pgi -category prebeta > yellowstone.txt
  
     Make any modifications necessary to yellowstone.txt
 
-    manage_xml_entries -machine yellowstone -compiler pgi -category prebeta -file yellowstone.txt
+    manage_xml_entries -synclist -machine yellowstone -compiler pgi -category prebeta -file yellowstone.txt
+
     This command will delete all tests that match yellowstone, the pgi compiler, and the prebeta category. 
     Then all the potentially modified tests in yellowstone.txt will be added back in.   
 
@@ -142,10 +146,6 @@ USAGE, OPTIONS, AND EXAMPLES
     "L" is a land point "O" is an ocean point A and B are two points on the land
     and ocean that CLM provided. so LA, LB, OA, and OB are 4 distinct single test
     points, 2 over land, 2 over ocean.
-   
-
-    
-    
 EOF
 
 	print $usgstatement;
@@ -210,12 +210,6 @@ sub getOptions
 		print "compset, grid, test, machine, compiler, or testmods\n";
 		exit(1);
 	}
-	#if(defined $opts{'query'} &&  ! defined $opts{'compset'} &&  ! defined $opts{'grid'} && ! defined $opts{'test'}
-    #           && ! defined $opts{'category'} && ! defined $opts{'machine'} && ! defined $opts{'compiler'} && ! defined $opts{'testmods'})
-	#{
-	#	print "The query option requires one or more of the following options: \n";
-	#	print "compset, grid, test, category, machine, compiler, testmods\n";
-	#}
 	if(defined $opts{'list'} && $opts{'list'} !~ /(compsets|grids|compilers|machines|categories|tests)/)
 	{
 		print "the -list option must be set to one of the following values: \n";
@@ -267,6 +261,7 @@ sub parseTextList
 
 	# We're building a list of CESMTest objects
 	my @tests;
+	my $testsfound = 0;
 	
 	foreach my $line(@lines)
 	{
@@ -334,7 +329,9 @@ sub parseTextList
 		}
 		
 		push(@tests, $tst);
+		$testsfound++;
 	}
+	print "found $testsfound tests in $testfile\n";
 
 	return \@tests;
 }
@@ -348,6 +345,7 @@ sub parseTextList
 sub addXMLTests
 {
 	my ($tests, $testxml, $testtype) = @_;
+	my $acounter = 0;
 	foreach my $test(@$tests)
 	{
 		# get the relevant values. 
@@ -369,19 +367,19 @@ sub addXMLTests
 		elsif(! defined $test->{comment} &&  defined $test->{testmods})
 		{
 			@xmltestnodes =
-            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\' and \@testmods=\'$testmods\']");
+            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\' and \@testmods=\'$testmods\' and not(\@comment) ]");
 
 		}
 		elsif( defined $test->{comment} &&  !defined $test->{testmods})
 		{
 			@xmltestnodes =
-            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\' and \@comment=\'$comment\']");
+            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\' and \@comment=\'$comment\' and not(\@testmods) ]");
 
 		}
-		else
+		elsif( ! defined $test->{comment} && ! defined $test->{testmods})
 		{
 			@xmltestnodes =
-            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\']");
+            $testxml->findnodes("/testlist/compset[\@name=\'$compset\']/grid[\@name=\'$grid\']/test[\@name=\'$testname\']/machine[text()=\'$machine\' and \@compiler=\'$compiler\' and \@testtype=\'$$testtype\' and not(\@testmods) and not(\@comment)]");
 
 		}
 		# if we find matching tests in the xml, skip adding the test. 
@@ -416,6 +414,7 @@ sub addXMLTests
 			$testnode->setAttribute('name', $testname);
 		}
 		$testnode->addChild($newmachnode);
+		$acounter++;
 		
 		# if a matching grid node is found, set the test node to the found test node. Otherwise add 
 		# a new one. 
@@ -450,6 +449,7 @@ sub addXMLTests
 	}
 
 	$testxml = sortXML($testxml);
+	print "added $acounter tests\n";
 	return $testxml;
 	
 
@@ -526,6 +526,7 @@ sub removeXMLTests
 	my ($testxml, $compset, $grid, $test, $machine, $compiler, $testtype, $testmods) = @_;
 	# drill down into the machine nodes.  Move onto the next element
 	# if anything doesn't match the compset, grid, testname...
+	my $rcounter = 0;
 	foreach my $compsetnode($testxml->findnodes('/testlist/compset'))
 	{
 		my $xcompsetname = $compsetnode->getAttribute('name');
@@ -575,6 +576,7 @@ sub removeXMLTests
 
 					# Remove the node if everything matched..
 					$testnode->removeChild($machnode);
+					$rcounter++;
 				}
 				# If the current test entry doesn't have any children, 
 				# remove it.
@@ -601,6 +603,7 @@ sub removeXMLTests
 				$parent->removeChild($compsetnode);
 		}
 	}
+	print "removed $rcounter tests\n";
 	return $testxml;
 }
 
@@ -666,7 +669,7 @@ sub list
 	if($listopt =~ /tests/)
 	{
 		print "$banner\nAvailable Tests\n$banner\n";
-		my $testconfig = XML::LibXML->new()->parse_file("../Testcases/config_tests.xml");
+		my $testconfig = XML::LibXML->new()->parse_file("$scriptdir/../Testcases/config_tests.xml");
 		my $testroot = $testconfig->getDocumentElement();
 		foreach my $elem($testroot->findnodes('//ccsmtest'))
 		{
@@ -861,6 +864,20 @@ sub textOutput
 			}
 		}
 	}
+	# add a header, and the options used to create the text list. 
+	my $dtformat = strftime "%d%b%Y-%H%M%S",  localtime;
+	my $header = "# Test list created $dtformat with the following options: ";
+	$opt_output = "# ";
+	$opt_output .= "-compset $opts{'compset'} " if defined $opts{'compset'};
+	$opt_output .= "-grid $opts{'grid'} " if defined $opts{'grid'};
+	$opt_output .= "-test $opts{'test'} " if defined $opts{'test'};
+	$opt_output .= "-compiler $opts{'compiler'} " if defined $opts{'compiler'};
+	$opt_output .= "-machine $opts{'machine'} " if defined $opts{'machine'};
+	$opt_output .= "-category  $opts{'category'} " if defined $opts{'category'};
+	$opt_output .= "-testmods  $opts{'testmods'} " if defined $opts{'testmods'};
+	unshift(@output, $opt_output);
+	unshift(@output, $header);
+	
 	#map { print "$_\n" } sort @output;
 	map { print "$_\n" } @output;
 }
@@ -876,7 +893,7 @@ sub formattedOutput
          "Compset", "TestName", "Grid", "Machine_compiler", "Test Category", "TestMods (optional)", "Comment(Optional)");
 
     my %configcompsets;
-	my $compsetxml = XML::LibXML->new()->parse_file("../Case.template/config_compsets.xml");
+	my $compsetxml = XML::LibXML->new()->parse_file("$scriptdir/../Case.template/config_compsets.xml");
 	foreach my $cfgcompset($compsetxml->findnodes('//COMPSET'))
 	{
 		my $alias = $cfgcompset->getAttribute('alias');
