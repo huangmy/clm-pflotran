@@ -1,15 +1,142 @@
 ================================================================================
- SVN $Id: ChangeLog 53906 2013-10-02 19:10:22Z mvertens $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_02/ChangeLog $
+ SVN $Id: ChangeLog 55697 2013-12-01 07:58:58Z tcraig $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_07/ChangeLog $
 ================================================================================
 Information on changes to cpl7
+================================================================================
+Originator: tcraig
+Date: 30 Nov 2013
+Model: cpl7
+Version: drvseq5_0_07
+One-line summary: Fix coupler time average history files
+
+  also change num_inst_lnd to num_inst_rof as needed and update
+  output avs in coupler history files
+
+M       driver/seq_hist_mod.F90
+
+================================================================================
+Originator: mvertens
+Date: 13 Nov 2013
+Model: cpl7
+Version: drvseq5_0_06
+One-line summary: more driver refactoring to enalbe coexisting MCT/ESMF compatiblity at driver level
+
+brought in commap branch into driver trunk	
+	
+moved instantiation of atm, lnd, rof, ocn, ice, glc, wav instances from ccsm_comp_mod.F90
+to component_type_mod.F90
+
+	type(component_type), target :: atm(num_inst_atm)
+	type(component_type), target :: lnd(num_inst_lnd)
+	type(component_type), target :: rof(num_inst_rof)
+	type(component_type), target :: ocn(num_inst_ocn)
+	type(component_type), target :: ice(num_inst_ice)
+	type(component_type), target :: glc(num_inst_glc)
+	type(component_type), target :: wav(num_inst_wav)
+	
+M       driver/ccsm_comp_mod.F90
+M       driver/component_mod.F90
+M       driver/component_type_mod.F90
+	- leveraged that atm, lnd, ice, ocn, glc, rof, wav are now instantiated in 
+	component_type_mod and are now obtained via explicit use statements 
+	rather than arguments
+	- renamed and refactored component init => component_init_cc
+	- renamed and refactored component_post => component_init_cx
+	- component_init_cx now enables reuse of memory for MCT attribute vectors
+	and ESMF arrays at the driver level
+	
+M       driver/prep_wav_mod.F90
+M       driver/prep_aoflux_mod.F90
+M       driver/prep_ice_mod.F90
+M       driver/prep_glc_mod.F90
+M       driver/prep_lnd_mod.F90
+M       driver/prep_ocn_mod.F90
+M       driver/prep_atm_mod.F90
+M       driver/prep_rof_mod.F90
+	- all prep routines no longer have atm, lnd, ice, ocn, glc, rof, wav
+	components passed as arguments - but rather are obtained via explicit use statements
+	of component_type data
+	- all prep routines no longer utilize component_get_gsmap_cx routines and no longer
+	pass gsmax_cx variables and mpicom_CPLID to the seq_map_init_rcfile - but rather 
+	simply pass the relevant component_type data structure  - as an example 
+	=== old way ===
+           gsmap_ox => component_get_gsmap_cx(ocn(1)) 
+           gsmap_wx => component_get_gsmap_cx(wav(1)) 
+           call seq_map_init_rcfile(mapper_So2w, gsmap_ox, gsmap_wx, mpicom_CPLID, &
+	   ...
+	=== new way ===
+           call seq_map_init_rcfile(mapper_So2w, ocn(1), wav(1), &
+	   ...
+	the above elimates explicit reference to global seg map data structures in ALL prep routines
+	and will make it easier for ESMF remapping to leverage use of the prep routines
+	 
+	
+A  +    driver/cplcomp_exchange_mod.F90
+D       driver/seq_mctext_mod.F90
+	- separated exchange functionality (of component<=>hub) on union of hub/component pes
+	from remapping (source => target component) on hub pes only
+	
+A  +    driver/cpl_comp_esmf.F90
+	- new gridded component that allows overlap of ESMF and MCT memory such that
+	restart, history, diagnostic and mapping aream corrections do not have to be rewritten
+	but can be used in their current form even with ESMF interfaces at the top level
+	
+M       driver/seq_map_mod.F90
+M       driver/seq_map_type_mod.F90
+M       driver/seq_map_esmf.F90
+	
+================================================================================
+Originator: tcraig
+Date: 06 Nov 2013
+Model: cpl7
+Version: drvseq5_0_05
+One-line summary: add support for single instance prognostic ocean model
+
+  with averaging coupled with n instance of other components.  merge from
+  seqinst_drv5 branch.  includes initial spcam mods.
+
+  svn merge $SVNREPO/drv/seq_mct/trunk $SVNREPO/drv/seq_mct/branch_tags/seqinst_drv5_tags/seqinst_drv5_03_drvseq5_0_04
+
+M       driver/seq_domain_mct.F90
+M       driver/prep_wav_mod.F90
+M       driver/prep_ice_mod.F90
+M       driver/prep_glc_mod.F90
+M       driver/component_mod.F90
+M       driver/prep_lnd_mod.F90
+M       driver/ccsm_comp_mod.F90
+M       driver/prep_ocn_mod.F90
+M       driver/prep_atm_mod.F90
+M       driver/prep_rof_mod.F90
+M       shr/seq_comm_mct.F90
+
+================================================================================
+Originator: tcraig
+Date: 28 Oct 2013
+Model: cpl7
+Version: drvseq5_0_04
+One-line summary: fix accumulation counters in prep mods for multi-instance
+
+M       driver/prep_glc_mod.F90
+M       driver/prep_ocn_mod.F90
+M       driver/prep_rof_mod.F90
+
+================================================================================
+Originator: mvertens
+Date: 18 Oct 2013
+Model: cpl7
+Version: drvseq5_0_03
+One-line summary: fix for scam bfb test
+
+M       driver/ccsm_comp_mod.F90
+
 ================================================================================
 Originator: mvertens
 Date: 2 Oct 2013
 Model: cpl7
 Version: drvseq5_0_02
 One-line summary: Removed cdata_cx and fixed FIDEAL and FADIABATIC problem
-	
+
 M       driver/component_mod.F90
 M       driver/component_type_mod.F90
 M       driver/ccsm_comp_mod.F90
@@ -21,8 +148,8 @@ Model: cpl7
 Version: drvseq5_0_01
 One-line summary: Retag of drvseq4_3_06 as drvseq5_0_01
 
-New tag line for major infrastructure changes	
-	
+New tag line for major infrastructure changes
+
 ================================================================================
 Originator: mvertens
 Date: 24 Sept 2013
@@ -32,7 +159,7 @@ One-line summary: bug fix for single column mode
 
 M       driver/component_type_mod.F90 (just comment changes)
 M       driver/ccsm_comp_mod.F90      (bug fix)
-	
+
 ================================================================================
 Originator: mvertens
 Date: 20 Sept 2013

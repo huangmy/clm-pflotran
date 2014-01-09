@@ -182,6 +182,8 @@ if ( defined($opts{'pts_lon'}) && ! defined(($opts{'pts_lat'}) ) ) {
     print "ERROR: if pts_lon set -- pts_lat must also be set:  @ARGV\n";
     usage();
 }
+print "Test name: $opts{'testname'}\n";
+print "Conf Opts: $opts{'confopts'}\n";
 
 # Check for manditory case input if not just listing valid values
 
@@ -582,7 +584,11 @@ if (defined $opts{'pes_file'}) {
       $decomp{NTASKS_ROF} = $ntasks; $decomp{NTHRDS_ROF} = $nthrds;
       $decomp{NTASKS_CPL} = $ntasks; $decomp{NTHRDS_CPL} = $nthrds;
     } else {
-      $cfg_ref->set_pes("$machdir/config_pes.xml", \%decomp, $pecount, $print);
+      # Need the test name with the options passed to ConfigCase->set_pes
+      # so that if we want to exclude or include a PE layout for a test, we 
+      # can match on the test name. 
+      my $testwithopts = $opts{'testname'} . $opts{'confopts'};
+      $cfg_ref->set_pes("$machdir/config_pes.xml", \%decomp, $pecount, $print, $testwithopts);
     }
 
     if ($decomp{NTASKS_ATM} == 1 && $decomp{NTASKS_LND} == 1 &&

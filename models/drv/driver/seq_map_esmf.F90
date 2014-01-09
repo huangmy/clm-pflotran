@@ -45,9 +45,11 @@ subroutine seq_map_esmf_register(comp, rc)
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_INITIALIZE, &
       seq_map_esmf_init, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_RUN, &
       seq_map_esmf_run, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_FINALIZE, &
       seq_map_esmf_final, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)

@@ -1,5 +1,6 @@
-module wav_comp_esmf
+module ice_comp_esmf
 
+#ifdef ESMF_INTERFACE
 ! !USES:
 
   use ESMF
@@ -14,10 +15,10 @@ module wav_comp_esmf
 ! Public interfaces
 !--------------------------------------------------------------------------
 
-  public :: wav_init_esmf
-  public :: wav_run_esmf
-  public :: wav_final_esmf
-  public :: wav_register_esmf
+  public :: ice_init_esmf
+  public :: ice_run_esmf
+  public :: ice_final_esmf
+  public :: ice_register_esmf
 
 !--------------------------------------------------------------------------
 ! Private data interfaces
@@ -26,23 +27,23 @@ module wav_comp_esmf
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-subroutine wav_register_esmf(comp, rc)
+subroutine ice_register_esmf(comp, rc)
     type(ESMF_GridComp)  :: comp
     integer, intent(out) :: rc
 
     rc = ESMF_SUCCESS
 
-    print *, "In wav register routine"
+    print *, "In ice register routine"
     ! Register the callback routines.
 
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_INITIALIZE, &
-      wav_init_esmf, phase=1, rc=rc)
+      ice_init_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_RUN, &
-      wav_run_esmf, phase=1, rc=rc)
+      ice_run_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_FINALIZE, &
-      wav_final_esmf, phase=1, rc=rc)
+      ice_final_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
 
@@ -53,16 +54,16 @@ end subroutine
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: wav_init_esmf
+! !IROUTINE: ice_init_esmf
 !
 ! !DESCRIPTION:
-!     initialize dead wav model
+!     initialize dead ice model
 !
 ! !REVISION HISTORY:
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine wav_init_esmf(comp, import_state, export_state, EClock, rc)
+subroutine ice_init_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -79,10 +80,13 @@ subroutine wav_init_esmf(comp, import_state, export_state, EClock, rc)
     rc = ESMF_SUCCESS
 
     ! Set flag to specify dead components
-    call ESMF_AttributeSet(export_state, name="wav_present", value=.false., rc=rc)
+    call ESMF_AttributeSet(export_state, name="ice_present", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call ESMF_AttributeSet(export_state, name="wav_prognostic", value=.false., rc=rc)
+    call ESMF_AttributeSet(export_state, name="ice_prognostic", value=.false., rc=rc)
+    if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="iceberg_prognostic", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
 #ifdef USE_ESMF_METADATA
@@ -92,14 +96,14 @@ subroutine wav_init_esmf(comp, import_state, export_state, EClock, rc)
     call ESMF_AttributeAdd(comp,  &
                            convention=convCIM, purpose=purpComp, rc=rc)
 
-    call ESMF_AttributeSet(comp, "ShortName", "SWAV", &
+    call ESMF_AttributeSet(comp, "ShortName", "SICE", &
                            convention=convCIM, purpose=purpComp, rc=rc)
     call ESMF_AttributeSet(comp, "LongName", &
-                           "Sea Wav Stub Model", &
+                           "Sea Ice Stub Model", &
                            convention=convCIM, purpose=purpComp, rc=rc)
     call ESMF_AttributeSet(comp, "ReleaseDate", "2010", &
                            convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ModelType", "Sea Wav", &
+    call ESMF_AttributeSet(comp, "ModelType", "Sea Ice", &
                            convention=convCIM, purpose=purpComp, rc=rc)
 
 !    call ESMF_AttributeSet(comp, "Name", "someone", &
@@ -111,21 +115,21 @@ subroutine wav_init_esmf(comp, import_state, export_state, EClock, rc)
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 #endif
 
-end subroutine wav_init_esmf
+end subroutine ice_init_esmf
 
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: wav_run_esmf
+! !IROUTINE: ice_run_esmf
 !
 ! !DESCRIPTION:
-!     run method for dead wav model
+!     run method for dead ice model
 !
 ! !REVISION HISTORY:
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine wav_run_esmf(comp, import_state, export_state, EClock, rc)
+subroutine ice_run_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -139,12 +143,12 @@ subroutine wav_run_esmf(comp, import_state, export_state, EClock, rc)
 
    rc = ESMF_SUCCESS
 
-end subroutine wav_run_esmf
+end subroutine ice_run_esmf
 
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: wav_final_esmf
+! !IROUTINE: ice_final_esmf
 !
 ! !DESCRIPTION:
 !     finalize method for dead model
@@ -153,7 +157,7 @@ end subroutine wav_run_esmf
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine wav_final_esmf(comp, import_state, export_state, EClock, rc)
+subroutine ice_final_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -165,7 +169,8 @@ subroutine wav_final_esmf(comp, import_state, export_state, EClock, rc)
 
    rc = ESMF_SUCCESS
 
-end subroutine wav_final_esmf
+end subroutine ice_final_esmf
 !===============================================================================
+#endif
 
-end module wav_comp_esmf
+end module ice_comp_esmf

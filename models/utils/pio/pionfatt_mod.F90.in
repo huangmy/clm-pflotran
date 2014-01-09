@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfatt_mod.F90"
 !>
 !! @file 
-!! $Revision: 807 $
-!! $LastChangedDate: 2013-05-10 07:26:06 -0700 (Fri, 10 May 2013) $
+!! $Revision: 847 $
+!! $LastChangedDate: 2013-11-13 14:41:51 -0800 (Wed, 13 Nov 2013) $
 !! @brief NetCDF attribute interface to PIO
 !<
 module pionfatt_mod
@@ -144,8 +144,10 @@ contains
 #endif
 
 #ifdef _NETCDF
+!       case(iotype_netcdf,PIO_iotype_netcdf4c,PIO_iotype_netcdf4p)
        case(iotype_netcdf,PIO_iotype_netcdf4c)
           if (Ios%io_rank==0) then
+             if(debug) print *,__FILE__,__LINE__,name,value
              ierr=nf90_put_att(File%fh,varid,name,value)
           endif
        case(PIO_iotype_netcdf4p)

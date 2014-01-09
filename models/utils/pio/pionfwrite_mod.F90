@@ -4,8 +4,8 @@
 !===================================================
 !>
 !! @file 
-!! $Revision: 751 $
-!! $LastChangedDate: 2013-04-02 10:01:13 -0600 (Tue, 02 Apr 2013) $
+!! $Revision: 847 $
+!! $LastChangedDate: 2013-11-13 22:41:51 +0000 (Wed, 13 Nov 2013) $
 !! @brief Decomposed Write interface to NetCDF
 !<
 module pionfwrite_mod
@@ -16,7 +16,7 @@ module pionfwrite_mod
 !! @private
 !<
   public :: write_nf
-# 15 "pionfwrite_mod.F90.in"
+# 15 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   interface write_nf
      ! TYPE real,int,double
      module procedure write_nfdarray_real
@@ -29,7 +29,7 @@ module pionfwrite_mod
   character(len=*), parameter :: modName='pionfwrite_mod'
 
 
-# 23 "pionfwrite_mod.F90.in"
+# 23 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
 contains
   ! note: IOBUF may actually point to the original data
   ! array, and cannot be modified (which is why it is intent(in))
@@ -38,7 +38,7 @@ contains
 !>
 !! @private
 !<
-# 31 "pionfwrite_mod.F90.in"
+# 31 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   integer function write_nfdarray_real (File,IOBUF,varDesc,iodesc,start,count, request) result(ierr)
     use nf_mod
     use pio_types, only : io_desc_t, var_desc_t, file_desc_t, iosystem_desc_t, pio_noerr, &
@@ -48,7 +48,10 @@ contains
     use pio_support, only : Debug, DebugIO, piodie, checkmpireturn 
 
 #ifdef _NETCDF
-    use netcdf, only : nf90_put_var, nf90_inquire_variable  !_EXTERNAL
+    use netcdf, only : nf90_put_var, nf90_inquire_variable   !_EXTERNAL
+#endif
+#ifdef _NETCDF4
+    use netcdf, only : nf90_var_par_access, nf90_collective
 #endif
 #ifdef TIMING
     use perf_mod, only : t_startf, t_stopf  !_EXTERNAL
@@ -109,13 +112,16 @@ contains
                '  IAM: ',File%iosystem%io_rank,' start: ',start,' count: ',count,&
                ' size :',iodesc%Write%n_ElemTYPE, ' error: ',ierr, &
                iodesc%Write%ElemTYPE, request
-          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
-               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
+!          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
+!               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
 #endif
 
 #ifdef _NETCDF
+#ifdef _NETCDF4
        case(PIO_iotype_netcdf4p)	
+          ierr=nf90_var_par_access(File%fh, vardesc%varid, NF90_COLLECTIVE)
           ierr=nf90_put_var(File%fh, vardesc%varid, iobuf,start=int(start),count=int(count))
+#endif
        case(pio_iotype_netcdf,pio_iotype_netcdf4c)
           ! allocate space on root for copy of iobuf etc.
           iobuf_size=size(IOBUF)
@@ -249,15 +255,13 @@ contains
 !  call mpi_barrier(file%iosystem%comp_comm, mpierr)
 !  call CheckMPIReturn(subName,mpierr)
 
+# 247 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   end function WRITE_NFDARRAY_real
-  ! note: IOBUF may actually point to the original data
-  ! array, and cannot be modified (which is why it is intent(in))
-
   ! TYPE real,int,double
 !>
 !! @private
 !<
-# 31 "pionfwrite_mod.F90.in"
+# 31 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   integer function write_nfdarray_int (File,IOBUF,varDesc,iodesc,start,count, request) result(ierr)
     use nf_mod
     use pio_types, only : io_desc_t, var_desc_t, file_desc_t, iosystem_desc_t, pio_noerr, &
@@ -267,7 +271,10 @@ contains
     use pio_support, only : Debug, DebugIO, piodie, checkmpireturn 
 
 #ifdef _NETCDF
-    use netcdf, only : nf90_put_var, nf90_inquire_variable  !_EXTERNAL
+    use netcdf, only : nf90_put_var, nf90_inquire_variable   !_EXTERNAL
+#endif
+#ifdef _NETCDF4
+    use netcdf, only : nf90_var_par_access, nf90_collective
 #endif
 #ifdef TIMING
     use perf_mod, only : t_startf, t_stopf  !_EXTERNAL
@@ -328,13 +335,16 @@ contains
                '  IAM: ',File%iosystem%io_rank,' start: ',start,' count: ',count,&
                ' size :',iodesc%Write%n_ElemTYPE, ' error: ',ierr, &
                iodesc%Write%ElemTYPE, request
-          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
-               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
+!          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
+!               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
 #endif
 
 #ifdef _NETCDF
+#ifdef _NETCDF4
        case(PIO_iotype_netcdf4p)	
+          ierr=nf90_var_par_access(File%fh, vardesc%varid, NF90_COLLECTIVE)
           ierr=nf90_put_var(File%fh, vardesc%varid, iobuf,start=int(start),count=int(count))
+#endif
        case(pio_iotype_netcdf,pio_iotype_netcdf4c)
           ! allocate space on root for copy of iobuf etc.
           iobuf_size=size(IOBUF)
@@ -468,15 +478,13 @@ contains
 !  call mpi_barrier(file%iosystem%comp_comm, mpierr)
 !  call CheckMPIReturn(subName,mpierr)
 
+# 247 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   end function WRITE_NFDARRAY_int
-  ! note: IOBUF may actually point to the original data
-  ! array, and cannot be modified (which is why it is intent(in))
-
   ! TYPE real,int,double
 !>
 !! @private
 !<
-# 31 "pionfwrite_mod.F90.in"
+# 31 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   integer function write_nfdarray_double (File,IOBUF,varDesc,iodesc,start,count, request) result(ierr)
     use nf_mod
     use pio_types, only : io_desc_t, var_desc_t, file_desc_t, iosystem_desc_t, pio_noerr, &
@@ -486,7 +494,10 @@ contains
     use pio_support, only : Debug, DebugIO, piodie, checkmpireturn 
 
 #ifdef _NETCDF
-    use netcdf, only : nf90_put_var, nf90_inquire_variable  !_EXTERNAL
+    use netcdf, only : nf90_put_var, nf90_inquire_variable   !_EXTERNAL
+#endif
+#ifdef _NETCDF4
+    use netcdf, only : nf90_var_par_access, nf90_collective
 #endif
 #ifdef TIMING
     use perf_mod, only : t_startf, t_stopf  !_EXTERNAL
@@ -547,13 +558,16 @@ contains
                '  IAM: ',File%iosystem%io_rank,' start: ',start,' count: ',count,&
                ' size :',iodesc%Write%n_ElemTYPE, ' error: ',ierr, &
                iodesc%Write%ElemTYPE, request
-          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
-               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
+!          if(Debug.or.ierr/=PIO_noerr) print *,subname,__LINE__, &
+!               '  IAM: ',File%iosystem%io_rank,'minval: ',minval(IOBUF),'maxval: ',maxval(IOBUF)
 #endif
 
 #ifdef _NETCDF
+#ifdef _NETCDF4
        case(PIO_iotype_netcdf4p)	
+          ierr=nf90_var_par_access(File%fh, vardesc%varid, NF90_COLLECTIVE)
           ierr=nf90_put_var(File%fh, vardesc%varid, iobuf,start=int(start),count=int(count))
+#endif
        case(pio_iotype_netcdf,pio_iotype_netcdf4c)
           ! allocate space on root for copy of iobuf etc.
           iobuf_size=size(IOBUF)
@@ -687,6 +701,7 @@ contains
 !  call mpi_barrier(file%iosystem%comp_comm, mpierr)
 !  call CheckMPIReturn(subName,mpierr)
 
+# 247 "/home/jedwards/pio_trunk/pio/pionfwrite_mod.F90.in"
   end function WRITE_NFDARRAY_double
 
 

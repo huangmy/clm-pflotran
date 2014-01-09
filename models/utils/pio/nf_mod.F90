@@ -3,8 +3,8 @@
 !! @file
 !! @brief NetCDF interface routines
 !!
-!! $Revision: 766 $
-!! $LastChangedDate: 2013-04-22 15:42:31 -0700 (Mon, 22 Apr 2013) $
+!! $Revision: 856 $
+!! $LastChangedDate: 2013-11-19 13:48:54 -0800 (Tue, 19 Nov 2013) $
 !!
 !<
 module nf_mod
@@ -244,10 +244,10 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire( File%fh,vals(1),vals(2), &
                vals(3),vals(4))
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire( File%fh,vals(1),vals(2), &
                   vals(3),vals(4))
@@ -345,10 +345,10 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_attribute( File%fh,varid,name(1:nlen), &
                xtype=xtype,len=len)          
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
 
           if (ios%io_rank==0) then
              ierr=nf90_inquire_attribute( File%fh,varid,name(1:nlen), &
@@ -456,10 +456,10 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
              ierr=nf90_inquire_attribute( File%fh,varid,name(1:nlen), &
                   len=len)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_attribute( File%fh,varid,name(1:nlen), &
                   len=len)
@@ -557,9 +557,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inq_attname(File%fh,varid,attnum,tmpname)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inq_attname(File%fh,varid,attnum,tmpname)
              if(Debug) print *,__PIO_FILE__,__LINE__,name
@@ -654,9 +654,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
              ierr=nf90_inq_varid(File%fh,name(1:nlen),varid)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inq_varid(File%fh,name(1:nlen),varid)
           endif
@@ -767,9 +767,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_variable(File%fh,varid,name=name(1:nlen))
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_variable(File%fh,varid,name=name(1:nlen))
           endif
@@ -839,9 +839,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_variable(File%fh,varid,ndims=ndims)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_variable(File%fh,varid,ndims=ndims)
           endif
@@ -931,9 +931,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_variable(File%fh,varid,xtype=type)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_variable(File%fh,varid,xtype=type)
           endif
@@ -1025,9 +1025,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_variable(File%fh,varid,dimids=dimids)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_variable(File%fh,varid,dimids=dimids)
           endif
@@ -1116,9 +1116,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_variable(File%fh,varid,nAtts=natts)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_variable(File%fh,varid,nAtts=natts)
           endif
@@ -1208,9 +1208,9 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case (pio_iotype_netcdf4c, pio_iotype_netcdf4p)
+       case (pio_iotype_netcdf4p)
              ierr=nf90_inq_dimid(File%fh,name(1:nlen),dimid)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inq_dimid(File%fh,name(1:nlen),dimid)
           endif
@@ -1286,9 +1286,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_dimension(File%fh,dimid,name=dimname(1:ldn))
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
 
           if (ios%io_rank==0) then
              ierr=nf90_inquire_dimension(File%fh,dimid,name=dimname(1:ldn))
@@ -1360,9 +1360,9 @@ contains
 #endif
 
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr=nf90_inquire_dimension(File%fh,dimid,len=dimlen)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           if (ios%io_rank==0) then
              ierr=nf90_inquire_dimension(File%fh,dimid,len=dimlen)
           endif
@@ -1683,6 +1683,7 @@ contains
              ierr=nf90_def_var( ncid=File%fh,name=name(1:nlen),xtype=type, &
                   dimids=dimids(1:vardesc%ndims),varid=vardesc%varid)
           endif
+          ierr = nf90_def_var_fill(File%fh, vardesc%varid, 1, 0)
 #endif
        case(pio_iotype_netcdf,pio_iotype_netcdf4c)
           ! assuming type valid for both pnetcdf and netcdf

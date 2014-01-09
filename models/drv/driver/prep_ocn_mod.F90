@@ -7,6 +7,7 @@ module prep_ocn_mod
   use seq_comm_mct,     only: num_inst_atm, num_inst_rof, num_inst_ice 
   use seq_comm_mct,     only: num_inst_glc, num_inst_wav, num_inst_ocn
   use seq_comm_mct,     only: num_inst_xao, num_inst_frc
+  use seq_comm_mct,     only: num_inst_max
   use seq_comm_mct,     only: CPLID, OCNID, logunit
   use seq_comm_mct,     only: seq_comm_getData=>seq_comm_setptrs                               
   use seq_infodata_mod, only: seq_infodata_type, seq_infodata_getdata  
@@ -16,7 +17,8 @@ module prep_ocn_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: ocn, atm, ice, rof, wav, glc
 
   implicit none
   save
@@ -78,29 +80,31 @@ module prep_ocn_mod
   type(seq_map), pointer :: mapper_Sw2o
 
   ! attribute vectors 
-  type(mct_aVect), target :: a2x_ox(num_inst_atm)	! Atm export, ocn grid, cpl pes 
-  type(mct_aVect), target :: r2x_ox(num_inst_rof)	! Rof export, ocn grid, cpl pes 
-  type(mct_aVect), target :: i2x_ox(num_inst_ice)	! Ice export, ocn grid, cpl pes 
-  type(mct_aVect), target :: g2x_ox(num_inst_glc)	! Glc export, ocn grid, cpl pes 
-  type(mct_aVect), target :: w2x_ox(num_inst_wav)	! Wav export, ocn grid, cpl pes 
+  type(mct_aVect), pointer :: a2x_ox(:) ! Atm export, ocn grid, cpl pes 
+  type(mct_aVect), pointer :: r2x_ox(:) ! Rof export, ocn grid, cpl pes 
+  type(mct_aVect), pointer :: i2x_ox(:) ! Ice export, ocn grid, cpl pes 
+  type(mct_aVect), pointer :: g2x_ox(:) ! Glc export, ocn grid, cpl pes 
+  type(mct_aVect), pointer :: w2x_ox(:) ! Wav export, ocn grid, cpl pes 
+
+  type(mct_aVect), target  :: x2o_ox_inst  ! multi instance for averaging
 
   ! accumulation variables
-  type(mct_aVect), target :: x2oacc_ox(num_inst_ocn)	! Ocn import, ocn grid, cpl pes 
-  integer        , target :: x2oacc_ox_cnt		! x2oacc_ox: number of time samples accumulated
+  type(mct_aVect), pointer :: x2oacc_ox(:)  ! Ocn import, ocn grid, cpl pes 
+  integer        , target  :: x2oacc_ox_cnt ! x2oacc_ox: number of time samples accumulated
 
   ! other module variables
   integer       :: mpicom_CPLID   ! MPI cpl communicator
   logical       :: flood_present  ! .true.  => rof is computing flood
   character(CS) :: vect_map       ! vector mapping type
+  logical       :: x2o_average    ! logical for x2o averaging to 1 ocean instance from multi instances
   !================================================================================================
 
 contains
 
   !================================================================================================
 
-  subroutine prep_ocn_init(infodata, &
-       ocn, atm, atm_c2_ocn, atm_c2_ice, &
-       ice, ice_c2_ocn, rof, rof_c2_ocn, wav, wav_c2_ocn, glc, glc_c2_ocn)
+  subroutine prep_ocn_init(infodata, atm_c2_ocn, atm_c2_ice, ice_c2_ocn, rof_c2_ocn, &
+       wav_c2_ocn, glc_c2_ocn)
        
     !---------------------------------------------------------------
     ! Description
@@ -108,19 +112,13 @@ contains
     ! module variables except for accumulators
     !
     ! Arguments
-    type(seq_infodata_type) , intent(in) :: infodata
-    type(component_type)    , intent(in) :: ocn(:)
-    type(component_type)    , intent(in) :: atm(:)
-    logical                 , intent(in) :: atm_c2_ocn ! .true.=>atm to ocn coupling on
-    logical                 , intent(in) :: atm_c2_ice ! .true.=>atm to ice coupling on
-    type(component_type)    , intent(in) :: ice(:)
-    logical                 , intent(in) :: ice_c2_ocn ! .true.=>ice to ocn coupling on
-    type(component_type)    , intent(in) :: rof(:)
-    logical                 , intent(in) :: rof_c2_ocn ! .true.=>rof to ocn coupling on
-    type(component_type)    , intent(in) :: wav(:)
-    logical                 , intent(in) :: wav_c2_ocn ! .true.=>wav to ocn coupling on
-    type(component_type)    , intent(in) :: glc(:)
-    logical                 , intent(in) :: glc_c2_ocn ! .true.=>glc to ocn coupling on
+    type(seq_infodata_type) , intent(in)    :: infodata
+    logical                 , intent(in)    :: atm_c2_ocn ! .true.=>atm to ocn coupling on
+    logical                 , intent(in)    :: atm_c2_ice ! .true.=>atm to ice coupling on
+    logical                 , intent(in)    :: ice_c2_ocn ! .true.=>ice to ocn coupling on
+    logical                 , intent(in)    :: rof_c2_ocn ! .true.=>rof to ocn coupling on
+    logical                 , intent(in)    :: wav_c2_ocn ! .true.=>wav to ocn coupling on
+    logical                 , intent(in)    :: glc_c2_ocn ! .true.=>glc to ocn coupling on
     !
     ! Local Variables
     logical                  :: esmf_map_flag  ! .true. => use esmf for mapping
@@ -144,16 +142,9 @@ contains
     character(CL)            :: glc_gnam       ! glc grid
     type(mct_avect), pointer :: o2x_ox
     type(mct_avect), pointer :: x2o_ox
-    type(mct_ggrid), pointer :: dom_ox
-    type(mct_ggrid), pointer :: dom_ax
-    type(mct_gsMap), pointer :: gsMap_ox
-    type(mct_gsMap), pointer :: gsMap_ax
-    type(mct_gsMap), pointer :: gsMap_ix
-    type(mct_gsMap), pointer :: gsMap_rx
-    type(mct_gsMap), pointer :: gsMap_wx
-    type(mct_gsMap), pointer :: gsMap_gx
     character(*), parameter  :: subname = '(prep_ocn_init)'
     character(*), parameter  :: F00 = "('"//subname//" : ', 4A )"
+    character(*), parameter  :: F01 = "('"//subname//" : ', A, I8 )"
     !---------------------------------------------------------------
 
     call seq_infodata_getData(infodata , &
@@ -188,27 +179,51 @@ contains
        x2o_ox => component_get_x2c_cx(ocn(1)) 
        lsize_o = mct_aVect_lsize(o2x_ox)
 
+       ! x2o_average setup logic
+       if (num_inst_max == num_inst_ocn) then
+          ! standard multi-instance merge
+          x2o_average = .false.
+       elseif (num_inst_max > 1 .and. num_inst_ocn == 1) then
+          ! averaging ocean merge
+          x2o_average = .true.
+          if (iamroot_CPLID) then
+             write(logunit,F01) 'x2o averaging on over instances =',num_inst_max
+          end if
+          call mct_aVect_init(x2o_ox_inst, x2o_ox, lsize_o)
+          call mct_aVect_zero(x2o_ox_inst)
+       else
+          ! not allowed
+          write(logunit,F00) ' ERROR in x2o_average setup logic '
+          call shr_sys_abort(subname//' ERROR in x2o_average setup logic')
+       endif
+
+       allocate(a2x_ox(num_inst_atm))
        do eai = 1,num_inst_atm
           call mct_aVect_init(a2x_ox(eai), rList=seq_flds_a2x_fields, lsize=lsize_o)
           call mct_aVect_zero(a2x_ox(eai))
        enddo
+       allocate(r2x_ox(num_inst_rof))
        do eri = 1,num_inst_rof
           call mct_aVect_init(r2x_ox(eri), rList=seq_flds_r2x_fields, lsize=lsize_o)
           call mct_aVect_zero(r2x_ox(eri))
        enddo
+       allocate(g2x_ox(num_inst_glc))
        do egi = 1,num_inst_glc
           call mct_aVect_init(g2x_ox(egi), rList=seq_flds_g2x_fields, lsize=lsize_o)
           call mct_aVect_zero(g2x_ox(egi))
        end do
+       allocate(w2x_ox(num_inst_wav))
        do ewi = 1,num_inst_wav
           call mct_aVect_init(w2x_ox(ewi), rList=seq_flds_w2x_fields, lsize=lsize_o)
           call mct_aVect_zero(w2x_ox(ewi))
        enddo
+       allocate(i2x_ox(num_inst_ice))
        do eii = 1,num_inst_ice
           call mct_aVect_init(i2x_ox(eii), rList=seq_flds_i2x_fields, lsize=lsize_o)
           call mct_aVect_zero(i2x_ox(eii))
        enddo
 
+       allocate(x2oacc_ox(num_inst_ocn))
        do eoi = 1,num_inst_ocn
           call mct_avect_init(x2oacc_ox(eoi), x2o_ox, lsize_o)
           call mct_aVect_zero(x2oacc_ox(eoi))
@@ -229,9 +244,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Fa2o'
           end if
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Fa2o, gsmap_ax, gsmap_ox, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Fa2o, atm(1), ocn(1), &
                'seq_maps.rc','atm2ocn_fmapname:','atm2ocn_fmaptype:',samegrid_ao, &
                'mapper_Fa2o initialization',esmf_map_flag)
           call shr_sys_flush(logunit)
@@ -244,9 +257,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Sa2o'
           end if
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Sa2o, gsmap_ax, gsmap_ox, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Sa2o, atm(1), ocn(1), &
                'seq_maps.rc','atm2ocn_smapname:','atm2ocn_smaptype:',samegrid_ao, &
                'mapper_Sa2o initialization',esmf_map_flag)
 
@@ -254,9 +265,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Va2o'
           end if
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Va2o, gsmap_ax, gsmap_ox, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Va2o, atm(1), ocn(1), &
                'seq_maps.rc','atm2ocn_vmapname:','atm2ocn_vmaptype:',samegrid_ao, &
                'mapper_Va2o initialization',esmf_map_flag)
 
@@ -264,11 +273,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Va2o vect'
           end if
-          dom_ax   => component_get_dom_cx(atm(1)) 
-          dom_ox   => component_get_dom_cx(ocn(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_initvect(mapper_Va2o, vect_map, dom_ax, dom_ox, &
-               gsmap_s=gsmap_ax, ni=atm_nx, nj=atm_ny, string='mapper_Va2o initvect')
+          call seq_map_initvect(mapper_Va2o, vect_map, atm(1), ocn(1), string='mapper_Va2o initvect')
        endif
        call shr_sys_flush(logunit)
 
@@ -278,10 +283,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_SFi2o'
           end if
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rearrolap(mapper_SFi2o, gsmap_ix, gsmap_ox, &
-               mpicom_CPLID, 'mapper_SFi2o')
+          call seq_map_init_rearrolap(mapper_SFi2o, ice(1), ocn(1), 'mapper_SFi2o')
        endif
        call shr_sys_flush(logunit)
 
@@ -290,9 +292,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Rr2o'
           end if
-          gsmap_rx => component_get_gsmap_cx(rof(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Rr2o, gsmap_rx, gsmap_ox, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Rr2o, rof(1), ocn(1), &
                'seq_maps.rc', 'rof2ocn_rmapname:', 'rof2ocn_rmaptype:',samegrid_ro, &
                'mapper_Rr2o initialization',esmf_map_flag)
 
@@ -301,7 +301,7 @@ contains
                 write(logunit,*) ' '
                 write(logunit,F00) 'Initializing mapper_Fr2o'
              end if
-             call seq_map_init_rcfile( mapper_Fr2o, gsmap_rx, gsmap_ox, mpicom_CPLID, &
+             call seq_map_init_rcfile( mapper_Fr2o, rof(1), ocn(1), &
                   'seq_maps.rc', 'rof2ocn_fmapname:', 'rof2ocn_fmaptype:',samegrid_ro, &
                   string='mapper_Fr2o initialization', esmf_map=esmf_map_flag)
           endif
@@ -313,9 +313,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Rg2o'
           end if
-          gsmap_gx => component_get_gsmap_cx(glc(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Rg2o, gsmap_gx, gsmap_ox, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Rg2o, glc(1), ocn(1), &
                'seq_maps.rc', 'glc2ocn_rmapname:', 'glc2ocn_rmaptype:',samegrid_og, &
                'mapper_Rg2o initialization',esmf_map_flag)
        endif
@@ -326,9 +324,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Sw2o'
           end if
-          gsmap_wx => component_get_gsmap_cx(wav(1)) 
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          call seq_map_init_rcfile(mapper_Sw2o, gsmap_wx, gsmap_ox,mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Sw2o, wav(1), ocn(1), &
                'seq_maps.rc', 'wav2ocn_smapname:', 'wav2ocn_smaptype:',samegrid_ow, &
                'mapper_Sw2o initialization')
        endif
@@ -340,7 +336,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_accum(ocn, timer)
+  subroutine prep_ocn_accum(timer)
     !---------------------------------------------------------------
     ! Description
     ! Accumulate ocn inputs
@@ -348,7 +344,6 @@ contains
     ! NOTE: this is done AFTER the call to the merge in prep_ocn_mrg
     !
     ! Arguments
-    type(component_type)    , intent(in) :: ocn(:)
     character(len=*)        , intent(in) :: timer
     !
     ! Local Variables
@@ -366,21 +361,20 @@ contains
        else
           call mct_avect_accum(x2o_ox, x2oacc_ox(eoi))
        endif
-       if (eoi == 1) x2oacc_ox_cnt = x2oacc_ox_cnt + 1
     enddo
+    x2oacc_ox_cnt = x2oacc_ox_cnt + 1
     call t_drvstopf  (trim(timer))
 
   end subroutine prep_ocn_accum
 
   !================================================================================================
 
-  subroutine prep_ocn_accum_avg(ocn, timer_accum)
+  subroutine prep_ocn_accum_avg(timer_accum)
     !---------------------------------------------------------------
     ! Description
     ! Finish accumulation ocn inputs
     !
     ! Arguments
-    type(component_type) , intent(inout) :: ocn(:)
     character(len=*), intent(in)    :: timer_accum
     !
     ! Local Variables
@@ -407,7 +401,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_mrg(infodata, ocn, fractions_ox, xao_ox, timer_mrg)
+  subroutine prep_ocn_mrg(infodata, fractions_ox, xao_ox, timer_mrg)
 
     !---------------------------------------------------------------
     ! Description
@@ -415,15 +409,15 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: ocn(:)
     type(mct_aVect)         , intent(in)    :: fractions_ox(:)
     type(mct_aVect)         , intent(in)    :: xao_ox(:) ! Atm-ocn fluxes, ocn grid, cpl pes 
     character(len=*)        , intent(in)    :: timer_mrg
     !
     ! Local Variables
-    integer                  :: eii, ewi, egi, eoi, eai, eri, exi, efi
+    integer                  :: eii, ewi, egi, eoi, eai, eri, exi, efi, emi
     real(r8)                 :: flux_epbalfact ! adjusted precip factor
     type(mct_avect), pointer :: x2o_ox
+    integer                  :: cnt
     character(*), parameter  :: subname = '(prep_ocn_mrg)'
     !---------------------------------------------------------------
 
@@ -431,20 +425,50 @@ contains
          flux_epbalfact=flux_epbalfact)
 
     call t_drvstartf (trim(timer_mrg), barrier=mpicom_CPLID)
-    do eoi = 1,num_inst_ocn
-       ! Use fortran mod to address ensembles in merge
-       eai = mod((eoi-1),num_inst_atm) + 1
-       eii = mod((eoi-1),num_inst_ice) + 1
-       eri = mod((eoi-1),num_inst_rof) + 1
-       ewi = mod((eoi-1),num_inst_wav) + 1
-       egi = mod((eoi-1),num_inst_glc) + 1
-       exi = mod((eoi-1),num_inst_xao) + 1
-       efi = mod((eoi-1),num_inst_frc) + 1
 
-       x2o_ox   => component_get_x2c_cx(ocn(eoi)) 
+    ! Use emi here for instance averaging capability, num_inst_max = num_inst_ocn normally
+    ! if NOT x2o_average, just fill each instance of component_get_x2c_cx(ocn(eoi))
+    ! if     x2o_average, then computer merge into x2o_ox_inst and accumulate that to 
+    !                     component_get_x2c_cx(ocn(1)) and then average it at the end
+
+    if (x2o_average) then
+       x2o_ox   => component_get_x2c_cx(ocn(1)) 
+       call mct_aVect_zero(x2o_ox)
+    endif
+
+    cnt = 0
+    do emi = 1,num_inst_max
+       ! Use fortran mod to address ensembles in merge
+       eoi = mod((emi-1),num_inst_ocn) + 1
+       eai = mod((emi-1),num_inst_atm) + 1
+       eii = mod((emi-1),num_inst_ice) + 1
+       eri = mod((emi-1),num_inst_rof) + 1
+       ewi = mod((emi-1),num_inst_wav) + 1
+       egi = mod((emi-1),num_inst_glc) + 1
+       exi = mod((emi-1),num_inst_xao) + 1
+       efi = mod((emi-1),num_inst_frc) + 1
+
+       if (x2o_average) then
+          x2o_ox   => x2o_ox_inst
+       else
+          x2o_ox   => component_get_x2c_cx(ocn(eoi)) 
+       endif
+
        call prep_ocn_merge( flux_epbalfact, a2x_ox(eai), i2x_ox(eii), r2x_ox(eri),  &
             w2x_ox(ewi), g2x_ox(egi), xao_ox(exi), fractions_ox(efi), x2o_ox )
+
+       if (x2o_average) then
+          x2o_ox   => component_get_x2c_cx(ocn(1)) 
+          call mct_aVect_accum(x2o_ox_inst, x2o_ox)
+          cnt = cnt + 1
+       endif
     enddo
+
+    if (x2o_average) then
+       x2o_ox   => component_get_x2c_cx(ocn(1)) 
+       call mct_avect_avg(x2o_ox,cnt)
+    endif
+
     call t_drvstopf  (trim(timer_mrg))
 
   end subroutine prep_ocn_mrg
@@ -762,11 +786,10 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_calc_a2x_ox(atm, timer)
+  subroutine prep_ocn_calc_a2x_ox(timer)
     !---------------------------------------------------------------
     !
     ! Arguments
-    type(component_type) , intent(in) :: atm(:)
     character(len=*)     , intent(in) :: timer
     !
     ! Local Variables
@@ -783,9 +806,6 @@ contains
 
        call seq_map_map(mapper_Fa2o, a2x_ax, a2x_ox(eai), fldlist=seq_flds_a2x_fluxes, norm=.true.)
 
-       !--- tcx this Va2o call will not be necessary when npfix goes away
-       call seq_map_map(mapper_Va2o, a2x_ax, a2x_ox(eai), fldlist='Sa_u:Sa_v', norm=.true.)
-
        !--- tcx the norm should be true below, it's false for bfb backwards compatability
        call seq_map_mapvect(mapper_Va2o, vect_map, a2x_ax, a2x_ox(eai), 'Sa_u', 'Sa_v', norm=.false.)
     enddo
@@ -795,13 +815,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_calc_i2x_ox(ice, timer)
+  subroutine prep_ocn_calc_i2x_ox(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create g2x_ox (note that i2x_ox is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: ice(:)
     character(len=*)     , intent(in) :: timer
     !
     ! Local Variables
@@ -821,13 +840,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_calc_r2x_ox(rof, timer)
+  subroutine prep_ocn_calc_r2x_ox(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create r2x_ox (note that r2x_ox is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: rof(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -852,13 +870,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_calc_g2x_ox(glc, timer)
+  subroutine prep_ocn_calc_g2x_ox(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create g2x_ox (note that g2x_ox is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: glc(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -877,13 +894,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ocn_calc_w2x_ox(wav, timer)
+  subroutine prep_ocn_calc_w2x_ox(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create w2x_ox (note that w2x_ox is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: wav(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables

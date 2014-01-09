@@ -4,6 +4,309 @@ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk/ChangeLog $
 
 This file describes what tags were created and why
 ================================================================================
+Originator: jedwards
+Date: 06 Dec 2013
+Model: Machines
+Version: Machines_131206b
+One-line: only load netcdf parallel when mpilib is not mpi-serial
+
+M            env_mach_specific.hopper
+M            env_mach_specific.yellowstone
+M            env_mach_specific.eos
+M            env_mach_specific.bluewaters
+M            env_mach_specific.titan
+M            env_mach_specific.edison
+
+
+================================================================================
+Originator: mickelso 
+Date: 06 Dec 2013
+Model: Machines
+Version: Machines_131206a
+One-line: added hdf5 flags for mira
+
+M       config_compilers.xml
+
+================================================================================
+Originator: jedwards  
+Date: 06 Dec 2013
+Model: Machines
+Version: Machines_131206
+One-line: fix typo for titan, add pgicuda compiler support on titan
+ 
+M config_machines.xml
+M config_compilers.xml
+M env_mach_specific.titan
+
+================================================================================
+Originator: jedwards  
+Date: 04 Dec 2013
+Model: Machines
+Version: Machines_131204
+One-line: titan filesystem changes
+
+M config_machines.xml
+
+================================================================================
+Originator: jedwards  
+Date: 03 Dec 2013
+Model: Machines
+Version: Machines_131203a
+One-line: Add juqueen bluegene-Q port
+
+M config_machines.xml
+M config_compilers.xml
+A env_mach_specific.juqueen
+A mkbatch.juqueen
+
+================================================================================
+Originator: jedwards  
+Date: 03 Dec 2013
+Model: Machines
+Version: Machines_131203
+One-line: Fix mpi-serial build on yellowstone
+
+M     config_compilers.xml
+M     env_mach_specific.yellowstone
+
+================================================================================
+Originator: jshollen   
+Date: 27 Nov 2013
+Model: Machines
+Version: Machines_131127
+One-line: Added documentation to config_pes.xml explaining the use of the TEST 
+attribute for allowing/disallowing pe layouts for specific tests. 
+
+M       config_pes.xml
+
+================================================================================
+Originator: jshollen   
+Date: 26 Nov 2013
+Model: Machines
+Version: Machines_131126
+One-line: add -DNO_C_SIZEOF for frankfurt nag
+
+M       config_compilers.xml
+
+================================================================================
+Originator: jshollen   
+Date: 25 Nov 2013
+Model: Machines
+Version: Machines_131125a
+One-line: add -DNO_C_SIZEOF for yellowstone gnu
+
+M       config_compilers.xml
+
+================================================================================
+Originator: jedwards   
+Date: 25 Nov 2013
+Model: Machines
+Version: Machines_131125
+One-line: fix frankfurt pgi build issue
+	M config_compilers.xml
+	M Makefile
+	
+================================================================================
+Originator: jedwards   
+Date: 24 Nov 2013
+Model: Machines
+Version: Machines_131124
+One-line: removed debug code 
+
+M  env_mach_specific.yellowstone
+
+================================================================================
+Originator:  jshollen   
+Date: 22 Nov 2013
+Model: Machines
+Version: Machines_131122a
+One-line: Yellowstone pio build updates, change pgi threaded=false compile flags
+to -nomp
+
+M       config_compilers.xml
+M       env_mach_specific.yellowstone
+
+================================================================================
+Originator: fvitt
+Date: 22 Nov 2013
+Model: Machines
+Version: Machines_131122
+One-line: Updates for pleiades
+	   - replaced "pleiades-har" with "pleiades-ivy"
+           - ifort compiler updated to version 13.1.3
+
+M       config_compilers.xml
+A  +    env_mach_specific.pleiades-ivy
+D       env_mach_specific.pleiades-har
+M       taskmaker.pl
+M       mkbatch.pleiades-san
+M       mkbatch.pleiades-wes
+M       env_mach_specific.pleiades-san
+A  +    mkbatch.pleiades-ivy
+D       mkbatch.pleiades-har
+M       config_machines.xml
+M       config_pes.xml
+
+================================================================================
+Originator: jedwards
+Date: 20 Nov 2013
+Model: Machines
+Version: Machines_131120
+One-line: use different launch script on yellowstone when threads are not used
+
+M       mkbatch.yellowstone
+
+================================================================================
+Originator: santos
+Date: 19 Nov 2013
+Model: Machines
+Version: Machines_131119b
+One-line: config_compilers updates from unit testing development.
+
+M    config_compilers.xml
+     - Remove instances of "--" from comments, since this is not really
+       valid XML.
+     - Remove some workarounds for NAG/OpenMP, since these complicate
+       parsing of this file and don't get OpenMP working on NAG yet
+       anyway.
+     - Add paths to pFUnit install on machines where it is set up.
+
+================================================================================
+Originator: jedwards
+Date: 19 Nov 2013
+Model: Machines
+Version: Machines_131119
+One-line: Fix machine and compiler issues with pio build
+
+U    config_compilers.xml
+U    Makefile
+U    env_mach_specific.bluewaters
+U    env_mach_specific.titan
+U    env_mach_specific.edison
+
+
+
+================================================================================
+Originator: jedwards
+Date: 14 Nov 2013
+Model: Machines
+Version: Machines_131114
+One-line: Convert pio build to cmake - Requires pio 1.8.0 or newer
+
+M               config_compilers.xml
+M               env_mach_specific.yellowstone
+M               Makefile
+M               buildlib.pio
+
+
+================================================================================
+Originator: jshollen 
+Date: 12 Nov 2013
+Model: Machines
+Version: Machines_131112
+One-line: updated torque module for bluewaters
+
+M       env_mach_specific.bluewaters
+
+================================================================================
+Originator: jshollen 
+Date: 11 Nov 2013
+Model: Machines
+Version: Machines_131111a
+One-line: New layout for T62_g16 CECO titan
+M       config_pes.xml
+
+================================================================================
+Originator: mickelso 
+Date: 11 Nov 2013
+Model: Machines
+Version: Machines_131111
+One-line: Added a new layout for edison. 
+
+M       config_pes.xml
+
+================================================================================
+Originator: mickelso 
+Date: 08 Nov 2013
+Model: Machines
+Version: Machines_131108
+One-line: Updated compiler version on Mira. 
+
+M       env_mach_specific.mira
+
+================================================================================
+Originator: mickelso 
+Date: 30 Oct 2013
+Model: Machines
+Version: Machines_131030
+One-line: Added new mira layout 
+
+M       config_pes.xml
+
+================================================================================
+Originator: jedwards
+Date: 23 Oct 2013
+Model: Machines
+Version: Machines_131023a
+One-line: Corrected mkbatch update for yellowstone 
+
+M             mkbatch.yellowstone
+
+================================================================================
+Originator: jedwards
+Date: 23 Oct 2013
+Model: Machines
+Version: Machines_131023
+One-line:  Updates for yellowstone, fix gptl build for mpi-serial
+
+M             config_compilers.xml
+M             env_mach_specific.yellowstone
+M             buildlib.gptl
+M             mkbatch.yellowstone
+
+================================================================================
+Originator: jedwards
+Date: 17 Oct 2013
+Model: Machines
+Version: Machines_131017
+One-line:  port to new ornl machine eos, note this machine port requires an environment 
+	variable PROJECT which is your project name in lowercase. 
+
+A            env_mach_specific.eos
+M            config_pes.xml
+M            config_machines.xml
+A            mkbatch.eos
+
+
+================================================================================
+Originator: jedwards
+Date: 14 Oct 2013
+Model: Machines
+Version: Machines_131014
+One-line:  Add include path, cray compiler needs this (though the others do not)
+
+M  buildlib.gptl 
+
+================================================================================
+Originator: mickelso
+Date: 05 Oct 2013
+Model: Machines
+Version: Machines_131005
+One-line:  Removed extra BGQ flags 
+
+M       config_compilers.xml
+
+================================================================================
+Originator: mickelso
+Date: 04 Oct 2013
+Model: Machines
+Version: Machines_131004
+One-line:  needed to modify the mira build because of compiler bugs 
+
+A       Depends.mira
+M       config_compilers.xml
+
+================================================================================
 Originator: sacks
 Date: 30 Sep 2013
 Model: Machines

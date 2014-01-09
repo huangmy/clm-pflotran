@@ -1,5 +1,6 @@
-module ocn_comp_esmf
+module wav_comp_esmf
 
+#ifdef ESMF_INTERFACE
 ! !USES:
 
   use ESMF
@@ -14,10 +15,10 @@ module ocn_comp_esmf
 ! Public interfaces
 !--------------------------------------------------------------------------
 
-  public :: ocn_init_esmf
-  public :: ocn_run_esmf
-  public :: ocn_final_esmf
-  public :: ocn_register_esmf
+  public :: wav_init_esmf
+  public :: wav_run_esmf
+  public :: wav_final_esmf
+  public :: wav_register_esmf
 
 !--------------------------------------------------------------------------
 ! Private data interfaces
@@ -26,23 +27,23 @@ module ocn_comp_esmf
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-subroutine ocn_register_esmf(comp, rc)
+subroutine wav_register_esmf(comp, rc)
     type(ESMF_GridComp)  :: comp
     integer, intent(out) :: rc
 
     rc = ESMF_SUCCESS
 
-    print *, "In ocn register routine"
+    print *, "In wav register routine"
     ! Register the callback routines.
 
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_INITIALIZE, &
-      ocn_init_esmf, phase=1, rc=rc)
+      wav_init_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_RUN, &
-      ocn_run_esmf, phase=1, rc=rc)
+      wav_run_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
     call ESMF_GridCompSetEntryPoint(comp, ESMF_METHOD_FINALIZE, &
-      ocn_final_esmf, phase=1, rc=rc)
+      wav_final_esmf, phase=1, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
 
@@ -53,16 +54,16 @@ end subroutine
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: ocn_init_esmf
+! !IROUTINE: wav_init_esmf
 !
 ! !DESCRIPTION:
-!     initialize dead ocn model
+!     initialize dead wav model
 !
 ! !REVISION HISTORY:
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine ocn_init_esmf(comp, import_state, export_state, EClock, rc)
+subroutine wav_init_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -79,13 +80,10 @@ subroutine ocn_init_esmf(comp, import_state, export_state, EClock, rc)
     rc = ESMF_SUCCESS
 
     ! Set flag to specify dead components
-    call ESMF_AttributeSet(export_state, name="ocn_present", value=.false., rc=rc)
+    call ESMF_AttributeSet(export_state, name="wav_present", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call ESMF_AttributeSet(export_state, name="ocn_prognostic", value=.false., rc=rc)
-    if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-
-    call ESMF_AttributeSet(export_state, name="ocnrof_prognostic", value=.false., rc=rc)
+    call ESMF_AttributeSet(export_state, name="wav_prognostic", value=.false., rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
 #ifdef USE_ESMF_METADATA
@@ -95,40 +93,40 @@ subroutine ocn_init_esmf(comp, import_state, export_state, EClock, rc)
     call ESMF_AttributeAdd(comp,  &
                            convention=convCIM, purpose=purpComp, rc=rc)
 
-    call ESMF_AttributeSet(comp, "ShortName", "SOCN", &
+    call ESMF_AttributeSet(comp, "ShortName", "SWAV", &
                            convention=convCIM, purpose=purpComp, rc=rc)
     call ESMF_AttributeSet(comp, "LongName", &
-                           "Ocean Stub Model", &
+                           "Sea Wav Stub Model", &
                            convention=convCIM, purpose=purpComp, rc=rc)
     call ESMF_AttributeSet(comp, "ReleaseDate", "2010", &
                            convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ModelType", "Ocean", &
+    call ESMF_AttributeSet(comp, "ModelType", "Sea Wav", &
                            convention=convCIM, purpose=purpComp, rc=rc)
 
-!    call ESMF_AttributeSet(comp, "Name", "Susan Bates", &
+!    call ESMF_AttributeSet(comp, "Name", "someone", &
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 !    call ESMF_AttributeSet(comp, "EmailAddress", &
-!                           "bates@ucar.edu", &
+!                           "someone@someplace", &
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 !    call ESMF_AttributeSet(comp, "ResponsiblePartyRole", "contact", &
 !                           convention=convCIM, purpose=purpComp, rc=rc)
 #endif
 
-end subroutine ocn_init_esmf
+end subroutine wav_init_esmf
 
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: ocn_run_esmf
+! !IROUTINE: wav_run_esmf
 !
 ! !DESCRIPTION:
-!     run method for dead ocn model
+!     run method for dead wav model
 !
 ! !REVISION HISTORY:
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine ocn_run_esmf(comp, import_state, export_state, EClock, rc)
+subroutine wav_run_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -142,12 +140,12 @@ subroutine ocn_run_esmf(comp, import_state, export_state, EClock, rc)
 
    rc = ESMF_SUCCESS
 
-end subroutine ocn_run_esmf
+end subroutine wav_run_esmf
 
 !===============================================================================
 !BOP ===========================================================================
 !
-! !IROUTINE: ocn_final_esmf
+! !IROUTINE: wav_final_esmf
 !
 ! !DESCRIPTION:
 !     finalize method for dead model
@@ -156,7 +154,7 @@ end subroutine ocn_run_esmf
 !
 ! !INTERFACE: ------------------------------------------------------------------
 
-subroutine ocn_final_esmf(comp, import_state, export_state, EClock, rc)
+subroutine wav_final_esmf(comp, import_state, export_state, EClock, rc)
 
 ! !INPUT/OUTPUT PARAMETERS:
    type(ESMF_GridComp)          :: comp
@@ -168,7 +166,8 @@ subroutine ocn_final_esmf(comp, import_state, export_state, EClock, rc)
 
    rc = ESMF_SUCCESS
 
-end subroutine ocn_final_esmf
+end subroutine wav_final_esmf
 !===============================================================================
+#endif
 
-end module ocn_comp_esmf
+end module wav_comp_esmf

@@ -1,5 +1,6 @@
 module glc_comp_esmf
 
+#ifdef ESMF_INTERFACE
 ! !USES:
 
   use ESMF
@@ -176,5 +177,6 @@ subroutine glc_final_esmf(comp, import_state, export_state, EClock, rc)
 
 end subroutine glc_final_esmf
 !===============================================================================
+#endif
 
 end module glc_comp_esmf

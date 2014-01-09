@@ -173,6 +173,27 @@
          <MAX_TASKS_PER_NODE>12</MAX_TASKS_PER_NODE>
 </machine>
 
+<machine MACH="eos">
+         <DESC>ORNL XC30, os is CNL, 16 pes/node, batch system is PBS</DESC>
+	 <COMPILERS>intel</COMPILERS>
+	 <MPILIBS>mpich,mpi-serial</MPILIBS>
+         <RUNDIR>$WORKDIR/$PROJECT/$CASE/run</RUNDIR>
+         <EXEROOT>$WORKDIR/$PROJECT/$CASE/bld</EXEROOT>
+         <DIN_LOC_ROOT>/lustre/atlas1/cli900/world-shared/cesm/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/lustre/atlas1/cli900/world-shared/cesm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>$WORKDIR/$PROJECT/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
+         <CCSM_BASELINE>/lustre/atlas1/cli900/world-shared/cesm/baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>/lustre/atlas1/cli900/world-shared/cesm/tools/cprnc/cprnc.eos</CCSM_CPRNC>
+         <OS>CNL</OS>
+         <BATCHQUERY>qstat -f</BATCHQUERY>
+         <BATCHSUBMIT>qsub</BATCHSUBMIT>
+         <SUPPORTED_BY>cseg</SUPPORTED_BY>
+         <GMAKE_J>8</GMAKE_J>
+         <PES_PER_NODE>16</PES_PER_NODE>
+         <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
+</machine>
+
 <machine MACH="frankfurt">
          <DESC>"NCAR CGD Linux Cluster 16 pes/node, batch system is PBS"</DESC>
          <COMPILERS>pgi,intel,nag</COMPILERS>
@@ -296,26 +317,26 @@
 	 <PIO_BUFFER_SIZE_LIMIT>1</PIO_BUFFER_SIZE_LIMIT>
 </machine>
 
-<machine MACH="lynx">
-         <DESC>NCAR XT5, os is CNL, 12 pes/node, batch system is PBS</DESC>
-	 <COMPILERS>pgi,intel,pathscale,gnu,cray</COMPILERS>
-	 <MPILIBS>mpich,mpi-serial</MPILIBS>
-         <OS>CNL</OS>
-         <RUNDIR>/glade/scratch/$CCSMUSER/$CASE/run</RUNDIR>
-         <EXEROOT>/glade/scratch/$CCSMUSER/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/glade/proj3/cseg/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/glade/proj2/cgd/tss</DIN_LOC_ROOT_CLMFORC>
-         <DOUT_S_ROOT>/glade/scratch/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
-         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-         <CCSM_BASELINE>/glade/proj3/cseg/ccsm_baselines</CCSM_BASELINE>
-         <CCSM_CPRNC>/glade/proj3/cseg/tools/cprnc.lynx/cprnc</CCSM_CPRNC>
-         <BATCHQUERY>UNSET</BATCHQUERY>
-         <BATCHSUBMIT>qsub</BATCHSUBMIT>
-         <SUPPORTED_BY>cseg</SUPPORTED_BY>
-         <GMAKE_J>4</GMAKE_J>
-         <MAX_TASKS_PER_NODE>12</MAX_TASKS_PER_NODE>
-</machine>
 
+<machine MACH="juqueen">
+         <DESC>FZJ IBM BG/Q, os is CNK, 16 pes/node, batch system is LoadLeveler</DESC>
+         <COMPILERS>ibm</COMPILERS>
+         <MPILIBS>ibm</MPILIBS>
+         <RUNDIR>$ENV{WORK}/$CASE/run</RUNDIR>
+         <EXEROOT>$ENV{WORK}/$CASE/bld</EXEROOT>
+         <DIN_LOC_ROOT>$ENV{WORK}/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>$ENV{WORK}/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>$ENV{WORK}/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>/home/$CCSMUSER/csm/$CASE/</DOUT_L_MSROOT>
+         <CCSM_BASELINE>$ENV{WORK}/ccsm_baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>$ENV{WORK}/tools/cprnc/cprnc</CCSM_CPRNC>
+         <OS>BGQ</OS>
+         <BATCHQUERY>llq</BATCHQUERY>
+         <BATCHSUBMIT>llsubmit</BATCHSUBMIT>
+         <SUPPORTED_BY>dennis -at- ucar.edu</SUPPORTED_BY>
+         <GMAKE_J>4</GMAKE_J>
+         <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
+</machine>
 
 
 <machine MACH="mira">
@@ -360,24 +381,6 @@
          <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
 </machine>
 
-<machine MACH="pleiades-har">
-         <DESC>NASA/AMES Linux Cluster, Linux (ia64), Altix ICE, 3.0 GHz Harpertown processors, 8 pes/node and 8 GB of memory, batch system is PBS</DESC>
-	 <COMPILERS>intel</COMPILERS>
-	 <MPILIBS>mpich,mpi-serial</MPILIBS>
-         <OS>LINUX</OS>
-         <RUNDIR>/nobackup/$CCSMUSER/$CASE/run</RUNDIR>
-         <EXEROOT>/nobackup/$CCSMUSER/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/nobackup/mjmills2/ccsmdata/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/nobackup/mjmills2/ccsmdata/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
-         <DOUT_S_ROOT>/nobackup/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
-         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-         <BATCHQUERY>qstat</BATCHQUERY>
-         <BATCHSUBMIT>qsub</BATCHSUBMIT>
-         <SUPPORTED_BY>fvitt -at- ucar.edu</SUPPORTED_BY>
-         <GMAKE_J>8</GMAKE_J>
-         <MAX_TASKS_PER_NODE>8</MAX_TASKS_PER_NODE>
-</machine>
-
 <machine MACH="pleiades-wes">
          <DESC>NASA/AMES Linux Cluster, Linux (ia64), Altix ICE, 2.93 GHz Westmere processors, 12 pes/node and 24 GB of memory, batch system is PBS</DESC>
 	 <COMPILERS>intel</COMPILERS>
@@ -412,6 +415,24 @@
          <SUPPORTED_BY>fvitt -at- ucar.edu</SUPPORTED_BY>
          <GMAKE_J>8</GMAKE_J>
          <MAX_TASKS_PER_NODE>16</MAX_TASKS_PER_NODE>
+</machine>
+
+<machine MACH="pleiades-ivy">
+         <DESC>NASA/AMES Linux Cluster, Linux (ia64), Altix ICE, 2.8 GHz Ivy Bridge processors, 20 cores/node and 3.2 GB of memory per core, batch system is PBS</DESC>
+	 <COMPILERS>intel</COMPILERS>
+	 <MPILIBS>mpich,mpi-serial</MPILIBS>
+         <OS>LINUX</OS>
+         <RUNDIR>/nobackup/$CCSMUSER/$CASE/run</RUNDIR>
+         <EXEROOT>/nobackup/$CCSMUSER/$CASE/bld</EXEROOT>
+         <DIN_LOC_ROOT>/nobackup/mjmills2/ccsmdata/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/nobackup/mjmills2/ccsmdata/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>/nobackup/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
+         <BATCHQUERY>qstat</BATCHQUERY>
+         <BATCHSUBMIT>qsub</BATCHSUBMIT>
+         <SUPPORTED_BY>fvitt -at- ucar.edu</SUPPORTED_BY>
+         <GMAKE_J>8</GMAKE_J>
+         <MAX_TASKS_PER_NODE>20</MAX_TASKS_PER_NODE>
 </machine>
 
 <machine MACH="sierra">
@@ -456,22 +477,18 @@
         <PES_PER_NODE>16</PES_PER_NODE>
 </machine>
 
-
-
-
-
 <machine MACH="titan">
          <DESC>ORNL XK6, os is CNL, 16 pes/node, batch system is PBS</DESC>
-	 <COMPILERS>pgi</COMPILERS>
+	 <COMPILERS>pgi,pgicuda</COMPILERS>
 	 <MPILIBS>mpich,mpi-serial</MPILIBS>
-         <RUNDIR>/tmp/work/$CCSMUSER/$CASE/run</RUNDIR>
-         <EXEROOT>/tmp/work/$CCSMUSER/$CASE/bld</EXEROOT>
-         <DIN_LOC_ROOT>/tmp/proj/ccsm/inputdata</DIN_LOC_ROOT>
-         <DIN_LOC_ROOT_CLMFORC>/tmp/proj/ccsm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
-         <DOUT_S_ROOT>/tmp/work/$CCSMUSER/archive/$CASE</DOUT_S_ROOT>
+         <RUNDIR>$WORKDIR/$PROJECT/$CASE/run</RUNDIR>
+         <EXEROOT>$WORKDIR/$PROJECT/$CASE/bld</EXEROOT>
+         <DIN_LOC_ROOT>/lustre/atlas1/cli900/world-shared/cesm/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/lustre/atlas1/cli900/world-shared/cesm/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>$WORKDIR/$PROJECT/archive/$CASE</DOUT_S_ROOT>
          <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-         <CCSM_BASELINE>/tmp/proj/ccsm/ccsm_baselines</CCSM_BASELINE>
-         <CCSM_CPRNC>/tmp/proj/ccsm/tools/ccsm_cprnc/cprnc</CCSM_CPRNC>
+         <CCSM_BASELINE>/lustre/atlas1/cli900/world-shared/cesm/baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>/lustre/atlas1/cli900/world-shared/cesm/tools/cprnc/cprnc.titan</CCSM_CPRNC>
          <OS>CNL</OS>
          <BATCHQUERY>qstat -f</BATCHQUERY>
          <BATCHSUBMIT>qsub</BATCHSUBMIT>

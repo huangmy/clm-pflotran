@@ -128,7 +128,7 @@ if (! $clean ) {
     if (!-f "./Macros") {
 	print "Creating Macros file for $mach$eol";
 	SetupTools::set_compiler($xmlvars{OS},"$xmlvars{CCSM_MACHDIR}/config_compilers.xml",
-				 $xmlvars{COMPILER},$xmlvars{MACH}, 0, 'Macros'  );
+				 $xmlvars{COMPILER},$xmlvars{MACH}, $xmlvars{MPILIB}, 0, 'Macros'  );
     } else {
 	print "Macros script already created ...skipping$eol ";
     }

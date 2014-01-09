@@ -6,7 +6,7 @@ if ($PHASE == set_batch) then
 
 source ./Tools/ccsm_getenv || exit -1
 
-set pbsrs = `${CASEROOT}/Tools/taskmaker.pl -pbsrs har`
+set pbsrs = `${CASEROOT}/Tools/taskmaker.pl -pbsrs ivy`
 
 set tlimit = "08:00:00"
 
@@ -79,12 +79,9 @@ echo "\`date\` -- CSM EXECUTION HAS FINISHED"
 
 EOF1
 
-
 #################################################################################
 else if ($PHASE == set_larch) then
 #################################################################################
-
-# Create the archive script
 
 if ($?ACCOUNT) then
   set account_name = $ACCOUNT
@@ -101,7 +98,7 @@ cat >! $CASEROOT/${CASE}.l_archive << EOF1
 #PBS -S /bin/csh
 #PBS -N l_archive
 #PBS -W group_list=${account_name}
-#PBS -q normal
+#PBS -q ldan
 #PBS -j oe
 #PBS -l select=1
 #PBS -l walltime=04:00:00
@@ -109,10 +106,21 @@ cat >! $CASEROOT/${CASE}.l_archive << EOF1
 cd $CASEROOT 
 source ./Tools/ccsm_getenv || exit -1
 setenv LID "\`date +%y%m%d-%H%M%S\`"
+
 # copy output files to lou -- the NAS long-term archiving system
+
 cd \$DOUT_S_ROOT
-$CASEROOT/Tools/lt_archive.sh --mode copy_dirs_sshscp --ssh_loc bridge2 --scp_loc lfe2
+
+set archroot = "\`ls -d /lou/s2*/\$USER\`"
+
+if (\${%archroot} > 0) then
+  $CASEROOT/Tools/lt_archive.sh --mode copy_dirs_local --arc_root \$archroot
+else
+  $CASEROOT/Tools/lt_archive.sh --mode copy_dirs_sshscp --ssh_loc bridge2 --scp_loc lfe2
+endif
+
 wait
+
 exit 0
 
 EOF1
