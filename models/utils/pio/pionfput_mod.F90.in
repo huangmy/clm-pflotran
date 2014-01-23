@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfput_mod.F90"
 !>
 !! @file 
-!! $Revision: 862 $
-!! $LastChangedDate: 2013-11-24 11:28:12 -0800 (Sun, 24 Nov 2013) $
+!! $Revision: 894 $
+!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
 !! @brief Write Routines for non-decomposed NetCDF data.
 !<
 module pionfput_mod
@@ -24,10 +24,15 @@ module pionfput_mod
 #ifndef NO_MPIMOD
   use mpi   ! _EXTERNAL
 #endif
+#ifdef USE_PNETCDF_MOD
+  use pnetcdf
+#endif
   implicit none
   private
 #ifdef _PNETCDF
-#include <pnetcdf.inc>  /* _EXTERNAL */
+#ifndef USE_PNETCDF_MOD
+#include <pnetcdf.inc>
+#endif
 #endif
 #ifdef _NETCDF
 ! Required for netcdf bug workaround

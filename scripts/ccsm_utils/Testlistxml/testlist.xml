@@ -18,7 +18,7 @@
       <test name="ERS_D">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -66,7 +66,7 @@
       </test>
       <test name="ERS_N2_D">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -116,7 +116,7 @@
       </test>
       <test name="NCK">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -146,7 +146,7 @@
     <grid name="ne30_f19_g16_rx1">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="pgi" testtype="prerelease">titan</machine>
@@ -223,7 +223,7 @@
     <grid name="f09_g16">
       <test name="CME">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -277,7 +277,7 @@
       </test>
       <test name="PET_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -350,7 +350,7 @@
       <test name="PFS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">edison</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="ibm" testtype="prebeta">mira</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
@@ -434,7 +434,7 @@
       </test>
       <test name="ERI_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -492,7 +492,7 @@
     <grid name="ne30_g16">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -561,7 +561,7 @@
     <grid name="f19_g16">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -619,7 +619,7 @@
     <grid name="f09_g16">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -657,7 +657,7 @@
       </test>
       <test name="ERS_N2">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -679,7 +679,7 @@
     <grid name="f09_g16">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -717,7 +717,7 @@
       </test>
       <test name="ERT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -741,7 +741,7 @@
       </test>
       <test name="ERS_Ld7">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="pgi" testtype="prerelease">titan</machine>
@@ -766,7 +766,7 @@
     <grid name="f19_g16">
       <test name="ERI">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -899,7 +899,7 @@
     <grid name="f19_g16">
       <test name="ERS_Ld7">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -970,7 +970,7 @@
     <grid name="f19_g16">
       <test name="ERI">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1014,7 +1014,7 @@
     <grid name="f09_g16">
       <test name="ERI_E">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1068,7 +1068,7 @@
     <grid name="T62_s11">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1098,7 +1098,7 @@
       </test>
       <test name="ERT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1232,7 +1232,7 @@
       </test>
       <test name="PET_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1260,7 +1260,7 @@
       </test>
       <test name="PET_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1295,7 +1295,7 @@
     <grid name="ne240_f02_g16">
       <test name="SMS_Ld2">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1337,7 +1337,7 @@
     <grid name="ne120_g16">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1367,7 +1367,7 @@
     <grid name="f02_f02">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -1378,7 +1378,7 @@
     <grid name="f19_f19">
       <test name="CME_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1478,7 +1478,7 @@
       </test>
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1537,7 +1537,7 @@
     <grid name="T31_T31">
       <test name="SMS_D_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1593,7 +1593,7 @@
       <test name="PFS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
         <machine compiler="intel" testtype="prebeta">edison</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="ibm" testtype="prebeta">mira</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
         <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
@@ -1723,7 +1723,7 @@
     <grid name="f19_f19">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1736,7 +1736,7 @@
     <grid name="f19_f19">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1749,7 +1749,7 @@
     <grid name="f19_f19">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1777,7 +1777,7 @@
     <grid name="f19_f19">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -1894,7 +1894,7 @@
       </test>
       <test name="PET_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="intel" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">frankfurt</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
@@ -1951,7 +1951,7 @@
     <grid name="T62_t12">
       <test name="ERS">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
@@ -2454,6 +2454,17 @@
     </grid>
   </compset>
   <compset name="I20TRCLM45BGC">
+    <grid name="1x1_tropicAtl">
+      <test name="SMS_Ly3">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/tropicAtl_subsetLate">yellowstone</machine>
+      </test>
+      <test name="SMS_Ly5">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/tropicAtl_subsetMid">yellowstone</machine>
+      </test>
+      <test name="SMS_Ly8">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/tropicAtl_subsetEarly">yellowstone</machine>
+      </test>
+    </grid>
     <grid name="f10_f10">
       <test name="ERS">
         <machine compiler="intel" testtype="aux_clm_short" testmods="clm/reduceOutput">frankfurt</machine>
@@ -2496,7 +2507,7 @@
     <grid name="f19_g16">
       <test name="ERS_Ld3">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -2906,7 +2917,7 @@
     </grid>
     <grid name="1x1_smallvilleIA">
       <test name="ERS_D">
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -3045,7 +3056,7 @@
     <grid name="f09_g16">
       <test name="ERS_PT">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>
@@ -3456,33 +3467,6 @@
       </test>
     </grid>
   </compset>
-  <compset name="PK">
-    <grid name="wus12_wus12">
-      <test name="ERS">
-        <machine compiler="intel" testtype="aux_rasm">yellowstone</machine>
-      </test>
-      <test name="ERS_Ld3">
-        <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
-        <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
-        <machine compiler="pgi" testtype="aux_rasm">olympus</machine>
-      </test>
-      <test name="SMS">
-        <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
-        <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
-        <machine compiler="pgi" testtype="aux_rasm">olympus</machine>
-        <machine compiler="intel" testtype="aux_rasm">yellowstone</machine>
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
-      </test>
-      <test name="SMS_D">
-        <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
-        <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
-        <machine compiler="pgi" testtype="aux_rasm">olympus</machine>
-        <machine compiler="intel" testtype="aux_rasm">yellowstone</machine>
-      </test>
-    </grid>
-  </compset>
   <compset name="S">
     <grid name="f19_g16">
       <test name="CME">
@@ -3614,7 +3598,7 @@
     <grid name="f09_g16">
       <test name="CME">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
-        <machine compiler="intel" testtype="prebta">eos</machine>
+        <machine compiler="intel" testtype="prebeta">eos</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
         <machine compiler="pgi" testtype="prebeta">titan</machine>

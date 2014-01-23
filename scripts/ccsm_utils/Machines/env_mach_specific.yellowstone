@@ -42,7 +42,7 @@ if ( $COMPILER == "intel" ) then
   endif
 endif
 if ( $COMPILER == "pgi" ) then
-  module load pgi/13.3
+  module load pgi/13.9
   module load netcdf/4.3.0
   if ( $?LSB_JOBID) then
     # The following is needed at runtime, but makes compilation
@@ -62,7 +62,6 @@ if ( $COMPILER == "gnu" ) then
 endif
 
 module load ncarcompilers/1.0
-setenv NETCDF_ROOT $NETCDF
 if ( $MPILIB != "mpi-serial") then
   module load pnetcdf/1.3.0
 endif

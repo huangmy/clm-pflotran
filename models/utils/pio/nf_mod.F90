@@ -3,8 +3,8 @@
 !! @file
 !! @brief NetCDF interface routines
 !!
-!! $Revision: 856 $
-!! $LastChangedDate: 2013-11-19 13:48:54 -0800 (Tue, 19 Nov 2013) $
+!! $Revision: 894 $
+!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
 !!
 !<
 module nf_mod
@@ -33,13 +33,18 @@ module nf_mod
 #ifndef NO_MPIMOD
   use mpi ! _EXTERNAL
 #endif
+#ifdef USE_PNETCDF_MOD
+  use pnetcdf
+#endif
   implicit none
   private
 #ifdef NO_MPIMOD
   include 'mpif.h' ! _EXTERNAL
 #endif
 #ifdef _PNETCDF
+#ifndef USE_PNETCDF_MOD
 #include <pnetcdf.inc>   /* _EXTERNAL */
+#endif
 #endif
 
   !

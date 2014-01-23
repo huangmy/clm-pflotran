@@ -123,10 +123,6 @@ Each grid is associated with three names
 <GRID sname="ne30np4_0.9x1.25_gx1v6_rx1" alias="ne30_f09_g16_rx1" compset="_DROF">a%ne30np4_l%0.9x1.25_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
 <GRID sname="ne30np4_1.9x2.5_gx1v6_rx1"  alias="ne30_f19_g16_rx1" compset="_DROF">a%ne30np4_l%1.9x2.5_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID><!-- back compat --> 
 
-<!-- wrf grids -->
-
-<GRID sname="wus12_wus12"   alias="wus12_wus12">a%wus12_l%wus12_oi%wus12_r%null_m%reg_g%null_w%null</GRID>
-
 <!-- ww3 grids -->
 
 <GRID sname="ww3a_ww3a"   alias="ww3a_ww3a">a%ww3a_l%ww3a_oi%ww3a_r%null_m%ww3a_g%null_w%ww3a</GRID>
@@ -1100,17 +1096,6 @@ use the T62_g16 resolution instead:
   <LND2ATM_FMAPNAME>cpl/gridmaps/fv0.23x0.31/map_fv0.23x0.31_to_T341_aave_110413.nc</LND2ATM_FMAPNAME>
   <LND2ATM_SMAPNAME>cpl/gridmaps/fv0.23x0.31/map_fv0.23x0.31_to_T341_aave_110413.nc</LND2ATM_SMAPNAME>
 </gridmap>
-
-<!-- ====================  -->
-<!-- atm wrf: grids        -->
-<!-- ====================  -->
-
-<griddom grid="wus12" mask="reg">
-  <ATM_DOMAIN_FILE>domain.lnd.wus12_wus12.20101108.nc</ATM_DOMAIN_FILE>
-  <LND_DOMAIN_FILE>domain.lnd.wus12_wus12.20101108.nc</LND_DOMAIN_FILE>
-  <ICE_DOMAIN_FILE>domain.ocn.wus12.20100518.nc</ICE_DOMAIN_FILE> 
-  <OCN_DOMAIN_FILE>domain.ocn.wus12.20100518.nc</OCN_DOMAIN_FILE> 
-</griddom>
 
 <!-- ====================  -->
 <!--  ww3: ww3a            -->

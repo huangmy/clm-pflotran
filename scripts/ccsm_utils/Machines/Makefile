@@ -438,7 +438,9 @@ endif
 CMAKE_OPTS += -D CMAKE_Fortran_FLAGS:STRING="$(FFLAGS) $(INCLDIR)" \
               -D CMAKE_C_FLAGS:STRING="$(CFLAGS) $(INCLDIR)" \
               -D CMAKE_CXX_FLAGS:STRING="$(CXXFLAGS) $(INCLDIR)" \
-              -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON 
+              -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON \
+              -D NETCDF_DIR:STRING=$(NETCDF_PATH) \
+              -D USER_CMAKE_MODULE_DIR:STRING=$(UTILROOT)/CMake
 
 ifdef PNETCDF_PATH
 	CMAKE_OPTS += -D PNETCDF_DIR:STRING="$(PNETCDF_PATH)" 
@@ -461,8 +463,8 @@ endif
 CMAKE_ENV_VARS += CC=$(CC) \
                   CXX=$(CXX) \
                   FC=$(FC) \
-                  LDFLAGS="$(LDFLAGS)" \
-                  NETCDF_ROOT=$(NETCDF_PATH) 
+                  LDFLAGS="$(LDFLAGS)" 
+
 
 # We declare $(GLC_DIR)/Makefile to be a phony target so that cmake is
 # always rerun whenever invoking 'make $(GLC_DIR)/Makefile'; this is

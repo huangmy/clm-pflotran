@@ -1,8 +1,8 @@
 #define __PIO_FILE__ 'piodarray'
 !>
 !! @file 
-!! $Revision: 788 $
-!! $LastChangedDate: 2013-05-08 11:52:45 -0700 (Wed, 08 May 2013) $
+!! $Revision: 894 $
+!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
 !! @brief Read and write Routines for decomposed data.
 !<
 module piodarray
@@ -35,10 +35,14 @@ module piodarray
 #ifndef NO_MPIMOD
   use mpi           !_EXTERNAL
 #endif
+#ifdef USE_PNETCDF_MOD
+  use pnetcdf
+#endif
   implicit none
 #ifdef NO_MPIMOD
   include 'mpif.h'            !_EXTERNAL
 #endif
+
   private
   public :: pio_read_darray, pio_write_darray, darray_write_complete, pio_set_buffer_size_limit
 
@@ -1217,7 +1221,9 @@ contains
   subroutine darray_write_complete(File)
     use pio_types, only : io_data_list
 #ifdef _PNETCDF
-#   include <pnetcdf.inc>   /* _EXTERNAL */    
+#ifndef USE_PNETCDF_MOD
+#   include <pnetcdf.inc>   
+#endif
 #endif
 
     type(file_desc_t) :: File

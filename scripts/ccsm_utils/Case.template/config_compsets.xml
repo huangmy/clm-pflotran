@@ -14,7 +14,7 @@ The notation for the compset longname is
    TIME_ATM[%phys]_LND[%phys]_ICE[%phys]_OCN[%phys]_ROF[%phys]_GLC[%phys]_WAV[%phys][_BGC%phys]
 Where
    TIME = Time period (e.g. 2000, 20TR, RCP8...)
-   ATM  = [CAM4, CAM5, DATM, SATM, XATM, WRF]
+   ATM  = [CAM4, CAM5, DATM, SATM, XATM]
    LND  = [CLM40, CLM45, DLND, SLND, XLND]
    ICE  = [CICE, DICE, SICE, SICE]
    OCN  = [POP2, DOCN, SOCN, XOCN,AQUAP,MPAS]
@@ -358,10 +358,6 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="S" alias="S">2000_SATM_SLND_SICE_SOCN_SROF_SGLC_SWAV </COMPSET>
 <COMPSET sname="X" alias="X">2000_XATM_XLND_XICE_XOCN_XROF_XGLC_XWAV </COMPSET>
 
-<!-- WRF compsets -->
-
-<COMPSET sname="PK">PDAY_WRF_CLM40.*_DICE%NULL_DOCN%DOM_SROF_SGLC_SWAV</COMPSET>
-
 <!-- DARWIN -->
 
 <COMPSET sname="B1850BDRDDARWIN" alias="B1850BDRDDARWIN">1850_CAM4_CLM40%CN_CICE_POP2%DAR_BGC%BDRD_RTM_SGLC_SWAV</COMPSET>
@@ -388,7 +384,6 @@ value of RUN_STARTDATE will be date2.
 <COMP_ATM compset="_DATM">datm</COMP_ATM> 
 <COMP_ATM compset="_SATM">satm</COMP_ATM> 
 <COMP_ATM compset="_XATM">xatm</COMP_ATM> 
-<COMP_ATM compset="_WRF" >wrf </COMP_ATM> 
 
 <COMP_LND compset="_CLM" >clm </COMP_LND> 
 <COMP_LND compset="_DLND">dlnd</COMP_LND> 
@@ -423,7 +418,6 @@ value of RUN_STARTDATE will be date2.
 
 <desc compset="_CAM" >CAM: </desc>
 <desc compset="_DATM">DATM:</desc>
-<desc compset="_WRF" >WRF: </desc>
 <desc compset="_SATM">SATM:</desc>
 <desc compset="_XATM">XATM:</desc>
 
@@ -959,7 +953,6 @@ CISM2S => cism2 (serial)
 <DATM_MODE compset="_DATM%S1850">CPLHIST3HrWx</DATM_MODE> 
 <DATM_MODE compset="_DATM%NPS"  >COPYALL_NPS_v1</DATM_MODE>
 <DATM_MODE compset="_DATM%NPSC2">COPYALL_NPS_CORE2_v1</DATM_MODE>
-<DATM_MODE compset="_DATM%WRF"  >WRF</DATM_MODE>
 <DATM_MODE compset="_DATM%WW3"  >WW3</DATM_MODE>
 
 <DATM_PRESAERO compset="PDAY_DATM">clim_2000</DATM_PRESAERO> 
@@ -1071,7 +1064,6 @@ CISM2S => cism2 (serial)
 <desc compset="_DATM%IAF">COREv2 datm interannual year forcing:</desc>
 
 <desc compset="_DATM%NPS">DATM NPS forcing:</desc>
-<desc compset="_DATM%WRF">DATM WRF forcing:</desc>
 
 <help>
 =========================================
@@ -1300,12 +1292,6 @@ DOCN%COPY => docn copy mode
 <SSTICE_GRID_FILENAME compset="DATM.*_DLND.*_DICE.*_DOCN.*_DROF" grid=".+">$DIN_LOC_ROOT/atm/cam/ocnfrac/domain.camocn.0.9x1.25_gx1v6_090403.nc</SSTICE_GRID_FILENAME>
 <SSTICE_DATA_FILENAME compset="DATM.*_DLND.*_DICE.*_DOCN.*_DROF" grid=".+">$DIN_LOC_ROOT/atm/cam/sst/sst_HadOIBl_bc_0.9x1.25_clim_c040926.nc</SSTICE_DATA_FILENAME>   
 
-<SSTICE_STREAM        compset="PDAY_WRF" grid="a%wus12_l%wus12">WRFDATA_wus12</SSTICE_STREAM>
-<SSTICE_YEAR_ALIGN    compset="PDAY_WRF" grid="a%wus12_l%wus12">2003</SSTICE_YEAR_ALIGN>
-<SSTICE_YEAR_START    compset="PDAY_WRF" grid="a%wus12_l%wus12">2003</SSTICE_YEAR_START>
-<SSTICE_YEAR_END      compset="PDAY_WRF" grid="a%wus12_l%wus12">2004</SSTICE_YEAR_END>
-<SSTICE_GRID_FILENAME compset="PDAY_WRF" grid="a%wus12_l%wus12">$DIN_LOC_ROOT/ocn/docn7/domain.ocn.wus12.20100518.nc</SSTICE_GRID_FILENAME>
-<SSTICE_DATA_FILENAME compset="PDAY_WRF" grid="a%wus12_l%wus12">$DIN_LOC_ROOT/ocn/docn7/SSTDATA_wus12_noleap/sst_wus12_110111.2003-10.nc</SSTICE_DATA_FILENAME>
 
 <SSTICE_STREAM        compset=".*WW3" grid="a%ww3a">WW3</SSTICE_STREAM>
 <SSTICE_YEAR_ALIGN    compset=".*WW3" grid="a%ww3a">1</SSTICE_YEAR_ALIGN>
@@ -1348,8 +1334,6 @@ DOCN%COPY => docn copy mode
 <RUN_STARTDATE compset="CLM[45].*_CISM.*_TEST"   >1980-01-15</RUN_STARTDATE> 
 <RUN_STARTDATE compset="CLM[45]%[^_]*CNDV.*_TEST">1997-12-31</RUN_STARTDATE> 
 
-<RUN_STARTDATE compset="_WRF">1989-09-01</RUN_STARTDATE> 
-
 <RUN_STARTDATE compset="2000.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">0001-01-01</RUN_STARTDATE>
 <RUN_STARTDATE compset="1850.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">0001-01-01</RUN_STARTDATE>
 <RUN_STARTDATE compset="20TR.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">1850-01-01</RUN_STARTDATE>
@@ -1376,13 +1360,11 @@ DOCN%COPY => docn copy mode
 <STOP_OPTION compset="AR95_CAM">ndays</STOP_OPTION>
 <STOP_N      compset="AR95_CAM">2</STOP_N>
 
-<RUN_STARTDATE compset="PDAY.*_WRF.*_CLM.*_DICE.*_DOCN.*_SROF_SGLC_SWAV"  >2003-10-01</RUN_STARTDATE>
 
 <STOP_OPTION compset="_DLND.*_CISM">nyears</STOP_OPTION>
 <STOP_N      compset="_DLND.*_CISM">10    </STOP_N>
 
 <CALENDAR compset="GEOS_">GREGORIAN</CALENDAR> 
-<CALENDAR compset="PDAY.*_WRF.*_CLM.*_DICE.*_DOCN%DOM.*_SROF.*_SGLC_SWAV">NO_LEAP</CALENDAR>
 
 <HIST_OPTION compset="CISM">nyears</HIST_OPTION>
 <HIST_N      compset="CISM">1</HIST_N>
@@ -1428,8 +1410,6 @@ DOCN%COPY => docn copy mode
 <ATM_NCPL compset="_DATM.*_CICE.*_POP2"> 24</ATM_NCPL>
 <ATM_NCPL compset="_DATM%WRF"          > 72</ATM_NCPL> 
 <ATM_NCPL compset="_DATM.*_DOCN%US20"  > 24</ATM_NCPL> 
-<ATM_NCPL compset="_WRF"               > 48</ATM_NCPL> 
-<ATM_NCPL compset="_WRF.*_DLND.*_POP2" > 24</ATM_NCPL> 
 <ATM_NCPL compset="_CAM%ADIAB"         > 48</ATM_NCPL>  
 <ATM_NCPL compset="_CAM%IDEAL"         > 48</ATM_NCPL>  
 <ATM_NCPL compset="_MPAS"              >  1</ATM_NCPL>  
@@ -1800,8 +1780,6 @@ DOCN%COPY => docn copy mode
 <CCSM_CCOST compset="_CAM4%TMOZ"      >1</CCSM_CCOST>
 <CCSM_CCOST compset="_CAM4.*_BGC%BDRD">2</CCSM_CCOST>
 <CCSM_CCOST compset="_CAM4.*_BGC%BPRP">2</CCSM_CCOST>
-
-<CCSM_CCOST compset="WRF.*_CLM.*_DICE.*_DOCN.*_DROF.*_SGLC_SWAV"> 8</CCSM_CCOST> <!-- PK --> 
 
 <CCSM_CCOST compset="CAM.*_CLM.*_CICE.*_POP2%DAR.*_RTM_SGLC_SWAV"  > 2</CCSM_CCOST> <!-- BDAR -->
 <CCSM_CCOST compset="DATM.*_DLND.*_DICE.*_POP2%DAR.*_RTM_SGLC_SWAV"> 1</CCSM_CCOST> <!-- CDAR -->
