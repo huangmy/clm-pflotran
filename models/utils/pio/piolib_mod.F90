@@ -13,8 +13,8 @@
 !! @file 
 !! @brief Initialization Routines for PIO
 !! 
-!! $Revision: 877 $
-!! $LastChangedDate: 2013-12-06 11:36:54 -0800 (Fri, 06 Dec 2013) $
+!! $Revision: 912 $
+!! $LastChangedDate: 2014-01-16 18:06:39 -0800 (Thu, 16 Jan 2014) $
 !<
 module piolib_mod
   !--------------
@@ -1808,6 +1808,10 @@ contains
 
     call mpi_comm_create(comp_comm,mpi_group_io,iosystem%io_comm,ierr)
     if(check) call checkmpireturn('init: after call to comm_create: ',ierr)
+
+    call mpi_group_free(mpi_group_io, ierr)
+    if(check) call checkmpireturn('init: after call to group_free: ',ierr)
+
     
     if(iosystem%ioproc) call mpi_comm_rank(iosystem%io_comm,iosystem%io_rank,ierr)
     if(check) call checkmpireturn('init: after call to comm_rank: ',ierr)
@@ -2187,7 +2191,7 @@ contains
         msg = PIO_MSG_EXIT
         call mpi_send(msg, 1, mpi_integer, iosystem%ioroot, 1, iosystem%union_comm, ierr)
      end if
-
+     If (associated (iosystem%ioranks)) deallocate (iosystem%ioranks)
 #ifndef _MPISERIAL
      if(iosystem%info .ne. mpi_info_null) then 
         call mpi_info_free(iosystem%info,ierr) 

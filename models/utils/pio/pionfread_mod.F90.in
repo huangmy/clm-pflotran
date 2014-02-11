@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfread_mod.F90.in"
 !>
 !! @file 
-!! $Revision: 894 $
-!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
+!! $Revision: 925 $
+!! $LastChangedDate: 2014-01-24 12:55:17 -0800 (Fri, 24 Jan 2014) $
 !! @brief Decomposed Read interface to NetCDF
 !<
 module pionfread_mod
@@ -100,10 +100,10 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)	
+       case(pio_iotype_netcdf4p)
 ! all reads can be parallel in netcdf4 format
           ierr= nf90_get_var(File%fh, vardesc%varid, iobuf, start=int(start),count=int(count))
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)	
           iobuf_size=size(IOBUF)
           call MPI_REDUCE( iobuf_size,max_iobuf_size, &
                1,MPI_INTEGER,MPI_MAX,0,File%iosystem%IO_comm,mpierr )

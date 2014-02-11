@@ -62,7 +62,7 @@ SYNOPSIS
 
 DESCRIPTION
 
-    Adds, removes, and 'syncs' modfied testslists with the main xml test file.  
+    Adds, removes, and 'syncs' modified testlists with the main xml test file.  
 
 TEST FILE FORMAT: 
 
@@ -101,7 +101,7 @@ USAGE, OPTIONS, AND EXAMPLES
  
     Example:  
     To modify the yellowstone PGI prebeta test list for example, one would do the following: 
-	manage_xml_entries  -outputlist -machine yellowstone -compiler pgi -category prebeta > yellowstone.txt
+	manage_xml_entries -query -outputlist -machine yellowstone -compiler pgi -category prebeta > yellowstone.txt
  
     Make any modifications necessary to yellowstone.txt
 
@@ -142,7 +142,7 @@ USAGE, OPTIONS, AND EXAMPLES
     and 100,000 at X, for instance.  the 1, 1x1, 16x4, etc specify the tasks
     and threads for each component directly.
 
-    A note aobut the "points mode" specifier for tests, ie SMS_RL*:
+    A note about the "points mode" specifier for tests, ie SMS_RL*:
     "L" is a land point "O" is an ocean point A and B are two points on the land
     and ocean that CLM provided. so LA, LB, OA, and OB are 4 distinct single test
     points, 2 over land, 2 over ocean.

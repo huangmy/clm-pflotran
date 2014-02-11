@@ -1747,6 +1747,14 @@ DATM mode used in C and G compsets. CLM_QIAN, CLMCRUNCEP and CLM1PT are
 modes using observational data for forcing CLM in I compsets."
 ></entry> 
 
+<entry id="DATM_CO2_TSERIES" 
+ type="char"
+ valid_values="none,20tr,rcp2.6,rcp4.5,rcp6.0,rcp8.5"  
+ value="none" 
+ group="run_component_datm"
+ sdesc="DATM CO2 time series"
+></entry> 
+
 <entry id="DATM_PRESAERO" 
  type="char"
  valid_values="none,clim_1850,clim_2000,trans_1850-2000,rcp2.6,rcp4.5,rcp6.0,rcp8.5,pt1_pt1"  
@@ -3224,6 +3232,30 @@ Alternative yyyymmdd date option, negative value implies off. (integer)"
  value="-999" 
  group="run_cplhist"
  sdesc="yyyymmdd format, sets coupler snapshot history date (like REST_DATE)"
+></entry>
+
+<entry id="AVGHIST_OPTION" 
+ type="char"
+ valid_values=""  
+ value="never" 
+ group="run_cplhist"
+ sdesc="sets coupler average history file frequency (like REST_OPTION)"
+></entry>
+
+<entry id="AVGHIST_N" 
+ type="char"
+ valid_values=""  
+ value="-999" 
+ group="run_cplhist"
+ sdesc="sets coupler average history file frequency (like REST_N)"
+></entry>
+
+<entry id="AVGHIST_DATE" 
+ type="integer"
+ valid_values=""  
+ value="-999" 
+ group="run_cplhist"
+ sdesc="yyyymmdd format, sets coupler average history date (like REST_DATE)"
 ></entry>
 
 <entry id="CONTINUE_RUN" 

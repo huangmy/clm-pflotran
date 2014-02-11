@@ -17,6 +17,7 @@ ADD_CUSTOM_COMMAND(
   COMMAND perl ${CMAKE_SOURCE_DIR}/genf90/genf90.pl
     ${CMAKE_SOURCE_DIR}/compare_vars_mod.F90.in > ${CMAKE_BINARY_DIR}/compare_vars_mod.F90
 )
+ADD_CUSTOM_TARGET(COMPARE_VARS DEPENDS ${CMAKE_BINARY_DIR}/compare_vars_mod.F90)
 
 # Support extended line lengths
 IF (${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
@@ -42,7 +43,7 @@ SET (CPRNC_SRCS
 )
 
 ADD_EXECUTABLE(cprnc ${CPRNC_SRCS})
-ADD_DEPENDENCIES(cprnc ${CMAKE_BINARY_DIR}/compare_vars_mod.F90)
+ADD_DEPENDENCIES(cprnc COMPARE_VARS)
 
 TARGET_LINK_LIBRARIES(cprnc ${Netcdf_LIBRARIES})
 

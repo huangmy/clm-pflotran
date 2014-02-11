@@ -36,6 +36,7 @@ cat >! $file << EOF1
 #PBS -r n
 #PBS -j oe
 #PBS -S /bin/csh -V
+#PBS -m ae
 
 EOF1
 

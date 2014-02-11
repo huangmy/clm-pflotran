@@ -14,11 +14,11 @@ if (-e /opt/modules/default/init/csh) then
   module rm cray-parallel-netcdf
   module rm cray-libsci
   module rm cray-mpich2
+  module rm cray-mpich
   module rm cray-netcdf
   module rm cray-netcdf-hdf5parallel
   module rm cray-mpich
   module rm netcdf
-	
 endif
 
 if ( $COMPILER == "intel" ) then

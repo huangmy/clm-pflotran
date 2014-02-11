@@ -1,4 +1,3 @@
-irrigate          = .true.
 hist_empty_htapes = .true.
 hist_fincl1       = 'SNOWLIQ','SNOWICE' ,
                     'TG','TBOT','FIRE','FIRA','FLDS','FSDS',

@@ -22,6 +22,8 @@ Each grid is associated with three names
    alias (even shorter notation than shortname)
 </help>
 
+<GRID sname="gx1v6_gx1v6"         alias="g16_g16"     >a%gx1v6_l%gx1v6_oi%gx1v6_r%rx1_m%gx1v6_g%null_w%null</GRID>
+
 <GRID sname="CLM_USRDAT"          compset="DATM.+CLM">a%CLM_USRDAT_l%CLM_USRDAT_oi%CLM_USRDAT_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_numaIA"          compset="DATM.+CLM">a%1x1_numaIA_l%1x1_numaIA_oi%1x1_numaIA_r%null_m%reg_g%null_w%null</GRID>
 <GRID sname="1x1_brazil"          compset="DATM.+CLM">a%1x1_brazil_l%1x1_brazil_oi%1x1_brazil_r%null_m%reg_g%null_w%null</GRID>
@@ -386,6 +388,8 @@ use the T62_g16 resolution instead:
 <!-- ======================================================== -->
 
 <griddom grid="gx1v6" mask="gx1v6">
+  <ATM_DOMAIN_FILE>domain.ocn.gx1v6.090206.nc </ATM_DOMAIN_FILE>
+  <LND_DOMAIN_FILE>domain.ocn.gx1v6.090206.nc </LND_DOMAIN_FILE>
   <ICE_DOMAIN_FILE>domain.ocn.gx1v6.090206.nc </ICE_DOMAIN_FILE>
   <OCN_DOMAIN_FILE>domain.ocn.gx1v6.090206.nc </OCN_DOMAIN_FILE>
 </griddom>

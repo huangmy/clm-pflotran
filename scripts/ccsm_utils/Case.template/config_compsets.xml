@@ -196,6 +196,7 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="F_2000_CAM5"          alias="FC5"        >2000_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_AMIP"               alias="FAMIP"      >AMIP_CAM4_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_AMIP_CAM5"          alias="FAMIPC5"    >AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="F_AMIP_CAM5_L60"      alias="FAMIPC5L60" >AMIP_CAM5%L60_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_1850-2000"          alias="F20TR"      >20TR_CAM4_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_1850-PDAY_CAM5"     alias="F1850PDC5"  >PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="F_1850-2000_CAM5"     alias="F20C5TR"    >20TR_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV</COMPSET>
@@ -281,7 +282,7 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="I_2000_CN_CROP"       alias="ICNCROP"      >2000_DATM%QIA_CLM40%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CLM45_CN_CROP" alias="ICLM45CNCROP" >2000_DATM%QIA_CLM45%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CLM45_BGC"   alias="IRCP45CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_RCP8.5_CLM45_BGC"   alias="IRCP85CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_RCP8.5_CLM45_BGC"   alias="IRCP85CLM45BGC">RCP8_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 
 <!---I CRUNCEP compsets -->
 
@@ -536,6 +537,8 @@ GEOS => GEOS5 metereology for "stand-alone" CAM
 <CAM_CONFIG_OPTS compset="_CAM.*_BGC%B"   >-co2_cycle</CAM_CONFIG_OPTS> 
 <CAM_CONFIG_OPTS compset="CAM[45]%SCAM"   >-dyn eul -scam</CAM_CONFIG_OPTS>
 
+<CAM_CONFIG_OPTS compset="_CAM.%L60"      >-nlev 60</CAM_CONFIG_OPTS>
+
 <CAM_CONFIG_OPTS compset="_CAM%IDEAL"     >-phys ideal</CAM_CONFIG_OPTS>              
 <CAM_CONFIG_OPTS compset="_CAM%ADIAB"     >-phys adiabatic</CAM_CONFIG_OPTS>              
 <CAM_CONFIG_OPTS compset="_AQUAP"          >-ocn aquaplanet</CAM_CONFIG_OPTS>              
@@ -635,9 +638,10 @@ GEOS => GEOS5 metereology for "stand-alone" CAM
 <desc compset="_CAM[45]%RCO2">CAM CO2 ramp: </desc>
 <desc compset="AR95_CAM[45]%SCAM">stand-alone single column CAM ARM95 IOP test case:</desc>
 <desc compset="AR97_CAM[45]%SCAM">stand-alone single column CAM ARM97 IOP test case:</desc>
-<desc compset="GEOS_CAM[45]"  >driven by GEOS5 meteorology with radiation feedbacks turned off</desc>
-<desc compset="ADIAB"         >CAM adiabatic physics</desc>
-<desc compset="IDEAL"         >CAM ideal physics</desc>
+<desc compset="GEOS_CAM[45]" >driven by GEOS5 meteorology with radiation feedbacks turned off</desc>
+<desc compset="_CAM.%L60"    >with 60 layers and full gravity wave spectrum</desc>
+<desc compset="ADIAB"        >CAM adiabatic physics</desc>
+<desc compset="IDEAL"        >CAM ideal physics</desc>
 
 <desc compset="AMIP">Atmospheric Model Intercomparison Project protocol: </desc>
 <desc compset="AQUAP">CAM atmosphere in aquaplanet mode: </desc>
@@ -661,6 +665,8 @@ CAM[45]%SMA3 => CAM trop_strat_mam3 chemistry:
 CAM[45]%SMA7 => CAM trop_strat_mam7 chemistry:  
 CAM[45]%SSOA => CAM trop_strat_soa chemistry: 
 CAM[45]%RCO2 => CAM CO2 ramp: 
+CAM[45]%SCAM => CAM single column mode: 
+CAM[45]%L60  => CAM with 60 layers and full gravity wave spectrum:
 </help>
 
 <!-- ================================================================================== -->
@@ -724,6 +730,10 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <CLM_CO2_TYPE compset="_CAM.*_CLM"     >diagnostic</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="_CLM.*_BGC%BDRD">diagnostic</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="_CLM.*_BGC%BPRP">prognostic</CLM_CO2_TYPE>
+<!-- To get answers the same as current code don't update CO2_TYPE yet
+<CLM_CO2_TYPE compset="20TR.*_DATM"    >diagnostic</CLM_CO2_TYPE>
+<CLM_CO2_TYPE compset="RCP.*_DATM"     >diagnostic</CLM_CO2_TYPE>
+-->
 
 <CLM_FORCE_COLDSTART compset="_CLM.+CISM"        >on</CLM_FORCE_COLDSTART>
 <CLM_FORCE_COLDSTART compset="4804.*_CLM.*_CISM1">off</CLM_FORCE_COLDSTART>
@@ -1030,6 +1040,15 @@ CISM2S => cism2 (serial)
 <DATM_CLMNCEP_YR_ALIGN compset="PDAY_DATM.*_CLM.*_DICE%NULL_DOCN%NULL_SROF_SGLC_SWAV">1</DATM_CLMNCEP_YR_ALIGN> 
 <DATM_CLMNCEP_YR_START compset="PDAY_DATM.*_CLM.*_DICE%NULL_DOCN%NULL_SROF_SGLC_SWAV">2003</DATM_CLMNCEP_YR_START> 
 <DATM_CLMNCEP_YR_END   compset="PDAY_DATM.*_CLM.*_DICE%NULL_DOCN%NULL_SROF_SGLC_SWAV">2003</DATM_CLMNCEP_YR_END> 
+
+<DATM_CO2_TSERIES                    >none</DATM_CO2_TSERIES>
+<!-- To get answers the same as current code don't update CO2_TSERIES yet
+<DATM_CO2_TSERIES compset="RCP8_DATM">rcp8.5</DATM_CO2_TSERIES>
+<DATM_CO2_TSERIES compset="RCP6_DATM">rcp6.0</DATM_CO2_TSERIES>
+<DATM_CO2_TSERIES compset="RCP4_DATM">rcp4.5</DATM_CO2_TSERIES>
+<DATM_CO2_TSERIES compset="RCP2_DATM">rcp2.6</DATM_CO2_TSERIES>
+<DATM_CO2_TSERIES compset="20TR_DATM">20tr</DATM_CO2_TSERIES>
+-->
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->
@@ -1529,6 +1548,10 @@ DOCN%COPY => docn copy mode
 <CCSM_BGC compset="_DATM"    >none</CCSM_BGC>
 <CCSM_BGC compset="_BGC%BPRP">CO2C</CCSM_BGC>
 <CCSM_BGC compset="_BGC%BDRD">CO2C</CCSM_BGC>
+<!-- To get answers the same as current code don't update CCSM_BGC yet
+<CCSM_BGC compset="20TR.*_DATM%(QIA|CRU)">CO2A</CCSM_BGC>
+<CCSM_BGC compset="RCP.*_DATM%(QIA|CRU)" >CO2A</CCSM_BGC>
+-->
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->
@@ -1715,6 +1738,9 @@ DOCN%COPY => docn copy mode
 
 <RUN_REFCASE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">f.e12.FAMIPC5.ne30_ne30.amip_L30.001</RUN_REFCASE>   
 <RUN_REFDATE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
+
+<RUN_REFCASE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5%L60_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">f.e12.FAMIPC5.ne30_ne30.amip_L60.001</RUN_REFCASE>   
+<RUN_REFDATE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5%L60_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
 
 <RUN_REFCASE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">f.e12.FAMIPC5.ne30_ne30.amip_L30.001</RUN_REFCASE>   
 <RUN_REFDATE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   

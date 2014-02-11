@@ -64,6 +64,8 @@
           CCSM_TCOST="0"
           STOP_OPTION="nmonths"
           STOP_N="3"
+          AVGHIST_OPTION="nmonths"
+          AVGHIST_N="1"
           DOUT_S="FALSE" />
 
 <ccsmtest NAME="ERI"
