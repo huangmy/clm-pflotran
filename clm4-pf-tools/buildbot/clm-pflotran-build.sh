@@ -57,6 +57,7 @@ PETSC_DIR=
 PETSC_ARCH=
 PFLOTRAN_DIR=
 CESM_INPUTDATA_DIR=
+REGRESSION_DIR=
 BUILD_STATUS=0
 
 ################################################################################
@@ -68,7 +69,7 @@ BUILD_STATUS=0
 function write-local-config() {
     _cfg_file=local.cfg
     echo "Writing ${_cfg_file} with :"
-    
+
     cat > ${_cfg_file} <<EOF
 [petsc]
 petsc_dir = ${PETSC_DIR}
@@ -78,7 +79,10 @@ petsc_arch = ${PETSC_ARCH}
 pflotran_dir = ${PFLOTRAN_DIR}
 
 [data]
-test_data_dir = ${CESM_INPUTDATA_DIR}
+data_dir = ${CESM_INPUTDATA_DIR}
+
+[regression]
+regression_dir = ${REGRESSION_DIR}
 
 EOF
 
@@ -99,11 +103,24 @@ function set-builder-info() {
 
     if [ ! -d ${CESM_INPUTDATA_DIR} ]; then
         echo "ERROR: Could not find the clm-pflotran-data-trunk-testing directory at the expected location :"
-        echo "    ${CESM_INPUTDATA_DIR}"        
+        echo "    ${CESM_INPUTDATA_DIR}"
         BUILD_STATUS=1
     else
         echo "Using CESM_INPUTDATA_DIR :"
-        echo "    ${CESM_INPUTDATA_DIR}"        
+        echo "    ${CESM_INPUTDATA_DIR}"
+    fi
+
+    if [ -z ${REGRESSION_DIR} ]; then
+        REGRESSION_DIR=${CLM_PFLOTRAN_DIR}/../regression-data
+    fi
+
+    if [ ! -d ${REGRESSION_DIR} ]; then
+        echo "ERROR: Could not find the clm-pflotran-regression-trunk directory at the expected location :"
+        echo "    ${REGRESSION_DIR}"
+        BUILD_STATUS=1
+    else
+        echo "Using REGRESSION_DIR :"
+        echo "    ${REGRESSION_DIR}"
     fi
 }
 
@@ -158,12 +175,12 @@ function check-petsc() {
             else
                 echo "PETSc : could not find libpetsc.a for this PETSC_ARCH."
                 echo "    ${_lib_petsc}"
-                BUILD_STATUS=1            
+                BUILD_STATUS=1
             fi
         else
             echo "ERROR: could not find petsc arch directory :"
             echo "    ${PETSC_DIR}/${PETSC_ARCH}"
-            BUILD_STATUS=1            
+            BUILD_STATUS=1
         fi
     else
         echo "ERROR: could not find petsc directory :"
@@ -185,7 +202,7 @@ function stage-libpflotran-build() {
     else
         echo "Could not find build flags file: ${_flags_file}. Building with 'make libpflotran.a'."
     fi
-    
+
     cd ${PFLOTRAN_DIR}/src/clm-pflotran
     ./link_files.sh
     make clean
@@ -225,9 +242,14 @@ Usage: $0 [options]
     -b BUILD_FLAGS    group of build flags to use.
     -c COMPILER       compiler name: gnu, pgi, intel
     -h                print this help message
-    -p PFLOTRAN_DIR   root directory for the build (default: '.')
+    -i CESM_INPUTDATA_DIR   location of the input data repo
+                          default: '../clm-pflotran-data-trunk-testing'
+    -p PFLOTRAN_DIR   location of the pflotran-clm repo
+                          default: '../pflotran-clm-trunk'
+    -r REGRESSION_DIR location of the regression data repo
+                          default: '../regression-data'
     -s BUILD_STAGE    build stage must be one of:
-                        all libpflotran common-exe clm-pf-tests
+                          all libpflotran common-exe clm-pf-tests
 
 Notes:
 
@@ -241,7 +263,7 @@ Notes:
 BUILD_FLAGS="__NONE__"
 BUILD_STAGE=
 COMPILER=
-while getopts "b:c:hp:s:" FLAG
+while getopts "b:c:hi:p:r:s:" FLAG
 do
   case ${FLAG} in
     b) BUILD_FLAGS=${OPTARG};;
@@ -249,6 +271,7 @@ do
     h) usage;;
     i) CESM_INPUTDATA_DIR=${OPTARG};;
     p) PFLOTRAN_DIR=${OPTARG};;
+    r) REGRESSION_DIR=${OPTARG};;
     s) BUILD_STAGE=${OPTARG};;
   esac
 done
@@ -281,5 +304,3 @@ case ${BUILD_STAGE} in
 esac
 
 exit ${BUILD_STATUS}
-
-
