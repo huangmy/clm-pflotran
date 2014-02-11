@@ -257,10 +257,12 @@ class RegressionTest(object):
     def __init__(self):
         self._logfile = None
         self._case_script = None
+        self._case_script_filename = None
         self._name = None
         self._userdefined = False
         self._cesm_root_dir = None
         self._case_info = {}
+        self._regression_info = {}
         self._site_data = {}
         self._clm_namelist_info = {}
         self._datm_namelist_info = {}
@@ -321,6 +323,10 @@ class RegressionTest(object):
         txt += "    local info :\n"
         for p in self._local_config:
             txt += "      {0} : {1}\n".format(p, self._local_config[p])
+
+        txt += "    testing info :\n"
+        for p in self._regression_info:
+            txt += "      {0} : {1}\n".format(p, self._regression_info[p])
 
         return txt
 
@@ -486,13 +492,31 @@ class RegressionTest(object):
         return status
 
     def _test_case(self, suitelog):
-        """Run the tests on the results....
+        """Compare the test results....
+
+        Using quick and dirty comparison tool:
+        ./quick-compare-nc.py -b baseline.nc -c compare.nc -t "1.0e-7 absolute" -f FSH
+
         """
         print("Testing case...", end='', file=suitelog)
+        baseline_filename = "{0}/{1}".format(self._local_config["regression_dir"],
+                                             self._regression_info["file"])
+        current_filename = "{0}/run/{1}".format(self._case_dir, self._regression_info["file"])
         status = 0
+        for field in self._regression_info:
+            if field != "file":
+                cmd = ["{0}/clm4-pf-tools/regression_tests/quick-compare-nc.py".format(self._cesm_root_dir),
+                       "-b", baseline_filename,
+                       "-c", current_filename,
+                       "-t", "{0}".format(self._regression_info[field]), # need to quote tolerance info!
+                       "-f", field,
+                   ]
+                #print("\n\t{0}".format(' '.join(cmd)), file=suitelog)
+                status += self._run_command(cmd)
+                
         if status == 0:
             self._status["test"] = True
-            print(" skipped.", file=suitelog)
+            print(" passed.", file=suitelog)
         else:
             print(" failed.", file=suitelog)
         return status
@@ -513,6 +537,19 @@ class RegressionTest(object):
     
         if stat > 0:
             print("F", end='')
+            # dump case info as present in the current object
+            print(self, file=suitelog)
+            # dump the case generation script
+            print("\n\n", file=suitelog)
+            print("*** Warning: this script may be incorrect/incomplete!", file=suitelog)
+            with open(self._case_script_filename) as tmp:
+                for line in tmp:
+                    print(line, end='', file=suitelog)
+            # dump the case generation log
+            print("\n\n", file=suitelog)
+            with open("{0}/test_cases/{1}.log".format(self._cesm_root_dir, self.name())) as tmp:
+                for line in tmp:
+                    print(line, end='', file=suitelog)
         else:
             print(".", end='')
         sys.stdout.flush()
@@ -581,8 +618,8 @@ class RegressionTest(object):
     def _initialize_case_script(self):
         # TODO(bja, 2013-10) add repo info to top of script
         now = datetime.datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = "{0}/{1}-{2}.sh".format(self._case_root_dir, self._name, now)
-        self._case_script = open(filename, 'w')
+        self._case_script_filename = "{0}/{1}-{2}.sh".format(self._case_root_dir, self._name, now)
+        self._case_script = open(self._case_script_filename, 'w')
         print("#/usr/bin/env bash", file=self._case_script)
         print("#", file=self._case_script)
         print("# Script automatically generate by clm-pflotran-tests.py", file=self._case_script)
@@ -657,6 +694,7 @@ class RegressionTest(object):
         self._check_env_build_info(config, suitelog)
         self._check_env_run_info(config, suitelog)
         self._check_pflotran_input(config, suitelog)
+        self._check_regression_input(config, suitelog)
 
     def _check_for_param(self, param_dict, name, section, default=None):
         """Generic routine to check for parameters in a configuration file
@@ -826,6 +864,26 @@ class RegressionTest(object):
 #XXX            print("Leaving use_pflotran == False")
 #XXX            print("use_pflotran = '{0}'".format(self._clm_namelist_info["use_pflotran"]))
 
+    def _check_regression_input(self, config, suitelog):
+        """Setup data needed for regression testing physics output.
+        """
+        section = "regression"
+        if not config.has_section(section):
+            raise Exception("ERROR: test config file '{0}' does not contain a"
+                            "'{1}' section.".format(self._config_filename, section))
+        self._regression_info = list_to_dict(config.items(section))
+        # check for required parameters.
+        txt = ""
+        txt += self._check_for_param(self._regression_info, "file", section)
+        # must be at least one field to check
+        if len(self._regression_info) < 2:
+            txt += ("ERROR: test config file '{0}' '{1}' section must contain "
+                    "at least one parameter!".format(self._config_filename, section))
+
+        if txt is not "":
+            raise Exception(txt)
+
+
     def _check_local_config(self, local_config, suitelog):
         self._local_config = local_config
         # check for required parameters
@@ -833,7 +891,8 @@ class RegressionTest(object):
         txt += self._check_for_param(self._local_config, "PETSC_DIR", "command-line")
         txt += self._check_for_param(self._local_config, "PETSC_ARCH", "command-line")
         txt += self._check_for_param(self._local_config, "PFLOTRAN_DIR", "command-line")
-        txt += self._check_for_param(self._local_config, "test_data_dir", "command-line")
+        txt += self._check_for_param(self._local_config, "data_dir", "command-line")
+        txt += self._check_for_param(self._local_config, "regression_dir", "command-line")
 
         if txt is not "":
             raise Exception(txt)
@@ -868,8 +927,10 @@ class RegressionTest(object):
         if not os.path.isfile(libpflotran):
             txt += "ERROR: could not find libpflotran in PFLOTRAN_DIR. Expected : {0}".format(libpflotran)
 
-        if not os.path.isdir(self._local_config["test_data_dir"]):
-            txt += "ERROR: specified test data directory does not exist : {0}".format(self._local_config["test_data_dir"])
+        if not os.path.isdir(self._local_config["data_dir"]):
+            txt += "ERROR: specified input data directory does not exist : {0}".format(self._local_config["data_dir"])
+        if not os.path.isdir(self._local_config["regression_dir"]):
+            txt += "ERROR: specified regression data directory does not exist : {0}".format(self._local_config["regression_dir"])
 
         if txt is not "":
             raise Exception(txt)
@@ -1027,7 +1088,7 @@ class RegressionTest(object):
                 status += self._run_xml_change(xmlfile, i.upper(), self._env_run_info[i])
 
         # set universal flags
-        din_loc = "{0}/cesm-inputdata".format(self._local_config["test_data_dir"])
+        din_loc = "{0}/cesm-inputdata".format(self._local_config["data_dir"])
         status += self._run_xml_change(xmlfile, "DIN_LOC_ROOT", din_loc)
         status += self._run_xml_change(xmlfile, "DIN_LOC_ROOT_CLMFORC", "'$DIN_LOC_ROOT'")
 
@@ -1083,7 +1144,7 @@ class RegressionTest(object):
             with open(clm_user_nl_filename, 'a') as user_nl:
                 for i in self._clm_namelist_info:
                     if i in need_cesm_input_path:
-                        val = "'{0}/cesm-inputdata/{1}'".format(self._local_config["test_data_dir"],
+                        val = "'{0}/cesm-inputdata/{1}'".format(self._local_config["data_dir"],
                                                  self._clm_namelist_info[i])
                     else:
                         val = self._clm_namelist_info[i]
@@ -1120,7 +1181,7 @@ class RegressionTest(object):
             with open(datm_user_nl_filename, 'a') as user_nl:
                 for i in self._datm_namelist_info:
                     if i in need_cesm_input_path:
-                        val = "'{0}/cesm-inputdata/{1}'".format(self._local_config["test_data_dir"],
+                        val = "'{0}/cesm-inputdata/{1}'".format(self._local_config["data_dir"],
                                                  self._datm_namelist_info[i])
                     else:
                         val = self._datm_namelist_info[i]
@@ -1192,7 +1253,7 @@ class RegressionTest(object):
         print("# Copying pflotran input files.", file=self._case_script)
         status = 0
         txt = ""
-        data_root = self._local_config["test_data_dir"]
+        data_root = self._local_config["data_dir"]
         pflotran_in = "{0}/pflotran/{1}.in".format(data_root, self._name)
         if not os.path.isfile(pflotran_in):
             txt += "ERROR: Could not find pflotran input file : {0}\n".format(pflotran_in)
@@ -1330,7 +1391,7 @@ def read_local_config(filename):
     pflotran_dir = __absolute_path_to_pflotran_dir__
     
     [data]
-    test_data_dir = __absolute_path_to_test_data_dir__
+    data_dir = __absolute_path_to_data_dir__
 
 
     """
@@ -1371,7 +1432,13 @@ def read_local_config(filename):
 
     section = "data"
     _check_section(config, section)
-    keys = ["test_data_dir"]
+    keys = ["data_dir"]
+    for k in keys:
+        local_config.update(_get_section_option(config, section, k))
+
+    section = "regression"
+    _check_section(config, section)
+    keys = ["regression_dir"]
     for k in keys:
         local_config.update(_get_section_option(config, section, k))
 
@@ -1442,7 +1509,20 @@ def setup_test_suite_log(txtwrap, local_config):
 
     print("\nCLM-PFLOTRAN data repository status :", file=testlog)
     print("-------------------------------------", file=testlog)
-    repo = local_config["test_data_dir"]
+    repo = local_config["data_dir"]
+    if os.path.isdir("{0}/.hg".format(repo)):
+        os.chdir(repo)
+        cmd = ["hg", "parent"]
+        append_command_to_log(cmd, testlog, tempfile)
+        cmd = ["hg", "status", "-q"]
+        append_command_to_log(cmd, testlog, tempfile)
+        print("\n\n", file=testlog)
+    else:
+        print("    unknown", file=testlog)
+
+    print("\nCLM-PFLOTRAN regression repository status :", file=testlog)
+    print("-------------------------------------------", file=testlog)
+    repo = local_config["regression_dir"]
     if os.path.isdir("{0}/.hg".format(repo)):
         os.chdir(repo)
         cmd = ["hg", "parent"]
@@ -1533,13 +1613,13 @@ def summary_report(run_time, report, outfile):
 def print_no_baseline_warning(testlog):
     print(80 * '*')
     print("*")
-    print("* WARNING: testing against a baseline is not currently implemented!")
+    print("* WARNING: only minimal testing against a baseline is implemented!")
     print("*")
     print(80 * '*')
 
     print(80 * '*', file=testlog)
     print("*", file=testlog)
-    print("* WARNING: testing against a baseline is not currently implemented!", file=testlog)
+    print("* WARNING: only minimal testing against a baseline is implemented!", file=testlog)
     print("*", file=testlog)
     print(80 * '*', file=testlog)
 

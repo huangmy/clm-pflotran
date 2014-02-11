@@ -14,6 +14,7 @@ from __future__ import division
 
 import argparse
 import os
+import os.path
 import re
 import subprocess
 import sys
@@ -39,20 +40,64 @@ def check_for_ncdump():
                          "ncdump must be available in the path."))
 
 
-def read_nc_as_cdl(netcdf_file):
-    """Read a netcdf file by dumping it with ncdump into a temporary file.
+def read_data(netcdf_file):
+    """Read the data. 
+
+    Check if the cdl file exists for the netcdf file. If not, then we
+    create it. If so, then we check if the netcdf file exists. If the
+    netcdf file is newer than the cdl file, we recreate the cdl file.
 
     """
     print("Reading {0}...".format(netcdf_file), end='')
+
+    # check which files exist
+    have_nc = False
+    if os.path.isfile(netcdf_file):
+        have_nc = True
+
+    cdl_file = "{0}.cdl".format(netcdf_file)
+    have_cdl = False
+    if os.path.isfile(cdl_file):
+        have_cdl = True
+    
+    if have_nc and have_cdl:
+        if os.path.getmtime(netcdf_file) > os.path.getmtime(cdl_file):
+            # both netcdf and cdl files exist, and netcdf is newer, regenerate cdl
+            print("--> regenerating cdl from netcdf.")
+            cdl = read_nc_as_cdl(netcdf_file)
+        else:
+            print("--> reusing cdl file.")
+            cdl = read_cdl(cdl_file)
+    elif have_nc and not have_cdl:
+        print("--> generating cdl file.")
+        cdl = read_nc_as_cdl(netcdf_file)
+    elif not have_nc and have_cdl:
+        print("--> using existing cdl file.")
+        cdl = read_cdl(cdl_file)
+    elif not have_nc and not have_cdl:
+        raise RuntimeError("\nERROR: neither netcdf or cdl dump exist. Expected : '{0}'".format(netcdf_file))
+
+    print(" done.")
+    return cdl
+
+def read_cdl(cdl_file):
+    """Read in the contents of a cdl file as an array of lines.
+
+    """
+    with open(cdl_file, "r") as tmp_file:
+        cdl = tmp_file.readlines()
+    return cdl
+
+def read_nc_as_cdl(netcdf_file):
+    """Read a netcdf file as cdl by dumping it with ncdump into a temporary file.
+
+    """
     cdl = None
-    tmp_name = "tmp.cdl"
-    with open(tmp_name, "w") as tmp_file:
+    cdl_file = "{0}.cdl".format(netcdf_file)
+    with open(cdl_file, "w") as tmp_file:
         command = ["ncdump", netcdf_file]
         subprocess.call(command, stdout=tmp_file, stderr=subprocess.PIPE)
-    with open(tmp_name, "r") as tmp_file:
-        cdl = tmp_file.readlines()
-    os.remove(tmp_name)
-    print(" done.")
+    cdl = read_cdl(cdl_file)
     return cdl
 
 def extract_field_from_cdl(cdl, field_name):
@@ -61,7 +106,7 @@ def extract_field_from_cdl(cdl, field_name):
     """
     name = field_name.strip()
     re_str = "[\s]+{0}[\s]+=[\s]+$".format(name)
-    field_re = re.compile(re_str)
+    field_re = re.compile(re_str, re.IGNORECASE)
     print("Searching for '{0}'...".format(name), end='')
     data = []
     start_field = False
@@ -172,10 +217,10 @@ def main(options):
 
     check_for_ncdump()
 
-    baseline = read_nc_as_cdl(options.baseline_netcdf_file[0])
+    baseline = read_data(options.baseline_netcdf_file[0])
     baseline_field = extract_field_from_cdl(baseline, options.field_name[0])
 
-    current = read_nc_as_cdl(options.current_netcdf_file[0])
+    current = read_data(options.current_netcdf_file[0])
     current_field = extract_field_from_cdl(current, options.field_name[0])
 
     status = compare_fields(baseline_field, current_field, options.tolerance[0])
