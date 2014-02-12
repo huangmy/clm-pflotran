@@ -1503,7 +1503,7 @@ contains
        c = filter_hydrologyc(fc)
        cwf%qflx_drain_perched(c) = 0._r8   ! perched wt sub-surface runoff (mm H2O /s)
        cwf%qflx_drain(c)         = 0._r8   ! sub-surface runoff (mm H2O /s)
-       cwf%qflx_irrig(c)         = 0._r8   ! irrigation flux (mm H2O /s)
+       pwf%qflx_irrig(c)         = 0._r8   ! irrigation flux (mm H2O /s)
        cwf%qflx_qrgwl(c)         = 0._r8   ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
        cwf%qflx_rsub_sat(c)      = 0._r8   ! soil saturation excess [mm h2o/s]
     end do
