@@ -27,6 +27,8 @@ module seq_map_mod
   use seq_map_esmf
 #endif
 
+  use seq_map_type_mod
+
   implicit none
   save
   private  ! except
@@ -50,32 +52,6 @@ module seq_map_mod
     seq_map_avNormArr, &
     seq_map_avNormAvF
   end interface
-
-  type seq_map
-    logical :: copy_only
-    logical :: rearrange_only
-    logical :: esmf_map
-    type(mct_rearr) :: rearr
-    type(mct_sMatp) :: sMatp
-    !---- for comparing
-    integer(IN)     :: counter   ! indicates which seq_maps this mapper points to
-    character(CL)   :: strategy  ! indicates the strategy for this mapper, (copy, rearrange, X, Y)
-    character(CX)   :: mapfile   ! indicates the mapping file used
-    type(mct_gsMap),pointer :: gsmap_s
-    type(mct_gsMap),pointer :: gsmap_d
-    !---- for cart3d
-    character(CL) :: cart3d_init
-    real(R8), pointer :: slon_s(:),clon_s(:),slat_s(:),clat_s(:)
-    real(R8), pointer :: slon_d(:),clon_d(:),slat_d(:),clat_d(:)
-    integer(IN)   :: mpicom        ! mpicom
-#ifdef USE_ESMF_LIB
-    !---- import and export States for this mapper object, 
-    !---- routehandle is stored in the exp_state for repeated remapping use
-    type(ESMF_State)    :: imp_state
-    type(ESMF_State)    :: exp_state
-#endif
-  end type seq_map
-  public seq_map
 
 !--------------------------------------------------------------------------
 ! Public data
@@ -123,10 +99,13 @@ contains
   
     comp = ESMF_GridCompCreate(name="seq map comp", petList=petlist, rc=rc)
     if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create seq map comp')
+
     call ESMF_GridCompSetServices(comp, seq_map_esmf_register, rc=rc)
     if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to register atm comp')
+
     import_state = ESMF_StateCreate(name="seq map import", stateintent=ESMF_STATEINTENT_IMPORT, rc=rc)
     if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create import seq map state')
+
     export_state = ESMF_StateCreate(name="seq map export", stateintent=ESMF_STATEINTENT_EXPORT, rc=rc)
     if(rc /= ESMF_SUCCESS) call shr_sys_abort('failed to create export seq map state')
   
@@ -143,17 +122,17 @@ contains
     ! Arguments
     !
     type(seq_map)   ,intent(inout),pointer :: mapper
-    type(mct_gsmap) ,intent(in),target :: gsmap_s
-    integer(IN)     ,intent(in)    :: ID_s
-    type(mct_gsmap) ,intent(in),target :: gsmap_d
-    integer(IN)     ,intent(in)    :: ID_d
-    integer(IN)     ,intent(in)    :: ID_join
-    character(len=*),intent(in),optional :: string
+    type(mct_gsmap) ,intent(in),target     :: gsmap_s
+    integer(IN)     ,intent(in)            :: ID_s
+    type(mct_gsmap) ,intent(in),target     :: gsmap_d
+    integer(IN)     ,intent(in)            :: ID_d
+    integer(IN)     ,intent(in)            :: ID_join
+    character(len=*),intent(in),optional   :: string
     !
     ! Local Variables
     !
-    integer(IN) :: mapid, mapidmin, mapidmax
-    integer(IN) :: mpicom_s, mpicom_d, mpicom_join
+    integer(IN)     :: mapid, mapidmin, mapidmax
+    integer(IN)     :: mpicom_s, mpicom_d, mpicom_join
     type(mct_gsmap) :: gsmap_s_join
     type(mct_gsmap) :: gsmap_d_join
     character(len=*),parameter :: subname = "(seq_map_init_rearrsplit) "
@@ -249,15 +228,15 @@ contains
     ! Arguments
     !
     type(seq_map)   ,intent(inout),pointer :: mapper
-    type(mct_gsmap) ,intent(in),target :: gsmap_s
-    type(mct_gsmap) ,intent(in),target :: gsmap_d
-    integer(IN)     ,intent(in)    :: mpicom
-    character(len=*),intent(in)    :: maprcfile
-    character(len=*),intent(in)    :: maprcname
-    character(len=*),intent(in)    :: maprctype
-    logical         ,intent(in)    :: samegrid
-    character(len=*),intent(in),optional :: string
-    logical         ,intent(in),optional :: esmf_map
+    type(mct_gsmap) ,intent(in),target     :: gsmap_s
+    type(mct_gsmap) ,intent(in),target     :: gsmap_d
+    integer(IN)     ,intent(in)            :: mpicom
+    character(len=*),intent(in)            :: maprcfile
+    character(len=*),intent(in)            :: maprcname
+    character(len=*),intent(in)            :: maprctype
+    logical         ,intent(in)            :: samegrid
+    character(len=*),intent(in),optional   :: string
+    logical         ,intent(in),optional   :: esmf_map
     !
     ! Local Variables
     !
@@ -452,8 +431,8 @@ contains
     type(seq_map)   ,intent(inout),pointer :: mapper
     type(mct_gsmap) ,intent(in)   ,target  :: gsmap_s
     type(mct_gsmap) ,intent(in)   ,target  :: gsmap_d
-    integer(IN)     ,intent(in)    :: mpicom
-    character(len=*),intent(in),optional :: string
+    integer(IN)     ,intent(in)            :: mpicom
+    character(len=*),intent(in),optional   :: string
     !
     ! Local Variables
     !
@@ -512,9 +491,9 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout):: mapper
-    type(mct_aVect) ,intent(in)   :: av_s
-    type(mct_aVect) ,intent(inout):: av_d
+    type(seq_map)   ,intent(inout)       :: mapper
+    type(mct_aVect) ,intent(in)          :: av_s
+    type(mct_aVect) ,intent(inout)       :: av_d
     character(len=*),intent(in),optional :: fldlist
     logical         ,intent(in),optional :: norm
     type(mct_aVect) ,intent(in),optional :: avwts_s
@@ -606,10 +585,10 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout):: mapper
-    character(len=*),intent(in)   :: type
-    type(mct_gGrid) ,intent(in)   :: dom_s
-    type(mct_gGrid) ,intent(inout):: dom_d
+    type(seq_map)   ,intent(inout)       :: mapper
+    character(len=*),intent(in)          :: type
+    type(mct_gGrid) ,intent(in)          :: dom_s
+    type(mct_gGrid) ,intent(inout)       :: dom_d
     type(mct_gsMap) ,intent(in),optional :: gsmap_s
     integer(IN)     ,intent(in),optional :: ni
     integer(IN)     ,intent(in),optional :: nj
@@ -617,9 +596,9 @@ contains
     !
     ! Local Variables
     !
-    integer(IN) :: klon, klat, lsize, n
-    logical :: lnorm
-    character(len=CL) :: lstring
+    integer(IN)                :: klon, klat, lsize, n
+    logical                    :: lnorm
+    character(len=CL)          :: lstring
     character(len=*),parameter :: subname = "(seq_map_initvect) "
 
     lstring = ' '
@@ -668,12 +647,12 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout):: mapper
-    character(len=*),intent(in)   :: type
-    type(mct_aVect) ,intent(in)   :: av_s
-    type(mct_aVect) ,intent(inout):: av_d
-    character(len=*),intent(in)   :: fldu
-    character(len=*),intent(in)   :: fldv
+    type(seq_map)   ,intent(inout)       :: mapper
+    character(len=*),intent(in)          :: type
+    type(mct_aVect) ,intent(in)          :: av_s
+    type(mct_aVect) ,intent(inout)       :: av_d
+    character(len=*),intent(in)          :: fldu
+    character(len=*),intent(in)          :: fldv
     logical         ,intent(in),optional :: norm
     type(mct_aVect) ,intent(in),optional :: avwts_s
     character(len=*),intent(in),optional :: avwtsfld_s
@@ -733,12 +712,12 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout):: mapper
-    character(len=*),intent(in)   :: type
-    type(mct_aVect) ,intent(in)   :: av_s
-    type(mct_aVect) ,intent(inout):: av_d
-    character(len=*),intent(in)   :: fldu
-    character(len=*),intent(in)   :: fldv
+    type(seq_map)   ,intent(inout)       :: mapper
+    character(len=*),intent(in)          :: type
+    type(mct_aVect) ,intent(in)          :: av_s
+    type(mct_aVect) ,intent(inout)       :: av_d
+    character(len=*),intent(in)          :: fldu
+    character(len=*),intent(in)          :: fldv
     logical         ,intent(in),optional :: norm
     type(mct_aVect) ,intent(in),optional :: avwts_s
     character(len=*),intent(in),optional :: avwtsfld_s
@@ -888,10 +867,10 @@ contains
     ! 
     ! Arguments
     !
-    character(len=*),intent(in)    :: maprcfile
-    character(len=*),intent(in)    :: maprcname
-    integer(IN)     ,intent(in)    :: mpicom
-    integer(IN)     ,intent(in)    :: ID
+    character(len=*),intent(in)             :: maprcfile
+    character(len=*),intent(in)             :: maprcname
+    integer(IN)     ,intent(in)             :: mpicom
+    integer(IN)     ,intent(in)             :: ID
     integer(IN)     ,intent(out)  ,optional :: ni_s
     integer(IN)     ,intent(out)  ,optional :: nj_s
     type(mct_avect) ,intent(inout),optional :: av_s
@@ -1041,13 +1020,13 @@ contains
     !
     ! Arguments
     !
-    type(seq_map)   , intent(inout) :: mapper! mapper
-    type(mct_aVect) , intent(in)    :: av_i  ! input 
-    type(mct_aVect) , intent(inout) :: av_o  ! output
-    type(mct_aVect) , intent(in)    :: avf_i  ! extra src "weight"
-    character(len=*), intent(in)    :: avfifld ! field name in avf_i
-    character(len=*), intent(in),optional :: rList ! fields list
-    logical         , intent(in),optional :: norm  ! normalize at end
+    type(seq_map)   , intent(inout)       :: mapper  ! mapper
+    type(mct_aVect) , intent(in)          :: av_i    ! input 
+    type(mct_aVect) , intent(inout)       :: av_o    ! output
+    type(mct_aVect) , intent(in)          :: avf_i   ! extra src "weight"
+    character(len=*), intent(in)          :: avfifld ! field name in avf_i
+    character(len=*), intent(in),optional :: rList   ! fields list
+    logical         , intent(in),optional :: norm    ! normalize at end
     !
     integer(IN) :: lsize_i, lsize_f, lsize_o, kf, j
     real(r8),allocatable :: frac_i(:),frac_o(:)

@@ -2711,10 +2711,10 @@
         <machine compiler="intel" testtype="aux_clm" testmods="clm/crop">frankfurt</machine>
       </test>
       <test name="PET_P15x2_Ly3">
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/irrigOn_reduceOutput">yellowstone</machine>
       </test>
       <test name="PET_P24x2_Ly3">
-        <machine compiler="intel" testtype="aux_clm_ys_intel">edison</machine>
+        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/irrigOn_reduceOutput">edison</machine>
       </test>
     </grid>
     <grid name="f19_g16">
@@ -2970,9 +2970,9 @@
   <compset name="ICRUCLM45BGCCROP">
     <grid name="f19_g16">
       <test name="ERI_N2">
-        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/irrigOn">edison</machine>
+        <machine compiler="intel" testtype="aux_clm_ys_intel">edison</machine>
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/default">edison</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/irrigOn">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/default">yellowstone</machine>
       </test>
     </grid>

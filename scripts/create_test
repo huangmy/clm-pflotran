@@ -1707,8 +1707,9 @@ sub main
 	# check the options for a single test. 
 	checkSingleTestOptions();
 	my $testname = $opts{'testname'};
-	doonetest($testname);
-	namelistCompare($testname,$testname);
+	my $hash  = doonetest($testname);
+	Debug( eval {Dumper $hash});
+	namelistCompare($hash->{case},$testname);
     }
 
 }
