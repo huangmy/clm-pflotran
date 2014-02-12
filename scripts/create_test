@@ -1709,7 +1709,7 @@ sub main
 	my $testname = $opts{'testname'};
 	my $hash  = doonetest($testname);
 	Debug( eval {Dumper $hash});
-	namelistCompare($hash->{case},$testname);
+	namelistCompare($hash->{case},$hash->{casebaseid});
     }
 
 }

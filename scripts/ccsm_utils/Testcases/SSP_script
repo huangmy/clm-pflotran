@@ -37,7 +37,10 @@ cd $CASERR1
 cd $CASEROOT
 echo "doing a ${stopn1} ${STOP_OPTION} initial spinup test" >>& $TESTSTATUS_LOG 
 
-./xmlchange STOP_N=${stopn1},CLM_BLDNML_OPTS="-bgc_spinup on"  || exit -1
+./xmlchange -file env_run.xml -id STOP_N -val ${stopn1} || exit -1
+# save the original namelist opts defining the case
+set orig_clm_bldnml_opts = `./xmlquery -valonly CLM_BLDNML_OPTS | cut -d '=' -f2`
+./xmlchange -file env_run.xml -id CLM_BLDNML_OPTS -val "-bgc_spinup on" -append || exit -1
 
 ./$CASE.run
 
@@ -73,7 +76,9 @@ echo "doing a ${stopn2} ${STOP_OPTION} final spinup test" >>& $TESTSTATUS_LOG
 #--- setup ref1 case 
 cd $CASEROOT
 
-./xmlchange RUN_REFCASE=$CASE0,GET_REFCASE=FALSE,RUN_REFDATE=${refdate},RUN_TYPE="hybrid",STOP_N=${stopn2},CLM_BLDNML_OPTS="-bgc_spinup off" || exit -1
+./xmlchange RUN_REFCASE=$CASE0,GET_REFCASE=FALSE,RUN_REFDATE=${refdate},RUN_TYPE="hybrid",STOP_N=${stopn2} || exit -1
+# restore the original namelist options with spinup off
+./xmlchange -file env_run.xml -id CLM_BLDNML_OPTS -val "$orig_clm_bldnml_opts -bgc_spinup off" || exit -1
 
 mkdir -p $RUNDIR
 ln -s ${DOUTSR0}/rest/${refdate}-00000/*${refdate}* $RUNDIR/.
@@ -85,7 +90,7 @@ set CplLogFile = `ls -1t ${DOUT_S_ROOT}/cpl/logs/cpl.log* | head -1`
 setenv CPLLOG_FINAL $CplLogFile
 setenv BASEGEN_FILE02 $CplLogFile
 set cplhist_final = `ls -1t ${DOUT_S_ROOT}/cpl/hist/*.cpl.hi.*.nc | head -1`
-mv ${cplhist_final} ${cplhist_final}.base
+cp ${cplhist_final} ${cplhist_final}.base
 set cplhist_final = ${cplhist_final}.base
 
 if (-e $CplLogFile) then

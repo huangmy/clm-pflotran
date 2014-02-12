@@ -278,10 +278,6 @@ contains
 
     call init_landunit_eflux_type(bounds%begl, bounds%endl, lef)
 
-    ! gridcell DGVM variables
-
-    call init_gridcell_dgvstate_type(bounds%begg, bounds%endg, gdgvs)
-
     ! gridcell: water flux variables
 
     call init_gridcell_wflux_type(bounds%begg, bounds%endg, gwf)
@@ -1076,6 +1072,10 @@ contains
     pdgvs%t_mo(:)= nanr
     allocate(pdgvs%t_mo_min(beg:end))
     pdgvs%t_mo_min(:)= nanr
+    allocate(pdgvs%agdd20(beg:end))
+    pdgvs%agdd20(:)= nanr
+    allocate(pdgvs%tmomin20(beg:end))
+    pdgvs%tmomin20(:)= nanr
     allocate(pdgvs%prec365(beg:end))
     pdgvs%prec365(:)= nanr
     allocate(pdgvs%present(beg:end))
@@ -1508,6 +1508,10 @@ contains
     pef%eflx_lwrad_net_u(:)= nanr
     allocate(pef%eflx_lwrad_net_r(beg:end))
     pef%eflx_lwrad_net_r(:)= nanr
+    allocate(pef%eflx_lwrad_out_u(beg:end))
+    pef%eflx_lwrad_out_u(beg:end) = nanr
+    allocate(pef%eflx_lwrad_out_r(beg:end))
+    pef%eflx_lwrad_out_r(beg:end) = nanr
     allocate(pef%netrad(beg:end))
     pef%netrad(:)= nanr
     allocate(pef%fsds_vis_d(beg:end))
@@ -3892,27 +3896,6 @@ contains
     lef%eflx_heat_from_ac(:)= nanr
 
   end subroutine init_landunit_eflux_type
-
-  !------------------------------------------------------------------------
-  subroutine init_gridcell_dgvstate_type(beg, end, gps)
-    !
-    ! !DESCRIPTION:
-    ! Initialize gridcell DGVM variables
-    !
-    ! !ARGUMENTS:
-    implicit none
-    integer, intent(in) :: beg, end
-    type (gridcell_dgvstate_type), intent(inout):: gps
-    !------------------------------------------------------------------------
-
-    allocate(gps%agdd20(beg:end))
-    gps%agdd20(:)= nanr
-    allocate(gps%tmomin20(beg:end))
-    gps%tmomin20(:)= nanr
-    allocate(gps%t10min(beg:end))
-    gps%t10min(:)= nanr
-
-  end subroutine init_gridcell_dgvstate_type
 
   !------------------------------------------------------------------------
   subroutine init_gridcell_efstate_type(beg, end, gve)

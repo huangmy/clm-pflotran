@@ -624,6 +624,8 @@ type, public :: pft_dgvstate_type
    real(r8), pointer :: agdd(:)                !accumulated growing degree days above 5
    real(r8), pointer :: t_mo(:)                !30-day average temperature (Kelvin)
    real(r8), pointer :: t_mo_min(:)            !annual min of t_mo (Kelvin)
+   real(r8), pointer :: agdd20(:)              !20-yr running mean of agdd
+   real(r8), pointer :: tmomin20(:)            !20-yr running mean of tmomin
    real(r8), pointer :: prec365(:)             !365-day running mean of tot. precipitation
    logical , pointer :: present(:)             !whether PFT present in patch
    logical , pointer :: pftmayexist(:)         !if .false. then exclude seasonal decid pfts from tropics
@@ -689,6 +691,8 @@ type, public :: pft_eflux_type
    real(r8), pointer :: eflx_lwrad_net(:)    !net infrared (longwave) rad (W/m**2) [+ = to atm]
    real(r8), pointer :: eflx_lwrad_net_u(:)  !urban net infrared (longwave) rad (W/m**2) [+ = to atm]
    real(r8), pointer :: eflx_lwrad_net_r(:)  !rural net infrared (longwave) rad (W/m**2) [+ = to atm]
+   real(r8), pointer :: eflx_lwrad_out_u(:)  !urban emitted infrared (longwave) rad (W/m**2)
+   real(r8), pointer :: eflx_lwrad_out_r(:)  !rural emitted infrared (longwave) rad (W/m**2)
    real(r8), pointer :: netrad(:)            !net radiation (W/m**2) [+ = to sfc]
    real(r8), pointer :: fsds_vis_d(:)        !incident direct beam vis solar radiation (W/m**2)
    real(r8), pointer :: fsds_nir_d(:)        !incident direct beam nir solar radiation (W/m**2)
@@ -2160,17 +2164,6 @@ type(gridcell_efstate_type):: gve	!gridcell VOC emission factors
 type, public :: gridcell_dstate_type
    real(r8), pointer :: dummy_entry(:)
 end type gridcell_dstate_type
-
-!----------------------------------------------------
-! gridcell DGVM state variables structure
-!----------------------------------------------------
-type, public :: gridcell_dgvstate_type
-   real(r8), pointer :: agdd20(:)      !20-yr running mean of agdd
-   real(r8), pointer :: tmomin20(:)    !20-yr running mean of tmomin
-   real(r8), pointer :: t10min(:)      !ann minimum of 10-day running mean (K)
-end type gridcell_dgvstate_type
-
-type(gridcell_dgvstate_type):: gdgvs !gridcell DGVM structure
 
 !----------------------------------------------------
 ! gridcell energy flux variables structure

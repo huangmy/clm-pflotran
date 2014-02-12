@@ -146,7 +146,6 @@
           DESC="smoke CLM spinup test (only valid for CLM compsets with CLM45 and CN or BGC)"
           INFO_DBUG="2"
           CCSM_TCOST="-1"
-          CLM_BLDNML_OPTS="-bgc_spinup on"
           STOP_OPTION="ndays"
           RUN_TYPE="startup"
           STOP_N="4"

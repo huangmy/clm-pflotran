@@ -250,10 +250,8 @@ value of RUN_STARTDATE will be date2.
 
 <!-- I single point forcing -->
 
-<COMPSET sname="I_2000_1PTFRC"          alias="I1PT"         >2000_DATM%1PT_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
-<COMPSET sname="I_2000_1PTFRC_CLM45"    alias="I1PTCLM45"    >2000_DATM%1PT_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
-<COMPSET sname="I_2000_1PTFRC_CN"       alias="I1PTCN"       >2000_DATM%1PT_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
-<COMPSET sname="I_2000_1PTFRC_CLM45BGC" alias="I1PTCLM45BGC" >2000_DATM%1PT_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC"        alias="I1PT"         >2000_DATM%1PT_CLM40%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
+<COMPSET sname="I_2000_1PTFRC_CLM45"  alias="I1PTCLM45"    >2000_DATM%1PT_CLM45%SP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>	  
 
 <!-- I QIAN compsets -->
 
@@ -279,7 +277,7 @@ value of RUN_STARTDATE will be date2.
 <COMPSET sname="I_RCP6.0_CLM45_CN"    alias="IRCP60CLM45CN">RCP6_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CN"          alias="IRCP45CN"     >RCP4_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP2.6_CN"          alias="IRCP26CN"     >RCP2_DATM%QIA_CLM40%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
-<COMPSET sname="I_RCP2.6_CLM45_BGC"   alias="IRCP26CLM45BGC">RCP2_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
+<COMPSET sname="I_RCP2.6_CLM45_CN"    alias="IRCP26CLM45CN">RCP2_DATM%QIA_CLM45%CN_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CN_CROP"       alias="ICNCROP"      >2000_DATM%QIA_CLM40%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_2000_CLM45_CN_CROP" alias="ICLM45CNCROP" >2000_DATM%QIA_CLM45%CN-CROP_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
 <COMPSET sname="I_RCP4.5_CLM45_BGC"   alias="IRCP45CLM45BGC">RCP4_DATM%QIA_CLM45%BGC_SICE_SOCN_RTM_SGLC_SWAV</COMPSET>
@@ -681,13 +679,6 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <CLM_CONFIG_OPTS compset="_CLM40%[^_]*CROP"      >-crop on</CLM_CONFIG_OPTS>
 
 <CLM_CONFIG_OPTS compset="_CLM45"                >-phys clm4_5</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CN"        >-bgc cn</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*SP"        >-bgc none</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CNDV"      >-bgc cndv</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*CROP"      >-crop on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGC"       >-bgc cn -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*VIC"       >-vichydro on</CLM_CONFIG_OPTS>
-<CLM_CONFIG_OPTS compset="_CLM45%[^_]*BGCDV"     >-bgc cndv -vsoilc_centbgc on -clm4me on</CLM_CONFIG_OPTS>
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->
@@ -720,8 +711,20 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <CLM_NML_USE_CASE compset="GEOS.*_CLM"       >20thC_transient</CLM_NML_USE_CASE> 
 <CLM_NML_USE_CASE compset="AMIP.*_CLM"       >20thC_transient</CLM_NML_USE_CASE> 
 <CLM_NML_USE_CASE compset="CLM.*_CISM.*_TEST">glacierMEC_pd</CLM_NML_USE_CASE>
+<CLM_NML_USE_CASE compset="PIPD_CAM5"        >1850-2100_rcp4.5_transient</CLM_NML_USE_CASE>
 
 <CLM_BLDNML_OPTS compset="%CNCR">-ignore_ic_year</CLM_BLDNML_OPTS>
+<!-- CLM_BLDNML_OPTS is not additive, we must list all possible combinations -->
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*SP"        >-bgc sp</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*CN"        >-bgc cn</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*BGC"       >-bgc bgc</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*CN-CROP"   >-bgc cn -crop</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*BGC-CROP"  >-bgc bgc -crop</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*CNDV"      >-bgc cn -dynamic_vegetation</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*BGCDV"     >-bgc bgc -dynamic_vegetation</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*CNDV-CROP" >-bgc cn -dynamic_vegetation -crop</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*BGCDV-CROP">-bgc bgc -dynamic_vegetation -crop</CLM_BLDNML_OPTS>
+<CLM_BLDNML_OPTS compset="_CLM45%[^_]*VIC"       >-vichydro</CLM_BLDNML_OPTS>
 
 <CLM_CO2_TYPE compset="_CLM.+"         >constant</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="_CAM.*_CLM"     >diagnostic</CLM_CO2_TYPE>
@@ -751,11 +754,11 @@ CAM[45]%RCO2 => CAM CO2 ramp:
 <desc compset="_CLM45"               >clm4.5 physics:</desc>
 <desc compset="_CLM45%[^_]*SP"       >clm4.5 Satellite phenology:</desc>
 <desc compset="_CLM45%[^_]*CN"       >clm4.5 cn:</desc>
-<desc compset="_CLM45%[^_]*CNDV"     >clm4.5 cndv:</desc>
+<desc compset="_CLM45%[^_]*CNDV"     >clm4.5 cn with dynamic vegetation:</desc>
 <desc compset="_CLM45%[^_]*BGC"      >clm4.5 bgc (cn and methane):</desc>
 <desc compset="_CLM45%[^_]*CROP"     >clm4.5 prognostic crop:</desc>
 <desc compset="_CLM45%[^_]*VIC"      >clm4.5 vic hydrology:</desc>
-<desc compset="_CLM45%[^_]*BGCDV"    >clm4.5 bgc (cn and methane) with dynamic veg:</desc>
+<desc compset="_CLM45%[^_]*BGCDV"    >clm4.5 bgc (cn and methane) with dynamic vegetation:</desc>
 
 <help>
 =========================================
@@ -1727,6 +1730,16 @@ DOCN%COPY => docn copy mode
 <RUN_REFCASE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">b40_20th_1d_b08c5cn_139jp</RUN_REFCASE>   
 <RUN_REFDATE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
 
+<RUN_REFCASE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">b40_20th_1d_b08c5cn_139jp</RUN_REFCASE>   
+<RUN_REFDATE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
+
+<RUN_REFCASE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">f.e12.FAMIPC5.ne30_ne30.amip_L30.001</RUN_REFCASE>   
+<RUN_REFDATE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="AMIP_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
+
+<RUN_REFCASE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">f.e12.FAMIPC5.ne30_ne30.amip_L30.001</RUN_REFCASE>   
+<RUN_REFDATE grid="a%ne30np4_l%ne30np4_oi%ne30np4_r%r05_m%gx1v6" compset="PIPD_CAM5_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE>   
+
+
 <RUN_REFCASE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="AMIP_CAM4_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">b40.20th.track1.1deg.004</RUN_REFCASE>   
 <RUN_REFDATE grid="a%0.9x1.25_l%0.9x1.25_oi%0.9x1.25_r%r05_m%gx1v6" compset="AMIP_CAM4_CLM40%SP_CICE%PRES_DOCN%DOM_RTM_SGLC_SWAV">1979-01-01</RUN_REFDATE> 
 
@@ -1808,4 +1821,4 @@ DOCN%COPY => docn copy mode
 <SCIENCE_SUPPORT compset=".+" grid=".+">NO</SCIENCE_SUPPORT>
 
 </config_compset >
-
+         
