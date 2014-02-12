@@ -2707,6 +2707,9 @@
       </test>
     </grid>
     <grid name="f10_f10">
+      <test name="ERS_Ly5">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/irrigOn_reduceOutput">yellowstone</machine>
+      </test>
       <test name="PEM">
         <machine compiler="intel" testtype="aux_clm" testmods="clm/crop">frankfurt</machine>
       </test>
