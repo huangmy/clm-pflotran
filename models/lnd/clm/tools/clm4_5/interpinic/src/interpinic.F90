@@ -850,8 +850,8 @@ contains
           nmin    = 0
 
           do n = 1, numcols
+             calcmin = .false.
              if (wti(n) > 0.0_r8) then
-                calcmin = .false.
                 if (typei_urb(n) == nonurbcol) then
                    if (typei(n) == typeo(no)) calcmin = .true.
                 else
@@ -1484,8 +1484,8 @@ contains
     character(len= 5) :: zone
     character(len=18) :: datetime
     character(len=256):: version = &
-         "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_42/models/lnd/clm/tools/clm4_5/interpinic/src/interpinic.F90 $"
-    character(len=256)  :: revision_id = "$Id: interpinic.F90 47951 2013-06-12 11:13:58Z sacks $"
+         "$HeadURL: https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_43/models/lnd/clm/tools/clm4_5/interpinic/src/interpinic.F90 $"
+    character(len=256)  :: revision_id = "$Id: interpinic.F90 54953 2013-11-06 16:29:45Z sacks $"
     character(len=16)   :: logname
     character(len=16)   :: hostname
     character(len=256)  :: str
