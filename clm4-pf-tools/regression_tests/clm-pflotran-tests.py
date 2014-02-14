@@ -483,7 +483,7 @@ class RegressionTest(object):
         run_script = "{0}.run".format(self._name)
         cmd = ["./{0}".format(run_script)]
         status = self._run_command(cmd)
-        status += self._check_test_runtime_error()
+        status += self._check_test_runtime_error(suitelog)
         if status == 0:
             self._status["run"] = True
             print(" done.", file=suitelog)
@@ -553,17 +553,22 @@ class RegressionTest(object):
         else:
             print(".", end='')
         sys.stdout.flush()
-        return stat
 
-    def _check_test_runtime_error(self):
+        # only want to report a single pass/fail for each test:
+        summary = 0
+        if stat > 0:
+            summary = 1
+        return summary
+
+    def _check_test_runtime_error(self, suitelog):
         """Check for runtime error messages in standard out
         """
         status = 0
-        status += self._check_test_did_not_complete()
-        status += self._check_test_petsc_error()
+        status += self._check_test_did_not_complete(suitelog)
+        status += self._check_test_petsc_error(suitelog)
         return status
 
-    def _check_test_did_not_complete(self):
+    def _check_test_did_not_complete(self, suitelog):
         """Check for "Model did not complete" error in the run standard output (run logfile)
         """
         status = 0
@@ -573,11 +578,11 @@ class RegressionTest(object):
                 match = did_not_complete_re.match(line)
                 if match:
                     status += 1
-                    print("ERROR: check_test_did_not_complete(): model did not complete regex found a match!")
-                    print("    {0}".format(match.group(0)))
+                    print("ERROR: check_test_did_not_complete(): model did not complete regex found a match!", file=suitelog)
+                    print("    {0}".format(match.group(0)), file=suitelog)
         return status
 
-    def _check_test_petsc_error(self):
+    def _check_test_petsc_error(self, suitelog):
         """Check the cesm log file for petsc error messages.
         """
         status = 0
@@ -589,7 +594,8 @@ class RegressionTest(object):
             if f.startswith("cesm.log"):
                 cesm_log = f
         if cesm_log is '':
-            raise RuntimeError("check_test_petsc_error(): Could not find cesm.log file in run directory!")
+            print("check_test_petsc_error(): Could not find cesm.log file in run directory!", file=suitelog)
+            petsc_error = True
         cesm_log = "{0}/run/{1}".format(self._case_dir, cesm_log)
         log_data = None
         if cesm_log.endswith(".gz"):
@@ -606,7 +612,7 @@ class RegressionTest(object):
                     petsc_error = True
 
         if petsc_error == True:
-            print("ERROR: check_test_petsc_error(): petsc error regex found a match in : {0}!".format(cesm_log))
+            print("ERROR: check_test_petsc_error(): petsc error regex found a match in : {0}!".format(cesm_log), file=suitelog)
         return status
 
     def _create_logfile(self):
