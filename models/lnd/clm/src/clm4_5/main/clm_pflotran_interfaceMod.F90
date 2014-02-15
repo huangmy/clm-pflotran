@@ -503,6 +503,8 @@ contains
   ! !LOCAL VARIABLES:
   !EOP
   !-----------------------------------------------------------------------
+
+    ! TODO(bja, 2014-02) make gflux = 0.0 a debugging runtime flag...
     !gflux_clm_loc = 0.0_r8
     call VecRestoreArrayF90(clm_pf_idata%gflux_subsurf_clm, gflux_clm_loc, ierr); CHKERRQ(ierr)
 
@@ -522,17 +524,19 @@ contains
     ! initialize the pflotran iterface
     !
     ! !USES:
+    use shr_assert_mod , only : shr_assert
+    use shr_log_mod    , only : errMsg => shr_log_errMsg
     use clmtype
     use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
          use_pflotran, pflotran_surfaceflow, pflotran_th_mode
-    use decompMod       , only : bounds_type, get_proc_global, &
+    use decompMod       , only : bounds_type, get_proc_total, &
          ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
     use shr_kind_mod    , only: r8 => shr_kind_r8
     use domainMod       , only : ldomain
     
     use fileutils       , only : getfil
-    use spmdMod         , only : mpicom, masterproc
+    use spmdMod         , only : mpicom, masterproc, iam
     use organicFileMod  , only : organicrd
     use clm_varcon      , only : istice, istdlak, istwet, istice_mec,  &
          icol_roof, icol_sunwall, icol_shadewall, &
@@ -571,10 +575,10 @@ contains
     ! LOCAL VARAIBLES:
 
     integer  :: nbeg, nend
-    integer  :: numg             ! total number of gridcells across all processors
-    integer  :: numl             ! total number of landunits across all processors
-    integer  :: numc             ! total number of columns across all processors
-    integer  :: nump             ! total number of pfts across all processors
+    integer  :: local_num_g      ! local number of gridcells across this processor
+    integer  :: local_num_l      ! local number of landunits across this processor
+    integer  :: local_num_c      ! local number of columns across this processor
+    integer  :: local_num_p      ! local number of pfts across this processor
     integer  :: n,g,l,c,p,lev,j  ! indices
     integer  :: gcount
 
@@ -643,6 +647,7 @@ contains
     integer, pointer :: clm_surf_cell_ids_nindex(:)
     integer :: clm_npts
     integer :: clm_surf_npts
+    integer :: num_active_columns
 
     class(simulation_base_type), pointer :: simulation
     class(realization_type), pointer    :: realization
@@ -685,7 +690,7 @@ contains
          )
 
     ! Determine necessary indices
-    call get_proc_global(numg, numl, numc, nump)
+    call get_proc_total(iam, local_num_g, local_num_l, local_num_c, local_num_p)
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
@@ -838,8 +843,25 @@ contains
     if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfadata file' )
 
 
-    ! Check if there is only 1 column per 1 CLM grid cell
-    if (bounds%endg-bounds%begg .ne. bounds%endc-bounds%begc) then
+    ! Ensure that there is only one active column in each grid cell.
+    !
+    ! NOTE(bja, 2014-02) should check each grid cell to ensure that
+    ! there is only one active column. Suggestion from from Bill
+    ! Sacks: "See reweightMod.F90 : checkWeights for
+    ! inspiration. Basically, you could have an array of size
+    ! begg:endg, where you accumulate a count of the number of active
+    ! columns in that grid cell. Then you could ensure that those
+    ! counts are 1 at every point."
+    num_active_columns = 0
+    do c = bounds%begc, bounds%endc
+       if (col%active(c)) then
+          num_active_columns = num_active_columns + 1
+       end if
+    end do
+    if (local_num_g /= num_active_columns) then
+      write (iulog,*), 'ERROR: CLM-PFLOTRAN requires one active column per grid cell: '
+      write (iulog, *) "decomMod - num grid cells = ", local_num_g
+      write (iulog, *) "num active columns = ", num_active_columns
       call endrun( trim(subname)//' ERROR: More than 1 col per grid cell' )
     endif
 
@@ -851,6 +873,10 @@ contains
 
     gcount = 0 ! assumption that only 1 soil-column per grid cell
     do c = bounds%begc, bounds%endc
+      if (.not. col%active(c)) then
+         ! only operate on active columns.
+         cycle
+      end if
 
       ! Set gridcell and landunit indices
       g = cgridcell(c)
@@ -863,7 +889,12 @@ contains
         call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
       else if (urbpoi(l) .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
         ! Urban Roof, sunwall, shadewall properties set to special value
-        write (iulog,*), 'WARNING: Land Unit type is Urban '
+        write (iulog,*), 'ERROR: Unsupported Urban Land Unit type: '
+        write (iulog, *) "    urbpoi(l) = ", urbpoi(l) 
+        write (iulog, *) "    ctype(c) = ", ctype(c)
+        write (iulog,*), '  Supported Urban Land Unit types: '
+        write (iulog, *) "    icol_road_perv = ", icol_road_perv
+        write (iulog, *) "    icol_road_imperv = ", icol_road_imperv
         write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
         call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
       else  ! soil columns of both urban and non-urban types
@@ -974,7 +1005,7 @@ contains
             bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*wtgcell(g)
             press_clm_loc(  gcount*nlevsoi + lev ) = press_clm_loc(  gcount*nlevsoi + lev ) + press_tmp*wtgcell(g)
 
-            if(pflotran_m%option%myrank.eq.-1) then
+            if(pflotran_m%option%myrank .eq. -1) then
               write(*,'(I4,9F15.10)'), gcount*nlevsoi + lev, &
                                       sucsat_clm_loc( gcount*nlevsoi + lev ), &
                                       bsw_clm_loc(    gcount*nlevsoi + lev ), &
@@ -1015,14 +1046,16 @@ contains
     if(pflotran_m%option%iflowmode==TH_MODE) then
       call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
       do c = bounds%begc, bounds%endc
-        l = clandunit(c)
-        if (.not. lakpoi(l)) then  !not lake
-         g = cgridcell(c)
-         gcount = g - bounds%begg
-         do j = 1, nlevsoi
-            t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
-         enddo
-         t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
+        if (col%active(c)) then
+          l = clandunit(c)
+          if (.not. lakpoi(l)) then  !not lake
+            g = cgridcell(c)
+            gcount = g - bounds%begg
+            do j = 1, nlevsoi
+              t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
+            enddo
+            t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
+          endif
         endif
       enddo
       call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr)
@@ -1032,16 +1065,18 @@ contains
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
     do c = bounds%begc, bounds%endc
-      l = clandunit(c)
-      if (ltype(l) == istsoil) then
-        g = cgridcell(c)
-        gcount = g - bounds%begg
-        do j = 1, nlevsoi
-          h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi+j)*dz(c,j)*1.e3_r8
-          h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
-                            h2osoi_ice(c,j)/dz(c,j)/denice
-          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
-        enddo
+      if (col%active(c)) then
+        l = clandunit(c)
+        if (ltype(l) == istsoil) then
+          g = cgridcell(c)
+          gcount = g - bounds%begg
+          do j = 1, nlevsoi
+            h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi+j)*dz(c,j)*1.e3_r8
+            h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
+                 h2osoi_ice(c,j)/dz(c,j)/denice
+            h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
+          enddo
+        endif
       endif
     enddo
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
@@ -1234,7 +1269,7 @@ contains
 
     use clm_pflotran_interface_data
     use clm_varctl                 , only : iulog
-    use decompMod                  , only : bounds_type, get_proc_global
+    use decompMod                  , only : bounds_type
     use clm_varpar                 , only : max_pft_per_col
     use clm_varpar      , only : nlevsoi
     use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
@@ -1261,10 +1296,6 @@ contains
     integer  :: c, fc, g, gcount, j, p   ! do loop indices
     integer  :: pftindex                        ! pft index
     integer  :: nbeg, nend
-    integer  :: numg                      ! total number of gridcells across all processors
-    integer  :: numl                      ! total number of landunits across all processors
-    integer  :: numc                      ! total number of columns across all processors
-    integer  :: nump                      ! total number of pfts across all processors
     real(r8) :: tmp
     real(r8) :: dtime                      ! land model time step (sec)
     integer  :: nstep                      ! time step number
@@ -1303,9 +1334,6 @@ contains
     call VecGetArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
-    ! Determine necessary indices
-    call get_proc_global(numg, numl, numc, nump)
-
     ! Initialize to ZERO
     do g = bounds%begg, bounds%endg
       do j = 1,nlevsoi
@@ -1324,13 +1352,15 @@ contains
     ! Note: When surface-flows are turned on in PFLOTRAN, qflx_infl(c) is set
     !       to 0.0_r8.
     do c = bounds%begc, bounds%endc
-     ! Set gridcell indices
-     g = col%gridcell(c)
-     gcount = g - bounds%begg
-     j = 1
-     area = area_clm_loc(gcount*nlevsoi+j)
-     qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
-                                        cwf%qflx_infl(c)*col%wtgcell(c)*area
+      if (col%active(c)) then
+        ! Set gridcell indices
+        g = col%gridcell(c)
+        gcount = g - bounds%begg
+        j = 1
+        area = area_clm_loc(gcount*nlevsoi+j)
+        qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
+             cwf%qflx_infl(c)*col%wtgcell(c)*area
+      end if
     enddo
 
     ! Compute the Transpiration sink at grid-level for each soil layer
@@ -1391,6 +1421,7 @@ contains
     end do
 
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
+    !qflx_clm_loc = 0._r8
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
@@ -1421,7 +1452,7 @@ contains
     use clm_time_manager  , only : get_step_size
     use clm_varctl    , only : iulog
     use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi, max_pft_per_col
-    use decompMod     , only : bounds_type, get_proc_global
+    use decompMod     , only : bounds_type
 
     use clm_pflotran_interface_data, only : clm_pf_idata
 
