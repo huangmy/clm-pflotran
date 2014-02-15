@@ -26,7 +26,8 @@ CESM_ROOT=../../
 
 STANDARD_TESTS= \
     tests/sgrid-1x1x10-subsurface-th-noice-may.cfg \
-    tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB.cfg \
+    tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-4.cfg \
+    tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-1.cfg \
     tests/ugrid-13x26x10-surface-subsurface-th-noice-dec-NGEE_SiteB.cfg
 
 COMMON_EXE= \
@@ -50,7 +51,10 @@ tests/common-executable.cfg : FORCE
 tests/sgrid-1x1x10-subsurface-th-noice-may.cfg : FORCE
 	$(TEST_CMD) --test-config-files $@
 
-tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB.cfg : FORCE
+tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-4.cfg : FORCE
+	$(TEST_CMD) --test-config-files $@
+
+tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-1.cfg : FORCE
 	$(TEST_CMD) --test-config-files $@
 
 tests/ugrid-13x26x10-surface-subsurface-th-noice-dec-NGEE_SiteB.cfg : FORCE

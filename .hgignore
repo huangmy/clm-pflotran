@@ -4,3 +4,16 @@ scripts/brazil*
 scripts/US-UMB*
 scripts/US-NR1*
 \-xcode$
+
+syntax: glob
+*.a
+*.o
+*.mod
+*.gz
+*.bldlog.*
+*.log
+*.testlog
+*.old
+*.d
+*.orig
+
