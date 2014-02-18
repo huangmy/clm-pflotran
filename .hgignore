@@ -16,4 +16,4 @@ syntax: glob
 *.old
 *.d
 *.orig
-
+test_cases/*
