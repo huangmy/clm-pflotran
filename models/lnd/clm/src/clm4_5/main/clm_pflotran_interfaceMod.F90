@@ -672,7 +672,7 @@ contains
          ! Assign local pointer to derived subtypes components (column-level)
          clandunit  =>  col%landunit   , & !  [integer (:)]  landunit index of column
          cgridcell  =>  col%gridcell   , & !  [integer (:)]  gridcell index of column
-         wtgcell    =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
+         cwtgcell   =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
          ctype      =>  col%itype      , & !  [integer (:)]  column type index
          hksat      =>  cps%hksat      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
          sucsat     =>  cps%sucsat     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
@@ -993,28 +993,27 @@ contains
             hksat_tmp   = om_hksat
           end if
 
-          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(g) - zsoi(lev))
+          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(c) - zsoi(lev))
           press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(2.0_r8 - zsoi(lev))
 
           if (lev <= nlevsoi) then
-            hksat_x_clm_loc(gcount*nlevsoi + lev ) = hksat_x_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
-            hksat_y_clm_loc(gcount*nlevsoi + lev ) = hksat_y_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*wtgcell(g)
-            hksat_z_clm_loc(gcount*nlevsoi + lev ) = hksat_z_clm_loc(gcount*nlevsoi + lev ) + hksat(g,lev)*wtgcell(g)
-            sucsat_clm_loc( gcount*nlevsoi + lev ) = sucsat_clm_loc( gcount*nlevsoi + lev ) + sucsat(g,lev)*wtgcell(g)
-            watsat_clm_loc( gcount*nlevsoi + lev ) = watsat_clm_loc( gcount*nlevsoi + lev ) + watsat(g,lev)*wtgcell(g)
-            bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*wtgcell(g)
-            press_clm_loc(  gcount*nlevsoi + lev ) = press_clm_loc(  gcount*nlevsoi + lev ) + press_tmp*wtgcell(g)
+            hksat_x_clm_loc(gcount*nlevsoi + lev ) = hksat_x_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_y_clm_loc(gcount*nlevsoi + lev ) = hksat_y_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_z_clm_loc(gcount*nlevsoi + lev ) = hksat_z_clm_loc(gcount*nlevsoi + lev ) + hksat(c,lev)*cwtgcell(c)
+            sucsat_clm_loc( gcount*nlevsoi + lev ) = sucsat_clm_loc( gcount*nlevsoi + lev ) + sucsat(c,lev)*cwtgcell(c)
+            watsat_clm_loc( gcount*nlevsoi + lev ) = watsat_clm_loc( gcount*nlevsoi + lev ) + watsat(c,lev)*cwtgcell(c)
+            bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*cwtgcell(c)
+            press_clm_loc(  gcount*nlevsoi + lev ) = press_clm_loc(  gcount*nlevsoi + lev ) + press_tmp*cwtgcell(c)
 
             if(pflotran_m%option%myrank .eq. -1) then
-              write(*,'(I4,9F15.10)'), gcount*nlevsoi + lev, &
+              write(*,*),gcount,nlevsoi,lev, gcount*nlevsoi + lev, &
                                       sucsat_clm_loc( gcount*nlevsoi + lev ), &
                                       bsw_clm_loc(    gcount*nlevsoi + lev ), &
                                       watsat_clm_loc( gcount*nlevsoi + lev ), &
                                       hksat_x_clm_loc(gcount*nlevsoi + lev ), &
                                       hksat_y_clm_loc(gcount*nlevsoi + lev ), &
                                       hksat_z_clm_loc(gcount*nlevsoi + lev ), &
-                                      998.2_r8*9.81_r8*(zwt(g) - zsoi(lev)), zwt(g), zsoi(lev)
-              write(*,*),gcount*nlevsoi+lev, press_clm_loc(gcount*nlevsoi+lev)
+                                      998.2_r8*9.81_r8*(zwt(c) - zsoi(lev)), zwt(c), zsoi(lev)
             endif
           endif
         enddo 
