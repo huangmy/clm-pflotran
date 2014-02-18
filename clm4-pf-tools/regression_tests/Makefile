@@ -30,8 +30,8 @@ STANDARD_TESTS= \
     tests/ugrid-1x1x10-subsurface-th-noice-dec.cfg \
     tests/ugrid-1x1x10-subsurface-richards-may.cfg \
     tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-1.cfg \
-    tests/ugrid-13x26x10-surface-subsurface-th-noice-dec-NGEE_SiteB.cfg
-#    tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-4.cfg \
+    tests/ugrid-13x26x10-surface-subsurface-th-noice-dec-NGEE_SiteB.cfg \
+    tests/ugrid-13x26x10-subsurface-th-noice-dec-NGEE_SiteB-np-4.cfg
 #    tests/ugrid-1x1x10-subsurface-th-ice-may.cfg \
 
 COMMON_EXE= \
