@@ -21,11 +21,13 @@ if ( $COMPILER == "pgi" ) then
  
 endif
 
+module load perl/perl-5.16.2
 module load cmake/cmake-2.8.10.2
 
 setenv USER_INCLDIR
 setenv NETCDF_PATH $NETCDF
 setenv PNETCDF_PATH $PNETCDF 
+setenv PERL5LIB "/projects/jshollen/perlmodules/lib/perl5:/projects/jshollen/perlmodules/lib/perl5/x86_64-linux"
 # Run time variables
 
 setenv OMP_STACKSIZE 64M

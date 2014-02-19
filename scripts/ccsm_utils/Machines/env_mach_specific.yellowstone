@@ -46,10 +46,10 @@ if ( $COMPILER == "pgi" ) then
   module load pgi/13.9
   module load netcdf/4.3.0
   if ( $?LSB_JOBID) then
-    # The following is needed at runtime, but makes compilation
-    # extremely slow. So we only do it when LSB_JOBID is defined,
-    # which is a way of seeing whether it's runtime.
-    setenv LD_PRELOAD /opt/ibmhpc/pe1304/ppe.pami/gnu/lib64/pami64/libpami.so
+    # The following is needed at runtime, but seems to break the
+    # build.  So we only do it when LSB_JOBID is defined, which is a
+    # way of seeing whether it's runtime.
+    setenv MP_COMPILER gnu
   endif
 endif
 if ( $COMPILER == "gnu" ) then

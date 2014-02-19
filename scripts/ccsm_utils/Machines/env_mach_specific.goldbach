@@ -4,6 +4,8 @@
 # Goldbach machine specific settings
 #===============================================================================
 
+limit stacksize unlimited
+limit coredumpsize unlimited
 if ( $COMPILER == "intel" ) then
     setenv OMPI_INTEL_PATH /cluster/openmpi-1.4.3-qlc-intel-cluster-2013.4.183
     setenv INTEL        /usr/local/intel-cluster-2013.4.183

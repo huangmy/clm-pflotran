@@ -4,6 +4,39 @@ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk/ChangeLog $
 
 This file describes what tags were created and why
 =================================================================================
+Originator: sacks
+Date: 13 Feb 2014
+Model: Machines
+Version: Machines_140213
+One-line: Fix pgi on yellowstone
+
+Need to put in a temporary workaround for a problem with pgi on yellowstone
+(setting MP_COMPILER to gnu), and remove an old temporary workaround that no
+longer works (setting LD_PRELOAD to
+/opt/ibmhpc/pe1304/ppe.pami/gnu/lib64/pami64/libpami.so)
+
+M       env_mach_specific.yellowstone
+
+=================================================================================
+Originator: jshollen
+Date: 12 Feb 2014
+Model: Machines
+Version: Machines_140212
+One-line: Reverted goldbach cprnc back to /fs/cgd/csm/tools/cprnc_64
+
+M       config_machines.xml
+
+=================================================================================
+Originator: jshollen
+Date: 11 Feb 2014
+Model: Machines
+Version: Machines_140211
+One-line: unlimited stacksize on goldbach, Perl module fixes on janus. 
+
+M       env_mach_specific.goldbach
+M       env_mach_specific.janus
+
+=================================================================================
 Originator: jshollen
 Date: 07 Feb 2014
 Model: Machines
