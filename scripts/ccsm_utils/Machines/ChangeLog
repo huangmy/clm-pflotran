@@ -4,6 +4,15 @@ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk/ChangeLog $
 
 This file describes what tags were created and why
 =================================================================================
+Originator: muszala
+Date: 14 Feb 2014
+Model: Machines
+Version: Machines_140214
+One-line: PIO_BUFFER_LIMIT_SIZE fix for bug 1730 and pio_1_8_9
+
+M       config_pes.xml
+
+=================================================================================
 Originator: sacks
 Date: 13 Feb 2014
 Model: Machines

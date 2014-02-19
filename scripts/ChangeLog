@@ -1,8 +1,64 @@
 ================================================================================
-SVN $Id: ChangeLog 57226 2014-02-10 04:52:57Z erik $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140209/ChangeLog $
+SVN $Id: ChangeLog 57342 2014-02-14 21:09:13Z muszala $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140214a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: muszala
+Date: 14 Feb 2014
+Model: scripts
+Version: scripts4_140214a
+One-line: forgot to add ./xmlchange ROOTPE_ATM=0 for pts. mode runs
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLA/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLB/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROA/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROB/xmlchange_cmnds
+
+================================================================================
+Originator: muszala
+Date: 14 Feb 2014
+Model: scripts
+Version: scripts4_140214
+One-line: move pts. mode runs to testmods.  add ED functionality
+
+pts. mode is being deprecated in CLM for all science use.  retain
+tests for SCAM.  Need to change NTASKS* in xmlchange to keep
+clm4_0 pts. mode running
+
+! ED compsets and add CLM45CN back in for ED testing
+M       ccsm_utils/Case.template/config_compsets.xml
+! redo pts. mode tests to use testmods
+M       ccsm_utils/Testlistxml/testlist.xml
+! clean up, retab and remove all pts. mode functionality
+M       create_newcase
+! testmods additions for ed and pts tests
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/edTest
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/edTest/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/edTestGb
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/edTestGb/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLA
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLA/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLA/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLB
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLB/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLB/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROA
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROA/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROA/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROB
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROB/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROB/xmlchange_cmnds
+
+================================================================================
+Originator: jshollen
+Date: 10 Feb 2014
+Model: scripts
+Version: scripts4_140210
+One-line: cesm_setup Perl syntax fix, triggered by perl 5.18.0
+
+M       ccsm_utils/Tools/cesm_setup
+
 ================================================================================
 Originator: erik
 Date: 9 Feb 2014
