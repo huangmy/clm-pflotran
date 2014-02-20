@@ -14,6 +14,8 @@ use shr_sys_mod, only: &
 use shr_log_mod, only: &
      shr_log_Unit
 
+use shr_infnan_mod, only: shr_infnan_isnan
+
 implicit none
 private
 save
@@ -136,10 +138,6 @@ subroutine shr_assert_in_domain_{DIMS}d_{TYPE}(var, varname, msg, &
 !-----------------------------
 ! END macro section
 !-----------------------------
-
-#ifdef TYPEFP
-  use shr_infnan_mod, only: shr_infnan_isnan
-#endif
 
   ! Variable being checked.
   {VTYPE}, intent(in) :: var{DIMSTR}

@@ -1,4 +1,4 @@
-#! /bin/csh -f 
+#! /bin/csh -fx
 
 # directory in which pio is built
 set pio_dir=$EXEROOT/pio
@@ -12,8 +12,7 @@ cd $pio_obj_dir
 # Set options to cmake
 # ----------------------------------------------------------------------
 # Note that some other generic CMAKE options are set in the Makefile
-set cmake_opts=""
-set cmake_opts="$cmake_opts -D CMAKE_Fortran_MODULE_DIRECTORY=$pio_obj_dir"
+set cmake_opts=" -D USER_CMAKE_MODULE_PATH=$CCSMROOT/scripts/ccsm_utils/CMake"
 set cmake_opts="$cmake_opts -D GENF90_PATH=$CCSMROOT/tools/cprnc/genf90"
 
 # ----------------------------------------------------------------------

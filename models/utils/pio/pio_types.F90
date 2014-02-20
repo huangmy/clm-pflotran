@@ -3,8 +3,8 @@
 !! @file 
 !! @brief Derived datatypes and constants for PIO
 !! 
-!! $Revision: 856 $
-!! $LastChangedDate: 2013-11-19 13:48:54 -0800 (Tue, 19 Nov 2013) $
+!! $Revision: 894 $
+!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
 !<
 module pio_types
     use pio_kinds
@@ -14,6 +14,9 @@ module pio_types
 #endif
 #ifndef NO_MPIMOD
     use mpi, only : MPI_COMM_NULL, MPI_INFO_NULL ! _EXTERNAL
+#endif
+#ifdef USE_PNETCDF_MOD
+    use pnetcdf
 #endif
     implicit none
     private 
@@ -288,7 +291,9 @@ module pio_types
 !!  - PIO_char : character
 !<
 #ifdef _PNETCDF
+#ifndef USE_PNETCDF_MOD
 #include <pnetcdf.inc>   /* _EXTERNAL */
+#endif
    integer, public, parameter :: PIO_global = nf_global
    integer, public, parameter :: PIO_unlimited = nf_unlimited
    integer, public, parameter :: PIO_double = nf_double
