@@ -1099,6 +1099,7 @@ contains
   !
   ! !USES:
     use clmtype
+    use clm_atmlnd, only : a2l_downscaled_col
     use clm_varctl          , only : iulog
     use decompMod           , only : bounds_type
     use clm_time_manager, only : get_step_size
@@ -1129,7 +1130,7 @@ contains
     qflx_top_soil     =>    cwf%qflx_top_soil     , & ! Input:  [real(r8) (:)]  net water input into soil from top (mm/s)
     qflx_infl         =>    cwf%qflx_infl         , & ! Output: [real(r8) (:)] infiltration (mm H2O /s)
     qflx_surf         =>    cwf%qflx_surf         , & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
-    forc_t            =>    ces%forc_t              & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
+    forc_t            =>    a2l_downscaled_col%forc_t & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
     )
 
     call VecGetArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
