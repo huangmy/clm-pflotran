@@ -75,24 +75,24 @@ contains
 
     associate( &
          locfn       => constructor%locfn, &
-         file_desc_t => constructor%file_desc_t, &
+         file_desc   => constructor%file_desc_t, &
          time_info   => constructor%time_info)
 
     ! Obtain file
 
     call getfil(filename, locfn, 0)
-    call ncd_pio_openfile(file_desc_t, locfn, 0)
+    call ncd_pio_openfile(file_desc, locfn, 0)
     
     ! Obtain years
 
-    call ncd_inqdid(file_desc_t, 'time', varid)
-    call ncd_inqdlen(file_desc_t, varid, ntimes)
+    call ncd_inqdid(file_desc, 'time', varid)
+    call ncd_inqdlen(file_desc, varid, ntimes)
     allocate(years(ntimes), stat=ier)
     if (ier /= 0) then
        write(iulog,*) subname//' allocation error for years'
        call shr_sys_abort()
     end if
-    call ncd_io(ncid=file_desc_t, varname='YEAR', flag='read', data=years)
+    call ncd_io(ncid=file_desc, varname='YEAR', flag='read', data=years)
     
     ! Initialize object containing time information for the file
 
