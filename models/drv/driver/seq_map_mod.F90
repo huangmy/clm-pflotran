@@ -17,16 +17,13 @@ module seq_map_mod
   use shr_const_mod
   use shr_mct_mod, only: shr_mct_sMatPInitnc, shr_mct_queryConfigFile
   use mct_mod
-
   use seq_comm_mct
-  use seq_mctext_mod, only : seq_mctext_gsmapextend
-
 #ifdef USE_ESMF_LIB
   use esmf
   use esmfshr_mod
   use seq_map_esmf
 #endif
-
+  use component_type_mod
   use seq_map_type_mod
 
   implicit none
@@ -37,20 +34,19 @@ module seq_map_mod
 ! Public interfaces
 !--------------------------------------------------------------------------
 
-  public :: seq_map_init_rcfile
-  public :: seq_map_init_rearrolap
-  public :: seq_map_init_rearrsplit
-  public :: seq_map_initvect
-  public :: seq_map_map
-  public :: seq_map_mapvect
-  public :: seq_map_readdata
+  public :: seq_map_init_rcfile     ! cpl pes
+  public :: seq_map_init_rearrolap  ! cpl pes
+  public :: seq_map_initvect        ! cpl pes
+  public :: seq_map_map             ! cpl pes 
+  public :: seq_map_mapvect         ! cpl pes
+  public :: seq_map_readdata        ! cpl pes
 #ifdef USE_ESMF_LIB
-  public :: seq_map_register
+  public :: seq_map_register        ! cpl pes 
 #endif
 
-  interface seq_map_avNorm ; module procedure &
-    seq_map_avNormArr, &
-    seq_map_avNormAvF
+  interface seq_map_avNorm 
+     module procedure seq_map_avNormArr
+     module procedure seq_map_avNormAvF
   end interface
 
 !--------------------------------------------------------------------------
@@ -61,21 +57,6 @@ module seq_map_mod
 ! Private data
 !--------------------------------------------------------------------------
 
-  ! seq_map_maxcnt is the total number of mappings supported
-  ! seq_map_cnt is the total number of mappings initialized any any time
-  ! seq_maps are the mappers that have been initialized
-  
-  integer(IN),parameter :: seq_map_maxcnt = 5000
-  integer(IN)           :: seq_map_cnt = 0
-  type(seq_map),private,target  :: seq_maps(seq_map_maxcnt)
-
-!  tcraig, work-in-progress
-!  type seq_map_node
-!     type(seq_map_node), pointer :: next,prev
-!     type(seq_map), pointer :: seq_map
-!  end type seq_map_node
-!  type(seq_map_node), pointer :: seq_map_list, seq_map_curr
-
   character(*),parameter :: seq_map_stroff = 'variable_unset'
   character(*),parameter :: seq_map_stron  = 'StrinG_is_ON'
   real(R8),parameter,private :: deg2rad = shr_const_pi/180.0_R8  ! deg to rads
@@ -84,14 +65,12 @@ module seq_map_mod
 contains
 !=======================================================================
 
-!=======================================================================
 #ifdef USE_ESMF_LIB
-  subroutine seq_map_register(petlist, ccsm_comp, comp, import_state, export_state)
+  subroutine seq_map_register(petlist, comp, import_state, export_state)
   
     implicit none
   
     integer, pointer                  :: petlist(:)
-    type(ESMF_CplComp)                :: ccsm_comp
     type(ESMF_GridComp), intent(out)  :: comp
     type(ESMF_State),    intent(out)  :: import_state, export_state
   
@@ -112,114 +91,9 @@ contains
   end subroutine
 #endif
 
-!=======================================================================
+ !===============================================================================
 
-  subroutine seq_map_init_rearrsplit( mapper, gsmap_s, ID_s, gsmap_d, ID_d, ID_join, string)
-
-    implicit none
-    !-----------------------------------------------------
-    ! 
-    ! Arguments
-    !
-    type(seq_map)   ,intent(inout),pointer :: mapper
-    type(mct_gsmap) ,intent(in),target     :: gsmap_s
-    integer(IN)     ,intent(in)            :: ID_s
-    type(mct_gsmap) ,intent(in),target     :: gsmap_d
-    integer(IN)     ,intent(in)            :: ID_d
-    integer(IN)     ,intent(in)            :: ID_join
-    character(len=*),intent(in),optional   :: string
-    !
-    ! Local Variables
-    !
-    integer(IN)     :: mapid, mapidmin, mapidmax
-    integer(IN)     :: mpicom_s, mpicom_d, mpicom_join
-    type(mct_gsmap) :: gsmap_s_join
-    type(mct_gsmap) :: gsmap_d_join
-    character(len=*),parameter :: subname = "(seq_map_init_rearrsplit) "
-
-    !-----------------------------------------------------
-
-    if (seq_comm_iamroot(CPLID) .and. present(string)) then
-       write(logunit,'(A)') subname//' called for '//trim(string)
-    endif
-
-    call seq_comm_setptrs(ID_join,mpicom=mpicom_join)
-
-    if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
-       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
-
-       if (mapid > 0) then
-          call seq_map_mappoint(mapid,mapper)
-       else
-          call seq_map_mapinit(mapper,mpicom_join,gsmap_s,gsmap_d)
-          mapper%copy_only = .true.
-          mapper%strategy = "copy"
-       endif
-
-       if (seq_comm_iamroot(ID_join)) then
-          write(logunit,'(2A,L2)') subname,' gsmaps ARE IDENTICAL, copyoption = ',mapper%copy_only
-       endif
-    else
-       if (seq_comm_iamroot(ID_join)) write(logunit,'(2A)') subname,' gsmaps are not identical'
-
-       call seq_comm_setptrs(ID_s ,mpicom=mpicom_s)
-       call seq_comm_setptrs(ID_d ,mpicom=mpicom_d)
-       call seq_comm_setptrs(ID_join,mpicom=mpicom_join)
-
-       ! --- Extend gsmaps to join group of pes
-
-       call seq_mctext_gsmapExtend(gsmap_s, mpicom_s, gsmap_s_join, mpicom_join, ID_join)
-       call seq_mctext_gsmapExtend(gsmap_d, mpicom_d, gsmap_d_join, mpicom_join, ID_join)
-
-       ! --- Initialize rearranger based on join gsmaps
-
-       ! --- test for the gsmaps instead of the gsmap joins because the gsmap joins are temporary
-       mapid = -1
-! -------------------------------
-! tcx  tcraig mapmatch is a problem here because we're comparing gsmaps that may not be defined
-!      on some pes.  first issue is whether gsmap_identical in underlying routine will abort.
-!      second issue is whether different pes return different values.  use mapidmin, mapidmax to
-!      confirm all mapids returned are the same.  if not, then just set mapid to -1 and compute
-!      a new rearranger.
-! tcx  not clear this works all the time, so just do not do map matching here for time being
-!      Sept 2013.
-! -------------------------------
-!       call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="rearrange")
-!       call shr_mpi_min(mapid,mapidmin,mpicom_join,subname//' min')
-!       call shr_mpi_max(mapid,mapidmax,mpicom_join,subname//' max')
-!       if (mapidmin /= mapidmax) mapid = -1
-
-       if (mapid > 0) then
-          call seq_map_mappoint(mapid,mapper)
-       else
-          ! --- the gsmap joins are temporary so store the regular gsmaps in the mapper
-          call seq_map_mapinit(mapper,mpicom_join,gsmap_s,gsmap_d)
-          mapper%rearrange_only = .true.
-
-          ! --- Initialize rearranger
-          call seq_map_gsmapcheck(gsmap_s_join, gsmap_d_join)
-          call mct_rearr_init(gsmap_s_join, gsmap_d_join, mpicom_join, mapper%rearr)
-          mapper%strategy = "rearrange"
-       endif
-
-       ! --- Clean up temporary gsmaps
-
-       call mct_gsMap_clean(gsmap_s_join)
-       call mct_gsMap_clean(gsmap_d_join)
-
-    endif
-
-    if (seq_comm_iamroot(CPLID)) then
-       write(logunit,'(2A,I6,4A)') subname,' mapper counter, strategy, mapfile = ', &
-          mapper%counter,' ',trim(mapper%strategy),' ',trim(mapper%mapfile)
-       call shr_sys_flush(logunit)
-    endif
-
-  end subroutine seq_map_init_rearrsplit
-
-!=======================================================================
-
-  subroutine seq_map_init_rcfile( mapper, gsmap_s, gsmap_d, mpicom, &
+  subroutine seq_map_init_rcfile( mapper, comp_s, comp_d, &
        maprcfile, maprcname, maprctype, samegrid, string, esmf_map)
 
     implicit none
@@ -227,25 +101,25 @@ contains
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout),pointer :: mapper
-    type(mct_gsmap) ,intent(in),target     :: gsmap_s
-    type(mct_gsmap) ,intent(in),target     :: gsmap_d
-    integer(IN)     ,intent(in)            :: mpicom
-    character(len=*),intent(in)            :: maprcfile
-    character(len=*),intent(in)            :: maprcname
-    character(len=*),intent(in)            :: maprctype
-    logical         ,intent(in)            :: samegrid
-    character(len=*),intent(in),optional   :: string
-    logical         ,intent(in),optional   :: esmf_map
+    type(seq_map)        ,intent(inout),pointer :: mapper
+    type(component_type) ,intent(inout)         :: comp_s 
+    type(component_type) ,intent(inout)         :: comp_d 
+    character(len=*)     ,intent(in)            :: maprcfile
+    character(len=*)     ,intent(in)            :: maprcname
+    character(len=*)     ,intent(in)            :: maprctype
+    logical              ,intent(in)            :: samegrid
+    character(len=*)     ,intent(in),optional   :: string
+    logical              ,intent(in),optional   :: esmf_map
     !
     ! Local Variables
     !
-    character(CX) :: mapfile
-    character(CL) :: maptype
-    integer(IN)   :: mapid
-    integer(IN)   :: ssize,dsize
-    character(len=*),parameter :: subname = "(seq_map_init_rcfile) "
-
+    type(mct_gsmap), pointer    :: gsmap_s ! temporary pointers
+    type(mct_gsmap), pointer    :: gsmap_d ! temporary pointers
+    integer(IN)                 :: mpicom
+    character(CX)               :: mapfile
+    character(CL)               :: maptype
+    integer(IN)                 :: mapid
+    integer(IN)                 :: ssize,dsize
 #ifdef USE_ESMF_LIB
     type(ESMF_GridComp)         :: comp
     type(ESMF_State)            :: imp_state, exp_state
@@ -257,12 +131,17 @@ contains
     logical                     :: has_weight=.true.
     integer, pointer            :: petmap(:)
 #endif
-
+    character(len=*),parameter  :: subname = "(seq_map_init_rcfile) "
     !-----------------------------------------------------
 
     if (seq_comm_iamroot(CPLID) .and. present(string)) then
        write(logunit,'(A)') subname//' called for '//trim(string)
     endif
+
+    call seq_comm_setptrs(CPLID, mpicom=mpicom)
+
+    gsmap_s => component_get_gsmap_cx(comp_s)
+    gsmap_d => component_get_gsmap_cx(comp_d)
 
     if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
        call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
@@ -270,9 +149,11 @@ contains
        if (mapid > 0) then
           call seq_map_mappoint(mapid,mapper)
        else
-          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          call seq_map_mapinit(mapper,mpicom)
           mapper%copy_only = .true.
           mapper%strategy = "copy"
+          mapper%gsmap_s => component_get_gsmap_cx(comp_s)
+          mapper%gsmap_d => component_get_gsmap_cx(comp_d)
        endif
 
     elseif (samegrid) then
@@ -281,13 +162,14 @@ contains
        if (mapid > 0) then
           call seq_map_mappoint(mapid,mapper)
        else
-          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
-          mapper%rearrange_only = .true.
-
           ! --- Initialize rearranger
+          call seq_map_mapinit(mapper,mpicom)
+          mapper%rearrange_only = .true.
+          mapper%strategy = "rearrange"
+          mapper%gsmap_s => component_get_gsmap_cx(comp_s)
+          mapper%gsmap_d => component_get_gsmap_cx(comp_d)
           call seq_map_gsmapcheck(gsmap_s, gsmap_d)
           call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
-          mapper%strategy = "rearrange"
        endif
 
     else
@@ -300,14 +182,14 @@ contains
        if (mapid > 0) then
           call seq_map_mappoint(mapid,mapper)
        else
-          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
-          call shr_mct_sMatPInitnc(mapper%sMatp,gsMap_s,gsMap_d, &
-               trim(mapfile),trim(maptype),mpicom)
-          mapper%mapfile =trim(mapfile)
-          mapper%strategy=trim(maptype)
-          if (present(esmf_map)) then
-             mapper%esmf_map = esmf_map
-          endif
+          call seq_map_mapinit(mapper,mpicom)
+          mapper%mapfile = trim(mapfile)
+          mapper%strategy= trim(maptype)
+          mapper%gsmap_s => component_get_gsmap_cx(comp_s)
+          mapper%gsmap_d => component_get_gsmap_cx(comp_d)
+
+          call shr_mct_sMatPInitnc(mapper%sMatp, mapper%gsMap_s, mapper%gsMap_d, trim(mapfile),trim(maptype),mpicom)
+          if (present(esmf_map)) mapper%esmf_map = esmf_map
 
           if (mapper%esmf_map) then
 #ifdef USE_ESMF_LIB
@@ -419,31 +301,37 @@ contains
 
   end subroutine seq_map_init_rcfile
 
-!=======================================================================
+  !=======================================================================
 
-  subroutine seq_map_init_rearrolap( mapper, gsmap_s, gsmap_d, mpicom, string)
+  subroutine seq_map_init_rearrolap(mapper, comp_s, comp_d, string)
 
     implicit none
     !-----------------------------------------------------
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout),pointer :: mapper
-    type(mct_gsmap) ,intent(in)   ,target  :: gsmap_s
-    type(mct_gsmap) ,intent(in)   ,target  :: gsmap_d
-    integer(IN)     ,intent(in)            :: mpicom
-    character(len=*),intent(in),optional   :: string
+    type(seq_map)        ,intent(inout),pointer :: mapper
+    type(component_type) ,intent(inout)         :: comp_s 
+    type(component_type) ,intent(inout)         :: comp_d 
+    character(len=*)     ,intent(in),optional   :: string
     !
     ! Local Variables
     !
-    integer(IN)   :: mapid
+    integer(IN)                :: mapid
+    type(mct_gsmap), pointer   :: gsmap_s
+    type(mct_gsmap), pointer   :: gsmap_d
+    integer(IN)                :: mpicom
     character(len=*),parameter :: subname = "(seq_map_init_rearrolap) "
-
     !-----------------------------------------------------
 
     if (seq_comm_iamroot(CPLID) .and. present(string)) then
        write(logunit,'(A)') subname//' called for '//trim(string)
     endif
+
+    call seq_comm_setptrs(CPLID, mpicom=mpicom)
+
+    gsmap_s => component_get_gsmap_cx(comp_s)
+    gsmap_d => component_get_gsmap_cx(comp_d)
 
     if (mct_gsmap_Identical(gsmap_s,gsmap_d)) then
        call seq_map_mapmatch(mapid,gsmap_s=gsmap_s,gsmap_d=gsmap_d,strategy="copy")
@@ -451,9 +339,11 @@ contains
        if (mapid > 0) then
           call seq_map_mappoint(mapid,mapper)
        else
-          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
+          call seq_map_mapinit(mapper,mpicom)
           mapper%copy_only = .true.
           mapper%strategy = "copy"
+          mapper%gsmap_s => component_get_gsmap_cx(comp_s)
+          mapper%gsmap_d => component_get_gsmap_cx(comp_d)
        endif
 
     else
@@ -462,13 +352,14 @@ contains
        if (mapid > 0) then
           call seq_map_mappoint(mapid,mapper)
        else
-          call seq_map_mapinit(mapper,mpicom,gsmap_s,gsmap_d)
-          mapper%rearrange_only = .true.
-
           ! --- Initialize rearranger
+          call seq_map_mapinit(mapper, mpicom)
+          mapper%rearrange_only = .true.
+          mapper%strategy = "rearrange"
+          mapper%gsmap_s => component_get_gsmap_cx(comp_s)
+          mapper%gsmap_d => component_get_gsmap_cx(comp_d)
           call seq_map_gsmapcheck(gsmap_s, gsmap_d)
           call mct_rearr_init(gsmap_s, gsmap_d, mpicom, mapper%rearr)
-          mapper%strategy = "rearrange"
        endif
 
     endif
@@ -481,7 +372,7 @@ contains
 
   end subroutine seq_map_init_rearrolap
 
-!=======================================================================
+  !=======================================================================
 
   subroutine seq_map_map( mapper, av_s, av_d, fldlist, norm, avwts_s, avwtsfld_s, &
                           string, msgtag )
@@ -577,35 +468,38 @@ contains
 
   end subroutine seq_map_map
 
-!=======================================================================
-  subroutine seq_map_initvect( mapper, type, dom_s, dom_d, gsmap_s, ni, nj, string)
+  !=======================================================================
 
-    implicit none
+  subroutine seq_map_initvect(mapper, type, comp_s, comp_d, string)
+
     !-----------------------------------------------------
     ! 
     ! Arguments
     !
-    type(seq_map)   ,intent(inout)       :: mapper
-    character(len=*),intent(in)          :: type
-    type(mct_gGrid) ,intent(in)          :: dom_s
-    type(mct_gGrid) ,intent(inout)       :: dom_d
-    type(mct_gsMap) ,intent(in),optional :: gsmap_s
-    integer(IN)     ,intent(in),optional :: ni
-    integer(IN)     ,intent(in),optional :: nj
-    character(len=*),intent(in),optional :: string
+    type(seq_map)        ,intent(inout)       :: mapper
+    character(len=*)     ,intent(in)          :: type
+    type(component_type) ,intent(inout)       :: comp_s 
+    type(component_type) ,intent(inout)       :: comp_d 
+    character(len=*)     ,intent(in),optional :: string
     !
     ! Local Variables
     !
+    type(mct_gGrid), pointer   :: dom_s
+    type(mct_gGrid), pointer   :: dom_d
     integer(IN)                :: klon, klat, lsize, n
     logical                    :: lnorm
     character(len=CL)          :: lstring
     character(len=*),parameter :: subname = "(seq_map_initvect) "
+    !-----------------------------------------------------
 
     lstring = ' '
     if (present(string)) then
        if (seq_comm_iamroot(CPLID)) write(logunit,'(A)') subname//' called for '//trim(string)
        lstring = trim(string)
     endif
+
+    dom_s => component_get_dom_cx(comp_s)
+    dom_d => component_get_dom_cx(comp_d)
 
     if (trim(type(1:6)) == 'cart3d') then
        if (mapper%cart3d_init == trim(seq_map_stron)) return
@@ -639,8 +533,9 @@ contains
 
   end subroutine seq_map_initvect
 
-!=======================================================================
-  subroutine seq_map_mapvect( mapper, type, av_s, av_d, fldu, fldv, norm, avwts_s, avwtsfld_s, string )
+  !=======================================================================
+
+  subroutine seq_map_mapvect( mapper, type, av_s, av_d, fldu, fldv, norm, string )
 
     implicit none
     !-----------------------------------------------------
@@ -654,8 +549,6 @@ contains
     character(len=*),intent(in)          :: fldu
     character(len=*),intent(in)          :: fldv
     logical         ,intent(in),optional :: norm
-    type(mct_aVect) ,intent(in),optional :: avwts_s
-    character(len=*),intent(in),optional :: avwtsfld_s
     character(len=*),intent(in),optional :: string
     !
     ! Local Variables
@@ -675,11 +568,6 @@ contains
        return
     endif
 
-    if ((present(avwts_s) .and. .not. present(avwtsfld_s)) .or. &
-        (present(avwtsfld_s) .and. .not. present(avwts_s))) then
-       call shr_sys_abort(trim(subname)//' ERROR avwts_s avwtsfld_s consistency')
-    endif
-
     lnorm = .true.
     if (present(norm)) then
        lnorm = norm
@@ -689,12 +577,7 @@ contains
        if (mapper%cart3d_init /= trim(seq_map_stron)) then
           call shr_sys_abort(trim(subname)//' ERROR: cart3d not initialized '//trim(lstring))
        endif
-       if (present(avwts_s) .and. present(avwtsfld_s)) then
-          call seq_map_cart3d(mapper, type, av_s, av_d, fldu, fldv, norm=lnorm, &
-               avwts_s=avwts_s, avwtsfld_s=avwtsfld_s, string=string)
-       else
-          call seq_map_cart3d(mapper, type, av_s, av_d, fldu, fldv, norm=lnorm, string=string)
-       endif
+       call seq_map_cart3d(mapper, type, av_s, av_d, fldu, fldv, norm=lnorm, string=string)
     elseif (trim(type) == 'none') then
        call seq_map_map(mapper, av_s, av_d, fldlist=trim(fldu)//':'//trim(fldv), norm=lnorm)
     else
@@ -704,8 +587,9 @@ contains
 
   end subroutine seq_map_mapvect
 
-!=======================================================================
-  subroutine seq_map_cart3d( mapper, type, av_s, av_d, fldu, fldv, norm, avwts_s, avwtsfld_s, string)
+  !=======================================================================
+
+  subroutine seq_map_cart3d( mapper, type, av_s, av_d, fldu, fldv, norm, string)
 
     implicit none
     !-----------------------------------------------------
@@ -719,8 +603,6 @@ contains
     character(len=*),intent(in)          :: fldu
     character(len=*),intent(in)          :: fldv
     logical         ,intent(in),optional :: norm
-    type(mct_aVect) ,intent(in),optional :: avwts_s
-    character(len=*),intent(in),optional :: avwtsfld_s
     character(len=*),intent(in),optional :: string
     !
     ! Local Variables
@@ -740,11 +622,6 @@ contains
     endif
 
     mpicom = mapper%mpicom
-
-    if ((present(avwts_s) .and. .not. present(avwtsfld_s)) .or. &
-        (present(avwtsfld_s) .and. .not. present(avwts_s))) then
-       call shr_sys_abort(trim(subname)//' ERROR avwts_s avwtsfld_s consistency')
-    endif
 
     ku = mct_aVect_indexRA(av_s, trim(fldu), perrwith='quiet')
     kv = mct_aVect_indexRA(av_s, trim(fldv), perrwith='quiet')
@@ -777,11 +654,7 @@ contains
           av3_s%rAttr(kuz,n) = uz
        enddo
 
-       if (present(avwts_s) .and. present(avwtsfld_s)) then
-          call seq_map_map(mapper, av3_s, av3_d, norm=lnorm, avwts_s=avwts_s, avwtsfld_s=avwtsfld_s)
-       else
-          call seq_map_map(mapper, av3_s, av3_d, norm=lnorm)
-       endif
+       call seq_map_map(mapper, av3_s, av3_d, norm=lnorm)
 
        kux = mct_aVect_indexRA(av3_d,'ux')
        kuy = mct_aVect_indexRA(av3_d,'uy')
@@ -850,7 +723,8 @@ contains
    endif  ! ku,kv
 
   end subroutine seq_map_cart3d
-!=======================================================================
+
+  !=======================================================================
 
   subroutine seq_map_readdata(maprcfile, maprcname, mpicom, ID, &
          ni_s, nj_s, av_s, gsmap_s, avfld_s, filefld_s, &
@@ -1249,125 +1123,6 @@ contains
     call mct_aVect_clean(avp_i)
     call mct_aVect_clean(avp_o)
 
- end subroutine seq_map_avNormArr
-
-!===============================================================================
- subroutine seq_map_gsmapcheck(gsmap1,gsmap2)
-
-    ! This method verifies that two gsmaps are of the same global size
-
-    implicit none
-    type(mct_gsMap),intent(in) :: gsmap1
-    type(mct_gsMap),intent(in) :: gsmap2
-
-    integer(IN) :: s1, s2
-    character(*),parameter :: subName = '(seq_map_gsmapcheck) '
-
-    s1 = mct_gsMap_gsize(gsMap1)
-    s2 = mct_gsMap_gsize(gsMap2)
-    if (s1 /= s2) then
-      write(logunit,*) trim(subname),'gsmap global sizes different ',s1,s2
-      call shr_sys_abort(subName // "different gsmap size")
-    endif
-
- end subroutine seq_map_gsmapcheck
-
-!===============================================================================
- subroutine seq_map_mapmatch(mapid,gsMap_s,gsMap_d,mapfile,strategy)
-
-    ! This method searches through the current seq_maps to find a 
-    ! mapping file that matches the values passed in
-
-    implicit none
-    integer         ,intent(out) :: mapid
-    type(mct_gsMap) ,intent(in),optional :: gsMap_s
-    type(mct_gsMap) ,intent(in),optional :: gsMap_d
-    character(len=*),intent(in),optional :: mapfile
-    character(len=*),intent(in),optional :: strategy
-
-    integer(IN) :: m
-    logical     :: match
-    character(*),parameter :: subName = '(seq_map_mapmatch) '
-
-    mapid = -1
-! tcraig - this return turns off the mapping reuse
-!    return
-
-    do m = 1,seq_map_cnt
-       match = .true.
-
-       if (match .and. present(mapfile)) then
-          if (trim(mapfile) /= trim(seq_maps(m)%mapfile)) match = .false.
-       endif
-       if (match .and. present(strategy)) then
-          if (trim(strategy) /= trim(seq_maps(m)%strategy)) match = .false.
-       endif
-       if (match .and. present(gsMap_s)) then
-          if (.not.mct_gsmap_Identical(gsmap_s,seq_maps(m)%gsmap_s)) match = .false.
-       endif
-       if (match .and. present(gsMap_d)) then
-          if (.not.mct_gsmap_Identical(gsmap_d,seq_maps(m)%gsmap_d)) match = .false.
-       endif
-
-       if (match) then
-          mapid = m
-          if (seq_comm_iamroot(CPLID)) then
-             write(logunit,'(A,i6)') subname//' found match ',mapid
-             call shr_sys_flush(logunit)
-          endif
-          return
-       endif
-    enddo
-
- end subroutine seq_map_mapmatch
-
-!===============================================================================
- subroutine seq_map_mapinit(mapper,mpicom,gsMap_s,gsMap_d)
-
-    ! This method initializes a new seq_maps map datatype and
-    ! has the mapper passed in point to it
-
-    implicit none
-    type(seq_map)   ,intent(inout),pointer :: mapper
-    integer(IN)     ,intent(in)            :: mpicom
-    type(mct_gsMap) ,intent(in)   ,target  :: gsMap_s
-    type(mct_gsMap) ,intent(in)   ,target  :: gsMap_d
-
-    character(*),parameter :: subName = '(seq_map_mapinit) '
-
-    ! set the seq_map data
-    seq_map_cnt = seq_map_cnt + 1
-    if (seq_map_cnt > seq_map_maxcnt) then
-      write(logunit,*) trim(subname),'seq_map_cnt too large',seq_map_cnt
-      call shr_sys_abort(subName // "seq_map_cnt bigger than seq_map_maxcnt")
-    endif
-    mapper => seq_maps(seq_map_cnt)
-    mapper%counter = seq_map_cnt
-
-    mapper%copy_only = .false.
-    mapper%rearrange_only = .false.
-    mapper%mpicom = mpicom
-    mapper%strategy = "undefined"
-    mapper%mapfile  = "undefined"
-    mapper%gsmap_s => gsmap_s
-    mapper%gsmap_d => gsmap_d
-
- end subroutine seq_map_mapinit
-
-!===============================================================================
- subroutine seq_map_mappoint(mapid,mapper)
-
-    ! This method searches through the current seq_maps to find a 
-    ! mapping file that matches the values passed in
-
-    implicit none
-    integer         ,intent(in) :: mapid
-    type(seq_map)   ,intent(inout),pointer :: mapper
-
-    mapper => seq_maps(mapid)
-
- end subroutine seq_map_mappoint
-
-!===============================================================================
+  end subroutine seq_map_avNormArr
 
 end module seq_map_mod

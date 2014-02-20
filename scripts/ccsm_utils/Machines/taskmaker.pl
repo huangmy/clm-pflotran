@@ -18,7 +18,7 @@ my $maxthrds     = -1; # max threads over all mpi tasks
 my $taskgeomflag = -1; # task geometry string for IBM
 my $thrdgeomflag = -1; # thread geometry string for IBM
 my $aprunflag    = -1; # aprun options for Cray XT
-my $psbrsflag    = -1; # pbs resources option for NAS (NASA pleiades)
+my $pbsrsflag    = -1; # pbs resources option for NAS (NASA pleiades)
 my $nas_node_type    ; # NAS node type name (har|wes|san)
 my $document     = -1; # document the layout
 my $removedeadtasks = 0; # remove dead tasks or reset to 1

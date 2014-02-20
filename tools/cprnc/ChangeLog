@@ -1,4 +1,21 @@
 ==============================================================
+Tag name: cprnc_131120
+Originator: jedwards
+Date: Nov 20, 2013
+One-line Summary: Update genf90 external
+
+M     SVN_EXTERNAL_DIRECTORIES
+
+==============================================================
+Tag name: cprnc_131004
+Originator: jamroz
+Date: Oct 4, 2013
+One-line Summary: Allow bypassing the search for netcdf if 
+  it has already been found by another project.
+
+M       CMakeLists.txt
+
+==============================================================
 Tag name: cprnc_130529
 Originator: sacks
 Date: May 29, 2013

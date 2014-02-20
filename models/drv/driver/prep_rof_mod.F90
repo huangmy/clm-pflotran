@@ -14,7 +14,8 @@ module prep_rof_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: rof, lnd
 
   implicit none
   save
@@ -50,11 +51,11 @@ module prep_rof_mod
   type(seq_map), pointer :: mapper_Fl2r
 
   ! attribute vectors 
-  type(mct_aVect) :: l2r_rx(num_inst_rof)          
+  type(mct_aVect), pointer :: l2r_rx(:)
 
   ! accumulation variables
-  type(mct_aVect), target :: l2racc_lx(num_inst_lnd) ! lnd export, lnd grid, cpl pes
-  integer        , target :: l2racc_lx_cnt           ! l2racc_lx: number of time samples accumulated
+  type(mct_aVect), pointer :: l2racc_lx(:)   ! lnd export, lnd grid, cpl pes
+  integer        , target  :: l2racc_lx_cnt  ! l2racc_lx: number of time samples accumulated
 
   ! other module variables
   integer :: mpicom_CPLID                            ! MPI cpl communicator  
@@ -64,8 +65,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_rof_init(infodata, &
-       rof, lnd, lnd_c2_rof)
+  subroutine prep_rof_init(infodata, lnd_c2_rof)
 
     !---------------------------------------------------------------
     ! Description
@@ -73,10 +73,8 @@ contains
     ! module variables
     !
     ! Arguments
-    type(seq_infodata_type) , intent(in) :: infodata
-    type(component_type)    , intent(in) :: rof(:)
-    type(component_type)    , intent(in) :: lnd(:)
-    logical                 , intent(in) :: lnd_c2_rof ! .true.  => lnd to rof coupling on
+    type(seq_infodata_type) , intent(in)    :: infodata
+    logical                 , intent(in)    :: lnd_c2_rof ! .true.  => lnd to rof coupling on
     !
     ! Local Variables
     integer                     :: lsize_r
@@ -91,8 +89,6 @@ contains
     character(CL)               :: rof_gnam      ! rof grid
     type(mct_aVect) , pointer   :: l2x_lx 
     type(mct_aVect) , pointer   :: x2r_rx 
-    type(mct_gsMap) , pointer   :: gsMap_lx
-    type(mct_gsMap) , pointer   :: gsMap_rx
     character(*)    , parameter :: subname = '(prep_rof_init)'
     character(*)    , parameter :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
@@ -117,12 +113,14 @@ contains
        l2x_lx => component_get_c2x_cx(lnd(1)) 
        lsize_l = mct_aVect_lsize(l2x_lx)
 
+       allocate(l2racc_lx(num_inst_lnd))
        do eli = 1,num_inst_lnd
           call mct_aVect_initSharedFields(l2x_lx, x2r_rx, l2racc_lx(eli), lsize=lsize_l)
           call mct_aVect_zero(l2racc_lx(eli))
        end do
        l2racc_lx_cnt = 0
 
+       allocate(l2r_rx(num_inst_rof))
        do eri = 1,num_inst_rof
           call mct_avect_init(l2r_rx(eri), rList=seq_flds_x2r_fields, lsize=lsize_r)
           call mct_avect_zero(l2r_rx(eri))
@@ -136,9 +134,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Fl2r'
           end if
-          gsmap_lx => component_get_gsmap_cx(lnd(1)) 
-          gsmap_rx => component_get_gsmap_cx(rof(1)) 
-          call seq_map_init_rcfile( mapper_Fl2r, gsmap_lx, gsmap_rx, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Fl2r, lnd(1), rof(1), &
                'seq_maps.rc','lnd2rof_fmapname:','lnd2rof_fmaptype:',samegrid_lr, &
                string='mapper_Fl2r initialization', esmf_map=esmf_map_flag)
        endif
@@ -150,14 +146,13 @@ contains
 
   !================================================================================================
 
-  subroutine prep_rof_accum(lnd, timer)
+  subroutine prep_rof_accum(timer)
 
     !---------------------------------------------------------------
     ! Description
     ! Accumulate land input to river component
     !
     ! Arguments
-    type(component_type) , intent(in) :: lnd(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -174,8 +169,8 @@ contains
        else
           call mct_avect_accum(l2x_lx, l2racc_lx(eli))
        endif
-       if (eli == 1) l2racc_lx_cnt = l2racc_lx_cnt + 1
     end do
+    l2racc_lx_cnt = l2racc_lx_cnt + 1
     call t_drvstopf (trim(timer))
 
   end subroutine prep_rof_accum
@@ -208,7 +203,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_rof_mrg(infodata, rof, fractions_rx, timer_mrg)
+  subroutine prep_rof_mrg(infodata, fractions_rx, timer_mrg)
 
     !---------------------------------------------------------------
     ! Description
@@ -216,7 +211,6 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: rof(:)
     type(mct_aVect)         , intent(in)    :: fractions_rx(:)
     character(len=*)        , intent(in)    :: timer_mrg
     !

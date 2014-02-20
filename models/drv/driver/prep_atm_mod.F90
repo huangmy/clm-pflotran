@@ -5,7 +5,7 @@ module prep_atm_mod
   use shr_kind_mod,     only: cl => SHR_KIND_CL
   use shr_sys_mod,      only: shr_sys_abort, shr_sys_flush
   use seq_comm_mct,     only: num_inst_atm, num_inst_ocn, num_inst_ice, num_inst_lnd, num_inst_xao, &
-                              num_inst_frc, CPLID, ATMID, logunit
+                              num_inst_frc, num_inst_max, CPLID, ATMID, logunit
   use seq_comm_mct,     only: seq_comm_getData=>seq_comm_setptrs                               
   use seq_infodata_mod, only: seq_infodata_type, seq_infodata_getdata  
   use seq_map_type_mod 
@@ -14,7 +14,8 @@ module prep_atm_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: atm, lnd, ocn, ice
 
   implicit none
   save
@@ -62,9 +63,9 @@ module prep_atm_mod
   type(seq_map), pointer :: mapper_Fi2a           ! needed for seq_frac_init
   
   ! attribute vectors 
-  type(mct_aVect), target :: l2x_ax(num_inst_lnd) ! Lnd export, atm grid, cpl pes - allocated in driver
-  type(mct_aVect), target :: i2x_ax(num_inst_ice) ! Ice export, atm grid, cpl pes - allocated in driver
-  type(mct_aVect), target :: o2x_ax(num_inst_ocn) ! Ocn export, atm grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: l2x_ax(:)   ! Lnd export, atm grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: i2x_ax(:)   ! Ice export, atm grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: o2x_ax(:)   ! Ocn export, atm grid, cpl pes - allocated in driver
   
   ! other module variables
   integer :: mpicom_CPLID  ! MPI cpl communicator
@@ -75,8 +76,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_atm_init(infodata, &
-       atm, ocn, ocn_c2_atm, ice, ice_c2_atm, lnd, lnd_c2_atm)
+  subroutine prep_atm_init(infodata, ocn_c2_atm, ice_c2_atm, lnd_c2_atm)
 
     !---------------------------------------------------------------
     ! Description
@@ -84,17 +84,13 @@ contains
     !
     ! Arguments
     type (seq_infodata_type) , intent(inout) :: infodata
-    type(component_type)     , intent(in)    :: atm(:)
-    type(component_type)     , intent(in)    :: ocn(:)
     logical                  , intent(in)    :: ocn_c2_atm ! .true.  => ocn to atm coupling on
-    type(component_type)     , intent(in)    :: ice(:)
     logical                  , intent(in)    :: ice_c2_atm ! .true.  => ice to atm coupling on
-    type(component_type)     , intent(in)    :: lnd(:)
     logical                  , intent(in)    :: lnd_c2_atm ! .true.  => lnd to atm coupling on
     !
     ! Local Variables
     integer                          :: lsize_a
-    integer                          :: eli, eoi,  eii, eai
+    integer                          :: eli, eoi,  eii, eai, emi
     integer                          :: ka,km,k1,k2,k3 ! aVect field indices
     logical                          :: samegrid_ao    ! samegrid atm and ocean
     logical                          :: samegrid_al    ! samegrid atm and land
@@ -107,10 +103,6 @@ contains
     character(CL)                    :: atm_gnam       ! atm grid
     character(CL)                    :: lnd_gnam       ! lnd grid
     type(mct_avect), pointer         :: a2x_ax
-    type(mct_gsMap), pointer         :: gsMap_ax
-    type(mct_gsMap), pointer         :: gsMap_ox
-    type(mct_gsMap), pointer         :: gsMap_ix
-    type(mct_gsMap), pointer         :: gsMap_lx
     character(*), parameter          :: subname = '(prep_atm_init)'
     character(*), parameter          :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
@@ -140,14 +132,17 @@ contains
        a2x_ax => component_get_c2x_cx(atm(1)) 
        lsize_a = mct_aVect_lsize(a2x_ax)
 
+       allocate(l2x_ax(num_inst_lnd))
        do eli = 1,num_inst_lnd
           call mct_aVect_init(l2x_ax(eli), rList=seq_flds_l2x_fields, lsize=lsize_a)
           call mct_aVect_zero(l2x_ax(eli))
        end do
-       do eoi = 1,num_inst_ocn
-          call mct_aVect_init(o2x_ax(eoi), rList=seq_flds_o2x_fields, lsize=lsize_a)
-          call mct_aVect_zero(o2x_ax(eoi))
+       allocate(o2x_ax(num_inst_max))
+       do emi = 1,num_inst_max
+          call mct_aVect_init(o2x_ax(emi), rList=seq_flds_o2x_fields, lsize=lsize_a)
+          call mct_aVect_zero(o2x_ax(emi))
        enddo
+       allocate(i2x_ax(num_inst_ice))
        do eii = 1,num_inst_ice
           call mct_aVect_init(i2x_ax(eii), rList=seq_flds_i2x_fields, lsize=lsize_a)
           call mct_aVect_zero(i2x_ax(eii))
@@ -163,9 +158,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_So2a'
           end if
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_So2a, gsmap_ox, gsmap_ax, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_So2a, ocn(1), atm(1), &
                'seq_maps.rc','ocn2atm_smapname:','ocn2atm_smaptype:',samegrid_ao, &
                'mapper_So2a initialization',esmf_map_flag)
        end if
@@ -176,9 +169,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Fo2a'
           end if
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_Fo2a, gsmap_ox, gsmap_ax, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Fo2a, ocn(1), atm(1), &
                'seq_maps.rc','ocn2atm_fmapname:','ocn2atm_fmaptype:',samegrid_ao, &
                'mapper_Fo2a initialization',esmf_map_flag)
        endif
@@ -189,9 +180,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Si2a'
           end if
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_Si2a, gsmap_ix, gsmap_ax, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Si2a, ice(1), atm(1), &
                'seq_maps.rc','ice2atm_smapname:','ice2atm_smaptype:',samegrid_ao, &
                'mapper_Si2a initialization',esmf_map_flag)
        end if
@@ -202,9 +191,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Fi2a'
           end if
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_Fi2a, gsmap_ix, gsmap_ax, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Fi2a, ice(1), atm(1), &
                'seq_maps.rc','ice2atm_fmapname:','ice2atm_fmaptype:',samegrid_ao, &
                'mapper_Fi2a initialization',esmf_map_flag)
        endif
@@ -216,9 +203,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Fl2a'
           end if
-          gsmap_lx => component_get_gsmap_cx(lnd(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_Fl2a, gsmap_lx, gsmap_ax,mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Fl2a, lnd(1), atm(1), &
                'seq_maps.rc','lnd2atm_fmapname:','lnd2atm_fmaptype:',samegrid_al, &
                'mapper_Fl2a initialization',esmf_map_flag)
        endif
@@ -229,9 +214,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Sl2a'
           end if
-          gsmap_lx => component_get_gsmap_cx(lnd(1)) 
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          call seq_map_init_rcfile(mapper_Sl2a, gsmap_lx, gsmap_ax,mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Sl2a, lnd(1), atm(1), &
                'seq_maps.rc','lnd2atm_smapname:','lnd2atm_smaptype:',samegrid_al, &
                'mapper_Sl2a initialization',esmf_map_flag)
        end if
@@ -243,7 +226,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_atm_mrg(infodata, atm, fractions_ax, xao_ax, timer_mrg)
+  subroutine prep_atm_mrg(infodata, fractions_ax, xao_ax, timer_mrg)
 
     !---------------------------------------------------------------
     ! Description
@@ -251,13 +234,12 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: atm(:)
     type(mct_aVect)         , intent(in)    :: fractions_ax(:)
     type(mct_aVect)         , intent(in)    :: xao_ax(:) 
     character(len=*)        , intent(in)    :: timer_mrg
     !
     ! Local Variables
-    integer                  :: eli, eoi, eii, exi, efi, eai
+    integer                  :: eli, eoi, eii, exi, efi, eai, emi
     type(mct_avect), pointer :: x2a_ax
     character(*), parameter  :: subname = '(prep_atm_mrg)'
     character(*), parameter  :: F00 = "('"//subname//" : ', 4A )"
@@ -271,9 +253,10 @@ contains
        eii = mod((eai-1),num_inst_ice) + 1
        exi = mod((eai-1),num_inst_xao) + 1
        efi = mod((eai-1),num_inst_frc) + 1
+       emi = mod((eai-1),num_inst_max) + 1
 
        x2a_ax => component_get_x2c_cx(atm(eai)) ! This is actually modifying x2a_ax
-       call prep_atm_merge(l2x_ax(eli), o2x_ax(eoi), xao_ax(exi), i2x_ax(eii), &
+       call prep_atm_merge(l2x_ax(eli), o2x_ax(emi), xao_ax(exi), i2x_ax(eii), &
             fractions_ax(efi), x2a_ax)
     enddo
     call t_drvstopf  (trim(timer_mrg))
@@ -318,7 +301,7 @@ contains
     integer, save          :: naflds, klflds,niflds,noflds,nxflds
     !-----------------------------------------------------------------------
     !
-    call seq_comm_setptrs(CPLID, iamroot=iamroot)
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
 
     if (first_time) then
           
@@ -514,32 +497,32 @@ contains
 
   !================================================================================================
 
-  subroutine prep_atm_calc_o2x_ax(ocn, fractions_ox, timer)
+  subroutine prep_atm_calc_o2x_ax(fractions_ox, timer)
     !---------------------------------------------------------------
     ! Description
     ! Create o2x_ax (note that o2x_ax is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: ocn(:)
     type(mct_aVect) , intent(in) :: fractions_ox(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
-    integer :: eoi, efi 
+    integer :: eoi, efi, emi
     type(mct_aVect) , pointer :: o2x_ox
     character(*), parameter   :: subname = '(prep_atm_calc_o2x_ax)'
     character(*), parameter   :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
 
     call t_drvstartf (trim(timer),barrier=mpicom_CPLID)
-    do eoi = 1,num_inst_ocn
-       efi = mod((eoi-1),num_inst_frc) + 1
+    do emi = 1,num_inst_max
+       eoi = mod((emi-1),num_inst_ocn) + 1
+       efi = mod((emi-1),num_inst_frc) + 1
 
        o2x_ox => component_get_c2x_cx(ocn(eoi))
-       call seq_map_map(mapper_So2a, o2x_ox, o2x_ax(eoi),&
+       call seq_map_map(mapper_So2a, o2x_ox, o2x_ax(emi),&
             fldlist=seq_flds_o2x_states,norm=.true., &
             avwts_s=fractions_ox(efi),avwtsfld_s='ofrac')
-       call seq_map_map(mapper_Fo2a, o2x_ox, o2x_ax(eoi),&
+       call seq_map_map(mapper_Fo2a, o2x_ox, o2x_ax(emi),&
             fldlist=seq_flds_o2x_fluxes,norm=.true.)
     enddo
     call t_drvstopf  (trim(timer))
@@ -548,13 +531,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_atm_calc_i2x_ax(ice, fractions_ix, timer)
+  subroutine prep_atm_calc_i2x_ax(fractions_ix, timer)
     !---------------------------------------------------------------
     ! Description
     ! Create i2x_ax (note that i2x_ax is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: ice(:)
     type(mct_aVect) , intent(in) :: fractions_ix(:)
     character(len=*), intent(in) :: timer
     !
@@ -583,13 +565,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_atm_calc_l2x_ax(lnd, fractions_lx, timer)
+  subroutine prep_atm_calc_l2x_ax(fractions_lx, timer)
     !---------------------------------------------------------------
     ! Description
     ! Create l2x_ax (note that l2x_ax is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: lnd(:)
     type(mct_aVect) , intent(in) :: fractions_lx(:)
     character(len=*), intent(in) :: timer
     !

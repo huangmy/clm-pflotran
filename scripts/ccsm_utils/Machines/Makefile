@@ -199,7 +199,7 @@ ifeq ($(strip $(MPILIB)), mpi-serial)
   MPIFC   := $(SFC)
   MPICC   := $(SCC)
   MPICXX  := $(SCXX)
-  CONFIG_ARGS += --enable-mpiserial --disable-netcdf4 MCT_PATH=$(EXEROOT)/mct/mpi-serial
+  CONFIG_ARGS += --enable-mpiserial MCT_PATH=$(EXEROOT)/mct/mpi-serial
   INC_MPI := $(EXEROOT)/mct/mpi-serial
 else
   CC  := $(MPICC)
@@ -285,13 +285,6 @@ CONFIG_ARGS +=  CC="$(SCC)" FC="$(SFC)" MPICC="$(MPICC)" \
                 CPPDEFS="$(CPPDEFS)" CFLAGS="$(CFLAGS) -I.. $(INCLDIR)" \
                 NETCDF_PATH=$(NETCDF_PATH) LDFLAGS="$(LDFLAGS)" \
                 LIBS="$(SLIBS)"
-ifdef PNETCDF_PATH
-  CONFIG_ARGS+= PNETCDF_PATH=$(PNETCDF_PATH)
-endif
-
-ifdef PIO_CONFIG_OPTS
-  CONFIG_ARGS+= $(PIO_CONFIG_OPTS)
-endif 
 
 FFLAGS += $(FPPDEFS)
 FFLAGS_NOOPT += $(FPPDEFS)
@@ -333,13 +326,6 @@ cospsimulator_intr.o: $(COSP_LIBDIR)/libcosp.a
 endif
 
 endif
-
-
-
-
-
-
-
 
 # Set esmf.mk location with ESMF_LIBDIR having precedent over ESMFMKFILE
 CCSM_ESMFMKFILE := undefined_CCSM_ESMFMKFILE
@@ -414,7 +400,7 @@ ifndef MLIBS
 endif
 
 #------------------------------------------------------------------------------
-# Drive configure scripts for support libraries (mct and pio)
+# Drive configure scripts for support libraries (mct)
 #------------------------------------------------------------------------------
 
 $(MCT_LIBDIR)/Makefile.conf: 
@@ -436,16 +422,10 @@ PIOLIB = $(PIO_LIBDIR)/libpio.a
 
 ULIBS += -L$(MCT_LIBDIR)/mct -lmct -L$(MCT_LIBDIR)/mpeu -lmpeu -L$(PIO_LIBDIR) -lpio -lgptl
 
-$(PIO_LIBDIR)/Makefile.conf: 
-	cd $(PIO_LIBDIR); \
-	$(CONFIG_SHELL) $(CODEROOT)/utils/pio/configure $(CONFIG_ARGS) --srcdir $(CODEROOT)/utils/pio
-
-$(PIO_LIBDIR)/libpio.a: $(PIO_LIBDIR)/Makefile.conf
-	$(MAKE) -C $(PIO_LIBDIR)
 
 
 #------------------------------------------------------------------------------
-# Drive cmake script for cism
+# Drive cmake script for cism and pio
 #------------------------------------------------------------------------------
 
 ifndef CMAKE_OPTS
@@ -458,7 +438,16 @@ endif
 CMAKE_OPTS += -D CMAKE_Fortran_FLAGS:STRING="$(FFLAGS) $(INCLDIR)" \
               -D CMAKE_C_FLAGS:STRING="$(CFLAGS) $(INCLDIR)" \
               -D CMAKE_CXX_FLAGS:STRING="$(CXXFLAGS) $(INCLDIR)" \
-              -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON
+              -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON 
+
+ifdef PNETCDF_PATH
+	CMAKE_OPTS += -D PNETCDF_DIR:STRING="$(PNETCDF_PATH)" 
+else
+        CMAKE_OPTS += -D WITH_PNETCDF:LOGICAL=FALSE
+endif
+ifdef PIO_FILESYSTEM_HINTS
+	CMAKE_OPTS += -D PIO_FILESYSTEM_HINTS:STRING="$(PIO_FILESYSTEM_HINTS)"
+endif
 
 # This captures the many cism-specific options to cmake
 CMAKE_OPTS += $(USER_CMAKE_OPTS)
@@ -471,15 +460,21 @@ ifndef CMAKE_ENV_VARS
 endif
 CMAKE_ENV_VARS += CC=$(CC) \
                   CXX=$(CXX) \
-                  FC=$(FC)
+                  FC=$(FC) \
+                  LDFLAGS="$(LDFLAGS)" \
+                  NETCDF_ROOT=$(NETCDF_PATH) 
 
 # We declare $(GLC_DIR)/Makefile to be a phony target so that cmake is
 # always rerun whenever invoking 'make $(GLC_DIR)/Makefile'; this is
 # desirable to pick up any new source files that may have been added
-.PHONY: $(GLC_DIR)/Makefile
+.PHONY: $(GLC_DIR)/Makefile 
 $(GLC_DIR)/Makefile:
 	cd $(GLC_DIR); \
 	$(CMAKE_ENV_VARS) cmake $(CMAKE_OPTS) $(CODEROOT)/glc/cism/glimmer-cism
+
+$(PIO_LIBDIR)/Makefile:
+	cd $(PIO_LIBDIR); \
+	$(CMAKE_ENV_VARS) cmake $(CMAKE_OPTS) $(CODEROOT)/utils/pio
 
 #-------------------------------------------------------------------------------
 # Build & include dependency files

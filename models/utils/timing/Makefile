@@ -28,6 +28,8 @@ endif
 # So be careful if moving this either earlier or later in the makefile!!!
 include $(MACFILE)
 
+INCLDIR += -I$(GPTL_DIR)
+
 ifeq ($(strip $(MPILIB)), mpi-serial)
   CC      := $(SCC)
   FC      := $(SFC)

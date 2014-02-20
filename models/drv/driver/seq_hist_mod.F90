@@ -32,7 +32,8 @@ module seq_hist_mod
    use seq_comm_mct,      only: seq_comm_setnthreads, seq_comm_iamin
    use seq_comm_mct,      only: CPLID, GLOID, logunit, loglevel
    use seq_comm_mct,      only: num_inst_atm, num_inst_lnd, num_inst_ocn
-   use seq_comm_mct,      only:  num_inst_ice, num_inst_glc, num_inst_wav
+   use seq_comm_mct,      only: num_inst_ice, num_inst_glc, num_inst_wav
+   use seq_comm_mct,      only: num_inst_rof
 
    use prep_ocn_mod,      only: prep_ocn_get_r2x_ox
    use prep_ocn_mod,      only: prep_ocn_get_x2oacc_ox
@@ -419,7 +420,8 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
    type(mct_aVect), save  :: x2a_ax_avg(num_inst_atm)
    type(mct_aVect), save  :: l2x_lx_avg(num_inst_lnd)
    type(mct_aVect), save  :: x2l_lx_avg(num_inst_lnd)
-   type(mct_aVect), save  :: r2x_rx_avg(num_inst_lnd)
+   type(mct_aVect), save  :: r2x_rx_avg(num_inst_rof)
+   type(mct_aVect), save  :: x2r_rx_avg(num_inst_rof)
    type(mct_aVect), save  :: o2x_ox_avg(num_inst_ocn)
    type(mct_aVect), save  :: x2o_ox_avg(num_inst_ocn)
    type(mct_aVect), save  :: i2x_ix_avg(num_inst_ice)
@@ -510,11 +512,16 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
          enddo
       endif
       if (rof_present .and. ocnrof_prognostic) then
-         do iidx = 1,  num_inst_lnd
+         do iidx = 1,  num_inst_rof
             c2x => component_get_c2x_cx(rof(iidx))
             lsize = mct_aVect_lsize(c2x)
             call mct_aVect_init(r2x_rx_avg(iidx), c2x, lsize)
             call mct_aVect_zero(r2x_rx_avg(iidx))
+
+            x2c => component_get_x2c_cx(rof(iidx))
+            lsize = mct_aVect_lsize(x2c)
+            call mct_aVect_init(x2l_lx_avg(iidx), x2c, lsize)
+            call mct_aVect_zero(x2l_lx_avg(iidx))
          enddo
       endif
       if (ocn_present) then
@@ -579,7 +586,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (atm_present) then
          do iidx = 1,  num_inst_atm
             c2x => component_get_c2x_cx(atm(iidx))
-            x2c => component_get_c2x_cx(atm(iidx))
+            x2c => component_get_x2c_cx(atm(iidx))
             a2x_ax_avg(iidx)%rAttr = a2x_ax_avg(iidx)%rAttr + c2x%rAttr
             x2a_ax_avg(iidx)%rAttr = x2a_ax_avg(iidx)%rAttr + x2c%rAttr
          enddo
@@ -587,21 +594,23 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (lnd_present) then
          do iidx = 1,  num_inst_lnd
             c2x => component_get_c2x_cx(lnd(iidx))
-            x2c => component_get_c2x_cx(lnd(iidx))
+            x2c => component_get_x2c_cx(lnd(iidx))
             l2x_lx_avg(iidx)%rAttr = l2x_lx_avg(iidx)%rAttr + c2x%rAttr
             x2l_lx_avg(iidx)%rAttr = x2l_lx_avg(iidx)%rAttr + x2c%rAttr
          enddo
       endif
       if (rof_present .and. ocnrof_prognostic) then
-         do iidx = 1,  num_inst_lnd
+         do iidx = 1,  num_inst_rof
             c2x => component_get_c2x_cx(rof(iidx))
+            x2c => component_get_x2c_cx(rof(iidx))
             r2x_rx_avg(iidx)%rAttr = r2x_rx_avg(iidx)%rAttr + c2x%rAttr
+            x2r_rx_avg(iidx)%rAttr = x2r_rx_avg(iidx)%rAttr + x2c%rAttr
          enddo
       endif
       if (ocn_present) then
          do iidx = 1,  num_inst_ocn
             c2x => component_get_c2x_cx(ocn(iidx))
-            x2c => component_get_c2x_cx(ocn(iidx))
+            x2c => component_get_x2c_cx(ocn(iidx))
             o2x_ox_avg(iidx)%rAttr = o2x_ox_avg(iidx)%rAttr + c2x%rAttr
             x2o_ox_avg(iidx)%rAttr = x2o_ox_avg(iidx)%rAttr + x2c%rAttr
          enddo
@@ -609,7 +618,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (ice_present) then
          do iidx = 1,  num_inst_ice
             c2x => component_get_c2x_cx(ice(iidx))
-            x2c => component_get_c2x_cx(ice(iidx))
+            x2c => component_get_x2c_cx(ice(iidx))
             i2x_ix_avg(iidx)%rAttr = i2x_ix_avg(iidx)%rAttr + c2x%rAttr
             x2i_ix_avg(iidx)%rAttr = x2i_ix_avg(iidx)%rAttr + x2c%rAttr
          enddo
@@ -617,7 +626,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (glc_present) then
          do iidx = 1,  num_inst_glc
             c2x => component_get_c2x_cx(glc(iidx))
-            x2c => component_get_c2x_cx(glc(iidx))
+            x2c => component_get_x2c_cx(glc(iidx))
             g2x_gx_avg(iidx)%rAttr = g2x_gx_avg(iidx)%rAttr + c2x%rAttr
             x2g_gx_avg(iidx)%rAttr = x2g_gx_avg(iidx)%rAttr + x2c%rAttr
          enddo
@@ -625,7 +634,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (wav_present) then
          do iidx = 1,  num_inst_wav
             c2x => component_get_c2x_cx(wav(iidx))
-            x2c => component_get_c2x_cx(wav(iidx))
+            x2c => component_get_x2c_cx(wav(iidx))
             w2x_wx_avg(iidx)%rAttr = w2x_wx_avg(iidx)%rAttr + c2x%rAttr
             x2w_wx_avg(iidx)%rAttr = x2w_wx_avg(iidx)%rAttr + x2c%rAttr
          enddo
@@ -638,7 +647,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (atm_present) then
          do iidx = 1,  num_inst_atm
             c2x => component_get_c2x_cx(atm(iidx))
-            x2c => component_get_c2x_cx(atm(iidx))
+            x2c => component_get_x2c_cx(atm(iidx))
             a2x_ax_avg(iidx)%rAttr = (a2x_ax_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2a_ax_avg(iidx)%rAttr = (x2a_ax_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
@@ -646,21 +655,23 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (lnd_present) then
          do iidx = 1,  num_inst_lnd
             c2x => component_get_c2x_cx(lnd(iidx))
-            x2c => component_get_c2x_cx(lnd(iidx))
+            x2c => component_get_x2c_cx(lnd(iidx))
             l2x_lx_avg(iidx)%rAttr = (l2x_lx_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2l_lx_avg(iidx)%rAttr = (x2l_lx_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
       endif
       if (rof_present .and. ocnrof_prognostic) then
-         do iidx = 1,  num_inst_lnd
+         do iidx = 1,  num_inst_rof
             c2x => component_get_c2x_cx(rof(iidx))
+            x2c => component_get_x2c_cx(rof(iidx))
             r2x_rx_avg(iidx)%rAttr = (r2x_rx_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
+            x2r_rx_avg(iidx)%rAttr = (x2r_rx_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
       endif
       if (ocn_present) then
          do iidx = 1,  num_inst_ocn
             c2x => component_get_c2x_cx(ocn(iidx))
-            x2c => component_get_c2x_cx(ocn(iidx))
+            x2c => component_get_x2c_cx(ocn(iidx))
             o2x_ox_avg(iidx)%rAttr = (o2x_ox_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2o_ox_avg(iidx)%rAttr = (x2o_ox_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
@@ -668,7 +679,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (ice_present) then
          do iidx = 1,  num_inst_ice
             c2x => component_get_c2x_cx(ice(iidx))
-            x2c => component_get_c2x_cx(ice(iidx))
+            x2c => component_get_x2c_cx(ice(iidx))
             i2x_ix_avg(iidx)%rAttr = (i2x_ix_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2i_ix_avg(iidx)%rAttr = (x2i_ix_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
@@ -676,7 +687,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (glc_present) then
          do iidx = 1,  num_inst_glc
             c2x => component_get_c2x_cx(glc(iidx))
-            x2c => component_get_c2x_cx(glc(iidx))
+            x2c => component_get_x2c_cx(glc(iidx))
             g2x_gx_avg(iidx)%rAttr = (g2x_gx_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2g_gx_avg(iidx)%rAttr = (x2g_gx_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
@@ -684,7 +695,7 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
       if (wav_present) then
          do iidx = 1,  num_inst_wav
             c2x => component_get_c2x_cx(wav(iidx))
-            x2c => component_get_c2x_cx(wav(iidx))
+            x2c => component_get_x2c_cx(wav(iidx))
             w2x_wx_avg(iidx)%rAttr = (w2x_wx_avg(iidx)%rAttr + c2x%rAttr) / (cnt * 1.0_r8)
             x2w_wx_avg(iidx)%rAttr = (x2w_wx_avg(iidx)%rAttr + x2c%rAttr) / (cnt * 1.0_r8)
          enddo
@@ -777,6 +788,9 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
                call seq_io_write(hist_file, gsmap, r2x_rx_avg, 'r2x_rx',  &
                     nx=rof_nx, ny=rof_ny, nt=1, whead=whead, wdata=wdata,  &
                     pre='r2xavg', tavg=.true.)
+               call seq_io_write(hist_file, gsmap, x2r_rx_avg, 'x2r_rx',  &
+                    nx=rof_nx, ny=rof_ny, nt=1, whead=whead, wdata=wdata,  &
+                    pre='x2ravg', tavg=.true.)
             endif
             if (ocn_present) then
                gsmap => component_get_gsmap_cx(ocn(1))
@@ -844,8 +858,9 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
             enddo
          endif
          if (rof_present .and. ocnrof_prognostic) then
-            do iidx = 1,  num_inst_lnd
+            do iidx = 1,  num_inst_rof
                call mct_aVect_zero(r2x_rx_avg(iidx))
+               call mct_aVect_zero(x2r_rx_avg(iidx))
             enddo
          endif
          if (ocn_present) then

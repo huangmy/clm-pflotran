@@ -267,13 +267,15 @@ subroutine datm_comp_init( EClock, cdata, x2a, a2x, NLFilename )
     real(R8)      :: nextsw_cday ! calendar of next atm sw
     character(CL) :: flds_strm
     logical       :: presaero    ! true => send valid prescribe aero fields to coupler
+    logical       :: force_prognostic_true ! if true set prognostic true
     character(CL) :: calendar    ! calendar type
     character(CL) :: bias_correct    ! true => send bias correction fields to coupler
     character(CL) :: anomaly_forcing(8)    ! true => send anomaly forcing fields to coupler
 
     !----- define namelist -----
     namelist / datm_nml / &
-        atm_in, decomp, iradsw, factorFn, restfilm, restfils, presaero, bias_correct, anomaly_forcing
+        atm_in, decomp, iradsw, factorFn, restfilm, restfils, presaero, bias_correct, &
+        anomaly_forcing, force_prognostic_true
 
     !--- formats ---
     character(*), parameter :: F00   = "('(datm_comp_init) ',8a)"
@@ -351,6 +353,7 @@ subroutine datm_comp_init( EClock, cdata, x2a, a2x, NLFilename )
     restfilm = trim(nullstr)
     restfils = trim(nullstr)
     presaero = .false.
+    force_prognostic_true = .false.
     if (my_task == master_task) then
        nunit = shr_file_getUnit() ! get unused unit number
        open (nunit,file=trim(filename),status="old",action="read")
@@ -369,6 +372,7 @@ subroutine datm_comp_init( EClock, cdata, x2a, a2x, NLFilename )
        write(logunit,F00)' restfilm = ',trim(restfilm)
        write(logunit,F00)' restfils = ',trim(restfils)
        write(logunit,F0L)' presaero = ',presaero
+       write(logunit,F0L)' force_prognostic_true = ',force_prognostic_true
        write(logunit,F01) 'inst_index  =  ',inst_index
        write(logunit,F00) 'inst_name   =  ',trim(inst_name)
        write(logunit,F00) 'inst_suffix =  ',trim(inst_suffix)
@@ -381,9 +385,14 @@ subroutine datm_comp_init( EClock, cdata, x2a, a2x, NLFilename )
     call shr_mpi_bcast(restfilm,mpicom,'restfilm')
     call shr_mpi_bcast(restfils,mpicom,'restfils')
     call shr_mpi_bcast(presaero,mpicom,'presaero')
+    call shr_mpi_bcast(force_prognostic_true,mpicom,'force_prognostic_true')
 
     rest_file = trim(restfilm)
     rest_file_strm = trim(restfils)
+    if (force_prognostic_true) then
+       atm_present    = .true.
+       atm_prognostic = .true.
+    endif
 
     !----------------------------------------------------------------------------
     ! Read dshr namelist

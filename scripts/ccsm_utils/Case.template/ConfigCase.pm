@@ -1228,13 +1228,15 @@ sub print_machines
 sub set_pes
 {
     # Set the parameters for the pe layout.    
-    my($self,$pes_file,$decomp_ref,$pecount_opts, $print) = @_;
+    my($self,$pes_file,$decomp_ref,$pecount_opts, $print, $testwithopts) = @_;
 
-#    print "tcx1: pecount_opts: $pecount_opts\n";
+    #print "tcx1: pecount_opts: $pecount_opts\n";
 
     # Initialize some local variables
     my $nm = "set_pes"; 
     my @matches = keys(%$self);
+	#print "matches: \n";
+	#map { print "$_\n"} sort @matches;
     if ( ref($decomp_ref) ne "HASH" ) { die "ERROR::($nm) input decomp is not a hash!\n"; }
 
     # Open and read the xml file
@@ -1296,6 +1298,15 @@ sub set_pes
 			    $num_matches++;
 			}
 		    }
+			# If the TEST attribute exists, then we are either using this layout for
+			# a particular test, or NOT using this layout for a particular test via
+			# the use of a regular expression..
+			if($key eq "TEST") {
+				if(defined $testwithopts && $testwithopts =~ /$atts{$key}/) {
+				  print "Test with opts $testwithopts matches $atts{$key}\n";
+				  $num_matches++;
+	            }
+			}
 
 		}
 		

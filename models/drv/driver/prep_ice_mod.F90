@@ -15,7 +15,8 @@ module prep_ice_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: ice, atm, ocn, glc, rof
 
   implicit none
   save
@@ -57,10 +58,10 @@ module prep_ice_mod
   type(seq_map), pointer :: mapper_Rr2i
 
   ! attribute vectors 
-  type(mct_aVect), target :: a2x_ix(num_inst_atm) ! Atm export, ice grid, cpl pes - allocated in driver
-  type(mct_aVect), target :: o2x_ix(num_inst_ocn) ! Ocn export, ice grid, cpl pes - allocated in driver
-  type(mct_aVect), target :: g2x_ix(num_inst_glc) ! Glc export, ice grid, cpl pes - allocated in driver
-  type(mct_aVect), target :: r2x_ix(num_inst_rof) ! Rof export, ice grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: a2x_ix(:) ! Atm export, ice grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: o2x_ix(:) ! Ocn export, ice grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: g2x_ix(:) ! Glc export, ice grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: r2x_ix(:) ! Rof export, ice grid, cpl pes - allocated in driver
 
   ! seq_comm_getData variables
   integer :: mpicom_CPLID                         ! MPI cpl communicator
@@ -70,8 +71,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ice_init(infodata, &
-       ice, ocn, ocn_c2_ice, glc, glc_c2_ice, rof, rof_c2_ice)
+  subroutine prep_ice_init(infodata, ocn_c2_ice, glc_c2_ice, rof_c2_ice)
 
     !---------------------------------------------------------------
     ! Description
@@ -80,12 +80,8 @@ contains
     !
     ! Arguments
     type (seq_infodata_type) , intent(in)    :: infodata
-    type(component_type),      intent(inout) :: ice(:)
-    type(component_type),      intent(in)    :: ocn(:)
     logical,                   intent(in)    :: ocn_c2_ice ! .true.  => ocn to ice coupling on
-    type(component_type),      intent(in)    :: glc(:)
     logical,                   intent(in)    :: glc_c2_ice ! .true.  => glc to ice coupling on
-    type(component_type),      intent(in)    :: rof(:)
     logical,                   intent(in)    :: rof_c2_ice ! .true.  => rof to ice coupling on
     !
     ! Local Variables
@@ -101,10 +97,6 @@ contains
     character(CL)                    :: glc_gnam      ! glc grid
     character(CL)                    :: rof_gnam      ! rof grid
     type(mct_avect), pointer         :: i2x_ix
-    type(mct_gsMap), pointer         :: gsMap_ix
-    type(mct_gsMap), pointer         :: gsMap_ox
-    type(mct_gsMap), pointer         :: gsMap_gx
-    type(mct_gsMap), pointer         :: gsMap_rx
     character(*), parameter          :: subname = '(prep_ice_init)'
     character(*), parameter          :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
@@ -129,18 +121,22 @@ contains
        i2x_ix => component_get_c2x_cx(ice(1)) 
        lsize_i = mct_aVect_lsize(i2x_ix)
 
+       allocate(a2x_ix(num_inst_atm))
        do eai = 1,num_inst_atm
           call mct_aVect_init(a2x_ix(eai), rList=seq_flds_a2x_fields, lsize=lsize_i)
           call mct_aVect_zero(a2x_ix(eai))
        end do
+       allocate(o2x_ix(num_inst_ocn))
        do eoi = 1,num_inst_ocn
           call mct_aVect_init(o2x_ix(eoi), rList=seq_flds_o2x_fields, lsize=lsize_i)
           call mct_aVect_zero(o2x_ix(eoi))
        enddo
+       allocate(g2x_ix(num_inst_glc))
        do egi = 1,num_inst_glc
           call mct_aVect_init(g2x_ix(egi), rList=seq_flds_g2x_fields, lsize=lsize_i)
           call mct_aVect_zero(g2x_ix(egi))
        enddo
+       allocate(r2x_ix(num_inst_rof))
        do eri = 1,num_inst_rof
           call mct_aVect_init(r2x_ix(eri), rList=seq_flds_r2x_fields, lsize=lsize_i)
           call mct_aVect_zero(r2x_ix(eri))
@@ -156,10 +152,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_SFo2i'
           end if
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          call seq_map_init_rearrolap(mapper_SFo2i, gsmap_ox, gsmap_ix, mpicom_CPLID, &
-               'mapper_SFo2i')
+          call seq_map_init_rearrolap(mapper_SFo2i, ocn(1), ice(1), 'mapper_SFo2i')
        endif
 
        if (glc_c2_ice) then
@@ -167,9 +160,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Rg2i'
           end if
-          gsmap_gx => component_get_gsmap_cx(glc(1)) 
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          call seq_map_init_rcfile(mapper_Rg2i, gsmap_gx, gsmap_ix, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Rg2i, glc(1), ocn(1), &
                'seq_maps.rc','glc2ice_rmapname:','glc2ice_rmaptype:',samegrid_ig, &
                'mapper_Rg2i initialization', esmf_map_flag)
        endif
@@ -179,9 +170,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Rr2i'
           end if
-          gsmap_rx => component_get_gsmap_cx(rof(1)) 
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          call seq_map_init_rcfile(mapper_Rr2i, gsmap_rx, gsmap_ix, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Rr2i, rof(1), ice(1), &
                'seq_maps.rc','rof2ice_rmapname:','rof2ice_rmaptype:',samegrid_ro, &
                'mapper_Rr2i initialization', esmf_map_flag)
        endif
@@ -193,7 +182,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ice_mrg(infodata, ice, timer_mrg)
+  subroutine prep_ice_mrg(infodata, timer_mrg)
 
     !---------------------------------------------------------------
     ! Description
@@ -201,7 +190,6 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: ice(:)
     character(len=*)        , intent(in)    :: timer_mrg
     !
     ! Local Variables
@@ -320,13 +308,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ice_calc_o2x_ix(ocn, timer)
+  subroutine prep_ice_calc_o2x_ix(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create o2x_ix (note that o2x_ix is a local module variable)
     !
     ! Arguments
-    type(component_type), intent(in)  :: ocn(:) 
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -346,13 +333,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ice_calc_r2x_ix(rof, timer)
+  subroutine prep_ice_calc_r2x_ix(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create r2x_ix (note that r2x_ix is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: rof(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -374,13 +360,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_ice_calc_g2x_ix(glc, timer)
+  subroutine prep_ice_calc_g2x_ix(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create g2x_ix (note that g2x_ix is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: glc(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables

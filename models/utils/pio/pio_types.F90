@@ -3,8 +3,8 @@
 !! @file 
 !! @brief Derived datatypes and constants for PIO
 !! 
-!! $Revision: 751 $
-!! $LastChangedDate: 2013-04-02 09:01:13 -0700 (Tue, 02 Apr 2013) $
+!! $Revision: 856 $
+!! $LastChangedDate: 2013-11-19 13:48:54 -0800 (Tue, 19 Nov 2013) $
 !<
 module pio_types
     use pio_kinds
@@ -323,6 +323,7 @@ module pio_types
    integer, public, parameter :: PIO_MAX_NAME = nf90_max_name
    integer, public, parameter :: PIO_MAX_VAR_DIMS = nf90_max_var_dims
    integer, public, parameter :: PIO_64BIT_OFFSET = nf90_64bit_offset
+   integer, public, parameter :: PIO_64BIT_DATA = 0
 #else
    integer, public, parameter :: PIO_global = 0
    integer, public, parameter :: PIO_double = 6
@@ -337,6 +338,7 @@ module pio_types
    integer, public, parameter :: PIO_WRITE = 20
    integer, public, parameter :: PIO_NOWRITE = 21
    integer, public, parameter :: PIO_64BIT_OFFSET = 0
+   integer, public, parameter :: PIO_64BIT_DATA = 0
 #endif
 #endif
    integer, public, parameter :: PIO_num_OST =  16

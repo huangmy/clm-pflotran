@@ -14,7 +14,8 @@ module prep_glc_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod   
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: glc, lnd
 
   implicit none
   save
@@ -51,11 +52,11 @@ module prep_glc_mod
   type(seq_map), pointer :: mapper_SFl2g
 
   ! attribute vectors 
-  type(mct_aVect), target :: l2x_gx(num_inst_lnd)     ! Lnd export, glc grid, cpl pes - allocated in driver
+  type(mct_aVect), pointer :: l2x_gx(:) ! Lnd export, glc grid, cpl pes - allocated in driver
 
   ! accumulation variables
-  type(mct_aVect), target :: l2gacc_lx(num_inst_lnd)  ! Lnd export, lnd grid, cpl pes - allocated in driver
-  integer        , target :: l2gacc_lx_cnt            ! l2gacc_lx: number of time samples accumulated
+  type(mct_aVect), pointer :: l2gacc_lx(:) ! Lnd export, lnd grid, cpl pes - allocated in driver
+  integer        , target :: l2gacc_lx_cnt ! l2gacc_lx: number of time samples accumulated
 
   ! other module variables
   integer :: mpicom_CPLID  ! MPI cpl communicator
@@ -65,8 +66,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_glc_init(infodata, &
-       glc, lnd, lnd_c2_glc)
+  subroutine prep_glc_init(infodata, lnd_c2_glc)
 
     !---------------------------------------------------------------
     ! Description
@@ -74,8 +74,6 @@ contains
     !
     ! Arguments
     type (seq_infodata_type) , intent(inout) :: infodata
-    type(component_type)     , intent(inout) :: glc(:)
-    type(component_type)     , intent(in)    :: lnd(:)
     logical                  , intent(in)    :: lnd_c2_glc ! .true.  => lnd to glc coupling on
     !
     ! Local Variables
@@ -87,10 +85,8 @@ contains
     logical                          :: glc_present   ! .true. => glc is present
     character(CL)                    :: lnd_gnam      ! lnd grid
     character(CL)                    :: glc_gnam      ! glc grid
-    type(mct_gsMap), pointer         :: gsMap_gx
     type(mct_avect), pointer         :: l2x_lx
     type(mct_avect), pointer         :: x2g_gx
-    type(mct_gsMap), pointer         :: gsMap_lx
     character(*), parameter          :: subname = '(prep_glc_init)'
     character(*), parameter          :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
@@ -114,6 +110,8 @@ contains
        x2g_gx => component_get_x2c_cx(glc(1))
        lsize_g = mct_aVect_lsize(x2g_gx)
        
+       allocate(l2x_gx(num_inst_lnd))
+       allocate(l2gacc_lx(num_inst_lnd))
        do eli = 1,num_inst_lnd
           call mct_aVect_initSharedFields(l2x_lx, x2g_gx, l2x_gx(eli) ,lsize=lsize_g)
           call mct_aVect_zero(l2x_gx(eli))
@@ -127,9 +125,7 @@ contains
           write(logunit,*) ' '
           write(logunit,F00) 'Initializing mapper_SFl2g'
        end if
-       gsmap_lx => component_get_gsmap_cx(lnd(1)) 
-       gsmap_gx => component_get_gsmap_cx(glc(1)) 
-       call seq_map_init_rearrolap(mapper_SFl2g, gsmap_lx, gsmap_gx, mpicom_CPLID, 'mapper_SFl2g')
+       call seq_map_init_rearrolap(mapper_SFl2g, lnd(1), glc(1), 'mapper_SFl2g')
        call shr_sys_flush(logunit)
 
     end if
@@ -138,14 +134,13 @@ contains
 
   !================================================================================================
 
-  subroutine prep_glc_accum(lnd, timer)
+  subroutine prep_glc_accum(timer)
 
     !---------------------------------------------------------------
     ! Description
     ! Accumulate glc inputs
     !
     ! Arguments
-    type(component_type) , intent(in) :: lnd(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -162,8 +157,8 @@ contains
        else
           call mct_avect_accum(l2x_lx, l2gacc_lx(eli))
        endif
-       if (eli == 1) l2gacc_lx_cnt = l2gacc_lx_cnt + 1
     end do
+    l2gacc_lx_cnt = l2gacc_lx_cnt + 1
     call t_drvstopf  (trim(timer))
 
   end subroutine prep_glc_accum
@@ -197,7 +192,7 @@ contains
 
   !================================================================================================
   
-  subroutine prep_glc_mrg(infodata, glc, timer_mrg, timer_diag) 
+  subroutine prep_glc_mrg(infodata, timer_mrg, timer_diag) 
 
     !---------------------------------------------------------------
     ! Description
@@ -205,7 +200,6 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: glc(:)
     character(len=*)        , intent(in)    :: timer_mrg
     character(len=*)        , intent(in)    :: timer_diag
     !

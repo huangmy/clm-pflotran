@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: mct_mod.F90 50927 2013-09-06 23:24:23Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_130918/shr/mct_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_131226/shr/mct_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !

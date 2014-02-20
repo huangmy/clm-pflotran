@@ -14,7 +14,8 @@ module prep_aoflux_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: atm, ocn
 
   implicit none
   private ! except
@@ -53,7 +54,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_aoflux_init (infodata, ocn, atm, fractions_ox, fractions_ax)
+  subroutine prep_aoflux_init (infodata, fractions_ox, fractions_ax)
 
     !---------------------------------------------------------------
     ! Description
@@ -62,8 +63,6 @@ contains
     !
     ! Arguments
     type (seq_infodata_type) , intent(inout) :: infodata
-    type(component_type)     , intent(in)    :: ocn(:)
-    type(component_type)     , intent(in)    :: atm(:)
     type(mct_aVect)          , intent(in)    :: fractions_ox(:) 
     type(mct_aVect)          , intent(in)    :: fractions_ax(:) 
     !

@@ -654,6 +654,7 @@ if ($DATM_PRESAERO eq "none" ) {
     add_default($nl, 'presaero', 'val'=>'.true.');
 }
 add_default($nl, 'decomp',    'val'=>'1d');
+add_default($nl, 'force_prognostic_true', 'val'=>'.false.');
 add_default($nl, 'restfilm',  'val'=>'undefined'); 
 add_default($nl, 'restfils',  'val'=>'undefined'); 
 

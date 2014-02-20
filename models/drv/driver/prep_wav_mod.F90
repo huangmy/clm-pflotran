@@ -15,7 +15,8 @@ module prep_wav_mod
   use t_drv_timers_mod
   use mct_mod
   use perf_mod
-  use component_type_mod
+  use component_type_mod, only: component_get_x2c_cx, component_get_c2x_cx
+  use component_type_mod, only: wav, ocn, ice, atm
 
   implicit none
   save
@@ -48,9 +49,9 @@ module prep_wav_mod
   type(seq_map), pointer :: mapper_si2w
 
   ! attribute vectors 
-  type(mct_aVect), target :: o2x_wx(num_inst_ocn)    ! Ocn export, wav grid, cpl pes 
-  type(mct_aVect), target :: i2x_wx(num_inst_ice)    ! Ice export, wav grid, cpl pes 
-  type(mct_aVect), target :: a2x_wx(num_inst_atm)    ! Atm export, wav grid, cpl pes 
+  type(mct_aVect), pointer :: o2x_wx(:) ! Ocn export, wav grid, cpl pes 
+  type(mct_aVect), pointer :: i2x_wx(:) ! Ice export, wav grid, cpl pes 
+  type(mct_aVect), pointer :: a2x_wx(:) ! Atm export, wav grid, cpl pes 
 
   ! accumulation variables
   ! none at this time
@@ -63,8 +64,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_wav_init(infodata, &
-       wav, atm, atm_c2_wav, ocn, ocn_c2_wav, ice, ice_c2_wav)
+  subroutine prep_wav_init(infodata, atm_c2_wav, ocn_c2_wav, ice_c2_wav)
     
     !---------------------------------------------------------------
     ! Description
@@ -73,12 +73,8 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: wav(:)
-    type(component_type)    , intent(in)    :: atm(:)
     logical                 , intent(in)    :: atm_c2_wav ! .true.  => atm to wav coupling on
-    type(component_type)    , intent(in)    :: ocn(:)
     logical                 , intent(in)    :: ocn_c2_wav ! .true.  => ocn to wav coupling on
-    type(component_type)    , intent(in)    :: ice(:)
     logical                 , intent(in)    :: ice_c2_wav ! .true.  => ocn to wav coupling on
     !
     ! Local Variables
@@ -93,10 +89,6 @@ contains
     character(CL)               :: ocn_gnam      ! ocn grid
     character(CL)               :: wav_gnam      ! wav grid
     type(mct_avect) , pointer   :: w2x_wx
-    type(mct_gsMap) , pointer   :: gsMap_wx
-    type(mct_gsMap) , pointer   :: gsMap_ax
-    type(mct_gsMap) , pointer   :: gsMap_ox
-    type(mct_gsMap) , pointer   :: gsMap_ix
     character(*)    , parameter :: subname = '(prep_wav_init)'
     character(*)    , parameter :: F00 = "('"//subname//" : ', 4A )"
     !---------------------------------------------------------------
@@ -118,14 +110,17 @@ contains
        w2x_wx => component_get_c2x_cx(wav(1)) 
        lsize_w = mct_aVect_lsize(w2x_wx)
 
+       allocate(a2x_wx(num_inst_atm))
        do eai = 1,num_inst_atm
           call mct_aVect_init(a2x_wx(eai), rList=seq_flds_a2x_fields, lsize=lsize_w)
           call mct_aVect_zero(a2x_wx(eai))
        enddo
+       allocate(o2x_wx(num_inst_ocn))
        do eoi = 1,num_inst_ocn
           call mct_aVect_init(o2x_wx(eoi), rList=seq_flds_o2x_fields, lsize=lsize_w)
           call mct_aVect_zero(o2x_wx(eoi))
        enddo
+       allocate(i2x_wx(num_inst_ice))
        do eii = 1,num_inst_ice
           call mct_aVect_init(i2x_wx(eii), rList=seq_flds_i2x_fields, lsize=lsize_w)
           call mct_aVect_zero(i2x_wx(eii))
@@ -141,9 +136,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Sa2w'
           end if
-          gsmap_ax => component_get_gsmap_cx(atm(1)) 
-          gsmap_wx => component_get_gsmap_cx(wav(1)) 
-          call seq_map_init_rcfile(mapper_Sa2w, gsmap_ax, gsmap_wx, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Sa2w, atm(1), wav(1), &
                'seq_maps.rc','atm2wav_smapname:','atm2wav_smaptype:',samegrid_aw, &
                'mapper_Sa2w initialization')
        endif
@@ -153,9 +146,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_So2w'
           end if
-          gsmap_ox => component_get_gsmap_cx(ocn(1)) 
-          gsmap_wx => component_get_gsmap_cx(wav(1)) 
-          call seq_map_init_rcfile(mapper_So2w, gsmap_ox, gsmap_wx, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_So2w, ocn(1), wav(1), &
                'seq_maps.rc','ocn2wav_smapname:','ocn2wav_smaptype:',samegrid_ow, &
                'mapper_So2w initialization')
        endif
@@ -165,9 +156,7 @@ contains
              write(logunit,*) ' '
              write(logunit,F00) 'Initializing mapper_Si2w'
           end if
-          gsmap_ix => component_get_gsmap_cx(ice(1)) 
-          gsmap_wx => component_get_gsmap_cx(wav(1)) 
-          call seq_map_init_rcfile(mapper_Si2w, gsmap_ix, gsmap_wx, mpicom_CPLID, &
+          call seq_map_init_rcfile(mapper_Si2w, ice(1), wav(1), &
                'seq_maps.rc','ice2wav_smapname:','ice2wav_smaptype:',samegrid_ow, &
                'mapper_Si2w initialization')
        endif
@@ -179,7 +168,7 @@ contains
 
   !================================================================================================
 
-  subroutine prep_wav_mrg(infodata, wav, fractions_wx, timer_mrg)
+  subroutine prep_wav_mrg(infodata, fractions_wx, timer_mrg)
 
     !---------------------------------------------------------------
     ! Description
@@ -187,7 +176,6 @@ contains
     !
     ! Arguments
     type(seq_infodata_type) , intent(in)    :: infodata
-    type(component_type)    , intent(inout) :: wav(:)
     type(mct_aVect)         , intent(in)    :: fractions_wx(:)
     character(len=*)        , intent(in)    :: timer_mrg
     !
@@ -235,13 +223,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_wav_calc_a2x_wx(atm, timer)
+  subroutine prep_wav_calc_a2x_wx(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create a2x_wx (note that a2x_wx is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: atm(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -260,13 +247,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_wav_calc_o2x_wx(ocn, timer)
+  subroutine prep_wav_calc_o2x_wx(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create o2x_wx (note that o2x_wx is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: ocn(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables
@@ -285,13 +271,12 @@ contains
 
   !================================================================================================
 
-  subroutine prep_wav_calc_i2x_wx(ice, timer)
+  subroutine prep_wav_calc_i2x_wx(timer)
     !---------------------------------------------------------------
     ! Description
     ! Create i2x_wx (note that i2x_wx is a local module variable)
     !
     ! Arguments
-    type(component_type) , intent(in) :: ice(:)
     character(len=*), intent(in) :: timer
     !
     ! Local Variables

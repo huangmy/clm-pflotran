@@ -17,9 +17,9 @@ which are then  used in the Makefile.   For example the NETCDF_PATH on many mach
 
 Do not use variables CPPDEFS and SLIBS here, instead use ADD_CPPDEFS and ADD_SLIBS 
 
-------------------------------------------------------------------------
+========================================================================
  Serial/MPI compiler specification
-------------------------------------------------------------------------
+========================================================================
 
 SCC   and  SFC specifies the serial compiler
 MPICC and  MPICC specifies the mpi compiler
@@ -32,9 +32,9 @@ if $MPILIB is set to mpi-serial then
    INC_MPI = $(CODEROOT)/utils/mct/mpi-serial
 
 
-------------------------------------------------------------------------
+========================================================================
  Options for including C++ code in the build
-------------------------------------------------------------------------
+========================================================================
 
 SUPPORTS_CXX (TRUE/FALSE): Whether we have defined all the necessary
 settings for including C++ code in the build for this compiler (or
@@ -111,7 +111,7 @@ for mct, etc.
   <ADD_CFLAGS compile_threaded="true"> -qsmp=omp </ADD_CFLAGS>
   <ADD_LDFLAGS compile_threaded="true"> -qsmp=omp </ADD_LDFLAGS>
   <FC_AUTO_R8> -qrealsize=8 </FC_AUTO_R8>
-  <ADD_FFLAGS DEBUG="TRUE"> -qinitauto=7FF7FFFF -qflttrap=ov:zero:inv:en -qspillsize=4000 </ADD_FFLAGS>
+  <ADD_FFLAGS DEBUG="TRUE"> -qinitauto=7FF7FFFF -qflttrap=ov:zero:inv:en </ADD_FFLAGS>
   <ADD_FFLAGS DEBUG="TRUE" compile_threaded="true"> -qsmp=omp:noopt </ADD_FFLAGS>
   <ADD_CFLAGS DEBUG="TRUE" compile_threaded="true"> -qsmp=omp:noopt </ADD_CFLAGS>
   <ADD_LDFLAGS DEBUG="TRUE" compile_threaded="true"> -qsmp=omp:noopt </ADD_LDFLAGS>
@@ -137,7 +137,7 @@ for mct, etc.
   <!--  -Kieee          => Perform fp ops in strict conformance with the IEEE 754 standard.  -->
   <!--                     Some optimizations disabled, slightly slower, more accurate math.  -->
   <!--  -mp=nonuma      => Don't use thread/processors affinity (for NUMA architectures)  -->
-  <!--
+  <!-- -->
   <!--  -g              => Generate symbolic debug information. Turns off optimization.   -->
   <!--  -gopt           => Generate information for debugger without disabling optimizations  -->
   <!--  -Mbounds        => Add array bounds checking  -->
@@ -150,13 +150,12 @@ for mct, etc.
   <!--  -time           => Print execution time for each compiler step  -->
 
 
-  <ADD_CPPDEFS> -DFORTRANUNDERSCORE -DNO_SHR_VMATH -DNO_R16 </ADD_CPPDEFS>
+  <ADD_CPPDEFS> -DFORTRANUNDERSCORE -DNO_SHR_VMATH -DNO_R16  </ADD_CPPDEFS>
   <CFLAGS> -gopt -Mlist -time </CFLAGS>
 
-  <ADD_CFLAGS compile_threaded="true"> -mp </ADD_CFLAGS>
-  <ADD_FFLAGS compile_threaded="true"> -mp </ADD_FFLAGS>
-  <ADD_LDFLAGS compile_threaded="true"> -mp </ADD_LDFLAGS>
-
+  <ADD_CFLAGS compile_threaded="false"> -nomp </ADD_CFLAGS>
+  <ADD_FFLAGS compile_threaded="false"> -nomp </ADD_FFLAGS>
+  <ADD_LDFLAGS compile_threaded="false"> -nomp </ADD_LDFLAGS>
 
   <FIXEDFLAGS> -Mfixed </FIXEDFLAGS>
   <FREEFLAGS> -Mfree </FREEFLAGS>
@@ -172,6 +171,70 @@ for mct, etc.
   <ADD_FFLAGS MODEL="dice"> -Mnovect </ADD_FFLAGS>
   <ADD_FFLAGS MODEL="docn"> -Mnovect </ADD_FFLAGS>
   <LDFLAGS> -time -Wl,--allow-multiple-definition </LDFLAGS>
+  <SCC> pgcc </SCC>
+  <SFC> pgf95 </SFC>
+  <SCXX> pgc++ </SCXX>
+  <MPICC> mpicc </MPICC>
+  <MPIFC> mpif90 </MPIFC>
+  <MPICXX> mpicxx </MPICXX>
+
+  <CXX_LINKER>CXX</CXX_LINKER>
+  <!-- Note that SUPPORTS_CXX is false for pgi in general, because we
+       need some machine-specific libraries - see hopper pgi for an
+       example -->
+</compiler>
+
+<compiler COMPILER="pgicuda">
+  <!-- http://www.pgroup.com/resources/docs.htm                                              -->
+  <!-- Notes:  (see pgi man page & user's guide for the details) -->
+  <!--  -Mextend        => Allow 132-column source lines -->
+  <!--  -Mfixed         => Assume fixed-format source -->
+  <!--  -Mfree          => Assume free-format source --> 
+
+  <!--  -byteswapio     => Swap byte-order for unformatted i/o (big/little-endian) -->
+
+  <!--  -target=linux   => Specifies the target architecture to Compute Node Linux (CNL only) -->
+  <!--  -fast           => Chooses generally optimal flags for the target platform -->
+  <!--  -Mnovect        => Disables automatic vector pipelining -->
+  <!--  -Mvect=nosse    => Don't generate SSE, SSE2, 3Dnow, and prefetch instructions in loops    -->
+  <!--  -Mflushz        => Set SSE to flush-to-zero mode (underflow) loops where possible  -->
+  <!--  -Kieee          => Perform fp ops in strict conformance with the IEEE 754 standard.  -->
+  <!--                     Some optimizations disabled, slightly slower, more accurate math.  -->
+  <!--  -mp=nonuma      => Don't use thread/processors affinity (for NUMA architectures)  -->
+  <!-- -->
+  <!--  -g              => Generate symbolic debug information. Turns off optimization.   -->
+  <!--  -gopt           => Generate information for debugger without disabling optimizations  -->
+  <!--  -Mbounds        => Add array bounds checking  -->
+  <!--  -Ktrap=fp       => Determine IEEE Trap conditions fp => inv,divz,ovf   -->
+  <!--                     * inv: invalid operands         -->
+  <!--                     * divz divide by zero           -->
+  <!--                     * ovf: floating point overflow   -->
+  <!--  -Mlist          => Create a listing file             -->
+  <!--  -F              => leaves file.f for each preprocessed file.F file  -->
+  <!--  -time           => Print execution time for each compiler step  -->
+
+
+  <ADD_CPPDEFS> -DFORTRANUNDERSCORE -DNO_SHR_VMATH -DNO_R16 -DUSE_CUDA_FORTRAN -DCPRPGI </ADD_CPPDEFS>
+  <CFLAGS> -gopt -Mlist -time </CFLAGS>
+
+  <ADD_CFLAGS compile_threaded="false"> -nomp </ADD_CFLAGS>
+  <ADD_FFLAGS compile_threaded="false"> -nomp </ADD_FFLAGS>
+  <ADD_LDFLAGS compile_threaded="false"> -nomp </ADD_LDFLAGS>
+
+  <FIXEDFLAGS> -Mfixed </FIXEDFLAGS>
+  <FREEFLAGS> -Mfree </FREEFLAGS>
+  <FC_AUTO_R8> -r8 </FC_AUTO_R8>
+
+  <FFLAGS>  -i4 -gopt -Mlist -time -Mextend -byteswapio -Mflushz -Kieee  -ta=nvidia -Mcuda=5.0,cc35,ptxinfo  </FFLAGS>
+
+  <ADD_FFLAGS DEBUG="TRUE"> -O0 -g -Ktrap=fp -Mbounds -Kieee </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="datm"> -Mnovect </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="dlnd"> -Mnovect </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="drof"> -Mnovect </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="dwav"> -Mnovect </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="dice"> -Mnovect </ADD_FFLAGS>
+  <ADD_FFLAGS MODEL="docn"> -Mnovect </ADD_FFLAGS>
+  <LDFLAGS> -time -Wl,--allow-multiple-definition -ta=nvidia -Mcuda=5.0,cc35 </LDFLAGS>
   <SCC> pgcc </SCC>
   <SFC> pgf95 </SFC>
   <SCXX> pgc++ </SCXX>
@@ -292,8 +355,8 @@ for mct, etc.
 
   <!-- The "-gline" option is nice, but it doesn't work with OpenMP.         -->
   <!-- Runtime checks with OpenMP (in fact, all OpenMP cases) are WIP.       -->
-  <ADD_FFLAGS       DEBUG="TRUE" compile_threaded="false"> -gline -C=all </ADD_FFLAGS>
-  <ADD_FFLAGS       DEBUG="TRUE" compile_threaded="true"> -gline -C=array -C=bits -C=calls -C=do -C=intovf -C=present -C=pointer </ADD_FFLAGS>
+  <ADD_FFLAGS       DEBUG="TRUE"> -C=all </ADD_FFLAGS>
+  <ADD_FFLAGS       DEBUG="TRUE" compile_threaded="false"> -gline </ADD_FFLAGS>
   <!-- Hack! If DEBUG="TRUE", put runtime checks in FFLAGS, but not into     -->
   <!-- FFLAGS_NOOPT, allowing strict checks to be removed from files by      -->
   <!-- having them use FFLAGS_NOOPT in Depends.nag                           -->
@@ -339,7 +402,7 @@ for mct, etc.
   <MPI_PATH> $(MPICH_DIR)</MPI_PATH>
   <NETCDF_PATH> $(NETCDF_DIR)</NETCDF_PATH>
   <PNETCDF_PATH> $(PARALLEL_NETCDF_DIR)</PNETCDF_PATH>
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>  
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <ADD_CPPDEFS> -DLINUX </ADD_CPPDEFS>
 </compiler>
 
@@ -378,13 +441,22 @@ for mct, etc.
 </compiler>
 
 
+<compiler MACH="yellowstone" >
+  <ADD_CPPDEFS MODEL="pop2"> -D_USE_FLOW_CONTROL </ADD_CPPDEFS>
+</compiler>
+
+<compiler MACH="yellowstone" COMPILER="intel" MPILIB="mpich2">
+  <!-- Needed due to the way that netcdf is loaded on yellowstone -->
+  <SCC>$(MPICC)</SCC>
+  <SFC>$(MPIFC)</SFC>
+</compiler>
+
 <compiler MACH="yellowstone" COMPILER="intel">
-  <MPICC>mpiicc</MPICC>
-  <MPIFC>mpiifort</MPIFC>
   <MPICXX>mpiicpc</MPICXX>
   <ADD_FFLAGS>  -xHost </ADD_FFLAGS>
   <ADD_CFLAGS>  -xHost </ADD_CFLAGS>
   <TRILINOS_PATH>$(TRILINOS_PATH)</TRILINOS_PATH>
+  <PFUNIT_PATH>/glade/u/home/santos/pFUnit/pFUnit_Intel</PFUNIT_PATH>
 </compiler>
 
 <compiler MACH="yellowstone" COMPILER="pgi">
@@ -400,7 +472,7 @@ for mct, etc.
 </compiler>
 
 <compiler MACH="yellowstone">
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=gpfs </PIO_CONFIG_OPTS>
+<PIO_FILESYSTEM_HINTS>gpfs</PIO_FILESYSTEM_HINTS>
   <NETCDF_PATH>$(NETCDF)</NETCDF_PATH>
   <PNETCDF_PATH>$(PNETCDF)</PNETCDF_PATH>
   <ADD_CPPDEFS> -DHAVE_NANOTIME </ADD_CPPDEFS>
@@ -408,7 +480,7 @@ for mct, etc.
 
 
 <compiler MACH="erebus">
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=gpfs </PIO_CONFIG_OPTS>
+<PIO_FILESYSTEM_HINTS>gpfs</PIO_FILESYSTEM_HINTS>
   <NETCDF_PATH>$(NETCDF)</NETCDF_PATH>
   <PNETCDF_PATH>$(PNETCDF)</PNETCDF_PATH>
   <!--The following flag is required due to a bug in mpich2 v1208 --> 
@@ -417,16 +489,12 @@ for mct, etc.
   <SFC>mpif90</SFC>
 </compiler>
  
-<compiler MACH="lynx">
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>
-</compiler>
 
-<compiler COMPILER="pgi" MACH="titan">
+<compiler MACH="titan">
   <ADD_CFLAGS DEBUG="FALSE"> -O2 </ADD_CFLAGS>
   <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
-  <ADD_CPPDEFS> -D_NO_MPI_RSEND </ADD_CPPDEFS>
   <CONFIG_ARGS> --host=Linux </CONFIG_ARGS>
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <ADD_SLIBS> $(shell $(NETCDF_PATH)/bin/nf-config --flibs) </ADD_SLIBS>  
   <TRILINOS_PATH>/ccs/proj/cli054/trilinos-10.12/AUG_PGI_BUILD/install</TRILINOS_PATH>
   <CXX_LIBS> -lfmpich -lmpichf90_pgi $(PGI_PATH)/linux86-64/$(PGI_VERSION)/lib/f90main.o </CXX_LIBS>
@@ -441,7 +509,7 @@ for mct, etc.
 </compiler>
 
 <compiler  MACH="bluewaters">
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>  
   <ADD_SLIBS>-L$(NETCDF_DIR)/lib -lnetcdff -lnetcdf</ADD_SLIBS>
 </compiler>
 
@@ -450,7 +518,7 @@ for mct, etc.
   <NETCDF_PATH> $(NETCDF)</NETCDF_PATH>
   <PNETCDF_PATH> $(PNETCDF)</PNETCDF_PATH>
   <ADD_SLIBS> $(shell $(NETCDF_PATH)/bin/nc-config --flibs) </ADD_SLIBS>
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre </PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <SFC> mpif90 </SFC>
   <SCC> mpicc </SCC>
 </compiler>
@@ -518,11 +586,10 @@ for mct, etc.
   <FFLAGS> -g -qfullpath -qmaxmem=-1 -qspillsize=2500 -qextname=flush -qxlf2003=polymorphic </FFLAGS>
   <ADD_FFLAGS DEBUG="FALSE"> -O3 -qstrict -Q </ADD_FFLAGS>
   <ADD_FFLAGS DEBUG="FALSE" compile_threaded="true"> -qsmp=omp </ADD_FFLAGS>
-  <ADD_FFLAGS DEBUG="TRUE"> -qinitauto=7FF7FFFF -qflttrap=ov:zero:inv:en -qspillsize=4000 </ADD_FFLAGS>
   <ADD_FFLAGS DEBUG="TRUE" compile_threaded="true"> -qsmp=omp:noopt </ADD_FFLAGS>
   <ADD_CPPDEFS> -DLINUX -DnoI8 </ADD_CPPDEFS>
   <CONFIG_ARGS> --build=powerpc-bgp-linux --host=powerpc64-suse-linux </CONFIG_ARGS>
-  <LDFLAGS>  -Wl,--relax -Wl,--allow-multiple-definition -L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl </LDFLAGS>
+  <LDFLAGS>  -Wl,--relax -Wl,--allow-multiple-definition </LDFLAGS>
 </compiler>
 
 
@@ -535,7 +602,7 @@ for mct, etc.
   <NETCDF_PATH> /soft/apps/current/netcdf-4.1.3-disable_netcdf_4</NETCDF_PATH>
   <PNETCDF_PATH> /soft/apps/current/parallel-netcdf-1.3.1-xl</PNETCDF_PATH>
   <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nc-config --flibs) -L/bgsys/drivers/ppcfloor/comm/lib -L/soft/apps/current/LAPACK -llapack_bgp -L/soft/apps/current/BLAS -lblas_bgp</ADD_SLIBS>
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=gpfs </PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>gpfs</PIO_FILESYSTEM_HINTS>
 </compiler>
 
 
@@ -544,13 +611,24 @@ for mct, etc.
   <MPIFC> mpixlf95_r </MPIFC>
   <SCC> mpixlc_r </SCC>
   <MPICC> mpixlc_r </MPICC>
-  <ADD_CPPDEFS> -DNO_C_SIZEOF </ADD_CPPDEFS>
   <NETCDF_PATH>/soft/libraries/netcdf/4.2.1.1/cnk-xl/V1R2M0-20130417/</NETCDF_PATH>
   <PNETCDF_PATH>/soft/libraries/pnetcdf/1.3.1/cnk-xl/current/</PNETCDF_PATH>
+  <PFUNIT_PATH>/home/santos/pFUnit/pFUnit_IBM</PFUNIT_PATH>
+  <ADD_LDFLAGS>-L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl </ADD_LDFLAGS>
    <ADD_SLIBS>-L/soft/libraries/netcdf/4.2.1.1/cnk-xl/V1R2M0-20130417/lib -lnetcdff -lnetcdf -L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl -L/soft/libraries/alcf/current/xl/ZLIB/lib -lz -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas -L/bgsys/drivers/ppcfloor/comm/sys/lib </ADD_SLIBS>
-  <PIO_CONFIG_OPTS>  --enable-filesystem-hints=gpfs </PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>gpfs </PIO_FILESYSTEM_HINTS>
 </compiler>
 
+<compiler COMPILER="ibm" MACH="juqueen">
+  <SFC> mpixlf95_r </SFC>
+  <MPIFC> mpixlf95_r </MPIFC>
+  <SCC> mpixlc_r </SCC>
+  <MPICC> mpixlc_r </MPICC>
+  <NETCDF_PATH> /bgsys/local/netcdf/</NETCDF_PATH>
+  <PNETCDF_PATH> /bgsys/local/parallel-netcdf/v1.3.1</PNETCDF_PATH>
+  <ADD_SLIBS>-L/bgsys/local/netcdf/lib -lnetcdf -L/bgsys/drivers/ppcfloor/comm/lib </ADD_SLIBS>
+  <PIO_FILESYSTEM_HINTS>gpfs </PIO_FILESYSTEM_HINTS>
+</compiler>
 
 <compiler MACH="brutus">
   <NETCDF_PATH> $(NETCDF)</NETCDF_PATH>
@@ -564,7 +642,8 @@ for mct, etc.
   <ADD_CFLAGS DEBUG="FALSE"> -O2 </ADD_CFLAGS>
   <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
   <NETCDF_PATH> $(NETCDF_HOME)</NETCDF_PATH>
-  <CONFIG_ARGS> --host=Linux --enable-filesystem-hints=lustre</CONFIG_ARGS>
+  <CONFIG_ARGS> --host=Linux </CONFIG_ARGS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <ADD_CPPDEFS> -DLINUX </ADD_CPPDEFS>
   <SLIBS> -L$(NETCDF_PATH)/lib -lnetcdf -lnetcdff -lpmi </SLIBS>
 </compiler>
@@ -573,14 +652,16 @@ for mct, etc.
   <ADD_CFLAGS DEBUG="FALSE"> -O2 </ADD_CFLAGS>
   <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
   <NETCDF_PATH> $(NETCDF_LIB)/..</NETCDF_PATH>
-  <CONFIG_ARGS> --host=Linux --enable-filesystem-hints=lustre</CONFIG_ARGS>
+  <CONFIG_ARGS> --host=Linux </CONFIG_ARGS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <ADD_CPPDEFS> -DLINUX </ADD_CPPDEFS>
   <SLIBS> -L$(NETCDF_PATH)/lib -lnetcdf -lnetcdff -lpmi </SLIBS>
 </compiler>
  
 <compiler COMPILER="intel" MACH="evergreen">
   <NETCDF_PATH> $(NETCDFLIB)/..</NETCDF_PATH>
-  <CONFIG_ARGS> --host=Linux --enable-filesystem-hints=lustre</CONFIG_ARGS>
+  <CONFIG_ARGS> --host=Linux </CONFIG_ARGS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <ADD_CPPDEFS> -DLINUX </ADD_CPPDEFS>
   <SLIBS> -L$(NETCDF_PATH)/lib -lnetcdf -lcurl </SLIBS>
   <ADD_FFLAGS> -heap_arrays </ADD_FFLAGS>
@@ -618,26 +699,28 @@ for mct, etc.
   <TRILINOS_PATH>/project/projectdirs/ccsm1/Trilinos/trilinos-10.12.2/hopper-gnu/install</TRILINOS_PATH>
 </compiler>
 
-
-<compiler MACH="pleiades-har">
-  <NETCDF_PATH> /nasa/netcdf/4.0-i10.1</NETCDF_PATH>
-  <MPI_PATH>/nasa/sgi/mpt/2.06a67</MPI_PATH>
-  <MPI_LIB_NAME>mpi</MPI_LIB_NAME>
-  <MPICC>icc</MPICC>
-</compiler>
-
 <compiler MACH="pleiades-wes">
-  <NETCDF_PATH> /nasa/netcdf/4.0-i10.1</NETCDF_PATH>
-  <MPI_PATH>/nasa/sgi/mpt/2.06a67</MPI_PATH>
+  <NETCDF_PATH>/nasa/netcdf/4.0-i10.1</NETCDF_PATH>
+  <MPI_PATH>/nasa/sgi/mpt/2.08r7</MPI_PATH>
   <MPI_LIB_NAME>mpi</MPI_LIB_NAME>
   <MPICC>icc</MPICC>
+  <ADD_FFLAGS DEBUG="FALSE"> -O2 -axAVX -xSSE4.1 </ADD_FFLAGS>
 </compiler>
 
 <compiler MACH="pleiades-san">
-  <NETCDF_PATH> /nasa/netcdf/4.0-i10.1</NETCDF_PATH>
-  <MPI_PATH>/nasa/sgi/mpt/2.06a67</MPI_PATH>
+  <NETCDF_PATH>/nasa/netcdf/4.0-i10.1</NETCDF_PATH>
+  <MPI_PATH>/nasa/sgi/mpt/2.08r7</MPI_PATH>
   <MPI_LIB_NAME>mpi</MPI_LIB_NAME>
   <MPICC>icc</MPICC>
+  <ADD_FFLAGS DEBUG="FALSE"> -O2 -xAVX </ADD_FFLAGS>
+</compiler>
+
+<compiler MACH="pleiades-ivy">
+  <NETCDF_PATH>/nasa/netcdf/4.0-i10.1</NETCDF_PATH>
+  <MPI_PATH>/nasa/sgi/mpt/2.08r7</MPI_PATH>
+  <MPI_LIB_NAME>mpi</MPI_LIB_NAME>
+  <MPICC>icc</MPICC>
+  <ADD_FFLAGS DEBUG="FALSE"> -O2 -xAVX </ADD_FFLAGS>
 </compiler>
 
 <compiler MACH="sierra">
@@ -667,17 +750,21 @@ for mct, etc.
  <NETCDF_PATH> /usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7</NETCDF_PATH>
  <MPI_PATH MPILIB="mpich"> /cluster/mpich-1.2.7p1-pgi-hpf-cc-11.5-0</MPI_PATH>
  <MPI_PATH MPILIB="openmpi"> /cluster/openmpi-qlc-pgi</MPI_PATH>
+  <ADD_LDFLAGS> -lgomp </ADD_LDFLAGS>
 </compiler>
 
 <compiler COMPILER="nag" MACH="frankfurt">
  <NETCDF_PATH> /usr/local/netcdf-4.3.0-gcc-g++-4.4.7-3-nag-5.3.1-907</NETCDF_PATH>
  <MPI_PATH MPILIB="mpich"> /home/santos/mpich-gcc-nag</MPI_PATH>
+ <PFUNIT_PATH>/home/santos/pFUnit/pFUnit_NAG</PFUNIT_PATH>
+ <!-- needed for nag pio build.. -->
+ <ADD_CPPDEFS> -DNO_C_SIZEOF </ADD_CPPDEFS>
  <!-- Experimental wrapper for OpenMP. -->
  <ADD_LDFLAGS compile_threaded="true"> -L/home/santos/lib/fake_omp -lfake_omp -Wl,-Wl,,--rpath=/home/santos/lib/fake_omp </ADD_LDFLAGS>
 </compiler>
 
 <compiler MACH="stampede">
-  <PIO_CONFIG_OPTS> --enable-filesystem-hints=lustre</PIO_CONFIG_OPTS>
+  <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <NETCDF_PATH>$(TACC_NETCDF_DIR)</NETCDF_PATH>
   <!--PNETCDF_PATH>$(TACC_NETCDF_DIR)</PNETCDF_PATH-->
   <ADD_CPPDEFS> -DHAVE_NANOTIME </ADD_CPPDEFS>

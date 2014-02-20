@@ -293,7 +293,7 @@ function shr_spfn_erfc_scaled_r8(x) result(res)
 
 end function shr_spfn_erfc_scaled_r8
 
-pure function shr_spfn_gamma_r8(x) result(res)
+elemental function shr_spfn_gamma_r8(x) result(res)
   real(r8), intent(in) :: x
   real(r8) :: res
 
