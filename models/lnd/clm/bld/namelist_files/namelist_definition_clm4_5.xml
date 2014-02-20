@@ -71,6 +71,14 @@ over-productive.
 If TRUE, separate the vegetated landunit into a crop landunit and a natural vegetation landunit
 </entry>
 
+<entry id="all_active" type="logical" category="clm_physics"
+       group="clm_inparm" valid_values="" >
+If TRUE, make ALL pfts, columns and landunits active, even those with 0 weight.
+This means that computations will be run even over these 0-weight points.
+
+THIS IS ONLY FOR TESTING PURPOSES - IT HAS NOT BEEN CHECKED FOR SCIENTIFIC VALIDITY.
+</entry>
+
 <entry id="more_vertlayers" type="logical" category="clm_physics"
        group="clm_inparm" valid_values="" >
 If TRUE, run with an increased number of soil layers
@@ -121,11 +129,6 @@ Visible and Near-infrared albedo's for glacier ice
 <entry id="dtime" type="real"  category="clm_physics" 
        group="clm_inparm" valid_values="">
 Time step (seconds)
-</entry>
-
-<entry id="outnc_large_files" type="logical" category="history"
-       group="clm_inparm" valid_values="" >
-If TRUE, output NetCDF files in 64-bit large-file format
 </entry>
 
 <entry id="override_nsrest" type="integer"  category="clm_restart" 
@@ -583,11 +586,6 @@ Inversion-derived CH4 parameters dataset for mksurfdata
 If TRUE, output variables in double precision for mksurfdata
 </entry>
 
-<entry id="outnc_large_files" type="logical" category="mksurfdata"
-       group="clmexp" value=".true.">
-If TRUE, use the large file format for NetCDF
-</entry>
-
 <entry id="all_urban" type="logical" category="mksurfdata"
        group="clmexp" value=".false.">
 If TRUE, ignore other files, and set the output percentage to 100% urban and
@@ -717,11 +715,6 @@ by getco2_historical.ncl
 <entry id="faerdep" type="char*256"  category="tools" 
        input_pathname="abs" group="clmexp" valid_values="" >
 Aerosol deposition file name (only used for aerdepregrid.ncl)
-</entry>
-
-<entry id="fndepdat" type="char*256" category="tools"
-       input_pathname="abs" group="clmexp" valid_values="" >
-Full pathname of nitrogen deposition data file (only used for ndepregrid.ncl).
 </entry>
 
 <entry id="f_fracdata" type="char*256" category="tools"

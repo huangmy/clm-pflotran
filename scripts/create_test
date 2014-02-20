@@ -309,7 +309,7 @@ sub initialize()
   }
 
   $testlistsubdirxml = "$scriptsroot/ccsm_utils/Testlistxml/";
-  $testlid = `date +%H%M%S`;
+  $testlid = `date +%y%m%d-%H%M%S`;
   chomp $testlid;
   my @dirs = ($cfgdir, "$cfgdir/ccsm_utils/Case.template", "$cfgdir/ccsm_utils/Tools", "$cfgdir/ccsm_utils/Tools/perl5lib");
   unshift @INC, @dirs;
@@ -891,7 +891,7 @@ sub checkTestCase
   my $testid;
   if(! defined $opts{'testid'})
   {
-    $testid = `date +%H%M%S`; 
+    $testid = `date +%y%m%d-%H%M%S`; 
   }
   else
   {

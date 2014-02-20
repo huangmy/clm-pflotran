@@ -57,9 +57,9 @@ if (@ARGV) {
 #
 # Figure out number of tests that will run
 #
-my $ntests = 563;
+my $ntests = 606;
 if ( defined($opts{'compare'}) ) {
-   $ntests += 39;
+   $ntests += 48;
 }
 plan( tests=>$ntests );
 
@@ -148,7 +148,9 @@ system( "/bin/rm -rf $confdir"         );
 my %wc;
 # Run all the different options 
 foreach my $option ( "-print 0", "-print 1", "-print 2", "-test -print 2", 
-                     "-namelist \"&datm_exp taxmode='extend'/\""  ) {
+                     "-namelist \"&datm_exp taxmode='extend'/\"",
+                     "-user_xml_dir .",
+                     "-user_xml_dir $cwd/user_xml_dir -print 2"  ) {
    &writeEnv( %xmlenv );
    eval{ system( "$bldnml $option > $tempfile 2>&1 " ); };
    ok( ! $?, "$option" );
@@ -205,7 +207,7 @@ foreach my $presaero (
  ) {
    if ( $presaero =~ /^(clim|trans)*([_0-9\.-]*)([0-9]+x[0-9]+_[a-zA-Z0-9_]+)$/ ) {
       $xmlenv{'GRID'}     = $3;
-      $xmlenv{'ATM_GRID'} = "reg";
+      $xmlenv{'ATM_GRID'} = $3;
       if ( $3 eq "1x1_mexicocityMEX" ) {
          $xmlenv{'DATM_MODE'} = "CLM1PT";
       } else {
@@ -245,7 +247,7 @@ print "DATM_MODE    = $xmlenv{'DATM_MODE'}\n";
 print "DATM_PRESAERO= $xmlenv{'DATM_PRESAERO'}\n";
 # Check CLM_USRDAT_NAME
 $xmlenv{'GRID'}               = "CLM_USRDAT";
-$xmlenv{'ATM_GRID'}           = "reg";
+$xmlenv{'ATM_GRID'}           = $xmlenv{'GRID'};
 print "GRID           = $xmlenv{'GRID'}\n";
 print "ATM_GRID       = $xmlenv{'ATM_GRID'}\n";
 $xmlenv{'CLM_USRDAT_NAME'} = "13x12pt_f19_alaskaUSA";
@@ -263,7 +265,7 @@ ok( ! $?, "CLM_USRDAT_NAME" );
 &shownmldiff( "default", "$xmlenv{'DATM_MODE'}" );
 # Check CLM_USRDAT_NAME for CLM1PT mode
 $xmlenv{'GRID'}               = "CLM_USRDAT";
-$xmlenv{'ATM_GRID'}           = "reg";
+$xmlenv{'ATM_GRID'}           = $xmlenv{'GRID'};
 $xmlenv{'DATM_MODE'}     = "CLM1PT";
 $xmlenv{'DATM_PRESAERO'} = "pt1_pt1";
 print "DATM_MODE     = $xmlenv{'DATM_MODE'}\n";
@@ -320,7 +322,7 @@ print "DATM_PRESAERO   = $xmlenv{'DATM_PRESAERO'}\n";
 #
 
 # Bad arguments or bad namelist value to build-namelist
-foreach my $option ( "-zztop", "-namelist '&datm_exp zztop=24/'" ) {
+foreach my $option ( "-zztop", "-namelist '&datm_exp zztop=24/'", "-user_xml_dir zztop" ) {
   &writeEnv( %xmlenv );
   eval{ system( "$bldnml $option  > $tempfile 2>&1 " ); };
   isnt( $?, 0, "Bad argument to build-namelist: $option" );

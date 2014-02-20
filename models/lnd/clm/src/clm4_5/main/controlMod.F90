@@ -167,8 +167,7 @@ contains
          hist_fincl1,  hist_fincl2, hist_fincl3, &
          hist_fincl4,  hist_fincl5, hist_fincl6, &
          hist_fexcl1,  hist_fexcl2, hist_fexcl3, &
-         hist_fexcl4,  hist_fexcl5, hist_fexcl6, &
-         outnc_large_files
+         hist_fexcl4,  hist_fexcl5, hist_fexcl6
     namelist /clm_inparm/ hist_wrtch4diag
 
     ! BGC info
@@ -197,7 +196,7 @@ contains
     namelist /clm_inparm/  &
          clump_pproc, wrtdia, &
          create_crop_landunit, nsegspc, co2_ppmv, override_nsrest, &
-         albice, more_vertlayers, subgridflag, irrigate
+         albice, more_vertlayers, subgridflag, irrigate, all_active
     ! Urban options
 
     namelist /clm_inparm/  &
@@ -472,6 +471,9 @@ contains
     ! Landunit generation
     call mpi_bcast(create_crop_landunit, 1, MPI_LOGICAL, 0, mpicom, ier)
 
+    ! Other subgrid logic
+    call mpi_bcast(all_active, 1, MPI_LOGICAL, 0, mpicom, ier)
+
     ! max number of plant functional types in naturally vegetated landunit
     call mpi_bcast(maxpatch_pft, 1, MPI_LOGICAL, 0, mpicom, ier)
 
@@ -543,7 +545,6 @@ contains
     call mpi_bcast (fglcmask, len(fglcmask), MPI_CHARACTER, 0, mpicom, ier)
 
     ! history file variables
-    call mpi_bcast (outnc_large_files, 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (hist_empty_htapes, 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (hist_dov2xy, size(hist_dov2xy), MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (hist_nhtfrq, size(hist_nhtfrq), MPI_INTEGER, 0, mpicom, ier)
@@ -721,9 +722,6 @@ contains
     write(iulog,*) 'Restart parameters:'
     write(iulog,*)'   restart pointer file directory     = ',trim(rpntdir)
     write(iulog,*)'   restart pointer file name          = ',trim(rpntfil)
-    if ( outnc_large_files ) then
-       write(iulog,*)'Large file support for output files is ON'
-    end if
     write(iulog,*) 'model physics parameters:'
 
     if ( trim(co2_type) == 'constant' )then

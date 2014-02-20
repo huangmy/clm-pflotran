@@ -1,4 +1,794 @@
 ===============================================================
+Tag name:  clm4_5_50
+Originator(s):  erik (Erik)
+Date: Sun Nov 24 18:51:11 MST 2013
+One-line Summary: Bring in a crop of b4b bugfixes, fix getregional script,
+                   start move of PTCLM to PTCLMmkdata tool
+
+Purpose of changes:
+
+Bring in a crop of bit-for-bit bug-fixes to the trunk for November.
+Fix the getregional_datasets script and initial move of PTCLM to just
+be a CLM tool under models/lnd/clm/tools/shared to create single-point
+datasets.
+
+New option to create_newcase "-user_mods_dir" for a directory with
+user chagnes such as user_nl_* namelist modification files, xmlchange_cmnds
+file with xmlchanges to make, and SourceMods/src.*/* files.
+
+Requirements for tag: bit-for-bit bug-fixes and work on PTCLM
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+   1868 (Add user_mods_dir to create_newcase)
+   1854 (Remove fndepdat no longer used)
+   1842 (Remove unused variables from gridcell type) (Bill)
+   1835 (Add write statement to pftdyn so you can see what it is doing)
+   1828 (Clarify modulo used in irrigation code) (Bill)
+   1770 (Remove sitespf_pt valid_values list for clm4_0)
+   1724 (getregional script does NOT work)
+   1625 (Problem setting finidat in CLM for RUN_TYPE=hybrid/branch)
+   1543 (large-file format does NOT work in latest clm)
+   1481 (Provide a more direct way to set a user provided finidat file)
+   1437 (problems with link_dirtree -- no longer needed)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: SourceMods directory on create_newcase
+
+   New -user_mods_dir option to create_newcase that will copy SourceMods/src.*/*
+   files to the new case. Also copies user_nl_* files and xmlchange_cmnds
+
+Describe any changes made to the namelist: remove outnc_large_files
+   Remove outnc_large_files -- wasn't functional 
+   (now always use 64-bit format)
+   Remove fndepdat from namelist_definition/defaults no longer used.
+
+List any changes to the defaults for the boundary datasets: None
+
+Describe any substantial timing or memory changes: None
+
+Code reviewed by: self, sacks (fixes for 1842 and 1828)
+
+List any svn externals directories updated (csm_share, mct, etc.): scripts
+   scripts updated to scripts4_131119
+
+List all files eliminated: None
+
+List all files added and what they do:
+
+------ Add externals for tools so PTCLM shows up in tool directory
+------ Add same files and a README file for getregional
+A       models/lnd/clm/tools/SVN_EXTERNAL_DIRECTORIES
+A       models/lnd/clm/tools/shared/ncl_scripts/sample_inlist
+A       models/lnd/clm/tools/shared/ncl_scripts/sample_outlist
+A       models/lnd/clm/tools/shared/ncl_scripts/README.getregional
+
+List all existing files that have been modified, and describe the changes:
+
+------ Get getregional_datasets script working again. Now operates on
+------ lists of files.
+M       models/lnd/clm/tools/shared/ncl_scripts/getregional_datasets.pl
+M       models/lnd/clm/tools/shared/ncl_scripts/getregional_datasets.ncl
+M       models/lnd/clm/test/tools/TSMscript_tools.sh --- Copy sample_*list files
+M       models/lnd/clm/test/tools/nl_files/getregional - change arguments
+
+------ 
+M       models/lnd/clm/tools/clm4_0/interpinic/src/interpinic.F90
+
+------ Remove clm_startfile option and outnc_large_files
+M       models/lnd/clm/bld/config_files/config_definition_clm4_0.xml --
+          Remove valid_values from sitespf_pt so can be anything.
+M       models/lnd/clm/bld/unit_testers/build-namelist_test.pl -- Remove
+          clm_startfile option and move some clm4_5 configure options
+          to build-namelist
+M       models/lnd/clm/bld/build-namelist --- Remove clm_startfile option
+          and outnc_large_files
+M       models/lnd/clm/bld/clm.buildnml.csh - Remove clm_startfile option
+          set finidat/nrevsn like how is done in CAM
+
+------ Remove fndepdat and outnc_large_files
+M       models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_0.xml
+M       models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_0_tools.xml
+M       models/lnd/clm/bld/namelist_files/namelist_definition_clm4_0.xml
+M       models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_5.xml
+M       models/lnd/clm/bld/namelist_files/namelist_defaults_clm4_5_tools.xml
+M       models/lnd/clm/bld/namelist_files/namelist_definition_clm4_5.xml
+
+M       models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90 -------- Remove
+         some gridcell variables not sued
+M       models/lnd/clm/src/clm4_5/main/pftdynMod.F90 ------------- write
+         on what's going on
+M       models/lnd/clm/src/clm4_5/main/controlMod.F90 ------------ Remove
+         outnc_large_files
+M       models/lnd/clm/src/clm4_5/main/clmtype.F90 --------------- Remove
+         a bunch of gridcell variables not needed
+M       models/lnd/clm/src/clm4_5/biogeophys/CanopyFluxesMod.F90 - Add
+         seconds_since_irrig_start_time temporary to clarify
+
+------ 
+M       models/lnd/clm/src/clm4_0/main/pftdynMod.F90 --- add some writes statements
+M       models/lnd/clm/src/clm4_0/main/controlMod.F90 -- remove outnc_large_files
+
+CLM testing:
+
+  build-namelist tests:
+
+    yellowstone yes
+    frankfurt   no
+
+  NOTE: there were some tests that were passing but in the xFail list
+        from before clm4_5_49 that I marked as working.
+
+  regular tests (aux_clm):
+
+    yellowstone_intel yes
+    yellowstone_pgi   yes
+    frankfurt_intel   yes
+    frankfurt_pgi     yes
+    frankfurt_nag     yes
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel yes
+    yellowstone_pgi   yes
+
+  tools testing:
+
+    yellowstone interactive yes
+
+CLM tag used for the baseline comparisons:  clm4_5_49
+
+Changes answers relative to baseline: no bit-for-bit
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_49
+Originator(s):  muszala (Stefan Muszala)
+Date: Sat Nov 16 07:51:27 MST 2013
+One-line Summary: Swenson anomaly forcing - Part 1
+
+purpose of changes:
+   add additional data streams to modify existing
+   data streams for purposes such as bias correction or specifying 
+   future changes relative to baseline data streams, e.g. specifying
+   future atmospheric forcing anomalies when running CLM with data atmosphere. 
+   Paired with datm8_131115.
+
+   For what to set in user_nl_cpl, user_nl_datm, see testing section.
+
+   This is part 1 of 2.  Part 2 will address a general way to handle
+   streams in the DATM that is triggered off of an AF compset.
+
+Requirements for tag: N/A
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): N/A
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: swenson, kluzek, self
+
+List any svn externals directories updated (csm_share, mct, etc.): update to datm8_131116
+
+List all files eliminated:  N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/main/clm_atmlnd.F90
+M       models/lnd/clm/src/clm4_0/main/clm_atmlnd.F90
+M       models/lnd/clm/src/cpl/clm_cpl_indices.F90
+M       models/lnd/clm/src/cpl/lnd_import_export.F90
+M       SVN_EXTERNAL_DIRECTORIES
+
+CLM testing:
+
+Testing for features of this tag: f09_g16, ICRUCLM45
+
+anomaly forcing namelists
+   user_nl_cpl: cplflds_custom = 'Sa_prec_af->a2x', 'Sa_prec_af->x2l','Sa_tbot_af->a2x',
+           'Sa_tbot_af->x2l','Sa_pbot_af->a2x', 'Sa_pbot_af->x2l','Sa_shum_af->a2x',
+           'Sa_shum_af->x2l','Sa_u_af->a2x', 'Sa_u_af->x2 l','Sa_v_af->a2x',
+           'Sa_v_af->x2l','Sa_swdn_af->a2x', 'Sa_swdn_af->x2l','Sa_lwdn_af->a2x',
+           'Sa_lwdn_af->x2l'
+   user_nl_datm: anomaly_forcing = 'Anomaly.Forcing.Precip','Anomaly.Forcing.Temperature',
+            'Anomaly.Forcing.Pressure','Anomaly.Forcing.Humidity','Anomaly.Forcing.Uwind',
+            'Anomaly.Forcing.Vwind','Anomaly.Forcing.Shortwave','Anomaly.Forcing.Longwave'
+bias correction namelists
+   user_nl_cpl: cplflds_custom = 'Sa_precsf->a2x', 'Sa_precsf->x2l'
+   user_nl_datm: bias_correct = 'BC.CRUNCEP.GPCP.Precip' 
+
+  build-namelist tests: N/A
+
+  regular tests (aux_clm):
+
+    yellowstone_intel - OK 
+    yellowstone_pgi - OK 
+    frankfurt_intel - OK
+    frankfurt_pgi - OK
+    frankfurt_nag - OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel - OK
+
+CLM tag used for the baseline comparisons:  clm4_5_48
+
+Changes answers relative to baseline: No
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_48
+Originator(s):  muszala (Stefan Muszala)
+Date: Thu Nov 14 08:28:31 MST 2013
+One-line Summary: bug fixes for CLM dry deposition and MEGAN VOC emissions
+
+Purpose of changes: Bring in bug fixes from fvitt for CLM dry deposition and MEGAN VOC emissions.  Any changes
+   to answers are limited to rare circumstances.
+
+Requirements for tag: N/A
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): N/A
+
+Known bugs (include bugzilla ID): N/A
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: fvitt, self
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/biogeochem/VOCEmissionMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/DryDepVelocity.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/VOCEmissionMod.F90
+M       models/lnd/clm/src/clm4_0/biogeochem/DryDepVelocity.F90
+
+CLM testing:
+
+  build-namelist tests: N/A
+
+  regular tests (aux_clm):
+
+    yellowstone_intel - OK
+    yellowstone_pgi - OK
+    frankfurt_intel - OK
+    frankfurt_pgi - OK
+    frankfurt_nag - OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel - OK
+
+CLM tag used for the baseline comparisons:  clm4_5_47
+
+Changes answers relative to baseline:  Answers change for some of the chemistry configurations, but 
+   these changes will not be see in the CLM standalone tests.
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_47
+Originator(s):  muszala (Stefan Muszala)
+Date: Tue Nov 12 09:26:20 MST 2013
+One-line Summary: fix Bug 1858 - AGDD now reset annually
+
+Purpose of changes: Fix bug 1858.  AGDD is now reset annually.  Replace -99999_r8 with a 
+   parameter in accumulMod.F90 which is used in accFldsMod.F90
+
+Requirements for tag: N/A
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID): 1858
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: N/A
+
+Describe any changes made to the namelist: N/A
+
+List any changes to the defaults for the boundary datasets: N/A
+
+Describe any substantial timing or memory changes: N/A
+
+Code reviewed by: slevis, sacks, muszala
+
+List any svn externals directories updated (csm_share, mct, etc.): N/A
+
+List all files eliminated: N/A
+
+List all files added and what they do: N/A
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/util_share/accumulMod.F90
+M       models/lnd/clm/src/clm4_5/main/accFldsMod.F90
+
+CLM testing:
+
+  build-namelist tests: N/A
+
+  regular tests (aux_clm):
+
+    yellowstone_intel - OK
+    yellowstone_pgi - OK
+    frankfurt_intel - OK
+    frankfurt_pgi - OK
+    frankfurt_nag - OK
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel - OK
+
+CLM tag used for the baseline comparisons:  clm4_5_46
+
+Changes answers relative to baseline: Generally, No.  There may be changes
+  in DV compsets over very long simulation times and at very high resolutions.
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_46
+Originator(s):  sacks (sacks)
+Date: Fri Nov  8 17:26:02 MST 2013
+One-line Summary: remove zeroing out of slope for special landunits
+
+Purpose of changes:
+
+   Previously, there was code to zero out slope for grid cells with 100% special
+   landunits. However, there were a number of problems with this:
+
+   (1) With dynamic landunits, this is problematic, because a grid cell could
+   start as 100% special landunits, then later become < 100% special landunits
+   (e.g., due to retreating glaciers)
+
+   (2) Moreover, why should the slope of a special landunit depend on whether
+   the grid cell has 100% special landunits. This seems to be saying that, e.g.,
+   the slope of a glacier landunit depends on whether the grid cell is entirely
+   glacier or part glacier and part natural veg.
+
+   (3) And I guess moreover, why is the slope zeroed out for special landunits
+   in the first place?
+
+
+   From talking with Erik, we decided thish code was probably a relic from a
+   time when the surface dataset had some bad values (e.g., over Greenland /
+   Antarctica). This is no longer the case, so this code is no longer needed.
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: erik
+
+List any svn externals directories updated (csm_share, mct, etc.): none
+
+List all files eliminated: none
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/main/iniTimeConst.F90
+
+CLM testing:
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+    Following are the baseline failures, which are expected (see below):
+
+FAIL  SMS_D.1x1_mexicocityMEX.ICLM45.frankfurt_intel.clm-default.GC.131107-223431.compare_hist.clm4_5_45 
+FAIL  SMS_D.1x1_vancouverCAN.ICLM45.frankfurt_pgi.clm-default.GC.131107-223435.compare_hist.clm4_5_45 
+FAIL  ERS_Mmpi-serial.1x1_mexicocityMEX.I1PTCLM45.frankfurt_nag.clm-default.GC.131107-223439.compare_hist.clm4_5_45 
+FAIL  SMS_D_Mmpi-serial.1x1_vancouverCAN.I1PTCLM45.frankfurt_nag.clm-default.GC.131107-223439.compare_hist.clm4_5_45 
+FAIL  ERI.f09_g16.ICLM45BGC.yellowstone_intel.GC.131107-223256.compare_hist.clm4_5_45 
+FAIL  ERI_D.f09_g16.ICLM45BGC.yellowstone_intel.GC.131107-223256.compare_hist.clm4_5_45 
+FAIL  ERI_D.ne30_g16.ICLM45BGC.yellowstone_intel.GC.131107-223256.compare_hist.clm4_5_45 
+FAIL  ERS_Lm3.1x1_vancouverCAN.I1PTCLM45.yellowstone_intel.clm-default.GC.131107-223256.compare_hist.clm4_5_45 
+FAIL  SMS.1x1_mexicocityMEX.I1PTCLM45.yellowstone_intel.clm-default.GC.131107-223256.compare_hist.clm4_5_45 
+FAIL  ERI.f09_g16.I1850CRUCLM45BGC.yellowstone_pgi.GC.131107-223301.compare_hist.clm4_5_45 
+FAIL  ERI.f09_g16.ICLM45BGC.yellowstone_pgi.GC.131107-223301.compare_hist.clm4_5_45 
+FAIL  ERI_D.f09_g16.ICLM45BGC.yellowstone_pgi.GC.131107-223301.compare_hist.clm4_5_45 
+
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+    Following are the baseline failures, which are expected:
+
+FAIL   ERS_Lm3.1x1_vancouverCAN.I1PTCLM45.yellowstone_intel.clm-default.compare_hist.clm4_5_45.clm2.h0 
+FAIL   ERS_Lm3.1x1_vancouverCAN.I1PTCLM45.yellowstone_intel.clm-default.compare_hist.clm4_5_45.clm2.h1 
+FAIL   SMS.1x1_mexicocityMEX.I1PTCLM45.yellowstone_intel.clm-default.compare_hist.clm4_5_45.clm2.h0 
+FAIL   SMS.1x1_mexicocityMEX.I1PTCLM45.yellowstone_intel.clm-default.compare_hist.clm4_5_45.clm2.h1 
+
+
+CLM tag used for the baseline comparisons: clm4_5_45
+
+Changes answers relative to baseline: YES
+
+  If a tag changes answers relative to baseline comparison the
+  following should be filled in (otherwise remove this section):
+
+  Summarize any changes to answers, i.e.,
+    - what code configurations: Any configuration that includes a grid cell that
+      has 100% special landunits, including at least some urban
+    - what platforms/compilers: all
+    - nature of change (roundoff; larger than roundoff/same climate; new climate): 
+
+      Not investigated carefully, but expected to be larger than roundoff/same
+      climate - since this only affects a very small number of grid cells, and
+      (I believe) only the urban pervious road in those grid cells
+
+   If bitwise differences were observed, how did you show they were no worse
+   than roundoff? N/A
+
+   If this tag changes climate describe the run(s) done to evaluate the new
+   climate (put details of the simulations in the experiment database)
+       - casename: N/A
+
+   URL for LMWG diagnostics output used to validate new climate: N/A
+	
+===============================================================
+===============================================================
+Tag name:  clm4_5_45
+Originator(s):  sacks (sacks)
+Date: Fri Nov  8 16:10:22 MST 2013
+One-line Summary: refactor daylength calculation, and other minor changes
+
+Purpose of changes:
+
+   (1) Compute daylength in a single place, and compute necessary variables at
+   initialization rather than having them on the restart file
+
+   (2) Compute daylength-related variables at initialization rather than having
+   them on the restart file, both to clean things up and to fix some daylength
+   bugs at initialization (these bugs were fixed in a kludgey way in clm4_5_44,
+   and now are fixed robustly)
+
+   (3) Fix daylength calculation at the poles (previously blew up due to
+   roundoff errors) (doesn't change behavior currently, but could change
+   behavior / answers if there were a vegetated landunit at the pole)
+
+   (4) Fix sminn on restart, so that crop restarts can be bfb (bug 1846)
+
+   (5) Add all_active namelist variable that makes even 0-weight points active,
+   for testing purposes
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+
+   - 1846 (crop restarts aren't exact due to sminn field)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: add all_active namelist variable
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: (1) & (2) reviewed by erik, (3) by self
+
+List any svn externals directories updated (csm_share, mct, etc.):
+
+   scripts: update from scripts4_131030 -> scripts4_131107a
+
+List all files eliminated: none
+
+List all files added and what they do:
+
+========= Compute daylength in a single place
+A       models/lnd/clm/src/clm4_5/biogeophys/DaylengthMod.F90
+
+List all existing files that have been modified, and describe the changes:
+
+========= Refactor daylength calculation to just compute daylength in a single,
+          central place, and compute necessary variables at initialization
+          rather than having them on the restart file
+M       models/lnd/clm/src/clm4_5/biogeochem/CNPhenologyMod.F90
+M       models/lnd/clm/src/clm4_5/biogeochem/CNrestMod.F90
+           - also fix sminn on restart (bug 1846)
+M       models/lnd/clm/src/clm4_5/biogeochem/CNSetValueMod.F90
+M       models/lnd/clm/src/clm4_5/main/CNiniTimeVar.F90
+M       models/lnd/clm/src/clm4_5/main/clm_initializeMod.F90
+M       models/lnd/clm/src/clm4_5/main/clmtypeInitMod.F90
+M       models/lnd/clm/src/clm4_5/main/iniTimeConst.F90
+M       models/lnd/clm/src/clm4_5/main/initSurfAlbMod.F90
+M       models/lnd/clm/src/clm4_5/main/clm_driver.F90
+M       models/lnd/clm/src/clm4_5/main/clmtype.F90
+M       models/lnd/clm/src/clm4_5/main/histFldsMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/CanopyFluxesMod.F90
+M       models/lnd/clm/src/clm4_5/biogeophys/SurfaceAlbedoMod.F90
+
+========= Add all_active namelist variable that makes even 0-weight points
+          active, for testing purposes
+M       models/lnd/clm/bld/namelist_files/namelist_definition_clm4_5.xml
+M       models/lnd/clm/src/clm4_5/main/clm_varctl.F90
+M       models/lnd/clm/src/clm4_5/main/controlMod.F90
+M       models/lnd/clm/src/clm4_5/main/reweightMod.F90
+
+
+========= Add & remove tests from xFail list
+M       models/lnd/clm/bld/unit_testers/xFail/expectedClmTestFails.xml
+
+*** No longer tested (replaced by CME_Ly4)
+-               <entry testId="CME_Ly5.f10_f10.I1850CLM45BGC.yellowstone_intel.clm-default" failType="RUN">Runs out of time. CME_Ly4.f10_f10.I1850CLM45BGC.yellowstone_intel.clm-monthly passes</entry>
+
+*** Now passes
+-               <entry testId="ERS_Ly5.f10_f10.ICLM45BGCCROP.yellowstone_intel.clm-irrigOn_reduceOutput" failType="FAIL" bugz="1846" >restarts not exact due to bug 1846: crop restarts are not exact due to sminn field</entry>
+
++               <entry testId="NCK.f10_f10.ICRUCLM45.yellowstone_intel"                    failType="FAIL"  bugz="1860">Diffs in cpl log files in rofl, rofi and volr</entry>
++               <entry testId="NCK.f10_f10.I.yellowstone_pgi"                              failType="FAIL"  bugz="1860">Diffs in cpl log files in rofl, rofi and volr</entry>
+
+
+CLM testing:
+
+  build-namelist tests:
+
+    yellowstone: OK
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+    Note that we get the following failures in compare_hist:
+
+    FAIL  PET_P15x2_Lm25.f10_f10.ICLM45BGCDVCROP.yellowstone_intel.clm-reduceOutput.GC.131107-214732.compare_hist.clm4_5_44 
+    FAIL  PET_P15x2_Ly3.f10_f10.ICLM45BGCCROP.yellowstone_intel.clm-irrigOn_reduceOutput.GC.131107-214732.compare_hist.clm4_5_44 
+
+    However, I think that's expected due to the oddities in the clm4_5_44 tag
+    with openmp - see notes in the ChangeLog for clm4_5_44 for details. Note
+    that this one is identical to clm4_5_43, suggesting that clm4_5_45 undoes
+    the problem introduced in clm4_5_44:
+
+    PASS   PET_P15x2_Lm25.f10_f10.ICLM45BGCDVCROP.yellowstone_intel.clm-reduceOutput.compare_hist.clm4_5_43.cpl.hi 
+
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+    In particular, note that the clm hist comparison passes for the two above
+    tests that had unexpected cpl diffs:
+
+    PASS   PET_P15x2_Lm25.f10_f10.ICLM45BGCDVCROP.yellowstone_intel.clm-reduceOutput.compare_hist.clm4_5_44.clm2.h0 
+    PASS   PET_P15x2_Ly3.f10_f10.ICLM45BGCCROP.yellowstone_intel.clm-irrigOn_reduceOutput.compare_hist.clm4_5_44.clm2.h0 
+
+
+CLM tag used for the baseline comparisons: clm4_5_44
+
+Changes answers relative to baseline: NO
+
+===============================================================
+===============================================================
+Tag name:  clm4_5_44
+Originator(s):  sacks (sacks)
+Date: Fri Nov  8 08:19:56 MST 2013
+One-line Summary: temporary hack to daylength initialization to provide baselines for the next tag
+
+Purpose of changes:
+
+   The next tag (clm4_5_45) involves a major refactor to the daylength
+   calculation. That refactor is bfb in most respects, but gives differences in
+   the first time step in a few situations.
+
+   This tag (clm4_5_44) does the minimal changes needed to get the same results
+   as clm4_5_45, in order to have more confidence when testing clm4_5_45. 
+
+   Note that the changes here are a kludge that will be reverted in clm4_5_45.
+
+Requirements for tag:
+
+Test level of tag: regular
+
+Bugs fixed (include bugzilla ID):
+
+   1850 (incorrect daylength in first timestep of some runs)
+
+Known bugs (include bugzilla ID):
+    http://bugs.cgd.ucar.edu/
+
+Known Limitations:
+                                 1147 (mkgriddata can't straddle over Greenwich)
+                                 1025 (SCM mode can NOT use a global finidat file)
+                                 1017 (SCM mode can NOT restart)
+                                  896 (T62 mode does not work)
+                                  701 (svn keyword)
+                                  452 (Problem with support of soil-colors != 8 or 20)
+
+Describe any changes made to build system: none
+
+Describe any changes made to the namelist: none
+
+List any changes to the defaults for the boundary datasets: none
+
+Describe any substantial timing or memory changes: none
+
+Code reviewed by: self
+
+List any svn externals directories updated (csm_share, mct, etc.): none
+
+List all files eliminated: none
+
+List all files added and what they do: none
+
+List all existing files that have been modified, and describe the changes:
+
+M       models/lnd/clm/src/clm4_5/main/clm_initializeMod.F90
+
+CLM testing:
+
+  build-namelist tests:
+
+    yellowstone: OK
+
+  regular tests (aux_clm):
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+    frankfurt_intel: OK
+    frankfurt_pgi: OK
+    frankfurt_nag: OK
+
+    There were a number of expected compare_hist failures, as described below.
+
+    There was one unexpected compare_hist failure:
+    FAIL  PET_P15x2_Lm25.f10_f10.ICLM45BGCDVCROP.yellowstone_intel.clm-reduceOutput.GC.145424.compare_hist.clm4_5_43 
+
+    Diffs are just in voc cpl fields. CLM hist files are identical at the end of
+    the run. An SMS version of this test passes. Interestingly, the kludgey code
+    that I have added for clm4_5_44 isn't even executed in this test... so the
+    only diffs should be in variable declarations and 'use' statements. And
+    clm4_5_45 (which I will tag soon) gives identical cpl hist files to
+    clm4_5_43. So there may just be a compiler fluke in the compilation of this
+    tag with openmp enabled. Because clm4_5_45 will give identical results to
+    clm4_5_43, I'm not worrying about this.
+
+
+  history file comparison with component_gen_comp and summarize_cprnc_diffs:
+
+    yellowstone_intel: OK
+    yellowstone_pgi: OK
+
+    A number of expected compare_hist failures, as described below.
+
+CLM tag used for the baseline comparisons: clm4_5_43
+
+Changes answers relative to baseline: YES
+
+  If a tag changes answers relative to baseline comparison the
+  following should be filled in (otherwise remove this section):
+
+  Summarize any changes to answers, i.e.,
+    - what code configurations: CLM45 with BGC (and probably CN), involving
+      either (a) initial conditions interpolated from a different resolution, or
+      (b) a change in start date relative to the ref date of an initial file
+      (which shows up in ERI tests) - see bug 1850
+    - what platforms/compilers: ALL
+    - nature of change (roundoff; larger than roundoff/same climate; new climate): 
+        Not investigated carefully, but almost certainly larger than
+        roundoff/same climate, since this code mod just changes things in the
+        first timestep.
+
+   If bitwise differences were observed, how did you show they were no worse
+   than roundoff? N/A
+
+   If this tag changes climate describe the run(s) done to evaluate the new
+   climate (put details of the simulations in the experiment database)
+       - casename: N/A
+
+   URL for LMWG diagnostics output used to validate new climate: N/A
+	
+===============================================================
+===============================================================
 Tag name:  clm4_5_43
 Originator(s):  sacks (Bill Sacks,UCAR/CSEG,303-497-1762)
 Date: Wed Nov  6 09:21:25 MST 2013

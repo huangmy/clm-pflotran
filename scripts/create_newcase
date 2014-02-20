@@ -75,6 +75,7 @@ OPTIONS
                           redundant with _M confopts setting
      -mach_dir <path>     Specify the locations of the Machines directory (optional).
                           default: $machdir
+     -user_mods_dir <path>Path to directory with user_nl_* files and xmlchange_cmnds to use (optional).
      -confopts <value>    Specify some addition configuration options (optional)
                           _AOA = aoflux on atm grid
                           _AOE = aoflux on exch grid
@@ -133,6 +134,7 @@ my %opts = (
               pts_lat => undef,
               pts_lon => undef,
               mach_dir => $machdir,
+              user_mods_dir => undef,
 	    );
 GetOptions(
     "case=s"                    => \$opts{'case'},
@@ -145,6 +147,7 @@ GetOptions(
     "list=s"                    => \$opts{'list'},
     "mach=s"                    => \$opts{'mach'},
     "mach_dir=s"                => \$opts{'mach_dir'},
+    "user_mods_dir=s"           => \$opts{'user_mods_dir'},
     "pecount=s"                 => \$opts{'pecount'},
     "pes_file=s"                => \$opts{'pes_file'}, 
     "compset_file=s"            => \$opts{'compset_file'},
@@ -258,6 +261,9 @@ if (!$opts{'list'} && !$opts{'testlist'}) {
 # Set machdir to default or value sent in on command line
 $machdir=$opts{'mach_dir'};
 
+# Set user_mods_dir to default or value sent in on command line
+my $user_mods_dir=$opts{'user_mods_dir'};
+
 # Define 3 print levels:
 # 0 - only issue fatal error messages
 # 1 - only informs what files are created (default)
@@ -274,9 +280,14 @@ my %cfg = ();           # build configuration
 # 
 
 (-d "$machdir")   or  die <<"EOF";
-** Cannot find ccsm Machines directory \"$machdir\" **
+** Cannot find cesm Machines directory \"$machdir\" **
 EOF
 
+if ( defined($user_mods_dir) ) {
+   (-d "$user_mods_dir")   or  die <<"EOF";
+** Cannot find user_mods_dir directory \"$user_mods_dir\" **
+EOF
+}
 
 #-----------------------------------------------------------------------------------------------
 # Make sure we can find required perl modules and configuration files.
@@ -1020,6 +1031,61 @@ $year = 1900+$year;
 $mon = 1+$mon;
 print $fh "$commandline\n";
 printf ($fh "case created %04u-%02u-%02u %02u:%02u:%02u\n",$year,$mon,$mday,$hour,$min,$sec);
+
+# Copy the user_mods_dir files in and apply them
+if ( defined($user_mods_dir) ) {
+  my @user_nl_files = glob("$user_mods_dir/user_nl*");
+  my @xmlchange_cmnds_file = "$user_mods_dir/xmlchange_cmnds";
+  my @source_mods_dir = glob("$user_mods_dir/SourceMods/*");
+
+  if(! @user_nl_files && ! @xmlchange_cmnds_file && ! @source_mods_dir)
+  {
+    die "ERROR: There are no user_nl files, xmlchange_cmds file, or SourceMods directories";
+  }
+  else
+  {
+    # Copy the user_nl_* files over
+    foreach my $file(@user_nl_files)
+    {
+        if (-f "$file") {
+            if ($print>=2) { print "Copy $file over.$eol"; }
+            my $copy = "cp $file $caseroot";
+            system($copy) == 0 or die "ERROR: $copy failed: $?\n";
+        }
+    }
+    # Copy the xmlchange_cmnds file over and execute it
+    foreach my $file(@xmlchange_cmnds_file)
+    {
+        if (-f "$file") {
+            if ($print>=2) { print "Copy $file over.$eol"; }
+            my $copy = "cp $file $caseroot";
+            system($copy) == 0 or die "ERROR: $copy failed: $?\n";
+            chmod 0777, "$caseroot/xmlchange_cmnds";
+            my $cwd = getcwd(); # current working directory
+            chdir "$caseroot";
+            if ($print>=2) { print "Execute $file.$eol"; }
+            system ("./xmlchange_cmnds");
+            chdir "$cwd";
+        }
+    }
+    # Copy any files in SourceMods over provided the same directory exists in the case
+    foreach my $dir(@source_mods_dir)
+    {
+        if ($print>=2) { print "Copy $dir over.$eol"; }
+        if ( $dir =~ m/(SourceMods\/.+)/ ) {
+           my $mydir = "$caseroot/$1";
+           if (-d "$dir" && -d "$mydir" ) {
+               foreach my $file( glob("$dir/*") )
+               {
+                  if ($print>=2) { print "Copy $file over.$eol"; }
+                  my $copy = "cp $file $mydir";
+                  system($copy) == 0 or die "ERROR: $copy failed: $?\n";
+               }
+           }
+        }
+    }
+  }
+}
 
 #-----------------------------------------------------------------------------------------------
 # (11) Create $caseroot run setup scripts (other than batch)

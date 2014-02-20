@@ -302,6 +302,7 @@ contains
     use VOCEmissionMod        , only : VOCEmission_init
     use clm_time_manager      , only : get_curr_date, get_nstep, advance_timestep, &
                                        timemgr_init, timemgr_restart_io, timemgr_restart
+    use DaylengthMod          , only : InitDaylength
     use clm_pflotran_interfaceMod, only : clm_pf_interface_init, &
          clm_pf_set_restart_stamp
     !
@@ -421,6 +422,23 @@ contains
     end if
     call t_stopf('init_io1')
 
+    ! ------------------------------------------------------------------------
+    ! Initialize daylength from the previous time step (needed so prev_dayl can be set correctly)
+    ! ------------------------------------------------------------------------
+
+    call t_startf('init_orbd')
+
+    calday = get_curr_calday()
+    call shr_orb_decl( calday, eccen, mvelpp, lambm0, obliqr, declin, eccf )
+
+    dtime = get_step_size()
+    caldaym1 = get_curr_calday(offset=-int(dtime))
+    call shr_orb_decl( caldaym1, eccen, mvelpp, lambm0, obliqr, declinm1, eccf )
+
+    call t_stopf('init_orbd')
+    
+    call InitDaylength(bounds_proc, declin=declin, declinm1=declinm1)
+             
     ! ------------------------------------------------------------------------
     ! Initialize CN Ecosystem Dynamics (must be after time-manager initialization)
     ! ------------------------------------------------------------------------
@@ -608,22 +626,9 @@ contains
        ! Initialize albedos (correct pft filters are needed)
 
        if (finidat == ' ' .or. do_initsurfalb) then
-          call t_startf('init_orb')
-          calday = get_curr_calday()
-          call t_startf('init_orbd1')
-          call shr_orb_decl( calday, eccen, mvelpp, lambm0, obliqr, declin, eccf )
-          call t_stopf('init_orbd1')
-          
-          dtime = get_step_size()
-          caldaym1 = get_curr_calday(offset=-int(dtime))
-          call t_startf('init_orbd2')
-          call shr_orb_decl( caldaym1, eccen, mvelpp, lambm0, obliqr, declinm1, eccf )
-          call t_stopf('init_orbd2')
-          
           call t_startf('init_orbSA')
-          call initSurfAlb( calday, declin, declinm1 )
+          call initSurfAlb( calday, declin )
           call t_stopf('init_orbSA')
-          call t_stopf('init_orb')
        else if ( n_drydep > 0 .and. drydep_method == DD_XLND )then
           ! Call interpMonthlyVeg for dry-deposition so that mlaidiff will be calculated
           ! This needs to be done even if CN or CNDV is on!

@@ -1,9 +1,102 @@
 ================================================================================
- SVN $Id: ChangeLog 51342 2013-09-19 22:14:03Z erik $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_130919/ChangeLog $
+ SVN $Id: ChangeLog 55398 2013-11-16 14:42:40Z muszala $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_131116/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+Originator: muszala
+Date: Nov. 15 2013
+Model: datm7
+Version: datm8_131116
+One-line summary: Swenson anomaly forcing - Part 1
+
+add additional data streams to modify existing
+data streams for purposes such as bias correction or specifying
+future changes relative to baseline data streams, e.g. specifying
+future atmospheric forcing anomalies when running CLM with data atmosphere.
+Paired with clm4_5_49.
+
+See CLM ChangeLog for what to set in user namelists.
+
+This is part 1 of 2.  Part 2 will address a general way to handle
+streams in the DATM that is triggered off of an AF compset.
+
+M       datm_comp_mod.F90
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_datm.xml
+M       bld/namelist_files/namelist_definition_datm.xml
+
+================================================================================
+Originator: erik
+Date: Nov 04 2013
+Model: datm7
+Version: datm8_131104
+One-line summary: Add defaults for strm_offset, strm_tintalgo, and strm_domvar
+
+Added defaults (and the value most commonly used by far) for streams: offset,
+tintalgo, and domvar. This makes it a bit easier to add new streams. You still
+have to set: start, end, align, directories, and filenames as well as data variable 
+names for a new stream or else it will fail to generate. Those are too
+specific to have standard defaults.
+
+M       bld/namelist_files/namelist_defaults_datm.xml
+
+================================================================================
+
+Originator: erik
+Date: Nov 02 2013
+Model: datm7
+Version: datm8_131102
+One-line summary: Get build-namelist unit-tester working again, add -user_xml_dir option
+
+    Fix build-namelist unit-tester working again. 
+    Add -user_xml_dir option to build-namelist which is by default set to SoureMods/src.datm so you
+    can add namelist_definition_datm.xml and/or namelist_defaults_datm.xml to SourceMods
+    and have it used first. It can be a full or partial file with just the changes you want.
+
+M       bld/build-namelist
+M       bld/datm.buildnml.csh
+M       bld/unit_testers/build-namelist_test.pl
+A       bld/unit_testers/user_xml_dir
+A       bld/unit_testers/user_xml_dir/namelist_defaults_datm.xml
+A       bld/unit_testers/user_xml_dir/namelist_definition_datm.xml
+
+================================================================================
+Originator: mvertens
+Date: Sep 24 2013
+Model: datm7
+Version: datm8_130924
+One-line summary: move cpl/ code into datm/ directory
+	
+A  +    atm_comp_mct.F90
+A  +    atm_comp_esmf.F90
+M       bld/datm.buildexe.csh
+D       cpl
+D       cpl/atm_comp_mct.F90
+D       cpl/atm_comp_esmf.F90
+	
+================================================================================
+Originator: mvertens
+Date: Sep 19 2013
+Model: datm7
+Version: datm8_130920
+One-line summary: merge comptype branch to trunk
+	
+cpl_esmf/ is gone, cpl_mct/ is gone and cpl/ is new 
+with both atm_comp_esmf and atm_comp_mct - this will only 
+work with new cpl7 intrastructure in drvseq4_3_05 and beyond
+
+M       bld/datm.buildexe.csh
+D       cpl_mct
+D       cpl_mct/atm_comp_mct.F90
+M       ChangeLog
+D       cpl_esmf
+D       cpl_esmf/atm_comp_mct.F90
+D       cpl_esmf/atm_comp_esmf.F90
+A  +    cpl
+A  +    cpl/atm_comp_esmf.F90
+================================================================================
+	
 Originator: erik
 Date: Sep 19 2013
 Model: datm7
