@@ -3,8 +3,8 @@
 !! @file 
 !! @brief Derived datatypes and constants for PIO
 !! 
-!! $Revision: 894 $
-!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
+!! $Revision: 943 $
+!! $LastChangedDate: 2014-02-14 08:20:17 -0800 (Fri, 14 Feb 2014) $
 !<
 module pio_types
     use pio_kinds
@@ -116,7 +116,6 @@ module pio_types
        type(iosystem_desc_t), pointer :: iosystem => null()
        type(io_data_list), pointer :: data_list_top  => null()  ! used for non-blocking pnetcdf calls
        integer :: buffsize=0
-       integer :: request_cnt=0
        integer(i4) :: fh
        integer(kind=PIO_OFFSET) :: offset             ! offset into file
        integer(i4)              :: iotype             ! Type of IO to perform see parameter statement below     

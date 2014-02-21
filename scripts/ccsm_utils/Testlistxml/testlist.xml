@@ -2046,27 +2046,27 @@
       </test>
     </grid>
     <grid name="f45_f45">
-      <test name="SMS_RLA">
-        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/default">edison</machine>
-        <machine compiler="intel" testtype="prebeta">goldbach</machine>
-        <machine compiler="pgi" testtype="prebeta">goldbach</machine>
-        <machine compiler="pgi" testtype="prerelease">hopper</machine>
-        <machine compiler="ibm" testtype="prerelease">intrepid</machine>
-        <machine compiler="intel" testtype="prebeta">janus</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/default">yellowstone</machine>
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      <test name="SMS">
+        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/ptsRLA">edison</machine>
+        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="pgi"   testtype="prebeta"          testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="pgi"   testtype="prerelease"       testmods="clm/ptsRLA">hopper</machine>
+        <machine compiler="ibm"   testtype="prerelease"       testmods="clm/ptsRLA">intrepid</machine>
+        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">janus</machine>
+        <machine compiler="intel" testtype="aux_clm"          testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="gnu"   testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
       </test>
-      <test name="SMS_RLB">
-        <machine compiler="intel" testtype="aux_clm_ys_pgi" testmods="clm/default">edison</machine>
-        <machine compiler="pgi" testtype="aux_clm" testmods="clm/default">yellowstone</machine>
+      <test name="SMS">
+        <machine compiler="intel" testtype="aux_clm_ys_pgi"   testmods="clm/ptsRLB">edison</machine>
+        <machine compiler="pgi"   testtype="aux_clm"          testmods="clm/ptsRLB">yellowstone</machine>
       </test>
-      <test name="SMS_ROA">
-        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/default">edison</machine>
-        <machine compiler="pgi" testtype="prerelease">hopper</machine>
-        <machine compiler="ibm" testtype="prerelease">intrepid</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/default">yellowstone</machine>
+      <test name="SMS">
+        <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/ptsROA">edison</machine>
+        <machine compiler="pgi"   testtype="prerelease"       testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="ibm"   testtype="prerelease"       testmods="clm/ptsROA">intrepid</machine>
+        <machine compiler="intel" testtype="aux_clm"          testmods="clm/ptsROA">yellowstone</machine>
       </test>
     </grid>
     <grid name="f45_g37">
@@ -2625,17 +2625,24 @@
       </test>
     </grid>
     <grid name="f45_f45">
-      <test name="SMS_RLA_Mmpi-serial">
-        <machine compiler="nag" testtype="aux_clm" testmods="clm/default">goldbach</machine>
+      <test name="SMS_Mmpi-serial">
+        <machine compiler="nag"   testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi"   testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
       </test>
-      <test name="SMS_RLA_Mmpich">
-        <machine compiler="nag" testtype="aux_clm" testmods="clm/default">goldbach</machine>
+      <test name="SMS_D_Mmpi-serial">
+        <machine compiler="nag"   testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi"   testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
       </test>
-      <test name="SMS_RLB">
-        <machine compiler="pgi" testtype="aux_clm" testmods="clm/default">goldbach</machine>
+      <test name="SMS_Mmpich">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
       </test>
-      <test name="SMS_ROA">
-        <machine compiler="pgi" testtype="aux_clm" testmods="clm/default">goldbach</machine>
+      <test name="SMS">
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsRLB">goldbach</machine>
+      </test>
+      <test name="SMS">
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsROA">goldbach</machine>
       </test>
     </grid>
   </compset>
@@ -3460,16 +3467,16 @@
       </test>
     </grid>
     <grid name="f45_f45">
-      <test name="SMS_RLB">
-        <machine compiler="intel" testtype="prebeta">janus</machine>
-        <machine compiler="gnu" testtype="prebeta">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta">yellowstone</machine>
-        <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
+      <test name="SMS">
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB" >janus</machine>
+        <machine compiler="gnu"   testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="pgi"   testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
       </test>
-      <test name="SMS_ROB">
-        <machine compiler="pgi" testtype="prebeta">hopper</machine>
-        <machine compiler="pgi" testtype="prerelease">hopper</machine>
-        <machine compiler="ibm" testtype="prerelease">intrepid</machine>
+      <test name="SMS">
+        <machine compiler="pgi" testtype="prebeta"    testmods="clm/ptsROA" testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsROA" testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsROA" testmods="clm/ptsROA">intrepid</machine>
       </test>
     </grid>
     <grid name="f45_g37">

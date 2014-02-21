@@ -258,7 +258,8 @@ if (! $clean ) {
 	print "Creating user_nl_xxx files for components and cpl$eol";
     }
     my $buildconf  = "$caseroot/Buildconf";
-    foreach my $model qw(COMP_ATM COMP_LND COMP_ICE COMP_OCN COMP_GLC COMP_ROF COMP_WAV) {
+    my @models = qw( COMP_ATM COMP_LND COMP_ICE COMP_OCN COMP_GLC COMP_ROF COMP_WAV );
+    foreach my $model (@models) {
 	my $comp  = $xmlvars{"$model"};
 	if (-f "$buildconf/$comp.user_nl.csh") {
 	    my $sysmod = "env CASEROOT=$caseroot CODEROOT=$xmlvars{CCSMROOT}/models";
@@ -271,11 +272,11 @@ if (! $clean ) {
 	    $sysmod = "$sysmod NINST_GLC=$xmlvars{NINST_GLC}";
 	    $sysmod = "$sysmod NINST_WAV=$xmlvars{NINST_WAV}";
 	    $sysmod = "$sysmod $buildconf/$comp.user_nl.csh";
-	    system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
+	    qx/$sysmod/ == 0 or die "ERROR: $sysmod failed: $?\n";
 	}
     }
     my $sysmod = "env CASEROOT=$caseroot CODEROOT=$xmlvars{CCSMROOT}/models $buildconf/cpl.user_nl.csh";
-    system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
+    qx/$sysmod/ == 0 or die "ERROR: $sysmod failed: $?\n";
 
     print "Running preview_namelist script $eol";
     my $sysmod = "$caseroot/preview_namelists";
