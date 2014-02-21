@@ -726,7 +726,10 @@ class RegressionTest(object):
         if not config.has_section(section):
             raise Exception("ERROR: test config file '{0}' does not contain a"
                             "'{1}' section.".format(self._config_filename, section))
-        self._case_info = list_to_dict(config.items(section))
+        # NOTE(bja, 2014-02) must set raw=True becaues the compset can
+        # contain '%' characters, and ConfigParser will try to
+        # interpolate them.
+        self._case_info = list_to_dict(config.items(section, raw=True))
         self._case_info["name"] = self._name
         # check for required parameters.
         txt = ""
