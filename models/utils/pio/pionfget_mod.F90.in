@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfget_mod.F90"
 !>
 !! @file 
-!! $Revision: 894 $
-!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
+!! $Revision: 925 $
+!! $LastChangedDate: 2014-01-24 12:55:17 -0800 (Fri, 24 Jan 2014) $
 !! @brief Read Routines for non-decomposed NetCDF data.
 !<
 module pionfget_mod
@@ -129,9 +129,9 @@ CONTAINS
 #endif
 
 #ifdef _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr = nf90_get_var(File%fh, varid, ival, start=index)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           ! Only io proc 0 will do reading
           if (File%iosystem%io_rank == 0) then
              ierr = nf90_get_var(File%fh, varid, ival, start=index)
@@ -270,9 +270,9 @@ CONTAINS
                int(count,kind=PIO_OFFSET), ival, isize, {MPITYPE})
 #endif
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
           ierr = nf90_get_var(File%fh, varid, ival, start=start, count=count)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           ! Only io proc 0 will do reading
           if (File%iosystem%io_rank == 0) then
              ierr = nf90_get_var(File%fh, varid, ival, start=start, count=count)
@@ -408,9 +408,9 @@ CONTAINS
           ierr = nfmpi_get_var_all(File%fh, varid, ival, isize, {MPITYPE})
 #endif
 #ifdef  _NETCDF
-       case(pio_iotype_netcdf4p, pio_iotype_netcdf4c)
+       case(pio_iotype_netcdf4p)
              ierr = nf90_get_var(File%fh, varid, ival)
-       case(pio_iotype_netcdf)
+       case(pio_iotype_netcdf, pio_iotype_netcdf4c)
           ! Only io proc 0 will do reading
           if (File%iosystem%io_rank == 0) then
              ierr = nf90_get_var(File%fh, varid, ival)

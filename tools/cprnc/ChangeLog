@@ -1,3 +1,47 @@
+
+==============================================================
+Tag name: cprnc_140203
+Originator: jshollen
+Date: Feb 3, 2014
+One-line Summary: Added goldbach build script, added rpath linking for linux
+intel,pgi
+
+M       Makefile
+A       MakeGoldbach.sh
+A       cprnc.sh
+
+==============================================================
+Tag name: cprnc_140129
+Originator: jamroz
+Date: Jan 29, 2014
+One-line Summary: Fix CMake compare_vars_mod.F90 dependency issue
+
+M     CMakeLists.txt
+
+==============================================================
+Tag name: cprnc_131224
+Originator: sacks
+Date: Dec 24, 2013
+One-line Summary: Fixes for 0-d variables that differ
+
+Three fixes for 0-d variables that differ:
+
+(1) Don't try to call get_dim_str, because (a) it is irrelevant, and
+    (b) the translate_loc call doesn't work for a 0-d variable
+
+(2) Print an RMS line, so that this variable shows up in a grep for
+    RMS.
+
+(3) Fix formatting for output of 0-d integer variables that differ
+
+Also add a test for diffs in 0-d variables (int & real)
+
+M     compare_vars_mod.F90.in
+M     run_tests
+M     test_inputs/README
+A     test_inputs/control_0d.nc
+A     test_inputs/diffs_0d.nc
+
 ==============================================================
 Tag name: cprnc_131120
 Originator: jedwards

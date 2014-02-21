@@ -1,8 +1,153 @@
 ================================================================================
-SVN $Id: ChangeLog 56543 2014-01-14 18:37:09Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140114/ChangeLog $
+SVN $Id: ChangeLog 57226 2014-02-10 04:52:57Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140209/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: erik
+Date: 9 Feb 2014
+Model: scripts
+Version: scripts4_140209
+One-line: Fix argument to CLM build-namelist for CLM irrig test
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn_reduceOutput/xmlchange_cmnds
+
+================================================================================
+Originator: erik
+Date: 8 Feb 2014
+Model: scripts
+Version: scripts4_140208
+One-line: Change clm tests so vsoilc is in user_nl_clm
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/user_nl_clm
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/NoVSNoNI/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/user_nl_clm
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/rootlit/xmlchange_cmnds
+
+================================================================================
+Originator: erik
+Date: 7 Feb 2014
+Model: scripts
+Version: scripts4_140207
+One-line: Move snicarfrc setting to namelist from commandline and irrig from
+          namelist to command line, switch frankfurt to goldbach
+
+M       ccsm_utils/Testlistxml/testlist.xml -- change frankfurt to goldbach
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/user_nl_clm
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/SNICARFRC/xmlchange_cmnds
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn_reduceOutput/user_nl_clm
+A       ccsm_utils/Testlistxml/testmods_dirs/clm/irrigOn_reduceOutput/xmlchange_cmnds
+
+================================================================================
+Originator: sacks
+Date: 4 Feb 2014
+Model: scripts
+Version: scripts4_140204
+One-line: Add some history fields to some aux_clm tests
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/monthly/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/monthly_noinitial/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_changeFlags/user_nl_clm
+
+================================================================================
+Originator: sacks
+Date: 29 Jan 2014
+Model: scripts
+Version: scripts4_140129
+One-line: Add an aux_glc test
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: santos
+Date: 24 Jan 2014
+Model: scripts
+Version: scripts4_140124
+One-line: Add new 60 layer AMIP compset.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+        - Add new compset, FAMIPC5L60.
+
+M       ccsm_utils/Testlistxml/manage_xml_entries
+        - Correct minor errors in the usage message.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+        - Add test for new FAMIPC5L60 compset to Mira prebeta tests.
+
+================================================================================
+Originator: jshollen
+Date: 21 Jan 2014
+Model: scripts
+Version: scripts4_140121
+One-line: ERS_IOP4{c,p}.ne30_g16.F.yellowstone_intel changed res to ne30_ne30
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: 15 Jan 2014
+Model: scripts
+Version: scripts4_140115b
+One-line: New method for ConfigCase to resolve all env vars, needed recursive
+function. 
+
+M       ccsm_utils/Case.template/ConfigCase.pm
+
+================================================================================
+Originator: tcraig
+Date: 15 Jan 2014
+Model: scripts
+Version: scripts4_140115a
+One-line: Add AVGHIST env variables for coupler, update check_exactrestart
+
+check_exactrestart.pl mods modify the comparison to skip lines in
+both file1 and file2 that are not comm_diag lines.  this is needed
+for the new self-documenting coupler merge routines.
+
+M       ccsm_utils/Tools/check_exactrestart.pl
+M       ccsm_utils/Case.template/config_definition.xml
+M       ccsm_utils/Testcases/config_tests.xml
+================================================================================
+Originator: jshollen
+Date: 15 Jan 2014
+Model: scripts
+Version: scripts4_140115
+One-line: New method for ConfigCase.pm, resolves all variables in all xml
+files. 
+
+M       ccsm_utils/Case.template/ConfigCase.pm
+
+================================================================================
+
+Originator: erik
+Date: 14 Jan 2014
+Model: scripts
+Version: scripts4_140114b
+One-line: Remove PTCLM and link_dirtree, new USUMB test directory, add DATM_CO2_TSERIES
+          remove BUILDHEAT, Qanth from CLM tests
+
+Move transCO2_n03_scripts4_140114 branch tag to trunk.
+
+Fix bugs: 1901, 1900, 1437, 979
+
+M       ccsm_utils/Case.template/config_compsets.xml --- Set DATM_CO2_TSERIES (bug 979)
+           when needed (comment out lines that turns it on by default for transient compsets)
+           Fix IRCP85CLM45BGC so uses rcp8.5 rather than rcp4.5 (bug 1901)
+M       ccsm_utils/Case.template/config_definition.xml - Add DATM_CO2_TSERIES
+M       ccsm_utils/Case.template/config_grid.xml ------- Add g16_g16 grid
+
+********** Update USUMB test data (produced by PTCLM)
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+
+********** Remove PTCLM external and link_dirtree (bug 1437) from scripts
+M       SVN_EXTERNAL_DIRECTORIES
+D       link_dirtree
+
+The PTCLM external is now part of CLM.
+
 ================================================================================
 Originator: sacks
 Date: 14 Jan 2014

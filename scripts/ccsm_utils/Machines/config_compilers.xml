@@ -273,6 +273,35 @@ for mct, etc.
   <SUPPORTS_CXX>TRUE</SUPPORTS_CXX>
 </compiler>
 
+<compiler COMPILER="intelmic">
+  <!-- http://software.intel.com/en-us/articles/intel-composer-xe/ -->
+  <ADD_CPPDEFS> -DFORTRANUNDERSCORE -DNO_R16</ADD_CPPDEFS>
+  <ADD_CFLAGS compile_threaded="true"> -openmp </ADD_CFLAGS>
+  <ADD_FFLAGS compile_threaded="true"> -openmp </ADD_FFLAGS>
+  <ADD_LDFLAGS compile_threaded="true"> -openmp </ADD_LDFLAGS>
+  <FREEFLAGS> -free </FREEFLAGS>
+  <FIXEDFLAGS> -fixed -132 </FIXEDFLAGS>
+  <ADD_FFLAGS DEBUG="TRUE"> -O0 -g -check uninit -check bounds -check pointers -fpe0 </ADD_FFLAGS>
+  <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
+  <FFLAGS> -mmic -fp-model source -convert big_endian -assume byterecl -ftz -traceback -assume realloc_lhs </FFLAGS>
+  <CFLAGS> -mmic -O2 -fp-model precise -DFORTRANUNDERSCOR </CFLAGS>
+  <CONFIG_ARGS>--host=x86_64-k1om-linux --build=x86_64-unknown-linux</CONFIG_ARGS>
+  <FFLAGS_NOOPT> -O0 </FFLAGS_NOOPT>
+  <FC_AUTO_R8> -r8 </FC_AUTO_R8>
+  <SFC> ifort </SFC>
+  <SCC> icc </SCC>
+  <SCXX> icpc </SCXX>
+  <MPIFC> mpiifort</MPIFC>
+  <MPICC> mpiicc  </MPICC>
+  <MPICXX> mpiicpc </MPICXX>
+  <CXX_LINKER>FORTRAN</CXX_LINKER>
+  <CXX_LDFLAGS> -cxxlib </CXX_LDFLAGS>
+  <SUPPORTS_CXX>TRUE</SUPPORTS_CXX>
+  <ADD_CPPDEFS> -DCPRINTEL </ADD_CPPDEFS>
+  <ADD_LDFLAGS> -mmic </ADD_LDFLAGS>
+  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs)</ADD_SLIBS>
+</compiler>
+
 <compiler COMPILER="gnu">
   <!-- http://gcc.gnu.org/onlinedocs/gfortran/ -->
   <ADD_CPPDEFS> -DFORTRANUNDERSCORE -DNO_R16</ADD_CPPDEFS>
@@ -611,11 +640,11 @@ for mct, etc.
   <MPIFC> mpixlf2003_r </MPIFC>
   <SCC> mpixlc_r </SCC>
   <MPICC> mpixlc_r </MPICC>
-  <NETCDF_PATH>/soft/libraries/netcdf/4.2.1.1/cnk-xl/V1R2M0-20130417/</NETCDF_PATH>
+  <NETCDF_PATH>/soft/libraries/netcdf/4.3.0-f4.2/cnk-xl/V1R2M0-20131211/</NETCDF_PATH>
   <PNETCDF_PATH>/soft/libraries/pnetcdf/1.3.1/cnk-xl/current/</PNETCDF_PATH>
   <PFUNIT_PATH>/home/santos/pFUnit/pFUnit_IBM</PFUNIT_PATH>
   <ADD_LDFLAGS>-L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl </ADD_LDFLAGS>
-   <ADD_SLIBS>-L/soft/libraries/netcdf/4.2.1.1/cnk-xl/V1R2M0-20130417/lib -lnetcdff -lnetcdf -L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl -L/soft/libraries/alcf/current/xl/ZLIB/lib -lz -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas -L/bgsys/drivers/ppcfloor/comm/sys/lib </ADD_SLIBS>
+   <ADD_SLIBS>-L$(NETCDF_PATH)/lib -lnetcdff -lnetcdf -L/soft/libraries/hdf5/1.8.10/cnk-xl/current/lib -lhdf5 -lhdf5_hl -L/soft/libraries/alcf/current/xl/ZLIB/lib -lz -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas -L/bgsys/drivers/ppcfloor/comm/sys/lib </ADD_SLIBS>
   <PIO_FILESYSTEM_HINTS>gpfs </PIO_FILESYSTEM_HINTS>
 </compiler>
 
@@ -767,6 +796,42 @@ for mct, etc.
  <ADD_LDFLAGS compile_threaded="true"> -L/home/santos/lib/fake_omp -lfake_omp -Wl,-Wl,,--rpath=/home/santos/lib/fake_omp </ADD_LDFLAGS>
 </compiler>
 
+<compiler MACH="goldbach">
+ <MPI_LIB_NAME MPILIB="mpich"> mpich</MPI_LIB_NAME>
+ <MPI_LIB_NAME MPILIB="openmpi"> mpi</MPI_LIB_NAME>
+ <LAPACK_LIBDIR> /usr/lib64 </LAPACK_LIBDIR>
+ <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs)</ADD_SLIBS>
+</compiler>
+
+<compiler COMPILER="intel" MACH="goldbach">
+ <NETCDF_PATH> /usr/local/netcdf-4.3.0-intel-cluster-2013.4.183</NETCDF_PATH>
+ <MPI_PATH MPILIB="mpich"> /cluster/mvapich-1.2.0-qlc-intel-cluster-2013.4.183</MPI_PATH>
+ <MPI_PATH MPILIB="openmpi"> /cluster/openmpi-1.4.3-qlc-intel-cluster-2013.4.183</MPI_PATH>
+ <ADD_LDFLAGS> -Wl,-rpath,/usr/local/netcdf-4.3.0-intel-cluster-2013.4.183/lib </ADD_LDFLAGS>
+ <ADD_LDFLAGS> -Wl,-rpath,/cluster/openmpi-1.4.3-qlc-intel-cluster-2013.4.183/lib</ADD_LDFLAGS>
+</compiler>
+
+<compiler COMPILER="pgi" MACH="goldbach">
+ <ADD_CFLAGS DEBUG="FALSE"> -O2 </ADD_CFLAGS>
+ <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
+ <NETCDF_PATH> /usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7</NETCDF_PATH>
+ <MPI_PATH MPILIB="mpich"> /cluster/mvapich-1.2.0-qlc-pgi-pgcc-pghf-13.7</MPI_PATH>
+ <MPI_PATH MPILIB="openmpi"> /cluster/openmpi-1.4.3-qlc-pgi-pgcc-pghf-13.7</MPI_PATH>
+ <ADD_LDFLAGS> -lgomp </ADD_LDFLAGS>
+ <ADD_LDFLAGS> -Wl,-R/usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7/lib</ADD_LDFLAGS>
+ <ADD_LDFLAGS> -Wl,-R/cluster/openmpi-1.4.3-qlc-pgi-pgcc-pghf-13.7/lib</ADD_LDFLAGS>
+</compiler>
+
+<compiler COMPILER="nag" MACH="goldbach">
+ <NETCDF_PATH> /usr/local/netcdf-4.3.0-gcc-g++-4.4.7-3-nag-5.3.1-907</NETCDF_PATH>
+ <MPI_PATH MPILIB="mpich"> /home/santos/mpich-gcc-nag</MPI_PATH>
+ <PFUNIT_PATH>/home/santos/pFUnit/pFUnit_NAG</PFUNIT_PATH>
+ <!-- needed for nag pio build.. -->
+ <ADD_CPPDEFS> -DNO_C_SIZEOF </ADD_CPPDEFS>
+ <!-- Experimental wrapper for OpenMP. -->
+ <ADD_LDFLAGS compile_threaded="true"> -L/home/santos/lib/fake_omp -lfake_omp -Wl,-Wl,,--rpath=/home/santos/lib/fake_omp </ADD_LDFLAGS>
+</compiler>
+
 <compiler MACH="stampede">
   <PIO_FILESYSTEM_HINTS>lustre</PIO_FILESYSTEM_HINTS>
   <NETCDF_PATH>$(TACC_NETCDF_DIR)</NETCDF_PATH>
@@ -788,21 +853,17 @@ for mct, etc.
   <TRILINOS_PATH>$(TRILINOS_PATH)</TRILINOS_PATH>
 </compiler>
 
-<compiler MACH="stampede" COMPILER="intelmic">
-  <MPICC>mpicc</MPICC>
-  <MPIFC>mpif90</MPIFC>
-  <MPICXX>mpicxx</MPICXX>
+<compiler MACH="pronghorn" COMPILER="intel">
+  <MPICC>mpiicc</MPICC>
+  <MPIFC>mpiifort</MPIFC>
+  <MPICXX>mpicpc</MPICXX>
   <SFC>ifort</SFC>
   <SCC>icc</SCC>
   <SCXX>icpc</SCXX>
-  <ADD_FFLAGS> -mmic </ADD_FFLAGS>
-  <ADD_FCFLAGS> -mmic </ADD_FCFLAGS>
-  <ADD_FFLAGS_NOOPT> -mmic</ADD_FFLAGS_NOOPT>
-  <ADD_CFLAGS> -mmic -DFORTRANUNDERSCORE </ADD_CFLAGS>
-  <ADD_CXXFLAGS> -mmic </ADD_CXXFLAGS>
-  <CONFIG_ARGS>--host=x86_64-k1om-linux --build=x86_64-unknown-linux</CONFIG_ARGS>
-  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs)</ADD_SLIBS>
-  <ADD_LDFLAGS> -mmic </ADD_LDFLAGS>
+  <ADD_FFLAGS> -xHost </ADD_FFLAGS>
+  <ADD_CFLAGS> -xHost </ADD_CFLAGS>
+  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs) -L$(TACC_HDF5_LIB) -lhdf5</ADD_SLIBS>
+  <ADD_LDFLAGS>-L$(TACC_HDF5_LIB) -lhdf5</ADD_LDFLAGS>
   <TRILINOS_PATH>$(TRILINOS_PATH)</TRILINOS_PATH>
 </compiler>
 

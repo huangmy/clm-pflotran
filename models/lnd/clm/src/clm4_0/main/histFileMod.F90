@@ -1758,7 +1758,7 @@ contains
     call ncd_putatt(lnfid, ncd_global, 'version' , trim(version))
 
     str = &
-    '$Id: histFileMod.F90 47671 2013-06-03 19:42:59Z muszala $'
+    '$Id: histFileMod.F90 57223 2014-02-09 01:26:21Z erik $'
     call ncd_putatt(lnfid, ncd_global, 'revision_id', trim(str))
     call ncd_putatt(lnfid, ncd_global, 'case_title', trim(ctitle))
     call ncd_putatt(lnfid, ncd_global, 'case_id', trim(caseid))
@@ -3547,6 +3547,7 @@ contains
              case (namep)
                 num1d = nump
                 beg1d = begp
+                end1d = endp
              case default
                 write(iulog,*) trim(subname),' ERROR: read unknown 1d type=',type1d
                 call endrun ()

@@ -1,8 +1,8 @@
 #define __PIO_FILE__ "pionfatt_mod.F90"
 !>
 !! @file 
-!! $Revision: 894 $
-!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
+!! $Revision: 925 $
+!! $LastChangedDate: 2014-01-24 12:55:17 -0800 (Fri, 24 Jan 2014) $
 !! @brief NetCDF attribute interface to PIO
 !<
 module pionfatt_mod
@@ -415,7 +415,7 @@ contains
 #endif
 
 #ifdef _NETCDF
-       case(iotype_netcdf)
+       case(iotype_netcdf,PIO_iotype_netcdf4c)
           if (Ios%io_rank==0) then
              ierr=nf90_get_att(File%fh,varid,name,value)
           endif
@@ -423,7 +423,7 @@ contains
              call MPI_BCAST(value,clen ,{MPITYPE} ,0,Ios%IO_comm, mpierr)
              call CheckMPIReturn(subName, mpierr)
           end if
-       case(PIO_iotype_netcdf4p,PIO_iotype_netcdf4c)
+       case(PIO_iotype_netcdf4p)
           ierr=nf90_get_att(File%fh,varid,name,value)
 #endif
 
@@ -494,7 +494,7 @@ contains
           ierr= nfmpi_get_att_{TYPE} (File%fh,varid,name,value)
 #endif
 #ifdef _NETCDF
-       case(iotype_netcdf)
+       case(iotype_netcdf,PIO_iotype_netcdf4c)
           if (Ios%io_rank==0) then
              ierr=nf90_get_att(File%fh,varid,name,value)
           endif
@@ -502,7 +502,7 @@ contains
              call MPI_BCAST(value,clen ,{MPITYPE} ,0,Ios%IO_comm, mpierr)
              call CheckMPIReturn(subName, mpierr)
           end if
-       case(PIO_iotype_netcdf4p,PIO_iotype_netcdf4c)
+       case(PIO_iotype_netcdf4p)
           ierr=nf90_get_att(File%fh,varid,name,value)
 #endif
 

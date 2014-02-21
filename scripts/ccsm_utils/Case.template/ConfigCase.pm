@@ -98,6 +98,8 @@ use English;
 
 use IO::File;
 use XML::Lite;
+use XML::LibXML;
+use Data::Dumper;
 
 sub new
 {
@@ -191,6 +193,7 @@ sub getresolved
     my $v1 = $val;
 
     while($v1 =~ /\$([\w_]+)(.*)$/){
+	print "v1: $v1\n";
 	my $newvar=$1;
 	$v1 = $2;
 	if($self->is_valid_name($newvar)){
@@ -1266,7 +1269,6 @@ sub set_pes
 	my $name = $child->get_name();
 	my @children_level = $child->get_children();
 	my $num_children = $#children_level+1;
-	
 	if ( $#children_level > -1 ) {
 	    foreach my $child_level ( @children_level ) {
 		
@@ -1352,5 +1354,83 @@ sub set_pes
       print "$key =  $possible_match->{$key}\n";
   }
 }
+
+# Parse all the xml files, and resolve every variable. 
+sub getAllResolved
+{
+	my $self = shift;
+	# hash for all the parsers, and a hash for 
+	# all the config variables. 
+	my %parsers;
+	my %masterconfig;
+	
+	# Get all the env*.xml files into an array...
+	my @xmlfiles = qw( env_build.xml env_case.xml env_mach_pes.xml env_run.xml);
+	push(@xmlfiles, "env_test.xml") if(-e "./env_test.xml");
+	push(@xmlfiles, "env_archive.xml") if(-e "./env_archive.xml");
+	
+	# Set up a new XML::LibXML parser for each xml file. 
+	foreach my $basefile(@xmlfiles)
+	{
+		my $xmlparser = XML::LibXML->new();
+		my $parser = $xmlparser->parse_file($basefile);
+		$parsers{$basefile} = $parser;
+	}
+	
+	# find all the entry nodes. 
+	foreach my $basefile(@xmlfiles)
+	{
+		my $parser = $parsers{$basefile};	
+		my @nodes = $parser->findnodes("//entry");
+		foreach my $node(@nodes)
+		{
+			my $id = $node->getAttribute('id');
+			my $value = $node->getAttribute('value');
+			# if the entry value has an unresolved variable, 
+			# we need to find it in whatever file it might be in. 
+			$value = _resolveValues($value, \%parsers);
+			$masterconfig{$id} = $value;
+		}
+	}
+	return %masterconfig;
+}
+
+# Recursively resolve the unresolved vars in an entry value.  
+# Check the value passed in, and if it still has an unresolved var, keep calling the function
+# until all pieces of the variable are resolved.  
+sub _resolveValues
+{
+	my $value = shift;
+	my $parsers = shift;
+	#print "in _resolveValues: value: $value\n";
+	if($value =~ /(\$[\w_]+)/)
+	{
+		#print "in _resolveValues: value: $value\n";
+		my $unresolved = $1;
+		
+		#print "need to resolve: $unresolved\n";
+		my $needed = $unresolved;
+		$needed =~ s/\$//g;
+	
+		foreach my $parser(values %$parsers)
+		{
+			my @resolveplease = $parser->findnodes("//entry[\@id=\'$needed\']");
+			foreach my $r(@resolveplease)
+			{
+				my $rid = $r->getAttribute('id');
+				my $rvalue = $r->getAttribute('value');
+				$value =~ s/\$$needed/$rvalue/g;
+				#print "value after substitution: $value\n";
+			}
+		}
+		_resolveValues($value, $parsers);
+	}
+	else
+	{
+		#print "returning $value\n";
+		return $value;
+	}
+}
+
 
 1; # to make use or require happy

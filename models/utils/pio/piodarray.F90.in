@@ -1,8 +1,8 @@
 #define __PIO_FILE__ 'piodarray'
 !>
 !! @file 
-!! $Revision: 894 $
-!! $LastChangedDate: 2013-12-13 14:04:58 -0800 (Fri, 13 Dec 2013) $
+!! $Revision: 925 $
+!! $LastChangedDate: 2014-01-24 12:55:17 -0800 (Fri, 24 Jan 2014) $
 !! @brief Read and write Routines for decomposed data.
 !<
 module piodarray
@@ -905,7 +905,8 @@ contains
        ! allocate temporary IO buffer 
        !-----------------------------
        if(userearranger) then
-          if(File%iotype == pio_iotype_netcdf .and. file%iosystem%io_rank==0) then	
+          if((File%iotype == pio_iotype_netcdf .or. File%iotype == pio_iotype_netcdf4c) &
+               .and. file%iosystem%io_rank==0) then	
              call alloc_check(IOBUF,iodesc%maxiobuflen,' TYPE :IOBUF')
           else
              call alloc_check(IOBUF,len,' TYPE :IOBUF')

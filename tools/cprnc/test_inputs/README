@@ -99,6 +99,12 @@ Note: This file has no time (unlimited) dimension.
 - noTime_diffs_in_vals_and_fill.nc: a single variable has differences
   in both values and fill pattern
 
+--- FILES COMPARED AGAINST control_0d.nc ---
+
+Note: This file has two 0-d variables
+
+- diffs_0d.nc: diffs in both 0-d variables (int & real)
+
 
 --- FILES COMPARED AGAINST cpl.hi.subset.control.nc ---
 
