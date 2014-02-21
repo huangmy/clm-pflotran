@@ -275,6 +275,7 @@ class RegressionTest(object):
         self._pflotran_info = {}
         self._local_config = {}
         self._macros_info = {}
+        self._error_logs = []
         self._timeout = 600.0
         self._txtwrap = textwrap.TextWrapper(width=78, subsequent_indent=4*" ")
         self._status = {"create" : False,
@@ -446,12 +447,20 @@ class RegressionTest(object):
         """
         print("Building case...", end='', file=suitelog)
         print("# building case :", file=self._case_script)
+        build_error_re = re.compile("^[\s]*ERROR: cat (/.+[\d]{6}-[\d]{6})[\s]*$")
         status = 0
         if self._case_info["executable"] == "build":
             # build the case
             cmd = ["./{0}.build".format(self._name)]
             status += self._run_command(cmd)
             # FIXME(bja, 2013-10) search for error messages in build
+            with open(self._logfile, 'r') as testlog:
+                for line in testlog:
+                    build_error = build_error_re.match(line)
+                    if build_error:
+                        print("\n\n  Found build error log :", file=suitelog)
+                        print(build_error.group(1), file=suitelog)
+                        self._error_logs.append(build_error.group(1))
             if status == 0:
                 self._status["build"] = True
         else:
@@ -542,14 +551,27 @@ class RegressionTest(object):
             # dump the case generation script
             print("\n\n", file=suitelog)
             print("*** Warning: this script may be incorrect/incomplete!", file=suitelog)
-            with open(self._case_script_filename) as tmp:
+            with open(self._case_script_filename, 'r') as tmp:
                 for line in tmp:
                     print(line, end='', file=suitelog)
             # dump the case generation log
             print("\n\n", file=suitelog)
-            with open("{0}/test_cases/{1}.log".format(self._cesm_root_dir, self.name())) as tmp:
+            with open("{0}/test_cases/{1}.log".format(self._cesm_root_dir, self.name()), 'r') as tmp:
                 for line in tmp:
                     print(line, end='', file=suitelog)
+            # dump any error logs identified during previous steps
+            print("\n\n", file=suitelog)
+            for log in self._error_logs:
+                if not os.path.isfile(log):
+                    print("Error log identified in previous stage could not be found: ", file=suitelog)
+                    print(log, file=suitelog)
+                else:
+                    print("Dumping error log file: ", file=suitelog)
+                    print(log, file=suitelog)
+                    with open(log, 'r') as tmp:
+                        for line in tmp:
+                            print(line, end='', file=suitelog)
+
         else:
             print(".", end='')
         sys.stdout.flush()
