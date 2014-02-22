@@ -44,6 +44,11 @@
 #      directories so that a local config file can be generated for
 #      clm-pflotran-tests.py
 #
+# NOTE(bja, 2014-02) storing regression baselines in the main repo, so
+# not specifying the regression directory. But I'm keeping logic
+# incase we move baselines to another repo. All commented out logic is
+# indicated with "#B#"
+#
 ################################################################################
 
 ################################################################################
@@ -57,7 +62,7 @@ PETSC_DIR=
 PETSC_ARCH=
 PFLOTRAN_DIR=
 CESM_INPUTDATA_DIR=
-REGRESSION_DIR=
+#B#REGRESSION_DIR=
 BUILD_STATUS=0
 
 ################################################################################
@@ -81,13 +86,13 @@ pflotran_dir = ${PFLOTRAN_DIR}
 [data]
 data_dir = ${CESM_INPUTDATA_DIR}
 
-[regression]
-regression_dir = ${REGRESSION_DIR}
-
 EOF
+#B#[regression]
+#B#regression_dir = ${REGRESSION_DIR}
 
     echo "Local config file: "
     cat ${_cfg_file}
+
 
 }
 
@@ -110,18 +115,18 @@ function set-builder-info() {
         echo "    ${CESM_INPUTDATA_DIR}"
     fi
 
-    if [ -z ${REGRESSION_DIR} ]; then
-        REGRESSION_DIR=${CLM_PFLOTRAN_DIR}/../regression-data
-    fi
-
-    if [ ! -d ${REGRESSION_DIR} ]; then
-        echo "ERROR: Could not find the clm-pflotran-regression-trunk directory at the expected location :"
-        echo "    ${REGRESSION_DIR}"
-        BUILD_STATUS=1
-    else
-        echo "Using REGRESSION_DIR :"
-        echo "    ${REGRESSION_DIR}"
-    fi
+#B#    if [ -z ${REGRESSION_DIR} ]; then
+#B#        REGRESSION_DIR=${CLM_PFLOTRAN_DIR}/../regression-data
+#B#    fi
+#B#
+#B#    if [ ! -d ${REGRESSION_DIR} ]; then
+#B#        echo "ERROR: Could not find the clm-pflotran-regression-trunk directory at the expected location :"
+#B#        echo "    ${REGRESSION_DIR}"
+#B#        BUILD_STATUS=1
+#B#    else
+#B#        echo "Using REGRESSION_DIR :"
+#B#        echo "    ${REGRESSION_DIR}"
+#B#    fi
 }
 
 function check-pflotran() {
@@ -246,8 +251,6 @@ Usage: $0 [options]
                           default: '../clm-pflotran-data-trunk-testing'
     -p PFLOTRAN_DIR   location of the pflotran-clm repo
                           default: '../pflotran-clm-trunk'
-    -r REGRESSION_DIR location of the regression data repo
-                          default: '../regression-data'
     -s BUILD_STAGE    build stage must be one of:
                           all libpflotran common-exe clm-pf-tests
 
@@ -257,6 +260,8 @@ Notes:
     tools/buildbot/build-flags/ directory.
 
 "
+#B#    -r REGRESSION_DIR location of the regression data repo
+#B#                          default: '../regression-data'
 }
 
 # setup based on commandline args
@@ -271,7 +276,7 @@ do
     h) usage;;
     i) CESM_INPUTDATA_DIR=${OPTARG};;
     p) PFLOTRAN_DIR=${OPTARG};;
-    r) REGRESSION_DIR=${OPTARG};;
+#B#    r) REGRESSION_DIR=${OPTARG};;
     s) BUILD_STAGE=${OPTARG};;
   esac
 done

@@ -1407,7 +1407,7 @@ def list_to_dict(input_list, upper_case=False):
         output_dict[key] = value
     return output_dict
 
-def read_local_config(filename):
+def read_local_config(filename, cesm_root_dir):
     """The local configuration file contains information specific to the
     current testing environment (in contrast to the general machine
     information and test information which will generally be constant)
@@ -1467,11 +1467,17 @@ def read_local_config(filename):
     for k in keys:
         local_config.update(_get_section_option(config, section, k))
 
-    section = "regression"
-    _check_section(config, section)
-    keys = ["regression_dir"]
-    for k in keys:
-        local_config.update(_get_section_option(config, section, k))
+    # NOTE(bja, 2014-02) moving regression baselines into the main
+    # repo for now so we can hard code the path. May want to move them
+    # to the data repo at some point, so keeping the infrastructure to
+    # use a different path.
+    local_config["regression_dir"] = "{0}/clm4-pf-tools/regression_tests/baselines".format(cesm_root_dir)
+    if False:
+        section = "regression"
+        _check_section(config, section)
+        keys = ["regression_dir"]
+        for k in keys:
+            local_config.update(_get_section_option(config, section, k))
 
     return local_config
 
@@ -1688,14 +1694,15 @@ def commandline_options():
 
 
 def main(options):
+    working_dir = os.getcwd()
+    cesm_root_dir = os.path.abspath(options.cesm_root_dir[0])
+
     # must be done before setting up the suite log to get the correct pflotran/petsc info
-    local_config = read_local_config(options.local_config_file[0])
+    local_config = read_local_config(options.local_config_file[0], cesm_root_dir)
     clear_pflotran_environment(local_config)
 
     txtwrap = textwrap.TextWrapper(width=78, subsequent_indent=4*" ")
     suitelog = setup_test_suite_log(txtwrap, local_config)
-
-    working_dir = os.getcwd()
 
     print_no_baseline_warning(suitelog)
 
@@ -1705,8 +1712,6 @@ def main(options):
     machine.setup(options.machines_config_file[0])
     print_section_seperator("Machine Info :", suitelog)
     print(machine, file=suitelog)
-
-    cesm_root_dir = os.path.abspath(options.cesm_root_dir[0])
 
     print_section_seperator("Running tests :", suitelog)
     start_time = time.time()

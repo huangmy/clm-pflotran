@@ -1,0 +1,3806 @@
+netcdf ugrid-1x1x10-subsurface-richards-may.clm2.h0.0001-01-11-00000 {
+dimensions:
+	lndgrid = 1 ;
+	gridcell = 1 ;
+	landunit = 4 ;
+	column = 16 ;
+	pft = 32 ;
+	levgrnd = 15 ;
+	levurb = 5 ;
+	levlak = 10 ;
+	numrad = 2 ;
+	string_length = 8 ;
+	levdcmp = 1 ;
+	hist_interval = 2 ;
+	time = UNLIMITED ; // (1 currently)
+variables:
+	float levgrnd(levgrnd) ;
+		levgrnd:long_name = "coordinate soil levels" ;
+		levgrnd:units = "m" ;
+	float levlak(levlak) ;
+		levlak:long_name = "coordinate lake levels" ;
+		levlak:units = "m" ;
+	float levdcmp(levdcmp) ;
+		levdcmp:long_name = "coordinate soil levels" ;
+		levdcmp:units = "m" ;
+	float time(time) ;
+		time:long_name = "time" ;
+		time:units = "days since 0001-01-01 00:00:00" ;
+		time:calendar = "noleap" ;
+		time:bounds = "time_bounds" ;
+	int mcdate(time) ;
+		mcdate:long_name = "current date (YYYYMMDD)" ;
+	int mcsec(time) ;
+		mcsec:long_name = "current seconds of current date" ;
+		mcsec:units = "s" ;
+	int mdcur(time) ;
+		mdcur:long_name = "current day (from base day)" ;
+	int mscur(time) ;
+		mscur:long_name = "current seconds of current day" ;
+	int nstep(time) ;
+		nstep:long_name = "time step" ;
+	double time_bounds(time, hist_interval) ;
+		time_bounds:long_name = "history time interval endpoints" ;
+	char date_written(time, string_length) ;
+	char time_written(time, string_length) ;
+	float lon(lndgrid) ;
+		lon:long_name = "coordinate longitude" ;
+		lon:units = "degrees_east" ;
+		lon:_FillValue = 1.e+36f ;
+		lon:missing_value = 1.e+36f ;
+	float lat(lndgrid) ;
+		lat:long_name = "coordinate latitude" ;
+		lat:units = "degrees_north" ;
+		lat:_FillValue = 1.e+36f ;
+		lat:missing_value = 1.e+36f ;
+	float area(lndgrid) ;
+		area:long_name = "grid cell areas" ;
+		area:units = "km^2" ;
+		area:_FillValue = 1.e+36f ;
+		area:missing_value = 1.e+36f ;
+	float topo(lndgrid) ;
+		topo:long_name = "grid cell topography" ;
+		topo:units = "m" ;
+		topo:_FillValue = 1.e+36f ;
+		topo:missing_value = 1.e+36f ;
+	float landfrac(lndgrid) ;
+		landfrac:long_name = "land fraction" ;
+		landfrac:_FillValue = 1.e+36f ;
+		landfrac:missing_value = 1.e+36f ;
+	int landmask(lndgrid) ;
+		landmask:long_name = "land/ocean mask (0.=ocean and 1.=land)" ;
+		landmask:_FillValue = -9999 ;
+		landmask:missing_value = -9999 ;
+	int pftmask(lndgrid) ;
+		pftmask:long_name = "pft real/fake mask (0.=fake and 1.=real)" ;
+		pftmask:_FillValue = -9999 ;
+		pftmask:missing_value = -9999 ;
+	float ACTUAL_IMMOB(time, lndgrid) ;
+		ACTUAL_IMMOB:long_name = "actual N immobilization" ;
+		ACTUAL_IMMOB:units = "gN/m^2/s" ;
+		ACTUAL_IMMOB:cell_methods = "time: mean" ;
+		ACTUAL_IMMOB:_FillValue = 1.e+36f ;
+		ACTUAL_IMMOB:missing_value = 1.e+36f ;
+	float AGNPP(time, lndgrid) ;
+		AGNPP:long_name = "aboveground NPP" ;
+		AGNPP:units = "gC/m^2/s" ;
+		AGNPP:cell_methods = "time: mean" ;
+		AGNPP:_FillValue = 1.e+36f ;
+		AGNPP:missing_value = 1.e+36f ;
+	float ALT(time, lndgrid) ;
+		ALT:long_name = "current active layer thickness" ;
+		ALT:units = "m" ;
+		ALT:cell_methods = "time: mean" ;
+		ALT:_FillValue = 1.e+36f ;
+		ALT:missing_value = 1.e+36f ;
+	float ALTMAX(time, lndgrid) ;
+		ALTMAX:long_name = "maximum annual active layer thickness" ;
+		ALTMAX:units = "m" ;
+		ALTMAX:cell_methods = "time: mean" ;
+		ALTMAX:_FillValue = 1.e+36f ;
+		ALTMAX:missing_value = 1.e+36f ;
+	float ALTMAX_LASTYEAR(time, lndgrid) ;
+		ALTMAX_LASTYEAR:long_name = "maximum prior year active layer thickness" ;
+		ALTMAX_LASTYEAR:units = "m" ;
+		ALTMAX_LASTYEAR:cell_methods = "time: mean" ;
+		ALTMAX_LASTYEAR:_FillValue = 1.e+36f ;
+		ALTMAX_LASTYEAR:missing_value = 1.e+36f ;
+	float AR(time, lndgrid) ;
+		AR:long_name = "autotrophic respiration (MR + GR)" ;
+		AR:units = "gC/m^2/s" ;
+		AR:cell_methods = "time: mean" ;
+		AR:_FillValue = 1.e+36f ;
+		AR:missing_value = 1.e+36f ;
+	float BAF_CROP(time, lndgrid) ;
+		BAF_CROP:long_name = "timestep fractional area burned for crop" ;
+		BAF_CROP:units = "proportion" ;
+		BAF_CROP:cell_methods = "time: mean" ;
+		BAF_CROP:_FillValue = 1.e+36f ;
+		BAF_CROP:missing_value = 1.e+36f ;
+	float BAF_PEATF(time, lndgrid) ;
+		BAF_PEATF:long_name = "timestep fractional area burned in peatland" ;
+		BAF_PEATF:units = "proportion" ;
+		BAF_PEATF:cell_methods = "time: mean" ;
+		BAF_PEATF:_FillValue = 1.e+36f ;
+		BAF_PEATF:missing_value = 1.e+36f ;
+	float BCDEP(time, lndgrid) ;
+		BCDEP:long_name = "total BC deposition (dry+wet) from atmosphere" ;
+		BCDEP:units = "kg/m^2/s" ;
+		BCDEP:cell_methods = "time: mean" ;
+		BCDEP:_FillValue = 1.e+36f ;
+		BCDEP:missing_value = 1.e+36f ;
+	float BGNPP(time, lndgrid) ;
+		BGNPP:long_name = "belowground NPP" ;
+		BGNPP:units = "gC/m^2/s" ;
+		BGNPP:cell_methods = "time: mean" ;
+		BGNPP:_FillValue = 1.e+36f ;
+		BGNPP:missing_value = 1.e+36f ;
+	float BTRAN(time, lndgrid) ;
+		BTRAN:long_name = "transpiration beta factor" ;
+		BTRAN:units = "unitless" ;
+		BTRAN:cell_methods = "time: mean" ;
+		BTRAN:_FillValue = 1.e+36f ;
+		BTRAN:missing_value = 1.e+36f ;
+	float BUILDHEAT(time, lndgrid) ;
+		BUILDHEAT:long_name = "heat flux from urban building interior to walls and roof" ;
+		BUILDHEAT:units = "W/m^2" ;
+		BUILDHEAT:cell_methods = "time: mean" ;
+		BUILDHEAT:_FillValue = 1.e+36f ;
+		BUILDHEAT:missing_value = 1.e+36f ;
+	float COL_CTRUNC(time, lndgrid) ;
+		COL_CTRUNC:long_name = "column-level sink for C truncation" ;
+		COL_CTRUNC:units = "gC/m^2" ;
+		COL_CTRUNC:cell_methods = "time: mean" ;
+		COL_CTRUNC:_FillValue = 1.e+36f ;
+		COL_CTRUNC:missing_value = 1.e+36f ;
+	float COL_FIRE_CLOSS(time, lndgrid) ;
+		COL_FIRE_CLOSS:long_name = "total column-level fire C loss for non-peat fires outside land-type converted region" ;
+		COL_FIRE_CLOSS:units = "gC/m^2/s" ;
+		COL_FIRE_CLOSS:cell_methods = "time: mean" ;
+		COL_FIRE_CLOSS:_FillValue = 1.e+36f ;
+		COL_FIRE_CLOSS:missing_value = 1.e+36f ;
+	float COL_FIRE_NLOSS(time, lndgrid) ;
+		COL_FIRE_NLOSS:long_name = "total column-level fire N loss" ;
+		COL_FIRE_NLOSS:units = "gN/m^2/s" ;
+		COL_FIRE_NLOSS:cell_methods = "time: mean" ;
+		COL_FIRE_NLOSS:_FillValue = 1.e+36f ;
+		COL_FIRE_NLOSS:missing_value = 1.e+36f ;
+	float COL_NTRUNC(time, lndgrid) ;
+		COL_NTRUNC:long_name = "column-level sink for N truncation" ;
+		COL_NTRUNC:units = "gN/m^2" ;
+		COL_NTRUNC:cell_methods = "time: mean" ;
+		COL_NTRUNC:_FillValue = 1.e+36f ;
+		COL_NTRUNC:missing_value = 1.e+36f ;
+	float CPOOL(time, lndgrid) ;
+		CPOOL:long_name = "temporary photosynthate C pool" ;
+		CPOOL:units = "gC/m^2" ;
+		CPOOL:cell_methods = "time: mean" ;
+		CPOOL:_FillValue = 1.e+36f ;
+		CPOOL:missing_value = 1.e+36f ;
+	float CWDC(time, lndgrid) ;
+		CWDC:long_name = "CWD C" ;
+		CWDC:units = "gC/m^2" ;
+		CWDC:cell_methods = "time: mean" ;
+		CWDC:_FillValue = 1.e+36f ;
+		CWDC:missing_value = 1.e+36f ;
+	float CWDC_HR(time, lndgrid) ;
+		CWDC_HR:long_name = "coarse woody debris C heterotrophic respiration" ;
+		CWDC_HR:units = "gC/m^2/s" ;
+		CWDC_HR:cell_methods = "time: mean" ;
+		CWDC_HR:_FillValue = 1.e+36f ;
+		CWDC_HR:missing_value = 1.e+36f ;
+	float CWDC_LOSS(time, lndgrid) ;
+		CWDC_LOSS:long_name = "coarse woody debris C loss" ;
+		CWDC_LOSS:units = "gC/m^2/s" ;
+		CWDC_LOSS:cell_methods = "time: mean" ;
+		CWDC_LOSS:_FillValue = 1.e+36f ;
+		CWDC_LOSS:missing_value = 1.e+36f ;
+	float CWDC_TO_LITR2C(time, lndgrid) ;
+		CWDC_TO_LITR2C:long_name = "decomp. of coarse woody debris C to litter 2 C" ;
+		CWDC_TO_LITR2C:units = "gC/m^2/s" ;
+		CWDC_TO_LITR2C:cell_methods = "time: mean" ;
+		CWDC_TO_LITR2C:_FillValue = 1.e+36f ;
+		CWDC_TO_LITR2C:missing_value = 1.e+36f ;
+	float CWDC_TO_LITR3C(time, lndgrid) ;
+		CWDC_TO_LITR3C:long_name = "decomp. of coarse woody debris C to litter 3 C" ;
+		CWDC_TO_LITR3C:units = "gC/m^2/s" ;
+		CWDC_TO_LITR3C:cell_methods = "time: mean" ;
+		CWDC_TO_LITR3C:_FillValue = 1.e+36f ;
+		CWDC_TO_LITR3C:missing_value = 1.e+36f ;
+	float CWDN(time, lndgrid) ;
+		CWDN:long_name = "CWD N" ;
+		CWDN:units = "gN/m^2" ;
+		CWDN:cell_methods = "time: mean" ;
+		CWDN:_FillValue = 1.e+36f ;
+		CWDN:missing_value = 1.e+36f ;
+	float CWDN_TO_LITR2N(time, lndgrid) ;
+		CWDN_TO_LITR2N:long_name = "decomp. of coarse woody debris N to litter 2 N" ;
+		CWDN_TO_LITR2N:units = "gN/m^2" ;
+		CWDN_TO_LITR2N:cell_methods = "time: mean" ;
+		CWDN_TO_LITR2N:_FillValue = 1.e+36f ;
+		CWDN_TO_LITR2N:missing_value = 1.e+36f ;
+	float CWDN_TO_LITR3N(time, lndgrid) ;
+		CWDN_TO_LITR3N:long_name = "decomp. of coarse woody debris N to litter 3 N" ;
+		CWDN_TO_LITR3N:units = "gN/m^2" ;
+		CWDN_TO_LITR3N:cell_methods = "time: mean" ;
+		CWDN_TO_LITR3N:_FillValue = 1.e+36f ;
+		CWDN_TO_LITR3N:missing_value = 1.e+36f ;
+	float DEADCROOTC(time, lndgrid) ;
+		DEADCROOTC:long_name = "dead coarse root C" ;
+		DEADCROOTC:units = "gC/m^2" ;
+		DEADCROOTC:cell_methods = "time: mean" ;
+		DEADCROOTC:_FillValue = 1.e+36f ;
+		DEADCROOTC:missing_value = 1.e+36f ;
+	float DEADCROOTN(time, lndgrid) ;
+		DEADCROOTN:long_name = "dead coarse root N" ;
+		DEADCROOTN:units = "gN/m^2" ;
+		DEADCROOTN:cell_methods = "time: mean" ;
+		DEADCROOTN:_FillValue = 1.e+36f ;
+		DEADCROOTN:missing_value = 1.e+36f ;
+	float DEADSTEMC(time, lndgrid) ;
+		DEADSTEMC:long_name = "dead stem C" ;
+		DEADSTEMC:units = "gC/m^2" ;
+		DEADSTEMC:cell_methods = "time: mean" ;
+		DEADSTEMC:_FillValue = 1.e+36f ;
+		DEADSTEMC:missing_value = 1.e+36f ;
+	float DEADSTEMN(time, lndgrid) ;
+		DEADSTEMN:long_name = "dead stem N" ;
+		DEADSTEMN:units = "gN/m^2" ;
+		DEADSTEMN:cell_methods = "time: mean" ;
+		DEADSTEMN:_FillValue = 1.e+36f ;
+		DEADSTEMN:missing_value = 1.e+36f ;
+	float DENIT(time, lndgrid) ;
+		DENIT:long_name = "total rate of denitrification" ;
+		DENIT:units = "gN/m^2/s" ;
+		DENIT:cell_methods = "time: mean" ;
+		DENIT:_FillValue = 1.e+36f ;
+		DENIT:missing_value = 1.e+36f ;
+	float DISPVEGC(time, lndgrid) ;
+		DISPVEGC:long_name = "displayed veg carbon, excluding storage and cpool" ;
+		DISPVEGC:units = "gC/m^2" ;
+		DISPVEGC:cell_methods = "time: mean" ;
+		DISPVEGC:_FillValue = 1.e+36f ;
+		DISPVEGC:missing_value = 1.e+36f ;
+	float DISPVEGN(time, lndgrid) ;
+		DISPVEGN:long_name = "displayed vegetation nitrogen" ;
+		DISPVEGN:units = "gN/m^2" ;
+		DISPVEGN:cell_methods = "time: mean" ;
+		DISPVEGN:_FillValue = 1.e+36f ;
+		DISPVEGN:missing_value = 1.e+36f ;
+	float DSTDEP(time, lndgrid) ;
+		DSTDEP:long_name = "total dust deposition (dry+wet) from atmosphere" ;
+		DSTDEP:units = "kg/m^2/s" ;
+		DSTDEP:cell_methods = "time: mean" ;
+		DSTDEP:_FillValue = 1.e+36f ;
+		DSTDEP:missing_value = 1.e+36f ;
+	float DSTFLXT(time, lndgrid) ;
+		DSTFLXT:long_name = "total surface dust emission" ;
+		DSTFLXT:units = "kg/m2/s" ;
+		DSTFLXT:cell_methods = "time: mean" ;
+		DSTFLXT:_FillValue = 1.e+36f ;
+		DSTFLXT:missing_value = 1.e+36f ;
+	float DWT_CLOSS(time, lndgrid) ;
+		DWT_CLOSS:long_name = "total carbon loss from land cover conversion" ;
+		DWT_CLOSS:units = "gC/m^2/s" ;
+		DWT_CLOSS:cell_methods = "time: mean" ;
+		DWT_CLOSS:_FillValue = 1.e+36f ;
+		DWT_CLOSS:missing_value = 1.e+36f ;
+	float DWT_CONV_CFLUX(time, lndgrid) ;
+		DWT_CONV_CFLUX:long_name = "conversion C flux (immediate loss to atm)" ;
+		DWT_CONV_CFLUX:units = "gC/m^2/s" ;
+		DWT_CONV_CFLUX:cell_methods = "time: mean" ;
+		DWT_CONV_CFLUX:_FillValue = 1.e+36f ;
+		DWT_CONV_CFLUX:missing_value = 1.e+36f ;
+	float DWT_CONV_NFLUX(time, lndgrid) ;
+		DWT_CONV_NFLUX:long_name = "conversion N flux (immediate loss to atm)" ;
+		DWT_CONV_NFLUX:units = "gN/m^2/s" ;
+		DWT_CONV_NFLUX:cell_methods = "time: mean" ;
+		DWT_CONV_NFLUX:_FillValue = 1.e+36f ;
+		DWT_CONV_NFLUX:missing_value = 1.e+36f ;
+	float DWT_NLOSS(time, lndgrid) ;
+		DWT_NLOSS:long_name = "total nitrogen loss from landcover conversion" ;
+		DWT_NLOSS:units = "gN/m^2/s" ;
+		DWT_NLOSS:cell_methods = "time: mean" ;
+		DWT_NLOSS:_FillValue = 1.e+36f ;
+		DWT_NLOSS:missing_value = 1.e+36f ;
+	float DWT_PROD100C_GAIN(time, lndgrid) ;
+		DWT_PROD100C_GAIN:long_name = "landcover change-driven addition to 100-yr wood product pool" ;
+		DWT_PROD100C_GAIN:units = "gC/m^2/s" ;
+		DWT_PROD100C_GAIN:cell_methods = "time: mean" ;
+		DWT_PROD100C_GAIN:_FillValue = 1.e+36f ;
+		DWT_PROD100C_GAIN:missing_value = 1.e+36f ;
+	float DWT_PROD100N_GAIN(time, lndgrid) ;
+		DWT_PROD100N_GAIN:long_name = "addition to 100-yr wood product pool" ;
+		DWT_PROD100N_GAIN:units = "gN/m^2/s" ;
+		DWT_PROD100N_GAIN:cell_methods = "time: mean" ;
+		DWT_PROD100N_GAIN:_FillValue = 1.e+36f ;
+		DWT_PROD100N_GAIN:missing_value = 1.e+36f ;
+	float DWT_PROD10C_GAIN(time, lndgrid) ;
+		DWT_PROD10C_GAIN:long_name = "landcover change-driven addition to 10-yr wood product pool" ;
+		DWT_PROD10C_GAIN:units = "gC/m^2/s" ;
+		DWT_PROD10C_GAIN:cell_methods = "time: mean" ;
+		DWT_PROD10C_GAIN:_FillValue = 1.e+36f ;
+		DWT_PROD10C_GAIN:missing_value = 1.e+36f ;
+	float DWT_PROD10N_GAIN(time, lndgrid) ;
+		DWT_PROD10N_GAIN:long_name = "addition to 10-yr wood product pool" ;
+		DWT_PROD10N_GAIN:units = "gN/m^2/s" ;
+		DWT_PROD10N_GAIN:cell_methods = "time: mean" ;
+		DWT_PROD10N_GAIN:_FillValue = 1.e+36f ;
+		DWT_PROD10N_GAIN:missing_value = 1.e+36f ;
+	float DWT_SEEDC_TO_DEADSTEM(time, lndgrid) ;
+		DWT_SEEDC_TO_DEADSTEM:long_name = "seed source to PFT-level deadstem" ;
+		DWT_SEEDC_TO_DEADSTEM:units = "gC/m^2/s" ;
+		DWT_SEEDC_TO_DEADSTEM:cell_methods = "time: mean" ;
+		DWT_SEEDC_TO_DEADSTEM:_FillValue = 1.e+36f ;
+		DWT_SEEDC_TO_DEADSTEM:missing_value = 1.e+36f ;
+	float DWT_SEEDC_TO_LEAF(time, lndgrid) ;
+		DWT_SEEDC_TO_LEAF:long_name = "seed source to PFT-level leaf" ;
+		DWT_SEEDC_TO_LEAF:units = "gC/m^2/s" ;
+		DWT_SEEDC_TO_LEAF:cell_methods = "time: mean" ;
+		DWT_SEEDC_TO_LEAF:_FillValue = 1.e+36f ;
+		DWT_SEEDC_TO_LEAF:missing_value = 1.e+36f ;
+	float DWT_SEEDN_TO_DEADSTEM(time, lndgrid) ;
+		DWT_SEEDN_TO_DEADSTEM:long_name = "seed source to PFT-level deadstem" ;
+		DWT_SEEDN_TO_DEADSTEM:units = "gN/m^2/s" ;
+		DWT_SEEDN_TO_DEADSTEM:cell_methods = "time: mean" ;
+		DWT_SEEDN_TO_DEADSTEM:_FillValue = 1.e+36f ;
+		DWT_SEEDN_TO_DEADSTEM:missing_value = 1.e+36f ;
+	float DWT_SEEDN_TO_LEAF(time, lndgrid) ;
+		DWT_SEEDN_TO_LEAF:long_name = "seed source to PFT-level leaf" ;
+		DWT_SEEDN_TO_LEAF:units = "gN/m^2/s" ;
+		DWT_SEEDN_TO_LEAF:cell_methods = "time: mean" ;
+		DWT_SEEDN_TO_LEAF:_FillValue = 1.e+36f ;
+		DWT_SEEDN_TO_LEAF:missing_value = 1.e+36f ;
+	float EFLX_DYNBAL(time, lndgrid) ;
+		EFLX_DYNBAL:long_name = "dynamic land cover change conversion energy flux" ;
+		EFLX_DYNBAL:units = "W/m^2" ;
+		EFLX_DYNBAL:cell_methods = "time: mean" ;
+		EFLX_DYNBAL:_FillValue = 1.e+36f ;
+		EFLX_DYNBAL:missing_value = 1.e+36f ;
+	float EFLX_GRND_LAKE(time, lndgrid) ;
+		EFLX_GRND_LAKE:long_name = "net heat flux into lake/snow surface, excluding light transmission" ;
+		EFLX_GRND_LAKE:units = "W/m^2" ;
+		EFLX_GRND_LAKE:cell_methods = "time: mean" ;
+		EFLX_GRND_LAKE:_FillValue = 1.e+36f ;
+		EFLX_GRND_LAKE:missing_value = 1.e+36f ;
+	float EFLX_LH_TOT(time, lndgrid) ;
+		EFLX_LH_TOT:long_name = "total latent heat flux [+ to atm]" ;
+		EFLX_LH_TOT:units = "W/m^2" ;
+		EFLX_LH_TOT:cell_methods = "time: mean" ;
+		EFLX_LH_TOT:_FillValue = 1.e+36f ;
+		EFLX_LH_TOT:missing_value = 1.e+36f ;
+	float EFLX_LH_TOT_R(time, lndgrid) ;
+		EFLX_LH_TOT_R:long_name = "Rural total evaporation" ;
+		EFLX_LH_TOT_R:units = "W/m^2" ;
+		EFLX_LH_TOT_R:cell_methods = "time: mean" ;
+		EFLX_LH_TOT_R:_FillValue = 1.e+36f ;
+		EFLX_LH_TOT_R:missing_value = 1.e+36f ;
+	float EFLX_LH_TOT_U(time, lndgrid) ;
+		EFLX_LH_TOT_U:long_name = "Urban total evaporation" ;
+		EFLX_LH_TOT_U:units = "W/m^2" ;
+		EFLX_LH_TOT_U:cell_methods = "time: mean" ;
+		EFLX_LH_TOT_U:_FillValue = 1.e+36f ;
+		EFLX_LH_TOT_U:missing_value = 1.e+36f ;
+	float ELAI(time, lndgrid) ;
+		ELAI:long_name = "exposed one-sided leaf area index" ;
+		ELAI:units = "m^2/m^2" ;
+		ELAI:cell_methods = "time: mean" ;
+		ELAI:_FillValue = 1.e+36f ;
+		ELAI:missing_value = 1.e+36f ;
+	float ER(time, lndgrid) ;
+		ER:long_name = "total ecosystem respiration, autotrophic + heterotrophic" ;
+		ER:units = "gC/m^2/s" ;
+		ER:cell_methods = "time: mean" ;
+		ER:_FillValue = 1.e+36f ;
+		ER:missing_value = 1.e+36f ;
+	float ERRH2O(time, lndgrid) ;
+		ERRH2O:long_name = "total water conservation error" ;
+		ERRH2O:units = "mm" ;
+		ERRH2O:cell_methods = "time: mean" ;
+		ERRH2O:_FillValue = 1.e+36f ;
+		ERRH2O:missing_value = 1.e+36f ;
+	float ERRH2OSNO(time, lndgrid) ;
+		ERRH2OSNO:long_name = "imbalance in snow depth (liquid water)" ;
+		ERRH2OSNO:units = "mm" ;
+		ERRH2OSNO:cell_methods = "time: mean" ;
+		ERRH2OSNO:_FillValue = 1.e+36f ;
+		ERRH2OSNO:missing_value = 1.e+36f ;
+	float ERRSEB(time, lndgrid) ;
+		ERRSEB:long_name = "surface energy conservation error" ;
+		ERRSEB:units = "W/m^2" ;
+		ERRSEB:cell_methods = "time: mean" ;
+		ERRSEB:_FillValue = 1.e+36f ;
+		ERRSEB:missing_value = 1.e+36f ;
+	float ERRSOI(time, lndgrid) ;
+		ERRSOI:long_name = "soil/lake energy conservation error" ;
+		ERRSOI:units = "W/m^2" ;
+		ERRSOI:cell_methods = "time: mean" ;
+		ERRSOI:_FillValue = 1.e+36f ;
+		ERRSOI:missing_value = 1.e+36f ;
+	float ERRSOL(time, lndgrid) ;
+		ERRSOL:long_name = "solar radiation conservation error" ;
+		ERRSOL:units = "W/m^2" ;
+		ERRSOL:cell_methods = "time: mean" ;
+		ERRSOL:_FillValue = 1.e+36f ;
+		ERRSOL:missing_value = 1.e+36f ;
+	float ESAI(time, lndgrid) ;
+		ESAI:long_name = "exposed one-sided stem area index" ;
+		ESAI:units = "m^2/m^2" ;
+		ESAI:cell_methods = "time: mean" ;
+		ESAI:_FillValue = 1.e+36f ;
+		ESAI:missing_value = 1.e+36f ;
+	float FAREA_BURNED(time, lndgrid) ;
+		FAREA_BURNED:long_name = "timestep fractional area burned" ;
+		FAREA_BURNED:units = "proportion" ;
+		FAREA_BURNED:cell_methods = "time: mean" ;
+		FAREA_BURNED:_FillValue = 1.e+36f ;
+		FAREA_BURNED:missing_value = 1.e+36f ;
+	float FCEV(time, lndgrid) ;
+		FCEV:long_name = "canopy evaporation" ;
+		FCEV:units = "W/m^2" ;
+		FCEV:cell_methods = "time: mean" ;
+		FCEV:_FillValue = 1.e+36f ;
+		FCEV:missing_value = 1.e+36f ;
+	float FCOV(time, lndgrid) ;
+		FCOV:long_name = "fractional impermeable area" ;
+		FCOV:units = "unitless" ;
+		FCOV:cell_methods = "time: mean" ;
+		FCOV:_FillValue = 1.e+36f ;
+		FCOV:missing_value = 1.e+36f ;
+	float FCTR(time, lndgrid) ;
+		FCTR:long_name = "canopy transpiration" ;
+		FCTR:units = "W/m^2" ;
+		FCTR:cell_methods = "time: mean" ;
+		FCTR:_FillValue = 1.e+36f ;
+		FCTR:missing_value = 1.e+36f ;
+	float FGEV(time, lndgrid) ;
+		FGEV:long_name = "ground evaporation" ;
+		FGEV:units = "W/m^2" ;
+		FGEV:cell_methods = "time: mean" ;
+		FGEV:_FillValue = 1.e+36f ;
+		FGEV:missing_value = 1.e+36f ;
+	float FGR(time, lndgrid) ;
+		FGR:long_name = "heat flux into soil/snow including snow melt and lake / snow light transmission" ;
+		FGR:units = "W/m^2" ;
+		FGR:cell_methods = "time: mean" ;
+		FGR:_FillValue = 1.e+36f ;
+		FGR:missing_value = 1.e+36f ;
+	float FGR12(time, lndgrid) ;
+		FGR12:long_name = "heat flux between soil layers 1 and 2" ;
+		FGR12:units = "W/m^2" ;
+		FGR12:cell_methods = "time: mean" ;
+		FGR12:_FillValue = 1.e+36f ;
+		FGR12:missing_value = 1.e+36f ;
+	float FGR_R(time, lndgrid) ;
+		FGR_R:long_name = "Rural heat flux into soil/snow including snow melt and snow light transmission" ;
+		FGR_R:units = "W/m^2" ;
+		FGR_R:cell_methods = "time: mean" ;
+		FGR_R:_FillValue = 1.e+36f ;
+		FGR_R:missing_value = 1.e+36f ;
+	float FGR_U(time, lndgrid) ;
+		FGR_U:long_name = "Urban heat flux into soil/snow including snow melt" ;
+		FGR_U:units = "W/m^2" ;
+		FGR_U:cell_methods = "time: mean" ;
+		FGR_U:_FillValue = 1.e+36f ;
+		FGR_U:missing_value = 1.e+36f ;
+	float FH2OSFC(time, lndgrid) ;
+		FH2OSFC:long_name = "fraction of ground covered by surface water" ;
+		FH2OSFC:units = "unitless" ;
+		FH2OSFC:cell_methods = "time: mean" ;
+		FH2OSFC:_FillValue = 1.e+36f ;
+		FH2OSFC:missing_value = 1.e+36f ;
+	float FIRA(time, lndgrid) ;
+		FIRA:long_name = "net infrared (longwave) radiation" ;
+		FIRA:units = "W/m^2" ;
+		FIRA:cell_methods = "time: mean" ;
+		FIRA:_FillValue = 1.e+36f ;
+		FIRA:missing_value = 1.e+36f ;
+	float FIRA_R(time, lndgrid) ;
+		FIRA_R:long_name = "Rural net infrared (longwave) radiation" ;
+		FIRA_R:units = "W/m^2" ;
+		FIRA_R:cell_methods = "time: mean" ;
+		FIRA_R:_FillValue = 1.e+36f ;
+		FIRA_R:missing_value = 1.e+36f ;
+	float FIRA_U(time, lndgrid) ;
+		FIRA_U:long_name = "Urban net infrared (longwave) radiation" ;
+		FIRA_U:units = "W/m^2" ;
+		FIRA_U:cell_methods = "time: mean" ;
+		FIRA_U:_FillValue = 1.e+36f ;
+		FIRA_U:missing_value = 1.e+36f ;
+	float FIRE(time, lndgrid) ;
+		FIRE:long_name = "emitted infrared (longwave) radiation" ;
+		FIRE:units = "W/m^2" ;
+		FIRE:cell_methods = "time: mean" ;
+		FIRE:_FillValue = 1.e+36f ;
+		FIRE:missing_value = 1.e+36f ;
+	float FIRE_R(time, lndgrid) ;
+		FIRE_R:long_name = "Rural emitted infrared (longwave) radiation" ;
+		FIRE_R:units = "W/m^2" ;
+		FIRE_R:cell_methods = "time: mean" ;
+		FIRE_R:_FillValue = 1.e+36f ;
+		FIRE_R:missing_value = 1.e+36f ;
+	float FIRE_U(time, lndgrid) ;
+		FIRE_U:long_name = "Urban emitted infrared (longwave) radiation" ;
+		FIRE_U:units = "W/m^2" ;
+		FIRE_U:cell_methods = "time: mean" ;
+		FIRE_U:_FillValue = 1.e+36f ;
+		FIRE_U:missing_value = 1.e+36f ;
+	float FLDS(time, lndgrid) ;
+		FLDS:long_name = "atmospheric longwave radiation" ;
+		FLDS:units = "W/m^2" ;
+		FLDS:cell_methods = "time: mean" ;
+		FLDS:_FillValue = 1.e+36f ;
+		FLDS:missing_value = 1.e+36f ;
+	float FPG(time, lndgrid) ;
+		FPG:long_name = "fraction of potential gpp" ;
+		FPG:units = "proportion" ;
+		FPG:cell_methods = "time: mean" ;
+		FPG:_FillValue = 1.e+36f ;
+		FPG:missing_value = 1.e+36f ;
+	float FPI(time, lndgrid) ;
+		FPI:long_name = "fraction of potential immobilization" ;
+		FPI:units = "proportion" ;
+		FPI:cell_methods = "time: mean" ;
+		FPI:_FillValue = 1.e+36f ;
+		FPI:missing_value = 1.e+36f ;
+	float FPSN(time, lndgrid) ;
+		FPSN:long_name = "photosynthesis" ;
+		FPSN:units = "umol/m2s" ;
+		FPSN:cell_methods = "time: mean" ;
+		FPSN:_FillValue = 1.e+36f ;
+		FPSN:missing_value = 1.e+36f ;
+	float FPSN_WC(time, lndgrid) ;
+		FPSN_WC:long_name = "Rubisco-limited photosynthesis" ;
+		FPSN_WC:units = "umol/m2s" ;
+		FPSN_WC:cell_methods = "time: mean" ;
+		FPSN_WC:_FillValue = 1.e+36f ;
+		FPSN_WC:missing_value = 1.e+36f ;
+	float FPSN_WJ(time, lndgrid) ;
+		FPSN_WJ:long_name = "RuBP-limited photosynthesis" ;
+		FPSN_WJ:units = "umol/m2s" ;
+		FPSN_WJ:cell_methods = "time: mean" ;
+		FPSN_WJ:_FillValue = 1.e+36f ;
+		FPSN_WJ:missing_value = 1.e+36f ;
+	float FPSN_WP(time, lndgrid) ;
+		FPSN_WP:long_name = "Product-limited photosynthesis" ;
+		FPSN_WP:units = "umol/m2s" ;
+		FPSN_WP:cell_methods = "time: mean" ;
+		FPSN_WP:_FillValue = 1.e+36f ;
+		FPSN_WP:missing_value = 1.e+36f ;
+	float FROOTC(time, lndgrid) ;
+		FROOTC:long_name = "fine root C" ;
+		FROOTC:units = "gC/m^2" ;
+		FROOTC:cell_methods = "time: mean" ;
+		FROOTC:_FillValue = 1.e+36f ;
+		FROOTC:missing_value = 1.e+36f ;
+	float FROOTC_ALLOC(time, lndgrid) ;
+		FROOTC_ALLOC:long_name = "fine root C allocation" ;
+		FROOTC_ALLOC:units = "gC/m^2/s" ;
+		FROOTC_ALLOC:cell_methods = "time: mean" ;
+		FROOTC_ALLOC:_FillValue = 1.e+36f ;
+		FROOTC_ALLOC:missing_value = 1.e+36f ;
+	float FROOTC_LOSS(time, lndgrid) ;
+		FROOTC_LOSS:long_name = "fine root C loss" ;
+		FROOTC_LOSS:units = "gC/m^2/s" ;
+		FROOTC_LOSS:cell_methods = "time: mean" ;
+		FROOTC_LOSS:_FillValue = 1.e+36f ;
+		FROOTC_LOSS:missing_value = 1.e+36f ;
+	float FROOTN(time, lndgrid) ;
+		FROOTN:long_name = "fine root N" ;
+		FROOTN:units = "gN/m^2" ;
+		FROOTN:cell_methods = "time: mean" ;
+		FROOTN:_FillValue = 1.e+36f ;
+		FROOTN:missing_value = 1.e+36f ;
+	float FROST_TABLE(time, lndgrid) ;
+		FROST_TABLE:long_name = "frost table depth (vegetated landunits only)" ;
+		FROST_TABLE:units = "m" ;
+		FROST_TABLE:cell_methods = "time: mean" ;
+		FROST_TABLE:_FillValue = 1.e+36f ;
+		FROST_TABLE:missing_value = 1.e+36f ;
+	float FSA(time, lndgrid) ;
+		FSA:long_name = "absorbed solar radiation" ;
+		FSA:units = "W/m^2" ;
+		FSA:cell_methods = "time: mean" ;
+		FSA:_FillValue = 1.e+36f ;
+		FSA:missing_value = 1.e+36f ;
+	float FSAT(time, lndgrid) ;
+		FSAT:long_name = "fractional area with water table at surface" ;
+		FSAT:units = "unitless" ;
+		FSAT:cell_methods = "time: mean" ;
+		FSAT:_FillValue = 1.e+36f ;
+		FSAT:missing_value = 1.e+36f ;
+	float FSA_R(time, lndgrid) ;
+		FSA_R:long_name = "Rural absorbed solar radiation" ;
+		FSA_R:units = "W/m^2" ;
+		FSA_R:cell_methods = "time: mean" ;
+		FSA_R:_FillValue = 1.e+36f ;
+		FSA_R:missing_value = 1.e+36f ;
+	float FSA_U(time, lndgrid) ;
+		FSA_U:long_name = "Urban absorbed solar radiation" ;
+		FSA_U:units = "W/m^2" ;
+		FSA_U:cell_methods = "time: mean" ;
+		FSA_U:_FillValue = 1.e+36f ;
+		FSA_U:missing_value = 1.e+36f ;
+	float FSDS(time, lndgrid) ;
+		FSDS:long_name = "atmospheric incident solar radiation" ;
+		FSDS:units = "W/m^2" ;
+		FSDS:cell_methods = "time: mean" ;
+		FSDS:_FillValue = 1.e+36f ;
+		FSDS:missing_value = 1.e+36f ;
+	float FSDSND(time, lndgrid) ;
+		FSDSND:long_name = "direct nir incident solar radiation" ;
+		FSDSND:units = "W/m^2" ;
+		FSDSND:cell_methods = "time: mean" ;
+		FSDSND:_FillValue = 1.e+36f ;
+		FSDSND:missing_value = 1.e+36f ;
+	float FSDSNDLN(time, lndgrid) ;
+		FSDSNDLN:long_name = "direct nir incident solar radiation at local noon" ;
+		FSDSNDLN:units = "W/m^2" ;
+		FSDSNDLN:cell_methods = "time: mean" ;
+		FSDSNDLN:_FillValue = 1.e+36f ;
+		FSDSNDLN:missing_value = 1.e+36f ;
+	float FSDSNI(time, lndgrid) ;
+		FSDSNI:long_name = "diffuse nir incident solar radiation" ;
+		FSDSNI:units = "W/m^2" ;
+		FSDSNI:cell_methods = "time: mean" ;
+		FSDSNI:_FillValue = 1.e+36f ;
+		FSDSNI:missing_value = 1.e+36f ;
+	float FSDSVD(time, lndgrid) ;
+		FSDSVD:long_name = "direct vis incident solar radiation" ;
+		FSDSVD:units = "W/m^2" ;
+		FSDSVD:cell_methods = "time: mean" ;
+		FSDSVD:_FillValue = 1.e+36f ;
+		FSDSVD:missing_value = 1.e+36f ;
+	float FSDSVDLN(time, lndgrid) ;
+		FSDSVDLN:long_name = "direct vis incident solar radiation at local noon" ;
+		FSDSVDLN:units = "W/m^2" ;
+		FSDSVDLN:cell_methods = "time: mean" ;
+		FSDSVDLN:_FillValue = 1.e+36f ;
+		FSDSVDLN:missing_value = 1.e+36f ;
+	float FSDSVI(time, lndgrid) ;
+		FSDSVI:long_name = "diffuse vis incident solar radiation" ;
+		FSDSVI:units = "W/m^2" ;
+		FSDSVI:cell_methods = "time: mean" ;
+		FSDSVI:_FillValue = 1.e+36f ;
+		FSDSVI:missing_value = 1.e+36f ;
+	float FSDSVILN(time, lndgrid) ;
+		FSDSVILN:long_name = "diffuse vis incident solar radiation at local noon" ;
+		FSDSVILN:units = "W/m^2" ;
+		FSDSVILN:cell_methods = "time: mean" ;
+		FSDSVILN:_FillValue = 1.e+36f ;
+		FSDSVILN:missing_value = 1.e+36f ;
+	float FSH(time, lndgrid) ;
+		FSH:long_name = "sensible heat" ;
+		FSH:units = "W/m^2" ;
+		FSH:cell_methods = "time: mean" ;
+		FSH:_FillValue = 1.e+36f ;
+		FSH:missing_value = 1.e+36f ;
+	float FSH_G(time, lndgrid) ;
+		FSH_G:long_name = "sensible heat from ground" ;
+		FSH_G:units = "W/m^2" ;
+		FSH_G:cell_methods = "time: mean" ;
+		FSH_G:_FillValue = 1.e+36f ;
+		FSH_G:missing_value = 1.e+36f ;
+	float FSH_NODYNLNDUSE(time, lndgrid) ;
+		FSH_NODYNLNDUSE:long_name = "sensible heat not including correction for land use change" ;
+		FSH_NODYNLNDUSE:units = "W/m^2" ;
+		FSH_NODYNLNDUSE:cell_methods = "time: mean" ;
+		FSH_NODYNLNDUSE:_FillValue = 1.e+36f ;
+		FSH_NODYNLNDUSE:missing_value = 1.e+36f ;
+	float FSH_R(time, lndgrid) ;
+		FSH_R:long_name = "Rural sensible heat" ;
+		FSH_R:units = "W/m^2" ;
+		FSH_R:cell_methods = "time: mean" ;
+		FSH_R:_FillValue = 1.e+36f ;
+		FSH_R:missing_value = 1.e+36f ;
+	float FSH_U(time, lndgrid) ;
+		FSH_U:long_name = "Urban sensible heat" ;
+		FSH_U:units = "W/m^2" ;
+		FSH_U:cell_methods = "time: mean" ;
+		FSH_U:_FillValue = 1.e+36f ;
+		FSH_U:missing_value = 1.e+36f ;
+	float FSH_V(time, lndgrid) ;
+		FSH_V:long_name = "sensible heat from veg" ;
+		FSH_V:units = "W/m^2" ;
+		FSH_V:cell_methods = "time: mean" ;
+		FSH_V:_FillValue = 1.e+36f ;
+		FSH_V:missing_value = 1.e+36f ;
+	float FSM(time, lndgrid) ;
+		FSM:long_name = "snow melt heat flux" ;
+		FSM:units = "W/m^2" ;
+		FSM:cell_methods = "time: mean" ;
+		FSM:_FillValue = 1.e+36f ;
+		FSM:missing_value = 1.e+36f ;
+	float FSM_R(time, lndgrid) ;
+		FSM_R:long_name = "Rural snow melt heat flux" ;
+		FSM_R:units = "W/m^2" ;
+		FSM_R:cell_methods = "time: mean" ;
+		FSM_R:_FillValue = 1.e+36f ;
+		FSM_R:missing_value = 1.e+36f ;
+	float FSM_U(time, lndgrid) ;
+		FSM_U:long_name = "Urban snow melt heat flux" ;
+		FSM_U:units = "W/m^2" ;
+		FSM_U:cell_methods = "time: mean" ;
+		FSM_U:_FillValue = 1.e+36f ;
+		FSM_U:missing_value = 1.e+36f ;
+	float FSNO(time, lndgrid) ;
+		FSNO:long_name = "fraction of ground covered by snow" ;
+		FSNO:units = "unitless" ;
+		FSNO:cell_methods = "time: mean" ;
+		FSNO:_FillValue = 1.e+36f ;
+		FSNO:missing_value = 1.e+36f ;
+	float FSNO_EFF(time, lndgrid) ;
+		FSNO_EFF:long_name = "effective fraction of ground covered by snow" ;
+		FSNO_EFF:units = "unitless" ;
+		FSNO_EFF:cell_methods = "time: mean" ;
+		FSNO_EFF:_FillValue = 1.e+36f ;
+		FSNO_EFF:missing_value = 1.e+36f ;
+	float FSR(time, lndgrid) ;
+		FSR:long_name = "reflected solar radiation" ;
+		FSR:units = "W/m^2" ;
+		FSR:cell_methods = "time: mean" ;
+		FSR:_FillValue = 1.e+36f ;
+		FSR:missing_value = 1.e+36f ;
+	float FSRND(time, lndgrid) ;
+		FSRND:long_name = "direct nir reflected solar radiation" ;
+		FSRND:units = "W/m^2" ;
+		FSRND:cell_methods = "time: mean" ;
+		FSRND:_FillValue = 1.e+36f ;
+		FSRND:missing_value = 1.e+36f ;
+	float FSRNDLN(time, lndgrid) ;
+		FSRNDLN:long_name = "direct nir reflected solar radiation at local noon" ;
+		FSRNDLN:units = "W/m^2" ;
+		FSRNDLN:cell_methods = "time: mean" ;
+		FSRNDLN:_FillValue = 1.e+36f ;
+		FSRNDLN:missing_value = 1.e+36f ;
+	float FSRNI(time, lndgrid) ;
+		FSRNI:long_name = "diffuse nir reflected solar radiation" ;
+		FSRNI:units = "W/m^2" ;
+		FSRNI:cell_methods = "time: mean" ;
+		FSRNI:_FillValue = 1.e+36f ;
+		FSRNI:missing_value = 1.e+36f ;
+	float FSRVD(time, lndgrid) ;
+		FSRVD:long_name = "direct vis reflected solar radiation" ;
+		FSRVD:units = "W/m^2" ;
+		FSRVD:cell_methods = "time: mean" ;
+		FSRVD:_FillValue = 1.e+36f ;
+		FSRVD:missing_value = 1.e+36f ;
+	float FSRVDLN(time, lndgrid) ;
+		FSRVDLN:long_name = "direct vis reflected solar radiation at local noon" ;
+		FSRVDLN:units = "W/m^2" ;
+		FSRVDLN:cell_methods = "time: mean" ;
+		FSRVDLN:_FillValue = 1.e+36f ;
+		FSRVDLN:missing_value = 1.e+36f ;
+	float FSRVI(time, lndgrid) ;
+		FSRVI:long_name = "diffuse vis reflected solar radiation" ;
+		FSRVI:units = "W/m^2" ;
+		FSRVI:cell_methods = "time: mean" ;
+		FSRVI:_FillValue = 1.e+36f ;
+		FSRVI:missing_value = 1.e+36f ;
+	float FUELC(time, lndgrid) ;
+		FUELC:long_name = "fuel load" ;
+		FUELC:units = "gC/m^2" ;
+		FUELC:cell_methods = "time: mean" ;
+		FUELC:_FillValue = 1.e+36f ;
+		FUELC:missing_value = 1.e+36f ;
+	float GC_HEAT1(time, lndgrid) ;
+		GC_HEAT1:long_name = "initial gridcell total heat content" ;
+		GC_HEAT1:units = "J/m^2" ;
+		GC_HEAT1:cell_methods = "time: mean" ;
+		GC_HEAT1:_FillValue = 1.e+36f ;
+		GC_HEAT1:missing_value = 1.e+36f ;
+	float GC_ICE1(time, lndgrid) ;
+		GC_ICE1:long_name = "initial gridcell total ice content" ;
+		GC_ICE1:units = "mm" ;
+		GC_ICE1:cell_methods = "time: mean" ;
+		GC_ICE1:_FillValue = 1.e+36f ;
+		GC_ICE1:missing_value = 1.e+36f ;
+	float GC_LIQ1(time, lndgrid) ;
+		GC_LIQ1:long_name = "initial gridcell total liq content" ;
+		GC_LIQ1:units = "mm" ;
+		GC_LIQ1:cell_methods = "time: mean" ;
+		GC_LIQ1:_FillValue = 1.e+36f ;
+		GC_LIQ1:missing_value = 1.e+36f ;
+	float GPP(time, lndgrid) ;
+		GPP:long_name = "gross primary production" ;
+		GPP:units = "gC/m^2/s" ;
+		GPP:cell_methods = "time: mean" ;
+		GPP:_FillValue = 1.e+36f ;
+		GPP:missing_value = 1.e+36f ;
+	float GR(time, lndgrid) ;
+		GR:long_name = "total growth respiration" ;
+		GR:units = "gC/m^2/s" ;
+		GR:cell_methods = "time: mean" ;
+		GR:_FillValue = 1.e+36f ;
+		GR:missing_value = 1.e+36f ;
+	float GROSS_NMIN(time, lndgrid) ;
+		GROSS_NMIN:long_name = "gross rate of N mineralization" ;
+		GROSS_NMIN:units = "gN/m^2/s" ;
+		GROSS_NMIN:cell_methods = "time: mean" ;
+		GROSS_NMIN:_FillValue = 1.e+36f ;
+		GROSS_NMIN:missing_value = 1.e+36f ;
+	float H2OCAN(time, lndgrid) ;
+		H2OCAN:long_name = "intercepted water" ;
+		H2OCAN:units = "mm" ;
+		H2OCAN:cell_methods = "time: mean" ;
+		H2OCAN:_FillValue = 1.e+36f ;
+		H2OCAN:missing_value = 1.e+36f ;
+	float H2OSFC(time, lndgrid) ;
+		H2OSFC:long_name = "surface water depth" ;
+		H2OSFC:units = "mm" ;
+		H2OSFC:cell_methods = "time: mean" ;
+		H2OSFC:_FillValue = 1.e+36f ;
+		H2OSFC:missing_value = 1.e+36f ;
+	float H2OSNO(time, lndgrid) ;
+		H2OSNO:long_name = "snow depth (liquid water)" ;
+		H2OSNO:units = "mm" ;
+		H2OSNO:cell_methods = "time: mean" ;
+		H2OSNO:_FillValue = 1.e+36f ;
+		H2OSNO:missing_value = 1.e+36f ;
+	float H2OSNO_TOP(time, lndgrid) ;
+		H2OSNO_TOP:long_name = "mass of snow in top snow layer" ;
+		H2OSNO_TOP:units = "kg/m2" ;
+		H2OSNO_TOP:cell_methods = "time: mean" ;
+		H2OSNO_TOP:_FillValue = 1.e+36f ;
+		H2OSNO_TOP:missing_value = 1.e+36f ;
+	float H2OSOI(time, levgrnd, lndgrid) ;
+		H2OSOI:long_name = "volumetric soil water (vegetated landunits only)" ;
+		H2OSOI:units = "mm3/mm3" ;
+		H2OSOI:cell_methods = "time: mean" ;
+		H2OSOI:_FillValue = 1.e+36f ;
+		H2OSOI:missing_value = 1.e+36f ;
+	float HC(time, lndgrid) ;
+		HC:long_name = "heat content of soil/snow/lake" ;
+		HC:units = "MJ/m2" ;
+		HC:cell_methods = "time: mean" ;
+		HC:_FillValue = 1.e+36f ;
+		HC:missing_value = 1.e+36f ;
+	float HCSOI(time, lndgrid) ;
+		HCSOI:long_name = "soil heat content" ;
+		HCSOI:units = "MJ/m2" ;
+		HCSOI:cell_methods = "time: mean" ;
+		HCSOI:_FillValue = 1.e+36f ;
+		HCSOI:missing_value = 1.e+36f ;
+	float HEAT_FROM_AC(time, lndgrid) ;
+		HEAT_FROM_AC:long_name = "sensible heat flux put into canyon due to heat removed from air conditioning" ;
+		HEAT_FROM_AC:units = "W/m^2" ;
+		HEAT_FROM_AC:cell_methods = "time: mean" ;
+		HEAT_FROM_AC:_FillValue = 1.e+36f ;
+		HEAT_FROM_AC:missing_value = 1.e+36f ;
+	float HR(time, lndgrid) ;
+		HR:long_name = "total heterotrophic respiration" ;
+		HR:units = "gC/m^2/s" ;
+		HR:cell_methods = "time: mean" ;
+		HR:_FillValue = 1.e+36f ;
+		HR:missing_value = 1.e+36f ;
+	float HTOP(time, lndgrid) ;
+		HTOP:long_name = "canopy top" ;
+		HTOP:units = "m" ;
+		HTOP:cell_methods = "time: mean" ;
+		HTOP:_FillValue = 1.e+36f ;
+		HTOP:missing_value = 1.e+36f ;
+	float INT_SNOW(time, lndgrid) ;
+		INT_SNOW:long_name = "accumulated swe (vegetated landunits only)" ;
+		INT_SNOW:units = "mm" ;
+		INT_SNOW:cell_methods = "time: mean" ;
+		INT_SNOW:_FillValue = 1.e+36f ;
+		INT_SNOW:missing_value = 1.e+36f ;
+	float LAISHA(time, lndgrid) ;
+		LAISHA:long_name = "shaded projected leaf area index" ;
+		LAISHA:units = "none" ;
+		LAISHA:cell_methods = "time: mean" ;
+		LAISHA:_FillValue = 1.e+36f ;
+		LAISHA:missing_value = 1.e+36f ;
+	float LAISUN(time, lndgrid) ;
+		LAISUN:long_name = "sunlit projected leaf area index" ;
+		LAISUN:units = "none" ;
+		LAISUN:cell_methods = "time: mean" ;
+		LAISUN:_FillValue = 1.e+36f ;
+		LAISUN:missing_value = 1.e+36f ;
+	float LAKEICEFRAC(time, levlak, lndgrid) ;
+		LAKEICEFRAC:long_name = "lake layer ice mass fraction" ;
+		LAKEICEFRAC:units = "unitless" ;
+		LAKEICEFRAC:cell_methods = "time: mean" ;
+		LAKEICEFRAC:_FillValue = 1.e+36f ;
+		LAKEICEFRAC:missing_value = 1.e+36f ;
+	float LAKEICETHICK(time, lndgrid) ;
+		LAKEICETHICK:long_name = "thickness of lake ice (including physical expansion on freezing)" ;
+		LAKEICETHICK:units = "m" ;
+		LAKEICETHICK:cell_methods = "time: mean" ;
+		LAKEICETHICK:_FillValue = 1.e+36f ;
+		LAKEICETHICK:missing_value = 1.e+36f ;
+	float LAND_UPTAKE(time, lndgrid) ;
+		LAND_UPTAKE:long_name = "NEE minus LAND_USE_FLUX, negative for update" ;
+		LAND_UPTAKE:units = "gC/m^2/s" ;
+		LAND_UPTAKE:cell_methods = "time: mean" ;
+		LAND_UPTAKE:_FillValue = 1.e+36f ;
+		LAND_UPTAKE:missing_value = 1.e+36f ;
+	float LAND_USE_FLUX(time, lndgrid) ;
+		LAND_USE_FLUX:long_name = "total C emitted from land cover conversion and wood product pools" ;
+		LAND_USE_FLUX:units = "gC/m^2/s" ;
+		LAND_USE_FLUX:cell_methods = "time: mean" ;
+		LAND_USE_FLUX:_FillValue = 1.e+36f ;
+		LAND_USE_FLUX:missing_value = 1.e+36f ;
+	float LEAFC(time, lndgrid) ;
+		LEAFC:long_name = "leaf C" ;
+		LEAFC:units = "gC/m^2" ;
+		LEAFC:cell_methods = "time: mean" ;
+		LEAFC:_FillValue = 1.e+36f ;
+		LEAFC:missing_value = 1.e+36f ;
+	float LEAFC_ALLOC(time, lndgrid) ;
+		LEAFC_ALLOC:long_name = "leaf C allocation" ;
+		LEAFC_ALLOC:units = "gC/m^2/s" ;
+		LEAFC_ALLOC:cell_methods = "time: mean" ;
+		LEAFC_ALLOC:_FillValue = 1.e+36f ;
+		LEAFC_ALLOC:missing_value = 1.e+36f ;
+	float LEAFC_LOSS(time, lndgrid) ;
+		LEAFC_LOSS:long_name = "leaf C loss" ;
+		LEAFC_LOSS:units = "gC/m^2/s" ;
+		LEAFC_LOSS:cell_methods = "time: mean" ;
+		LEAFC_LOSS:_FillValue = 1.e+36f ;
+		LEAFC_LOSS:missing_value = 1.e+36f ;
+	float LEAFN(time, lndgrid) ;
+		LEAFN:long_name = "leaf N" ;
+		LEAFN:units = "gN/m^2" ;
+		LEAFN:cell_methods = "time: mean" ;
+		LEAFN:_FillValue = 1.e+36f ;
+		LEAFN:missing_value = 1.e+36f ;
+	float LEAF_MR(time, lndgrid) ;
+		LEAF_MR:long_name = "leaf maintenance respiration" ;
+		LEAF_MR:units = "gC/m^2/s" ;
+		LEAF_MR:cell_methods = "time: mean" ;
+		LEAF_MR:_FillValue = 1.e+36f ;
+		LEAF_MR:missing_value = 1.e+36f ;
+	float LFC2(time, lndgrid) ;
+		LFC2:long_name = "conversion area fraction of BET and BDT that burned in this timestep" ;
+		LFC2:units = "per timestep" ;
+		LFC2:cell_methods = "time: mean" ;
+		LFC2:_FillValue = 1.e+36f ;
+		LFC2:missing_value = 1.e+36f ;
+	float LF_CONV_CFLUX(time, lndgrid) ;
+		LF_CONV_CFLUX:long_name = "conversion carbon due to BET and BDT area decreasing" ;
+		LF_CONV_CFLUX:units = "gC/m^2/s" ;
+		LF_CONV_CFLUX:cell_methods = "time: mean" ;
+		LF_CONV_CFLUX:_FillValue = 1.e+36f ;
+		LF_CONV_CFLUX:missing_value = 1.e+36f ;
+	float LITFALL(time, lndgrid) ;
+		LITFALL:long_name = "litterfall (leaves and fine roots)" ;
+		LITFALL:units = "gC/m^2/s" ;
+		LITFALL:cell_methods = "time: mean" ;
+		LITFALL:_FillValue = 1.e+36f ;
+		LITFALL:missing_value = 1.e+36f ;
+	float LITHR(time, lndgrid) ;
+		LITHR:long_name = "litter heterotrophic respiration" ;
+		LITHR:units = "gC/m^2/s" ;
+		LITHR:cell_methods = "time: mean" ;
+		LITHR:_FillValue = 1.e+36f ;
+		LITHR:missing_value = 1.e+36f ;
+	float LITR1C(time, lndgrid) ;
+		LITR1C:long_name = "LITR1 C" ;
+		LITR1C:units = "gC/m^2" ;
+		LITR1C:cell_methods = "time: mean" ;
+		LITR1C:_FillValue = 1.e+36f ;
+		LITR1C:missing_value = 1.e+36f ;
+	float LITR1C_TO_SOIL1C(time, lndgrid) ;
+		LITR1C_TO_SOIL1C:long_name = "decomp. of litter 1 C to soil 1 C" ;
+		LITR1C_TO_SOIL1C:units = "gC/m^2/s" ;
+		LITR1C_TO_SOIL1C:cell_methods = "time: mean" ;
+		LITR1C_TO_SOIL1C:_FillValue = 1.e+36f ;
+		LITR1C_TO_SOIL1C:missing_value = 1.e+36f ;
+	float LITR1N(time, lndgrid) ;
+		LITR1N:long_name = "LITR1 N" ;
+		LITR1N:units = "gN/m^2" ;
+		LITR1N:cell_methods = "time: mean" ;
+		LITR1N:_FillValue = 1.e+36f ;
+		LITR1N:missing_value = 1.e+36f ;
+	float LITR1N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		LITR1N_TNDNCY_VERT_TRANS:long_name = "litter 1 N tendency due to vertical transport" ;
+		LITR1N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		LITR1N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		LITR1N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		LITR1N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float LITR1N_TO_SOIL1N(time, lndgrid) ;
+		LITR1N_TO_SOIL1N:long_name = "decomp. of litter 1 N to soil 1 N" ;
+		LITR1N_TO_SOIL1N:units = "gN/m^2" ;
+		LITR1N_TO_SOIL1N:cell_methods = "time: mean" ;
+		LITR1N_TO_SOIL1N:_FillValue = 1.e+36f ;
+		LITR1N_TO_SOIL1N:missing_value = 1.e+36f ;
+	float LITR1_HR(time, lndgrid) ;
+		LITR1_HR:long_name = "Het. Resp. from litter 1" ;
+		LITR1_HR:units = "gC/m^2/s" ;
+		LITR1_HR:cell_methods = "time: mean" ;
+		LITR1_HR:_FillValue = 1.e+36f ;
+		LITR1_HR:missing_value = 1.e+36f ;
+	float LITR2C(time, lndgrid) ;
+		LITR2C:long_name = "LITR2 C" ;
+		LITR2C:units = "gC/m^2" ;
+		LITR2C:cell_methods = "time: mean" ;
+		LITR2C:_FillValue = 1.e+36f ;
+		LITR2C:missing_value = 1.e+36f ;
+	float LITR2C_TO_SOIL2C(time, lndgrid) ;
+		LITR2C_TO_SOIL2C:long_name = "decomp. of litter 2 C to soil 2 C" ;
+		LITR2C_TO_SOIL2C:units = "gC/m^2/s" ;
+		LITR2C_TO_SOIL2C:cell_methods = "time: mean" ;
+		LITR2C_TO_SOIL2C:_FillValue = 1.e+36f ;
+		LITR2C_TO_SOIL2C:missing_value = 1.e+36f ;
+	float LITR2N(time, lndgrid) ;
+		LITR2N:long_name = "LITR2 N" ;
+		LITR2N:units = "gN/m^2" ;
+		LITR2N:cell_methods = "time: mean" ;
+		LITR2N:_FillValue = 1.e+36f ;
+		LITR2N:missing_value = 1.e+36f ;
+	float LITR2N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		LITR2N_TNDNCY_VERT_TRANS:long_name = "litter 2 N tendency due to vertical transport" ;
+		LITR2N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		LITR2N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		LITR2N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		LITR2N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float LITR2N_TO_SOIL2N(time, lndgrid) ;
+		LITR2N_TO_SOIL2N:long_name = "decomp. of litter 2 N to soil 2 N" ;
+		LITR2N_TO_SOIL2N:units = "gN/m^2" ;
+		LITR2N_TO_SOIL2N:cell_methods = "time: mean" ;
+		LITR2N_TO_SOIL2N:_FillValue = 1.e+36f ;
+		LITR2N_TO_SOIL2N:missing_value = 1.e+36f ;
+	float LITR2_HR(time, lndgrid) ;
+		LITR2_HR:long_name = "Het. Resp. from litter 2" ;
+		LITR2_HR:units = "gC/m^2/s" ;
+		LITR2_HR:cell_methods = "time: mean" ;
+		LITR2_HR:_FillValue = 1.e+36f ;
+		LITR2_HR:missing_value = 1.e+36f ;
+	float LITR3C(time, lndgrid) ;
+		LITR3C:long_name = "LITR3 C" ;
+		LITR3C:units = "gC/m^2" ;
+		LITR3C:cell_methods = "time: mean" ;
+		LITR3C:_FillValue = 1.e+36f ;
+		LITR3C:missing_value = 1.e+36f ;
+	float LITR3C_TO_SOIL3C(time, lndgrid) ;
+		LITR3C_TO_SOIL3C:long_name = "decomp. of litter 3 C to soil 3 C" ;
+		LITR3C_TO_SOIL3C:units = "gC/m^2/s" ;
+		LITR3C_TO_SOIL3C:cell_methods = "time: mean" ;
+		LITR3C_TO_SOIL3C:_FillValue = 1.e+36f ;
+		LITR3C_TO_SOIL3C:missing_value = 1.e+36f ;
+	float LITR3N(time, lndgrid) ;
+		LITR3N:long_name = "LITR3 N" ;
+		LITR3N:units = "gN/m^2" ;
+		LITR3N:cell_methods = "time: mean" ;
+		LITR3N:_FillValue = 1.e+36f ;
+		LITR3N:missing_value = 1.e+36f ;
+	float LITR3N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		LITR3N_TNDNCY_VERT_TRANS:long_name = "litter 3 N tendency due to vertical transport" ;
+		LITR3N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		LITR3N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		LITR3N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		LITR3N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float LITR3N_TO_SOIL3N(time, lndgrid) ;
+		LITR3N_TO_SOIL3N:long_name = "decomp. of litter 3 N to soil 3 N" ;
+		LITR3N_TO_SOIL3N:units = "gN/m^2" ;
+		LITR3N_TO_SOIL3N:cell_methods = "time: mean" ;
+		LITR3N_TO_SOIL3N:_FillValue = 1.e+36f ;
+		LITR3N_TO_SOIL3N:missing_value = 1.e+36f ;
+	float LITR3_HR(time, lndgrid) ;
+		LITR3_HR:long_name = "Het. Resp. from litter 3" ;
+		LITR3_HR:units = "gC/m^2/s" ;
+		LITR3_HR:cell_methods = "time: mean" ;
+		LITR3_HR:_FillValue = 1.e+36f ;
+		LITR3_HR:missing_value = 1.e+36f ;
+	float LITTERC(time, lndgrid) ;
+		LITTERC:long_name = "litter C" ;
+		LITTERC:units = "gC/m^2" ;
+		LITTERC:cell_methods = "time: mean" ;
+		LITTERC:_FillValue = 1.e+36f ;
+		LITTERC:missing_value = 1.e+36f ;
+	float LITTERC_HR(time, lndgrid) ;
+		LITTERC_HR:long_name = "litter C heterotrophic respiration" ;
+		LITTERC_HR:units = "gC/m^2/s" ;
+		LITTERC_HR:cell_methods = "time: mean" ;
+		LITTERC_HR:_FillValue = 1.e+36f ;
+		LITTERC_HR:missing_value = 1.e+36f ;
+	float LITTERC_LOSS(time, lndgrid) ;
+		LITTERC_LOSS:long_name = "litter C loss" ;
+		LITTERC_LOSS:units = "gC/m^2/s" ;
+		LITTERC_LOSS:cell_methods = "time: mean" ;
+		LITTERC_LOSS:_FillValue = 1.e+36f ;
+		LITTERC_LOSS:missing_value = 1.e+36f ;
+	float LIVECROOTC(time, lndgrid) ;
+		LIVECROOTC:long_name = "live coarse root C" ;
+		LIVECROOTC:units = "gC/m^2" ;
+		LIVECROOTC:cell_methods = "time: mean" ;
+		LIVECROOTC:_FillValue = 1.e+36f ;
+		LIVECROOTC:missing_value = 1.e+36f ;
+	float LIVECROOTN(time, lndgrid) ;
+		LIVECROOTN:long_name = "live coarse root N" ;
+		LIVECROOTN:units = "gN/m^2" ;
+		LIVECROOTN:cell_methods = "time: mean" ;
+		LIVECROOTN:_FillValue = 1.e+36f ;
+		LIVECROOTN:missing_value = 1.e+36f ;
+	float LIVESTEMC(time, lndgrid) ;
+		LIVESTEMC:long_name = "live stem C" ;
+		LIVESTEMC:units = "gC/m^2" ;
+		LIVESTEMC:cell_methods = "time: mean" ;
+		LIVESTEMC:_FillValue = 1.e+36f ;
+		LIVESTEMC:missing_value = 1.e+36f ;
+	float LIVESTEMN(time, lndgrid) ;
+		LIVESTEMN:long_name = "live stem N" ;
+		LIVESTEMN:units = "gN/m^2" ;
+		LIVESTEMN:cell_methods = "time: mean" ;
+		LIVESTEMN:_FillValue = 1.e+36f ;
+		LIVESTEMN:missing_value = 1.e+36f ;
+	float MEG_acetaldehyde(time, lndgrid) ;
+		MEG_acetaldehyde:long_name = "MEGAN flux" ;
+		MEG_acetaldehyde:units = "kg/m2/sec" ;
+		MEG_acetaldehyde:cell_methods = "time: mean" ;
+		MEG_acetaldehyde:_FillValue = 1.e+36f ;
+		MEG_acetaldehyde:missing_value = 1.e+36f ;
+	float MEG_acetic_acid(time, lndgrid) ;
+		MEG_acetic_acid:long_name = "MEGAN flux" ;
+		MEG_acetic_acid:units = "kg/m2/sec" ;
+		MEG_acetic_acid:cell_methods = "time: mean" ;
+		MEG_acetic_acid:_FillValue = 1.e+36f ;
+		MEG_acetic_acid:missing_value = 1.e+36f ;
+	float MEG_acetone(time, lndgrid) ;
+		MEG_acetone:long_name = "MEGAN flux" ;
+		MEG_acetone:units = "kg/m2/sec" ;
+		MEG_acetone:cell_methods = "time: mean" ;
+		MEG_acetone:_FillValue = 1.e+36f ;
+		MEG_acetone:missing_value = 1.e+36f ;
+	float MEG_carene_3(time, lndgrid) ;
+		MEG_carene_3:long_name = "MEGAN flux" ;
+		MEG_carene_3:units = "kg/m2/sec" ;
+		MEG_carene_3:cell_methods = "time: mean" ;
+		MEG_carene_3:_FillValue = 1.e+36f ;
+		MEG_carene_3:missing_value = 1.e+36f ;
+	float MEG_ethanol(time, lndgrid) ;
+		MEG_ethanol:long_name = "MEGAN flux" ;
+		MEG_ethanol:units = "kg/m2/sec" ;
+		MEG_ethanol:cell_methods = "time: mean" ;
+		MEG_ethanol:_FillValue = 1.e+36f ;
+		MEG_ethanol:missing_value = 1.e+36f ;
+	float MEG_formaldehyde(time, lndgrid) ;
+		MEG_formaldehyde:long_name = "MEGAN flux" ;
+		MEG_formaldehyde:units = "kg/m2/sec" ;
+		MEG_formaldehyde:cell_methods = "time: mean" ;
+		MEG_formaldehyde:_FillValue = 1.e+36f ;
+		MEG_formaldehyde:missing_value = 1.e+36f ;
+	float MEG_isoprene(time, lndgrid) ;
+		MEG_isoprene:long_name = "MEGAN flux" ;
+		MEG_isoprene:units = "kg/m2/sec" ;
+		MEG_isoprene:cell_methods = "time: mean" ;
+		MEG_isoprene:_FillValue = 1.e+36f ;
+		MEG_isoprene:missing_value = 1.e+36f ;
+	float MEG_methanol(time, lndgrid) ;
+		MEG_methanol:long_name = "MEGAN flux" ;
+		MEG_methanol:units = "kg/m2/sec" ;
+		MEG_methanol:cell_methods = "time: mean" ;
+		MEG_methanol:_FillValue = 1.e+36f ;
+		MEG_methanol:missing_value = 1.e+36f ;
+	float MEG_pinene_a(time, lndgrid) ;
+		MEG_pinene_a:long_name = "MEGAN flux" ;
+		MEG_pinene_a:units = "kg/m2/sec" ;
+		MEG_pinene_a:cell_methods = "time: mean" ;
+		MEG_pinene_a:_FillValue = 1.e+36f ;
+		MEG_pinene_a:missing_value = 1.e+36f ;
+	float MEG_thujene_a(time, lndgrid) ;
+		MEG_thujene_a:long_name = "MEGAN flux" ;
+		MEG_thujene_a:units = "kg/m2/sec" ;
+		MEG_thujene_a:cell_methods = "time: mean" ;
+		MEG_thujene_a:_FillValue = 1.e+36f ;
+		MEG_thujene_a:missing_value = 1.e+36f ;
+	float MR(time, lndgrid) ;
+		MR:long_name = "maintenance respiration" ;
+		MR:units = "gC/m^2/s" ;
+		MR:cell_methods = "time: mean" ;
+		MR:_FillValue = 1.e+36f ;
+		MR:missing_value = 1.e+36f ;
+	float M_LITR1C_TO_LEACHING(time, lndgrid) ;
+		M_LITR1C_TO_LEACHING:long_name = "litter 1 C leaching loss" ;
+		M_LITR1C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_LITR1C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_LITR1C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_LITR1C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_LITR2C_TO_LEACHING(time, lndgrid) ;
+		M_LITR2C_TO_LEACHING:long_name = "litter 2 C leaching loss" ;
+		M_LITR2C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_LITR2C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_LITR2C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_LITR2C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_LITR3C_TO_LEACHING(time, lndgrid) ;
+		M_LITR3C_TO_LEACHING:long_name = "litter 3 C leaching loss" ;
+		M_LITR3C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_LITR3C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_LITR3C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_LITR3C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_SOIL1C_TO_LEACHING(time, lndgrid) ;
+		M_SOIL1C_TO_LEACHING:long_name = "soil 1 C leaching loss" ;
+		M_SOIL1C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_SOIL1C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_SOIL1C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_SOIL1C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_SOIL2C_TO_LEACHING(time, lndgrid) ;
+		M_SOIL2C_TO_LEACHING:long_name = "soil 2 C leaching loss" ;
+		M_SOIL2C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_SOIL2C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_SOIL2C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_SOIL2C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_SOIL3C_TO_LEACHING(time, lndgrid) ;
+		M_SOIL3C_TO_LEACHING:long_name = "soil 3 C leaching loss" ;
+		M_SOIL3C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_SOIL3C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_SOIL3C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_SOIL3C_TO_LEACHING:missing_value = 1.e+36f ;
+	float M_SOIL4C_TO_LEACHING(time, lndgrid) ;
+		M_SOIL4C_TO_LEACHING:long_name = "soil 4 C leaching loss" ;
+		M_SOIL4C_TO_LEACHING:units = "gC/m^2/s" ;
+		M_SOIL4C_TO_LEACHING:cell_methods = "time: mean" ;
+		M_SOIL4C_TO_LEACHING:_FillValue = 1.e+36f ;
+		M_SOIL4C_TO_LEACHING:missing_value = 1.e+36f ;
+	float NBP(time, lndgrid) ;
+		NBP:long_name = "net biome production, includes fire, landuse, and harvest flux, positive for sink" ;
+		NBP:units = "gC/m^2/s" ;
+		NBP:cell_methods = "time: mean" ;
+		NBP:_FillValue = 1.e+36f ;
+		NBP:missing_value = 1.e+36f ;
+	float NDEPLOY(time, lndgrid) ;
+		NDEPLOY:long_name = "total N deployed in new growth" ;
+		NDEPLOY:units = "gN/m^2/s" ;
+		NDEPLOY:cell_methods = "time: mean" ;
+		NDEPLOY:_FillValue = 1.e+36f ;
+		NDEPLOY:missing_value = 1.e+36f ;
+	float NDEP_TO_SMINN(time, lndgrid) ;
+		NDEP_TO_SMINN:long_name = "atmospheric N deposition to soil mineral N" ;
+		NDEP_TO_SMINN:units = "gN/m^2/s" ;
+		NDEP_TO_SMINN:cell_methods = "time: mean" ;
+		NDEP_TO_SMINN:_FillValue = 1.e+36f ;
+		NDEP_TO_SMINN:missing_value = 1.e+36f ;
+	float NEE(time, lndgrid) ;
+		NEE:long_name = "net ecosystem exchange of carbon, includes fire, landuse, harvest, and hrv_xsmrpool flux, positive for source" ;
+		NEE:units = "gC/m^2/s" ;
+		NEE:cell_methods = "time: mean" ;
+		NEE:_FillValue = 1.e+36f ;
+		NEE:missing_value = 1.e+36f ;
+	float NEP(time, lndgrid) ;
+		NEP:long_name = "net ecosystem production, excludes fire, landuse, and harvest flux, positive for sink" ;
+		NEP:units = "gC/m^2/s" ;
+		NEP:cell_methods = "time: mean" ;
+		NEP:_FillValue = 1.e+36f ;
+		NEP:missing_value = 1.e+36f ;
+	float NET_NMIN(time, lndgrid) ;
+		NET_NMIN:long_name = "net rate of N mineralization" ;
+		NET_NMIN:units = "gN/m^2/s" ;
+		NET_NMIN:cell_methods = "time: mean" ;
+		NET_NMIN:_FillValue = 1.e+36f ;
+		NET_NMIN:missing_value = 1.e+36f ;
+	float NFIRE(time, lndgrid) ;
+		NFIRE:long_name = "timestep fire counts valid only in Reg.C" ;
+		NFIRE:units = "counts/km2/timestep" ;
+		NFIRE:cell_methods = "time: mean" ;
+		NFIRE:_FillValue = 1.e+36f ;
+		NFIRE:missing_value = 1.e+36f ;
+	float NFIX_TO_SMINN(time, lndgrid) ;
+		NFIX_TO_SMINN:long_name = "symbiotic/asymbiotic N fixation to soil mineral N" ;
+		NFIX_TO_SMINN:units = "gN/m^2/s" ;
+		NFIX_TO_SMINN:cell_methods = "time: mean" ;
+		NFIX_TO_SMINN:_FillValue = 1.e+36f ;
+		NFIX_TO_SMINN:missing_value = 1.e+36f ;
+	float NPP(time, lndgrid) ;
+		NPP:long_name = "net primary production" ;
+		NPP:units = "gC/m^2/s" ;
+		NPP:cell_methods = "time: mean" ;
+		NPP:_FillValue = 1.e+36f ;
+		NPP:missing_value = 1.e+36f ;
+	float OCDEP(time, lndgrid) ;
+		OCDEP:long_name = "total OC deposition (dry+wet) from atmosphere" ;
+		OCDEP:units = "kg/m^2/s" ;
+		OCDEP:cell_methods = "time: mean" ;
+		OCDEP:_FillValue = 1.e+36f ;
+		OCDEP:missing_value = 1.e+36f ;
+	float O_SCALAR(time, lndgrid) ;
+		O_SCALAR:long_name = "fraction by which decomposition is reduced due to anoxia" ;
+		O_SCALAR:units = "unitless" ;
+		O_SCALAR:cell_methods = "time: mean" ;
+		O_SCALAR:_FillValue = 1.e+36f ;
+		O_SCALAR:missing_value = 1.e+36f ;
+	float PARVEGLN(time, lndgrid) ;
+		PARVEGLN:long_name = "absorbed par by vegetation at local noon" ;
+		PARVEGLN:units = "W/m^2" ;
+		PARVEGLN:cell_methods = "time: mean" ;
+		PARVEGLN:_FillValue = 1.e+36f ;
+		PARVEGLN:missing_value = 1.e+36f ;
+	float PBOT(time, lndgrid) ;
+		PBOT:long_name = "atmospheric pressure" ;
+		PBOT:units = "Pa" ;
+		PBOT:cell_methods = "time: mean" ;
+		PBOT:_FillValue = 1.e+36f ;
+		PBOT:missing_value = 1.e+36f ;
+	float PCO2(time, lndgrid) ;
+		PCO2:long_name = "atmospheric partial pressure of CO2" ;
+		PCO2:units = "Pa" ;
+		PCO2:cell_methods = "time: mean" ;
+		PCO2:_FillValue = 1.e+36f ;
+		PCO2:missing_value = 1.e+36f ;
+	float PFT_CTRUNC(time, lndgrid) ;
+		PFT_CTRUNC:long_name = "pft-level sink for C truncation" ;
+		PFT_CTRUNC:units = "gC/m^2" ;
+		PFT_CTRUNC:cell_methods = "time: mean" ;
+		PFT_CTRUNC:_FillValue = 1.e+36f ;
+		PFT_CTRUNC:missing_value = 1.e+36f ;
+	float PFT_FIRE_CLOSS(time, lndgrid) ;
+		PFT_FIRE_CLOSS:long_name = "total pft-level fire C loss for non-peat fires outside land-type converted region" ;
+		PFT_FIRE_CLOSS:units = "gC/m^2/s" ;
+		PFT_FIRE_CLOSS:cell_methods = "time: mean" ;
+		PFT_FIRE_CLOSS:_FillValue = 1.e+36f ;
+		PFT_FIRE_CLOSS:missing_value = 1.e+36f ;
+	float PFT_FIRE_NLOSS(time, lndgrid) ;
+		PFT_FIRE_NLOSS:long_name = "total pft-level fire N loss" ;
+		PFT_FIRE_NLOSS:units = "gN/m^2/s" ;
+		PFT_FIRE_NLOSS:cell_methods = "time: mean" ;
+		PFT_FIRE_NLOSS:_FillValue = 1.e+36f ;
+		PFT_FIRE_NLOSS:missing_value = 1.e+36f ;
+	float PFT_NTRUNC(time, lndgrid) ;
+		PFT_NTRUNC:long_name = "pft-level sink for N truncation" ;
+		PFT_NTRUNC:units = "gN/m^2" ;
+		PFT_NTRUNC:cell_methods = "time: mean" ;
+		PFT_NTRUNC:_FillValue = 1.e+36f ;
+		PFT_NTRUNC:missing_value = 1.e+36f ;
+	float PLANT_NDEMAND(time, lndgrid) ;
+		PLANT_NDEMAND:long_name = "N flux required to support initial GPP" ;
+		PLANT_NDEMAND:units = "gN/m^2/s" ;
+		PLANT_NDEMAND:cell_methods = "time: mean" ;
+		PLANT_NDEMAND:_FillValue = 1.e+36f ;
+		PLANT_NDEMAND:missing_value = 1.e+36f ;
+	float POTENTIAL_IMMOB(time, lndgrid) ;
+		POTENTIAL_IMMOB:long_name = "potential N immobilization" ;
+		POTENTIAL_IMMOB:units = "gN/m^2/s" ;
+		POTENTIAL_IMMOB:cell_methods = "time: mean" ;
+		POTENTIAL_IMMOB:_FillValue = 1.e+36f ;
+		POTENTIAL_IMMOB:missing_value = 1.e+36f ;
+	float PROD100C(time, lndgrid) ;
+		PROD100C:long_name = "100-yr wood product C" ;
+		PROD100C:units = "gC/m^2" ;
+		PROD100C:cell_methods = "time: mean" ;
+		PROD100C:_FillValue = 1.e+36f ;
+		PROD100C:missing_value = 1.e+36f ;
+	float PROD100C_LOSS(time, lndgrid) ;
+		PROD100C_LOSS:long_name = "loss from 100-yr wood product pool" ;
+		PROD100C_LOSS:units = "gC/m^2/s" ;
+		PROD100C_LOSS:cell_methods = "time: mean" ;
+		PROD100C_LOSS:_FillValue = 1.e+36f ;
+		PROD100C_LOSS:missing_value = 1.e+36f ;
+	float PROD100N(time, lndgrid) ;
+		PROD100N:long_name = "100-yr wood product N" ;
+		PROD100N:units = "gN/m^2" ;
+		PROD100N:cell_methods = "time: mean" ;
+		PROD100N:_FillValue = 1.e+36f ;
+		PROD100N:missing_value = 1.e+36f ;
+	float PROD100N_LOSS(time, lndgrid) ;
+		PROD100N_LOSS:long_name = "loss from 100-yr wood product pool" ;
+		PROD100N_LOSS:units = "gN/m^2/s" ;
+		PROD100N_LOSS:cell_methods = "time: mean" ;
+		PROD100N_LOSS:_FillValue = 1.e+36f ;
+		PROD100N_LOSS:missing_value = 1.e+36f ;
+	float PROD10C(time, lndgrid) ;
+		PROD10C:long_name = "10-yr wood product C" ;
+		PROD10C:units = "gC/m^2" ;
+		PROD10C:cell_methods = "time: mean" ;
+		PROD10C:_FillValue = 1.e+36f ;
+		PROD10C:missing_value = 1.e+36f ;
+	float PROD10C_LOSS(time, lndgrid) ;
+		PROD10C_LOSS:long_name = "loss from 10-yr wood product pool" ;
+		PROD10C_LOSS:units = "gC/m^2/s" ;
+		PROD10C_LOSS:cell_methods = "time: mean" ;
+		PROD10C_LOSS:_FillValue = 1.e+36f ;
+		PROD10C_LOSS:missing_value = 1.e+36f ;
+	float PROD10N(time, lndgrid) ;
+		PROD10N:long_name = "10-yr wood product N" ;
+		PROD10N:units = "gN/m^2" ;
+		PROD10N:cell_methods = "time: mean" ;
+		PROD10N:_FillValue = 1.e+36f ;
+		PROD10N:missing_value = 1.e+36f ;
+	float PROD10N_LOSS(time, lndgrid) ;
+		PROD10N_LOSS:long_name = "loss from 10-yr wood product pool" ;
+		PROD10N_LOSS:units = "gN/m^2/s" ;
+		PROD10N_LOSS:cell_methods = "time: mean" ;
+		PROD10N_LOSS:_FillValue = 1.e+36f ;
+		PROD10N_LOSS:missing_value = 1.e+36f ;
+	float PRODUCT_CLOSS(time, lndgrid) ;
+		PRODUCT_CLOSS:long_name = "total carbon loss from wood product pools" ;
+		PRODUCT_CLOSS:units = "gC/m^2/s" ;
+		PRODUCT_CLOSS:cell_methods = "time: mean" ;
+		PRODUCT_CLOSS:_FillValue = 1.e+36f ;
+		PRODUCT_CLOSS:missing_value = 1.e+36f ;
+	float PRODUCT_NLOSS(time, lndgrid) ;
+		PRODUCT_NLOSS:long_name = "total N loss from wood product pools" ;
+		PRODUCT_NLOSS:units = "gN/m^2/s" ;
+		PRODUCT_NLOSS:cell_methods = "time: mean" ;
+		PRODUCT_NLOSS:_FillValue = 1.e+36f ;
+		PRODUCT_NLOSS:missing_value = 1.e+36f ;
+	float PSNSHA(time, lndgrid) ;
+		PSNSHA:long_name = "shaded leaf photosynthesis" ;
+		PSNSHA:units = "umolCO2/m^2/s" ;
+		PSNSHA:cell_methods = "time: mean" ;
+		PSNSHA:_FillValue = 1.e+36f ;
+		PSNSHA:missing_value = 1.e+36f ;
+	float PSNSHADE_TO_CPOOL(time, lndgrid) ;
+		PSNSHADE_TO_CPOOL:long_name = "C fixation from shaded canopy" ;
+		PSNSHADE_TO_CPOOL:units = "gC/m^2/s" ;
+		PSNSHADE_TO_CPOOL:cell_methods = "time: mean" ;
+		PSNSHADE_TO_CPOOL:_FillValue = 1.e+36f ;
+		PSNSHADE_TO_CPOOL:missing_value = 1.e+36f ;
+	float PSNSUN(time, lndgrid) ;
+		PSNSUN:long_name = "sunlit leaf photosynthesis" ;
+		PSNSUN:units = "umolCO2/m^2/s" ;
+		PSNSUN:cell_methods = "time: mean" ;
+		PSNSUN:_FillValue = 1.e+36f ;
+		PSNSUN:missing_value = 1.e+36f ;
+	float PSNSUN_TO_CPOOL(time, lndgrid) ;
+		PSNSUN_TO_CPOOL:long_name = "C fixation from sunlit canopy" ;
+		PSNSUN_TO_CPOOL:units = "gC/m^2/s" ;
+		PSNSUN_TO_CPOOL:cell_methods = "time: mean" ;
+		PSNSUN_TO_CPOOL:_FillValue = 1.e+36f ;
+		PSNSUN_TO_CPOOL:missing_value = 1.e+36f ;
+	float Q2M(time, lndgrid) ;
+		Q2M:long_name = "2m specific humidity" ;
+		Q2M:units = "kg/kg" ;
+		Q2M:cell_methods = "time: mean" ;
+		Q2M:_FillValue = 1.e+36f ;
+		Q2M:missing_value = 1.e+36f ;
+	float QBOT(time, lndgrid) ;
+		QBOT:long_name = "atmospheric specific humidity" ;
+		QBOT:units = "kg/kg" ;
+		QBOT:cell_methods = "time: mean" ;
+		QBOT:_FillValue = 1.e+36f ;
+		QBOT:missing_value = 1.e+36f ;
+	float QCHARGE(time, lndgrid) ;
+		QCHARGE:long_name = "aquifer recharge rate (vegetated landunits only)" ;
+		QCHARGE:units = "mm/s" ;
+		QCHARGE:cell_methods = "time: mean" ;
+		QCHARGE:_FillValue = 1.e+36f ;
+		QCHARGE:missing_value = 1.e+36f ;
+	float QDRAI(time, lndgrid) ;
+		QDRAI:long_name = "sub-surface drainage" ;
+		QDRAI:units = "mm/s" ;
+		QDRAI:cell_methods = "time: mean" ;
+		QDRAI:_FillValue = 1.e+36f ;
+		QDRAI:missing_value = 1.e+36f ;
+	float QDRAI_PERCH(time, lndgrid) ;
+		QDRAI_PERCH:long_name = "perched wt drainage" ;
+		QDRAI_PERCH:units = "mm/s" ;
+		QDRAI_PERCH:cell_methods = "time: mean" ;
+		QDRAI_PERCH:_FillValue = 1.e+36f ;
+		QDRAI_PERCH:missing_value = 1.e+36f ;
+	float QDRAI_XS(time, lndgrid) ;
+		QDRAI_XS:long_name = "saturation excess drainage" ;
+		QDRAI_XS:units = "mm/s" ;
+		QDRAI_XS:cell_methods = "time: mean" ;
+		QDRAI_XS:_FillValue = 1.e+36f ;
+		QDRAI_XS:missing_value = 1.e+36f ;
+	float QDRIP(time, lndgrid) ;
+		QDRIP:long_name = "throughfall" ;
+		QDRIP:units = "mm/s" ;
+		QDRIP:cell_methods = "time: mean" ;
+		QDRIP:_FillValue = 1.e+36f ;
+		QDRIP:missing_value = 1.e+36f ;
+	float QFLOOD(time, lndgrid) ;
+		QFLOOD:long_name = "runoff from river flooding" ;
+		QFLOOD:units = "mm/s" ;
+		QFLOOD:cell_methods = "time: mean" ;
+		QFLOOD:_FillValue = 1.e+36f ;
+		QFLOOD:missing_value = 1.e+36f ;
+	float QFLX_ICE_DYNBAL(time, lndgrid) ;
+		QFLX_ICE_DYNBAL:long_name = "ice dynamic land cover change conversion runoff flux" ;
+		QFLX_ICE_DYNBAL:units = "mm/s" ;
+		QFLX_ICE_DYNBAL:cell_methods = "time: mean" ;
+		QFLX_ICE_DYNBAL:_FillValue = 1.e+36f ;
+		QFLX_ICE_DYNBAL:missing_value = 1.e+36f ;
+	float QFLX_LIQ_DYNBAL(time, lndgrid) ;
+		QFLX_LIQ_DYNBAL:long_name = "liq dynamic land cover change conversion runoff flux" ;
+		QFLX_LIQ_DYNBAL:units = "mm/s" ;
+		QFLX_LIQ_DYNBAL:cell_methods = "time: mean" ;
+		QFLX_LIQ_DYNBAL:_FillValue = 1.e+36f ;
+		QFLX_LIQ_DYNBAL:missing_value = 1.e+36f ;
+	float QH2OSFC(time, lndgrid) ;
+		QH2OSFC:long_name = "surface water runoff" ;
+		QH2OSFC:units = "mm/s" ;
+		QH2OSFC:cell_methods = "time: mean" ;
+		QH2OSFC:_FillValue = 1.e+36f ;
+		QH2OSFC:missing_value = 1.e+36f ;
+	float QINFL(time, lndgrid) ;
+		QINFL:long_name = "infiltration" ;
+		QINFL:units = "mm/s" ;
+		QINFL:cell_methods = "time: mean" ;
+		QINFL:_FillValue = 1.e+36f ;
+		QINFL:missing_value = 1.e+36f ;
+	float QINTR(time, lndgrid) ;
+		QINTR:long_name = "interception" ;
+		QINTR:units = "mm/s" ;
+		QINTR:cell_methods = "time: mean" ;
+		QINTR:_FillValue = 1.e+36f ;
+		QINTR:missing_value = 1.e+36f ;
+	float QIRRIG(time, lndgrid) ;
+		QIRRIG:long_name = "water added through irrigation" ;
+		QIRRIG:units = "mm/s" ;
+		QIRRIG:cell_methods = "time: mean" ;
+		QIRRIG:_FillValue = 1.e+36f ;
+		QIRRIG:missing_value = 1.e+36f ;
+	float QOVER(time, lndgrid) ;
+		QOVER:long_name = "surface runoff" ;
+		QOVER:units = "mm/s" ;
+		QOVER:cell_methods = "time: mean" ;
+		QOVER:_FillValue = 1.e+36f ;
+		QOVER:missing_value = 1.e+36f ;
+	float QRGWL(time, lndgrid) ;
+		QRGWL:long_name = "surface runoff at glaciers (liquid only), wetlands, lakes" ;
+		QRGWL:units = "mm/s" ;
+		QRGWL:cell_methods = "time: mean" ;
+		QRGWL:_FillValue = 1.e+36f ;
+		QRGWL:missing_value = 1.e+36f ;
+	float QRUNOFF(time, lndgrid) ;
+		QRUNOFF:long_name = "total liquid runoff (does not include QSNWCPICE)" ;
+		QRUNOFF:units = "mm/s" ;
+		QRUNOFF:cell_methods = "time: mean" ;
+		QRUNOFF:_FillValue = 1.e+36f ;
+		QRUNOFF:missing_value = 1.e+36f ;
+	float QRUNOFF_NODYNLNDUSE(time, lndgrid) ;
+		QRUNOFF_NODYNLNDUSE:long_name = "total liquid runoff (does not include QSNWCPICE) not including correction for land use change" ;
+		QRUNOFF_NODYNLNDUSE:units = "mm/s" ;
+		QRUNOFF_NODYNLNDUSE:cell_methods = "time: mean" ;
+		QRUNOFF_NODYNLNDUSE:_FillValue = 1.e+36f ;
+		QRUNOFF_NODYNLNDUSE:missing_value = 1.e+36f ;
+	float QRUNOFF_R(time, lndgrid) ;
+		QRUNOFF_R:long_name = "Rural total runoff" ;
+		QRUNOFF_R:units = "mm/s" ;
+		QRUNOFF_R:cell_methods = "time: mean" ;
+		QRUNOFF_R:_FillValue = 1.e+36f ;
+		QRUNOFF_R:missing_value = 1.e+36f ;
+	float QRUNOFF_U(time, lndgrid) ;
+		QRUNOFF_U:long_name = "Urban total runoff" ;
+		QRUNOFF_U:units = "mm/s" ;
+		QRUNOFF_U:cell_methods = "time: mean" ;
+		QRUNOFF_U:_FillValue = 1.e+36f ;
+		QRUNOFF_U:missing_value = 1.e+36f ;
+	float QSNOMELT(time, lndgrid) ;
+		QSNOMELT:long_name = "snow melt" ;
+		QSNOMELT:units = "mm/s" ;
+		QSNOMELT:cell_methods = "time: mean" ;
+		QSNOMELT:_FillValue = 1.e+36f ;
+		QSNOMELT:missing_value = 1.e+36f ;
+	float QSNWCPICE(time, lndgrid) ;
+		QSNWCPICE:long_name = "excess snowfall due to snow capping" ;
+		QSNWCPICE:units = "mm/s" ;
+		QSNWCPICE:cell_methods = "time: mean" ;
+		QSNWCPICE:_FillValue = 1.e+36f ;
+		QSNWCPICE:missing_value = 1.e+36f ;
+	float QSNWCPICE_NODYNLNDUSE(time, lndgrid) ;
+		QSNWCPICE_NODYNLNDUSE:long_name = "excess snowfall due to snow capping not including correction for land use change" ;
+		QSNWCPICE_NODYNLNDUSE:units = "mm H2O/s" ;
+		QSNWCPICE_NODYNLNDUSE:cell_methods = "time: mean" ;
+		QSNWCPICE_NODYNLNDUSE:_FillValue = 1.e+36f ;
+		QSNWCPICE_NODYNLNDUSE:missing_value = 1.e+36f ;
+	float QSOIL(time, lndgrid) ;
+		QSOIL:long_name = "Ground evaporation (soil/snow evaporation + soil/snow sublimation - dew)" ;
+		QSOIL:units = "mm/s" ;
+		QSOIL:cell_methods = "time: mean" ;
+		QSOIL:_FillValue = 1.e+36f ;
+		QSOIL:missing_value = 1.e+36f ;
+	float QVEGE(time, lndgrid) ;
+		QVEGE:long_name = "canopy evaporation" ;
+		QVEGE:units = "mm/s" ;
+		QVEGE:cell_methods = "time: mean" ;
+		QVEGE:_FillValue = 1.e+36f ;
+		QVEGE:missing_value = 1.e+36f ;
+	float QVEGT(time, lndgrid) ;
+		QVEGT:long_name = "canopy transpiration" ;
+		QVEGT:units = "mm/s" ;
+		QVEGT:cell_methods = "time: mean" ;
+		QVEGT:_FillValue = 1.e+36f ;
+		QVEGT:missing_value = 1.e+36f ;
+	float RAIN(time, lndgrid) ;
+		RAIN:long_name = "atmospheric rain" ;
+		RAIN:units = "mm/s" ;
+		RAIN:cell_methods = "time: mean" ;
+		RAIN:_FillValue = 1.e+36f ;
+		RAIN:missing_value = 1.e+36f ;
+	float RETRANSN(time, lndgrid) ;
+		RETRANSN:long_name = "plant pool of retranslocated N" ;
+		RETRANSN:units = "gN/m^2" ;
+		RETRANSN:cell_methods = "time: mean" ;
+		RETRANSN:_FillValue = 1.e+36f ;
+		RETRANSN:missing_value = 1.e+36f ;
+	float RETRANSN_TO_NPOOL(time, lndgrid) ;
+		RETRANSN_TO_NPOOL:long_name = "deployment of retranslocated N" ;
+		RETRANSN_TO_NPOOL:units = "gN/m^2/s" ;
+		RETRANSN_TO_NPOOL:cell_methods = "time: mean" ;
+		RETRANSN_TO_NPOOL:_FillValue = 1.e+36f ;
+		RETRANSN_TO_NPOOL:missing_value = 1.e+36f ;
+	float RH2M(time, lndgrid) ;
+		RH2M:long_name = "2m relative humidity" ;
+		RH2M:units = "%" ;
+		RH2M:cell_methods = "time: mean" ;
+		RH2M:_FillValue = 1.e+36f ;
+		RH2M:missing_value = 1.e+36f ;
+	float RH2M_R(time, lndgrid) ;
+		RH2M_R:long_name = "Rural 2m specific humidity" ;
+		RH2M_R:units = "%" ;
+		RH2M_R:cell_methods = "time: mean" ;
+		RH2M_R:_FillValue = 1.e+36f ;
+		RH2M_R:missing_value = 1.e+36f ;
+	float RH2M_U(time, lndgrid) ;
+		RH2M_U:long_name = "Urban 2m relative humidity" ;
+		RH2M_U:units = "%" ;
+		RH2M_U:cell_methods = "time: mean" ;
+		RH2M_U:_FillValue = 1.e+36f ;
+		RH2M_U:missing_value = 1.e+36f ;
+	float RR(time, lndgrid) ;
+		RR:long_name = "root respiration (fine root MR + total root GR)" ;
+		RR:units = "gC/m^2/s" ;
+		RR:cell_methods = "time: mean" ;
+		RR:_FillValue = 1.e+36f ;
+		RR:missing_value = 1.e+36f ;
+	float SABG(time, lndgrid) ;
+		SABG:long_name = "solar rad absorbed by ground" ;
+		SABG:units = "W/m^2" ;
+		SABG:cell_methods = "time: mean" ;
+		SABG:_FillValue = 1.e+36f ;
+		SABG:missing_value = 1.e+36f ;
+	float SABG_PEN(time, lndgrid) ;
+		SABG_PEN:long_name = "Rural solar rad penetrating top soil or snow layer" ;
+		SABG_PEN:units = "watt/m^2" ;
+		SABG_PEN:cell_methods = "time: mean" ;
+		SABG_PEN:_FillValue = 1.e+36f ;
+		SABG_PEN:missing_value = 1.e+36f ;
+	float SABV(time, lndgrid) ;
+		SABV:long_name = "solar rad absorbed by veg" ;
+		SABV:units = "W/m^2" ;
+		SABV:cell_methods = "time: mean" ;
+		SABV:_FillValue = 1.e+36f ;
+		SABV:missing_value = 1.e+36f ;
+	float SEEDC(time, lndgrid) ;
+		SEEDC:long_name = "pool for seeding new PFTs" ;
+		SEEDC:units = "gC/m^2" ;
+		SEEDC:cell_methods = "time: mean" ;
+		SEEDC:_FillValue = 1.e+36f ;
+		SEEDC:missing_value = 1.e+36f ;
+	float SEEDN(time, lndgrid) ;
+		SEEDN:long_name = "pool for seeding new PFTs" ;
+		SEEDN:units = "gN/m^2" ;
+		SEEDN:cell_methods = "time: mean" ;
+		SEEDN:_FillValue = 1.e+36f ;
+		SEEDN:missing_value = 1.e+36f ;
+	float SMINN(time, lndgrid) ;
+		SMINN:long_name = "soil mineral N" ;
+		SMINN:units = "gN/m^3" ;
+		SMINN:cell_methods = "time: mean" ;
+		SMINN:_FillValue = 1.e+36f ;
+		SMINN:missing_value = 1.e+36f ;
+	float SMINN_LEACHED(time, lndgrid) ;
+		SMINN_LEACHED:long_name = "soil mineral N pool loss to leaching" ;
+		SMINN_LEACHED:units = "gN/m^2/s" ;
+		SMINN_LEACHED:cell_methods = "time: mean" ;
+		SMINN_LEACHED:_FillValue = 1.e+36f ;
+		SMINN_LEACHED:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_L1S1(time, lndgrid) ;
+		SMINN_TO_DENIT_L1S1:long_name = "denitrification for decomp. of litter 1to SOIL1" ;
+		SMINN_TO_DENIT_L1S1:units = "gN/m^2" ;
+		SMINN_TO_DENIT_L1S1:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_L1S1:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_L1S1:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_L2S2(time, lndgrid) ;
+		SMINN_TO_DENIT_L2S2:long_name = "denitrification for decomp. of litter 2to SOIL2" ;
+		SMINN_TO_DENIT_L2S2:units = "gN/m^2" ;
+		SMINN_TO_DENIT_L2S2:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_L2S2:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_L2S2:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_L3S3(time, lndgrid) ;
+		SMINN_TO_DENIT_L3S3:long_name = "denitrification for decomp. of litter 3to SOIL3" ;
+		SMINN_TO_DENIT_L3S3:units = "gN/m^2" ;
+		SMINN_TO_DENIT_L3S3:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_L3S3:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_L3S3:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_S1S2(time, lndgrid) ;
+		SMINN_TO_DENIT_S1S2:long_name = "denitrification for decomp. of soil 1to SOIL2" ;
+		SMINN_TO_DENIT_S1S2:units = "gN/m^2" ;
+		SMINN_TO_DENIT_S1S2:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_S1S2:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_S1S2:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_S2S3(time, lndgrid) ;
+		SMINN_TO_DENIT_S2S3:long_name = "denitrification for decomp. of soil 2to SOIL3" ;
+		SMINN_TO_DENIT_S2S3:units = "gN/m^2" ;
+		SMINN_TO_DENIT_S2S3:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_S2S3:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_S2S3:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_S3S4(time, lndgrid) ;
+		SMINN_TO_DENIT_S3S4:long_name = "denitrification for decomp. of soil 3to SOIL4" ;
+		SMINN_TO_DENIT_S3S4:units = "gN/m^2" ;
+		SMINN_TO_DENIT_S3S4:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_S3S4:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_S3S4:missing_value = 1.e+36f ;
+	float SMINN_TO_DENIT_S4(time, lndgrid) ;
+		SMINN_TO_DENIT_S4:long_name = "denitrification for decomp. of soil 4to atmosphe" ;
+		SMINN_TO_DENIT_S4:units = "gN/m^2" ;
+		SMINN_TO_DENIT_S4:cell_methods = "time: mean" ;
+		SMINN_TO_DENIT_S4:_FillValue = 1.e+36f ;
+		SMINN_TO_DENIT_S4:missing_value = 1.e+36f ;
+	float SMINN_TO_NPOOL(time, lndgrid) ;
+		SMINN_TO_NPOOL:long_name = "deployment of soil mineral N uptake" ;
+		SMINN_TO_NPOOL:units = "gN/m^2/s" ;
+		SMINN_TO_NPOOL:cell_methods = "time: mean" ;
+		SMINN_TO_NPOOL:_FillValue = 1.e+36f ;
+		SMINN_TO_NPOOL:missing_value = 1.e+36f ;
+	float SMINN_TO_PLANT(time, lndgrid) ;
+		SMINN_TO_PLANT:long_name = "plant uptake of soil mineral N" ;
+		SMINN_TO_PLANT:units = "gN/m^2/s" ;
+		SMINN_TO_PLANT:cell_methods = "time: mean" ;
+		SMINN_TO_PLANT:_FillValue = 1.e+36f ;
+		SMINN_TO_PLANT:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL1N_L1(time, lndgrid) ;
+		SMINN_TO_SOIL1N_L1:long_name = "mineral N flux for decomp. of LITR1to SOIL1" ;
+		SMINN_TO_SOIL1N_L1:units = "gN/m^2" ;
+		SMINN_TO_SOIL1N_L1:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL1N_L1:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL1N_L1:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL2N_L2(time, lndgrid) ;
+		SMINN_TO_SOIL2N_L2:long_name = "mineral N flux for decomp. of LITR2to SOIL2" ;
+		SMINN_TO_SOIL2N_L2:units = "gN/m^2" ;
+		SMINN_TO_SOIL2N_L2:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL2N_L2:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL2N_L2:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL2N_S1(time, lndgrid) ;
+		SMINN_TO_SOIL2N_S1:long_name = "mineral N flux for decomp. of SOIL1to SOIL2" ;
+		SMINN_TO_SOIL2N_S1:units = "gN/m^2" ;
+		SMINN_TO_SOIL2N_S1:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL2N_S1:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL2N_S1:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL3N_L3(time, lndgrid) ;
+		SMINN_TO_SOIL3N_L3:long_name = "mineral N flux for decomp. of LITR3to SOIL3" ;
+		SMINN_TO_SOIL3N_L3:units = "gN/m^2" ;
+		SMINN_TO_SOIL3N_L3:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL3N_L3:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL3N_L3:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL3N_S2(time, lndgrid) ;
+		SMINN_TO_SOIL3N_S2:long_name = "mineral N flux for decomp. of SOIL2to SOIL3" ;
+		SMINN_TO_SOIL3N_S2:units = "gN/m^2" ;
+		SMINN_TO_SOIL3N_S2:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL3N_S2:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL3N_S2:missing_value = 1.e+36f ;
+	float SMINN_TO_SOIL4N_S3(time, lndgrid) ;
+		SMINN_TO_SOIL4N_S3:long_name = "mineral N flux for decomp. of SOIL3to SOIL4" ;
+		SMINN_TO_SOIL4N_S3:units = "gN/m^2" ;
+		SMINN_TO_SOIL4N_S3:cell_methods = "time: mean" ;
+		SMINN_TO_SOIL4N_S3:_FillValue = 1.e+36f ;
+		SMINN_TO_SOIL4N_S3:missing_value = 1.e+36f ;
+	float SNOBCMCL(time, lndgrid) ;
+		SNOBCMCL:long_name = "mass of BC in snow column" ;
+		SNOBCMCL:units = "kg/m2" ;
+		SNOBCMCL:cell_methods = "time: mean" ;
+		SNOBCMCL:_FillValue = 1.e+36f ;
+		SNOBCMCL:missing_value = 1.e+36f ;
+	float SNOBCMSL(time, lndgrid) ;
+		SNOBCMSL:long_name = "mass of BC in top snow layer" ;
+		SNOBCMSL:units = "kg/m2" ;
+		SNOBCMSL:cell_methods = "time: mean" ;
+		SNOBCMSL:_FillValue = 1.e+36f ;
+		SNOBCMSL:missing_value = 1.e+36f ;
+	float SNODSTMCL(time, lndgrid) ;
+		SNODSTMCL:long_name = "mass of dust in snow column" ;
+		SNODSTMCL:units = "kg/m2" ;
+		SNODSTMCL:cell_methods = "time: mean" ;
+		SNODSTMCL:_FillValue = 1.e+36f ;
+		SNODSTMCL:missing_value = 1.e+36f ;
+	float SNODSTMSL(time, lndgrid) ;
+		SNODSTMSL:long_name = "mass of dust in top snow layer" ;
+		SNODSTMSL:units = "kg/m2" ;
+		SNODSTMSL:cell_methods = "time: mean" ;
+		SNODSTMSL:_FillValue = 1.e+36f ;
+		SNODSTMSL:missing_value = 1.e+36f ;
+	float SNOOCMCL(time, lndgrid) ;
+		SNOOCMCL:long_name = "mass of OC in snow column" ;
+		SNOOCMCL:units = "kg/m2" ;
+		SNOOCMCL:cell_methods = "time: mean" ;
+		SNOOCMCL:_FillValue = 1.e+36f ;
+		SNOOCMCL:missing_value = 1.e+36f ;
+	float SNOOCMSL(time, lndgrid) ;
+		SNOOCMSL:long_name = "mass of OC in top snow layer" ;
+		SNOOCMSL:units = "kg/m2" ;
+		SNOOCMSL:cell_methods = "time: mean" ;
+		SNOOCMSL:_FillValue = 1.e+36f ;
+		SNOOCMSL:missing_value = 1.e+36f ;
+	float SNOW(time, lndgrid) ;
+		SNOW:long_name = "atmospheric snow" ;
+		SNOW:units = "mm/s" ;
+		SNOW:cell_methods = "time: mean" ;
+		SNOW:_FillValue = 1.e+36f ;
+		SNOW:missing_value = 1.e+36f ;
+	float SNOWDP(time, lndgrid) ;
+		SNOWDP:long_name = "gridcell mean snow height" ;
+		SNOWDP:units = "m" ;
+		SNOWDP:cell_methods = "time: mean" ;
+		SNOWDP:_FillValue = 1.e+36f ;
+		SNOWDP:missing_value = 1.e+36f ;
+	float SNOWICE(time, lndgrid) ;
+		SNOWICE:long_name = "snow ice" ;
+		SNOWICE:units = "kg/m2" ;
+		SNOWICE:cell_methods = "time: mean" ;
+		SNOWICE:_FillValue = 1.e+36f ;
+		SNOWICE:missing_value = 1.e+36f ;
+	float SNOWLIQ(time, lndgrid) ;
+		SNOWLIQ:long_name = "snow liquid water" ;
+		SNOWLIQ:units = "kg/m2" ;
+		SNOWLIQ:cell_methods = "time: mean" ;
+		SNOWLIQ:_FillValue = 1.e+36f ;
+		SNOWLIQ:missing_value = 1.e+36f ;
+	float SNOW_DEPTH(time, lndgrid) ;
+		SNOW_DEPTH:long_name = "snow height of snow covered area" ;
+		SNOW_DEPTH:units = "m" ;
+		SNOW_DEPTH:cell_methods = "time: mean" ;
+		SNOW_DEPTH:_FillValue = 1.e+36f ;
+		SNOW_DEPTH:missing_value = 1.e+36f ;
+	float SNOW_SINKS(time, lndgrid) ;
+		SNOW_SINKS:long_name = "snow sinks (liquid water)" ;
+		SNOW_SINKS:units = "mm/s" ;
+		SNOW_SINKS:cell_methods = "time: mean" ;
+		SNOW_SINKS:_FillValue = 1.e+36f ;
+		SNOW_SINKS:missing_value = 1.e+36f ;
+	float SNOW_SOURCES(time, lndgrid) ;
+		SNOW_SOURCES:long_name = "snow sources (liquid water)" ;
+		SNOW_SOURCES:units = "mm/s" ;
+		SNOW_SOURCES:cell_methods = "time: mean" ;
+		SNOW_SOURCES:_FillValue = 1.e+36f ;
+		SNOW_SOURCES:missing_value = 1.e+36f ;
+	float SOIL1C(time, lndgrid) ;
+		SOIL1C:long_name = "SOIL1 C" ;
+		SOIL1C:units = "gC/m^2" ;
+		SOIL1C:cell_methods = "time: mean" ;
+		SOIL1C:_FillValue = 1.e+36f ;
+		SOIL1C:missing_value = 1.e+36f ;
+	float SOIL1C_TO_SOIL2C(time, lndgrid) ;
+		SOIL1C_TO_SOIL2C:long_name = "decomp. of soil 1 C to soil 2 C" ;
+		SOIL1C_TO_SOIL2C:units = "gC/m^2/s" ;
+		SOIL1C_TO_SOIL2C:cell_methods = "time: mean" ;
+		SOIL1C_TO_SOIL2C:_FillValue = 1.e+36f ;
+		SOIL1C_TO_SOIL2C:missing_value = 1.e+36f ;
+	float SOIL1N(time, lndgrid) ;
+		SOIL1N:long_name = "SOIL1 N" ;
+		SOIL1N:units = "gN/m^2" ;
+		SOIL1N:cell_methods = "time: mean" ;
+		SOIL1N:_FillValue = 1.e+36f ;
+		SOIL1N:missing_value = 1.e+36f ;
+	float SOIL1N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		SOIL1N_TNDNCY_VERT_TRANS:long_name = "soil 1 N tendency due to vertical transport" ;
+		SOIL1N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		SOIL1N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		SOIL1N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		SOIL1N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float SOIL1N_TO_SOIL2N(time, lndgrid) ;
+		SOIL1N_TO_SOIL2N:long_name = "decomp. of soil 1 N to soil 2 N" ;
+		SOIL1N_TO_SOIL2N:units = "gN/m^2" ;
+		SOIL1N_TO_SOIL2N:cell_methods = "time: mean" ;
+		SOIL1N_TO_SOIL2N:_FillValue = 1.e+36f ;
+		SOIL1N_TO_SOIL2N:missing_value = 1.e+36f ;
+	float SOIL1_HR(time, lndgrid) ;
+		SOIL1_HR:long_name = "Het. Resp. from soil 1" ;
+		SOIL1_HR:units = "gC/m^2/s" ;
+		SOIL1_HR:cell_methods = "time: mean" ;
+		SOIL1_HR:_FillValue = 1.e+36f ;
+		SOIL1_HR:missing_value = 1.e+36f ;
+	float SOIL2C(time, lndgrid) ;
+		SOIL2C:long_name = "SOIL2 C" ;
+		SOIL2C:units = "gC/m^2" ;
+		SOIL2C:cell_methods = "time: mean" ;
+		SOIL2C:_FillValue = 1.e+36f ;
+		SOIL2C:missing_value = 1.e+36f ;
+	float SOIL2C_TO_SOIL3C(time, lndgrid) ;
+		SOIL2C_TO_SOIL3C:long_name = "decomp. of soil 2 C to soil 3 C" ;
+		SOIL2C_TO_SOIL3C:units = "gC/m^2/s" ;
+		SOIL2C_TO_SOIL3C:cell_methods = "time: mean" ;
+		SOIL2C_TO_SOIL3C:_FillValue = 1.e+36f ;
+		SOIL2C_TO_SOIL3C:missing_value = 1.e+36f ;
+	float SOIL2N(time, lndgrid) ;
+		SOIL2N:long_name = "SOIL2 N" ;
+		SOIL2N:units = "gN/m^2" ;
+		SOIL2N:cell_methods = "time: mean" ;
+		SOIL2N:_FillValue = 1.e+36f ;
+		SOIL2N:missing_value = 1.e+36f ;
+	float SOIL2N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		SOIL2N_TNDNCY_VERT_TRANS:long_name = "soil 2 N tendency due to vertical transport" ;
+		SOIL2N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		SOIL2N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		SOIL2N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		SOIL2N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float SOIL2N_TO_SOIL3N(time, lndgrid) ;
+		SOIL2N_TO_SOIL3N:long_name = "decomp. of soil 2 N to soil 3 N" ;
+		SOIL2N_TO_SOIL3N:units = "gN/m^2" ;
+		SOIL2N_TO_SOIL3N:cell_methods = "time: mean" ;
+		SOIL2N_TO_SOIL3N:_FillValue = 1.e+36f ;
+		SOIL2N_TO_SOIL3N:missing_value = 1.e+36f ;
+	float SOIL2_HR(time, lndgrid) ;
+		SOIL2_HR:long_name = "Het. Resp. from soil 2" ;
+		SOIL2_HR:units = "gC/m^2/s" ;
+		SOIL2_HR:cell_methods = "time: mean" ;
+		SOIL2_HR:_FillValue = 1.e+36f ;
+		SOIL2_HR:missing_value = 1.e+36f ;
+	float SOIL3C(time, lndgrid) ;
+		SOIL3C:long_name = "SOIL3 C" ;
+		SOIL3C:units = "gC/m^2" ;
+		SOIL3C:cell_methods = "time: mean" ;
+		SOIL3C:_FillValue = 1.e+36f ;
+		SOIL3C:missing_value = 1.e+36f ;
+	float SOIL3C_TO_SOIL4C(time, lndgrid) ;
+		SOIL3C_TO_SOIL4C:long_name = "decomp. of soil 3 C to soil 4 C" ;
+		SOIL3C_TO_SOIL4C:units = "gC/m^2/s" ;
+		SOIL3C_TO_SOIL4C:cell_methods = "time: mean" ;
+		SOIL3C_TO_SOIL4C:_FillValue = 1.e+36f ;
+		SOIL3C_TO_SOIL4C:missing_value = 1.e+36f ;
+	float SOIL3N(time, lndgrid) ;
+		SOIL3N:long_name = "SOIL3 N" ;
+		SOIL3N:units = "gN/m^2" ;
+		SOIL3N:cell_methods = "time: mean" ;
+		SOIL3N:_FillValue = 1.e+36f ;
+		SOIL3N:missing_value = 1.e+36f ;
+	float SOIL3N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		SOIL3N_TNDNCY_VERT_TRANS:long_name = "soil 3 N tendency due to vertical transport" ;
+		SOIL3N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		SOIL3N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		SOIL3N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		SOIL3N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float SOIL3N_TO_SOIL4N(time, lndgrid) ;
+		SOIL3N_TO_SOIL4N:long_name = "decomp. of soil 3 N to soil 4 N" ;
+		SOIL3N_TO_SOIL4N:units = "gN/m^2" ;
+		SOIL3N_TO_SOIL4N:cell_methods = "time: mean" ;
+		SOIL3N_TO_SOIL4N:_FillValue = 1.e+36f ;
+		SOIL3N_TO_SOIL4N:missing_value = 1.e+36f ;
+	float SOIL3_HR(time, lndgrid) ;
+		SOIL3_HR:long_name = "Het. Resp. from soil 3" ;
+		SOIL3_HR:units = "gC/m^2/s" ;
+		SOIL3_HR:cell_methods = "time: mean" ;
+		SOIL3_HR:_FillValue = 1.e+36f ;
+		SOIL3_HR:missing_value = 1.e+36f ;
+	float SOIL4C(time, lndgrid) ;
+		SOIL4C:long_name = "SOIL4 C" ;
+		SOIL4C:units = "gC/m^2" ;
+		SOIL4C:cell_methods = "time: mean" ;
+		SOIL4C:_FillValue = 1.e+36f ;
+		SOIL4C:missing_value = 1.e+36f ;
+	float SOIL4N(time, lndgrid) ;
+		SOIL4N:long_name = "SOIL4 N" ;
+		SOIL4N:units = "gN/m^2" ;
+		SOIL4N:cell_methods = "time: mean" ;
+		SOIL4N:_FillValue = 1.e+36f ;
+		SOIL4N:missing_value = 1.e+36f ;
+	float SOIL4N_TNDNCY_VERT_TRANS(time, lndgrid) ;
+		SOIL4N_TNDNCY_VERT_TRANS:long_name = "soil 4 N tendency due to vertical transport" ;
+		SOIL4N_TNDNCY_VERT_TRANS:units = "gN/m^3/s" ;
+		SOIL4N_TNDNCY_VERT_TRANS:cell_methods = "time: mean" ;
+		SOIL4N_TNDNCY_VERT_TRANS:_FillValue = 1.e+36f ;
+		SOIL4N_TNDNCY_VERT_TRANS:missing_value = 1.e+36f ;
+	float SOIL4N_TO_SMINN(time, lndgrid) ;
+		SOIL4N_TO_SMINN:long_name = "mineral N flux for decomp. of SOIL4" ;
+		SOIL4N_TO_SMINN:units = "gN/m^2" ;
+		SOIL4N_TO_SMINN:cell_methods = "time: mean" ;
+		SOIL4N_TO_SMINN:_FillValue = 1.e+36f ;
+		SOIL4N_TO_SMINN:missing_value = 1.e+36f ;
+	float SOIL4_HR(time, lndgrid) ;
+		SOIL4_HR:long_name = "Het. Resp. from soil 4" ;
+		SOIL4_HR:units = "gC/m^2/s" ;
+		SOIL4_HR:cell_methods = "time: mean" ;
+		SOIL4_HR:_FillValue = 1.e+36f ;
+		SOIL4_HR:missing_value = 1.e+36f ;
+	float SOILC(time, lndgrid) ;
+		SOILC:long_name = "soil C" ;
+		SOILC:units = "gC/m^2" ;
+		SOILC:cell_methods = "time: mean" ;
+		SOILC:_FillValue = 1.e+36f ;
+		SOILC:missing_value = 1.e+36f ;
+	float SOILC_HR(time, lndgrid) ;
+		SOILC_HR:long_name = "soil C heterotrophic respiration" ;
+		SOILC_HR:units = "gC/m^2/s" ;
+		SOILC_HR:cell_methods = "time: mean" ;
+		SOILC_HR:_FillValue = 1.e+36f ;
+		SOILC_HR:missing_value = 1.e+36f ;
+	float SOILC_LOSS(time, lndgrid) ;
+		SOILC_LOSS:long_name = "soil C loss" ;
+		SOILC_LOSS:units = "gC/m^2/s" ;
+		SOILC_LOSS:cell_methods = "time: mean" ;
+		SOILC_LOSS:_FillValue = 1.e+36f ;
+		SOILC_LOSS:missing_value = 1.e+36f ;
+	float SOILICE(time, levgrnd, lndgrid) ;
+		SOILICE:long_name = "soil ice (vegetated landunits only)" ;
+		SOILICE:units = "kg/m2" ;
+		SOILICE:cell_methods = "time: mean" ;
+		SOILICE:_FillValue = 1.e+36f ;
+		SOILICE:missing_value = 1.e+36f ;
+	float SOILLIQ(time, levgrnd, lndgrid) ;
+		SOILLIQ:long_name = "soil liquid water (vegetated landunits only)" ;
+		SOILLIQ:units = "kg/m2" ;
+		SOILLIQ:cell_methods = "time: mean" ;
+		SOILLIQ:_FillValue = 1.e+36f ;
+		SOILLIQ:missing_value = 1.e+36f ;
+	float SOILPSI(time, levgrnd, lndgrid) ;
+		SOILPSI:long_name = "soil water potential in each soil layer" ;
+		SOILPSI:units = "MPa" ;
+		SOILPSI:cell_methods = "time: mean" ;
+		SOILPSI:_FillValue = 1.e+36f ;
+		SOILPSI:missing_value = 1.e+36f ;
+	float SOILWATER_10CM(time, lndgrid) ;
+		SOILWATER_10CM:long_name = "soil liquid water + ice in top 10cm of soil (veg landunits only)" ;
+		SOILWATER_10CM:units = "kg/m2" ;
+		SOILWATER_10CM:cell_methods = "time: mean" ;
+		SOILWATER_10CM:_FillValue = 1.e+36f ;
+		SOILWATER_10CM:missing_value = 1.e+36f ;
+	float SOMC_FIRE(time, lndgrid) ;
+		SOMC_FIRE:long_name = "C loss due to peat burning" ;
+		SOMC_FIRE:units = "gC/m^2/s" ;
+		SOMC_FIRE:cell_methods = "time: mean" ;
+		SOMC_FIRE:_FillValue = 1.e+36f ;
+		SOMC_FIRE:missing_value = 1.e+36f ;
+	float SOMHR(time, lndgrid) ;
+		SOMHR:long_name = "soil organic matter heterotrophic respiration" ;
+		SOMHR:units = "gC/m^2/s" ;
+		SOMHR:cell_methods = "time: mean" ;
+		SOMHR:_FillValue = 1.e+36f ;
+		SOMHR:missing_value = 1.e+36f ;
+	float SOM_C_LEACHED(time, lndgrid) ;
+		SOM_C_LEACHED:long_name = "total flux of C from SOM pools due to leaching" ;
+		SOM_C_LEACHED:units = "gC/m^2/s" ;
+		SOM_C_LEACHED:cell_methods = "time: mean" ;
+		SOM_C_LEACHED:_FillValue = 1.e+36f ;
+		SOM_C_LEACHED:missing_value = 1.e+36f ;
+	float SR(time, lndgrid) ;
+		SR:long_name = "total soil respiration (HR + root resp)" ;
+		SR:units = "gC/m^2/s" ;
+		SR:cell_methods = "time: mean" ;
+		SR:_FillValue = 1.e+36f ;
+		SR:missing_value = 1.e+36f ;
+	float STORVEGC(time, lndgrid) ;
+		STORVEGC:long_name = "stored vegetation carbon, excluding cpool" ;
+		STORVEGC:units = "gC/m^2" ;
+		STORVEGC:cell_methods = "time: mean" ;
+		STORVEGC:_FillValue = 1.e+36f ;
+		STORVEGC:missing_value = 1.e+36f ;
+	float STORVEGN(time, lndgrid) ;
+		STORVEGN:long_name = "stored vegetation nitrogen" ;
+		STORVEGN:units = "gN/m^2" ;
+		STORVEGN:cell_methods = "time: mean" ;
+		STORVEGN:_FillValue = 1.e+36f ;
+		STORVEGN:missing_value = 1.e+36f ;
+	float SUPPLEMENT_TO_SMINN(time, lndgrid) ;
+		SUPPLEMENT_TO_SMINN:long_name = "supplemental N supply" ;
+		SUPPLEMENT_TO_SMINN:units = "gN/m^2/s" ;
+		SUPPLEMENT_TO_SMINN:cell_methods = "time: mean" ;
+		SUPPLEMENT_TO_SMINN:_FillValue = 1.e+36f ;
+		SUPPLEMENT_TO_SMINN:missing_value = 1.e+36f ;
+	float SoilAlpha(time, lndgrid) ;
+		SoilAlpha:long_name = "factor limiting ground evap" ;
+		SoilAlpha:units = "unitless" ;
+		SoilAlpha:cell_methods = "time: mean" ;
+		SoilAlpha:_FillValue = 1.e+36f ;
+		SoilAlpha:missing_value = 1.e+36f ;
+	float SoilAlpha_U(time, lndgrid) ;
+		SoilAlpha_U:long_name = "urban factor limiting ground evap" ;
+		SoilAlpha_U:units = "unitless" ;
+		SoilAlpha_U:cell_methods = "time: mean" ;
+		SoilAlpha_U:_FillValue = 1.e+36f ;
+		SoilAlpha_U:missing_value = 1.e+36f ;
+	float TAUX(time, lndgrid) ;
+		TAUX:long_name = "zonal surface stress" ;
+		TAUX:units = "kg/m/s^2" ;
+		TAUX:cell_methods = "time: mean" ;
+		TAUX:_FillValue = 1.e+36f ;
+		TAUX:missing_value = 1.e+36f ;
+	float TAUY(time, lndgrid) ;
+		TAUY:long_name = "meridional surface stress" ;
+		TAUY:units = "kg/m/s^2" ;
+		TAUY:cell_methods = "time: mean" ;
+		TAUY:_FillValue = 1.e+36f ;
+		TAUY:missing_value = 1.e+36f ;
+	float TBOT(time, lndgrid) ;
+		TBOT:long_name = "atmospheric air temperature" ;
+		TBOT:units = "K" ;
+		TBOT:cell_methods = "time: mean" ;
+		TBOT:_FillValue = 1.e+36f ;
+		TBOT:missing_value = 1.e+36f ;
+	float TBUILD(time, lndgrid) ;
+		TBUILD:long_name = "internal urban building temperature" ;
+		TBUILD:units = "K" ;
+		TBUILD:cell_methods = "time: mean" ;
+		TBUILD:_FillValue = 1.e+36f ;
+		TBUILD:missing_value = 1.e+36f ;
+	float TG(time, lndgrid) ;
+		TG:long_name = "ground temperature" ;
+		TG:units = "K" ;
+		TG:cell_methods = "time: mean" ;
+		TG:_FillValue = 1.e+36f ;
+		TG:missing_value = 1.e+36f ;
+	float TG_R(time, lndgrid) ;
+		TG_R:long_name = "Rural ground temperature" ;
+		TG_R:units = "K" ;
+		TG_R:cell_methods = "time: mean" ;
+		TG_R:_FillValue = 1.e+36f ;
+		TG_R:missing_value = 1.e+36f ;
+	float TG_U(time, lndgrid) ;
+		TG_U:long_name = "Urban ground temperature" ;
+		TG_U:units = "K" ;
+		TG_U:cell_methods = "time: mean" ;
+		TG_U:_FillValue = 1.e+36f ;
+		TG_U:missing_value = 1.e+36f ;
+	float TH2OSFC(time, lndgrid) ;
+		TH2OSFC:long_name = "surface water temperature" ;
+		TH2OSFC:units = "K" ;
+		TH2OSFC:cell_methods = "time: mean" ;
+		TH2OSFC:_FillValue = 1.e+36f ;
+		TH2OSFC:missing_value = 1.e+36f ;
+	float THBOT(time, lndgrid) ;
+		THBOT:long_name = "atmospheric air potential temperature" ;
+		THBOT:units = "K" ;
+		THBOT:cell_methods = "time: mean" ;
+		THBOT:_FillValue = 1.e+36f ;
+		THBOT:missing_value = 1.e+36f ;
+	float TKE1(time, lndgrid) ;
+		TKE1:long_name = "top lake level eddy thermal conductivity" ;
+		TKE1:units = "W/(mK)" ;
+		TKE1:cell_methods = "time: mean" ;
+		TKE1:_FillValue = 1.e+36f ;
+		TKE1:missing_value = 1.e+36f ;
+	float TLAI(time, lndgrid) ;
+		TLAI:long_name = "total projected leaf area index" ;
+		TLAI:units = "none" ;
+		TLAI:cell_methods = "time: mean" ;
+		TLAI:_FillValue = 1.e+36f ;
+		TLAI:missing_value = 1.e+36f ;
+	float TLAKE(time, levlak, lndgrid) ;
+		TLAKE:long_name = "lake temperature" ;
+		TLAKE:units = "K" ;
+		TLAKE:cell_methods = "time: mean" ;
+		TLAKE:_FillValue = 1.e+36f ;
+		TLAKE:missing_value = 1.e+36f ;
+	float TOTCOLC(time, lndgrid) ;
+		TOTCOLC:long_name = "total column carbon, incl veg and cpool" ;
+		TOTCOLC:units = "gC/m^2" ;
+		TOTCOLC:cell_methods = "time: mean" ;
+		TOTCOLC:_FillValue = 1.e+36f ;
+		TOTCOLC:missing_value = 1.e+36f ;
+	float TOTCOLN(time, lndgrid) ;
+		TOTCOLN:long_name = "total column-level N" ;
+		TOTCOLN:units = "gN/m^2" ;
+		TOTCOLN:cell_methods = "time: mean" ;
+		TOTCOLN:_FillValue = 1.e+36f ;
+		TOTCOLN:missing_value = 1.e+36f ;
+	float TOTECOSYSC(time, lndgrid) ;
+		TOTECOSYSC:long_name = "total ecosystem carbon, incl veg but excl cpool" ;
+		TOTECOSYSC:units = "gC/m^2" ;
+		TOTECOSYSC:cell_methods = "time: mean" ;
+		TOTECOSYSC:_FillValue = 1.e+36f ;
+		TOTECOSYSC:missing_value = 1.e+36f ;
+	float TOTECOSYSN(time, lndgrid) ;
+		TOTECOSYSN:long_name = "total ecosystem N" ;
+		TOTECOSYSN:units = "gN/m^2" ;
+		TOTECOSYSN:cell_methods = "time: mean" ;
+		TOTECOSYSN:_FillValue = 1.e+36f ;
+		TOTECOSYSN:missing_value = 1.e+36f ;
+	float TOTLITC(time, lndgrid) ;
+		TOTLITC:long_name = "total litter carbon" ;
+		TOTLITC:units = "gC/m^2" ;
+		TOTLITC:cell_methods = "time: mean" ;
+		TOTLITC:_FillValue = 1.e+36f ;
+		TOTLITC:missing_value = 1.e+36f ;
+	float TOTLITN(time, lndgrid) ;
+		TOTLITN:long_name = "total litter N" ;
+		TOTLITN:units = "gN/m^2" ;
+		TOTLITN:cell_methods = "time: mean" ;
+		TOTLITN:_FillValue = 1.e+36f ;
+		TOTLITN:missing_value = 1.e+36f ;
+	float TOTPFTC(time, lndgrid) ;
+		TOTPFTC:long_name = "total pft-level carbon, including cpool" ;
+		TOTPFTC:units = "gC/m^2" ;
+		TOTPFTC:cell_methods = "time: mean" ;
+		TOTPFTC:_FillValue = 1.e+36f ;
+		TOTPFTC:missing_value = 1.e+36f ;
+	float TOTPFTN(time, lndgrid) ;
+		TOTPFTN:long_name = "total PFT-level nitrogen" ;
+		TOTPFTN:units = "gN/m^2" ;
+		TOTPFTN:cell_methods = "time: mean" ;
+		TOTPFTN:_FillValue = 1.e+36f ;
+		TOTPFTN:missing_value = 1.e+36f ;
+	float TOTPRODC(time, lndgrid) ;
+		TOTPRODC:long_name = "total wood product C" ;
+		TOTPRODC:units = "gC/m^2" ;
+		TOTPRODC:cell_methods = "time: mean" ;
+		TOTPRODC:_FillValue = 1.e+36f ;
+		TOTPRODC:missing_value = 1.e+36f ;
+	float TOTPRODN(time, lndgrid) ;
+		TOTPRODN:long_name = "total wood product N" ;
+		TOTPRODN:units = "gN/m^2" ;
+		TOTPRODN:cell_methods = "time: mean" ;
+		TOTPRODN:_FillValue = 1.e+36f ;
+		TOTPRODN:missing_value = 1.e+36f ;
+	float TOTSOMC(time, lndgrid) ;
+		TOTSOMC:long_name = "total soil organic matter carbon" ;
+		TOTSOMC:units = "gC/m^2" ;
+		TOTSOMC:cell_methods = "time: mean" ;
+		TOTSOMC:_FillValue = 1.e+36f ;
+		TOTSOMC:missing_value = 1.e+36f ;
+	float TOTSOMN(time, lndgrid) ;
+		TOTSOMN:long_name = "total soil organic matter N" ;
+		TOTSOMN:units = "gN/m^2" ;
+		TOTSOMN:cell_methods = "time: mean" ;
+		TOTSOMN:_FillValue = 1.e+36f ;
+		TOTSOMN:missing_value = 1.e+36f ;
+	float TOTVEGC(time, lndgrid) ;
+		TOTVEGC:long_name = "total vegetation carbon, excluding cpool" ;
+		TOTVEGC:units = "gC/m^2" ;
+		TOTVEGC:cell_methods = "time: mean" ;
+		TOTVEGC:_FillValue = 1.e+36f ;
+		TOTVEGC:missing_value = 1.e+36f ;
+	float TOTVEGN(time, lndgrid) ;
+		TOTVEGN:long_name = "total vegetation nitrogen" ;
+		TOTVEGN:units = "gN/m^2" ;
+		TOTVEGN:cell_methods = "time: mean" ;
+		TOTVEGN:_FillValue = 1.e+36f ;
+		TOTVEGN:missing_value = 1.e+36f ;
+	float TREFMNAV(time, lndgrid) ;
+		TREFMNAV:long_name = "daily minimum of average 2-m temperature" ;
+		TREFMNAV:units = "K" ;
+		TREFMNAV:cell_methods = "time: mean" ;
+		TREFMNAV:_FillValue = 1.e+36f ;
+		TREFMNAV:missing_value = 1.e+36f ;
+	float TREFMNAV_R(time, lndgrid) ;
+		TREFMNAV_R:long_name = "Rural daily minimum of average 2-m temperature" ;
+		TREFMNAV_R:units = "K" ;
+		TREFMNAV_R:cell_methods = "time: mean" ;
+		TREFMNAV_R:_FillValue = 1.e+36f ;
+		TREFMNAV_R:missing_value = 1.e+36f ;
+	float TREFMNAV_U(time, lndgrid) ;
+		TREFMNAV_U:long_name = "Urban daily minimum of average 2-m temperature" ;
+		TREFMNAV_U:units = "K" ;
+		TREFMNAV_U:cell_methods = "time: mean" ;
+		TREFMNAV_U:_FillValue = 1.e+36f ;
+		TREFMNAV_U:missing_value = 1.e+36f ;
+	float TREFMXAV(time, lndgrid) ;
+		TREFMXAV:long_name = "daily maximum of average 2-m temperature" ;
+		TREFMXAV:units = "K" ;
+		TREFMXAV:cell_methods = "time: mean" ;
+		TREFMXAV:_FillValue = 1.e+36f ;
+		TREFMXAV:missing_value = 1.e+36f ;
+	float TREFMXAV_R(time, lndgrid) ;
+		TREFMXAV_R:long_name = "Rural daily maximum of average 2-m temperature" ;
+		TREFMXAV_R:units = "K" ;
+		TREFMXAV_R:cell_methods = "time: mean" ;
+		TREFMXAV_R:_FillValue = 1.e+36f ;
+		TREFMXAV_R:missing_value = 1.e+36f ;
+	float TREFMXAV_U(time, lndgrid) ;
+		TREFMXAV_U:long_name = "Urban daily maximum of average 2-m temperature" ;
+		TREFMXAV_U:units = "K" ;
+		TREFMXAV_U:cell_methods = "time: mean" ;
+		TREFMXAV_U:_FillValue = 1.e+36f ;
+		TREFMXAV_U:missing_value = 1.e+36f ;
+	float TSA(time, lndgrid) ;
+		TSA:long_name = "2m air temperature" ;
+		TSA:units = "K" ;
+		TSA:cell_methods = "time: mean" ;
+		TSA:_FillValue = 1.e+36f ;
+		TSA:missing_value = 1.e+36f ;
+	float TSAI(time, lndgrid) ;
+		TSAI:long_name = "total projected stem area index" ;
+		TSAI:units = "none" ;
+		TSAI:cell_methods = "time: mean" ;
+		TSAI:_FillValue = 1.e+36f ;
+		TSAI:missing_value = 1.e+36f ;
+	float TSA_R(time, lndgrid) ;
+		TSA_R:long_name = "Rural 2m air temperature" ;
+		TSA_R:units = "K" ;
+		TSA_R:cell_methods = "time: mean" ;
+		TSA_R:_FillValue = 1.e+36f ;
+		TSA_R:missing_value = 1.e+36f ;
+	float TSA_U(time, lndgrid) ;
+		TSA_U:long_name = "Urban 2m air temperature" ;
+		TSA_U:units = "K" ;
+		TSA_U:cell_methods = "time: mean" ;
+		TSA_U:_FillValue = 1.e+36f ;
+		TSA_U:missing_value = 1.e+36f ;
+	float TSOI(time, levgrnd, lndgrid) ;
+		TSOI:long_name = "soil temperature (vegetated landunits only)" ;
+		TSOI:units = "K" ;
+		TSOI:cell_methods = "time: mean" ;
+		TSOI:_FillValue = 1.e+36f ;
+		TSOI:missing_value = 1.e+36f ;
+	float TSOI_10CM(time, lndgrid) ;
+		TSOI_10CM:long_name = "soil temperature in top 10cm of soil" ;
+		TSOI_10CM:units = "K" ;
+		TSOI_10CM:cell_methods = "time: mean" ;
+		TSOI_10CM:_FillValue = 1.e+36f ;
+		TSOI_10CM:missing_value = 1.e+36f ;
+	float TSOI_ICE(time, levgrnd, lndgrid) ;
+		TSOI_ICE:long_name = "soil temperature (ice landunits only)" ;
+		TSOI_ICE:units = "K" ;
+		TSOI_ICE:cell_methods = "time: mean" ;
+		TSOI_ICE:_FillValue = 1.e+36f ;
+		TSOI_ICE:missing_value = 1.e+36f ;
+	float TV(time, lndgrid) ;
+		TV:long_name = "vegetation temperature" ;
+		TV:units = "K" ;
+		TV:cell_methods = "time: mean" ;
+		TV:_FillValue = 1.e+36f ;
+		TV:missing_value = 1.e+36f ;
+	float TWS(time, lndgrid) ;
+		TWS:long_name = "total water storage" ;
+		TWS:units = "mm" ;
+		TWS:cell_methods = "time: mean" ;
+		TWS:_FillValue = 1.e+36f ;
+		TWS:missing_value = 1.e+36f ;
+	float T_SCALAR(time, lndgrid) ;
+		T_SCALAR:long_name = "temperature inhibition of decomposition" ;
+		T_SCALAR:units = "unitless" ;
+		T_SCALAR:cell_methods = "time: mean" ;
+		T_SCALAR:_FillValue = 1.e+36f ;
+		T_SCALAR:missing_value = 1.e+36f ;
+	float U10(time, lndgrid) ;
+		U10:long_name = "10-m wind" ;
+		U10:units = "m/s" ;
+		U10:cell_methods = "time: mean" ;
+		U10:_FillValue = 1.e+36f ;
+		U10:missing_value = 1.e+36f ;
+	float URBAN_AC(time, lndgrid) ;
+		URBAN_AC:long_name = "urban air conditioning flux" ;
+		URBAN_AC:units = "W/m^2" ;
+		URBAN_AC:cell_methods = "time: mean" ;
+		URBAN_AC:_FillValue = 1.e+36f ;
+		URBAN_AC:missing_value = 1.e+36f ;
+	float URBAN_HEAT(time, lndgrid) ;
+		URBAN_HEAT:long_name = "urban heating flux" ;
+		URBAN_HEAT:units = "W/m^2" ;
+		URBAN_HEAT:cell_methods = "time: mean" ;
+		URBAN_HEAT:_FillValue = 1.e+36f ;
+		URBAN_HEAT:missing_value = 1.e+36f ;
+	float VOCFLXT(time, lndgrid) ;
+		VOCFLXT:long_name = "total VOC flux into atmosphere" ;
+		VOCFLXT:units = "moles/m2/sec" ;
+		VOCFLXT:cell_methods = "time: mean" ;
+		VOCFLXT:_FillValue = 1.e+36f ;
+		VOCFLXT:missing_value = 1.e+36f ;
+	float VOLR(time, lndgrid) ;
+		VOLR:long_name = "river channel water storage" ;
+		VOLR:units = "m3" ;
+		VOLR:cell_methods = "time: mean" ;
+		VOLR:_FillValue = 1.e+36f ;
+		VOLR:missing_value = 1.e+36f ;
+	float WA(time, lndgrid) ;
+		WA:long_name = "water in the unconfined aquifer (vegetated landunits only)" ;
+		WA:units = "mm" ;
+		WA:cell_methods = "time: mean" ;
+		WA:_FillValue = 1.e+36f ;
+		WA:missing_value = 1.e+36f ;
+	float WASTEHEAT(time, lndgrid) ;
+		WASTEHEAT:long_name = "sensible heat flux from heating/cooling sources of urban waste heat" ;
+		WASTEHEAT:units = "W/m^2" ;
+		WASTEHEAT:cell_methods = "time: mean" ;
+		WASTEHEAT:_FillValue = 1.e+36f ;
+		WASTEHEAT:missing_value = 1.e+36f ;
+	float WF(time, lndgrid) ;
+		WF:long_name = "soil water as frac. of whc for top 0.05 m" ;
+		WF:units = "proportion" ;
+		WF:cell_methods = "time: mean" ;
+		WF:_FillValue = 1.e+36f ;
+		WF:missing_value = 1.e+36f ;
+	float WIND(time, lndgrid) ;
+		WIND:long_name = "atmospheric wind velocity magnitude" ;
+		WIND:units = "m/s" ;
+		WIND:cell_methods = "time: mean" ;
+		WIND:_FillValue = 1.e+36f ;
+		WIND:missing_value = 1.e+36f ;
+	float WOODC(time, lndgrid) ;
+		WOODC:long_name = "wood C" ;
+		WOODC:units = "gC/m^2" ;
+		WOODC:cell_methods = "time: mean" ;
+		WOODC:_FillValue = 1.e+36f ;
+		WOODC:missing_value = 1.e+36f ;
+	float WOODC_ALLOC(time, lndgrid) ;
+		WOODC_ALLOC:long_name = "wood C allocation" ;
+		WOODC_ALLOC:units = "gC/m^2/s" ;
+		WOODC_ALLOC:cell_methods = "time: mean" ;
+		WOODC_ALLOC:_FillValue = 1.e+36f ;
+		WOODC_ALLOC:missing_value = 1.e+36f ;
+	float WOODC_LOSS(time, lndgrid) ;
+		WOODC_LOSS:long_name = "wood C loss" ;
+		WOODC_LOSS:units = "gC/m^2/s" ;
+		WOODC_LOSS:cell_methods = "time: mean" ;
+		WOODC_LOSS:_FillValue = 1.e+36f ;
+		WOODC_LOSS:missing_value = 1.e+36f ;
+	float WOOD_HARVESTC(time, lndgrid) ;
+		WOOD_HARVESTC:long_name = "wood harvest carbon (to product pools)" ;
+		WOOD_HARVESTC:units = "gC/m^2/s" ;
+		WOOD_HARVESTC:cell_methods = "time: mean" ;
+		WOOD_HARVESTC:_FillValue = 1.e+36f ;
+		WOOD_HARVESTC:missing_value = 1.e+36f ;
+	float WOOD_HARVESTN(time, lndgrid) ;
+		WOOD_HARVESTN:long_name = "wood harvest N (to product pools)" ;
+		WOOD_HARVESTN:units = "gN/m^2/s" ;
+		WOOD_HARVESTN:cell_methods = "time: mean" ;
+		WOOD_HARVESTN:_FillValue = 1.e+36f ;
+		WOOD_HARVESTN:missing_value = 1.e+36f ;
+	float W_SCALAR(time, lndgrid) ;
+		W_SCALAR:long_name = "Moisture (dryness) inhibition of decomposition" ;
+		W_SCALAR:units = "unitless" ;
+		W_SCALAR:cell_methods = "time: mean" ;
+		W_SCALAR:_FillValue = 1.e+36f ;
+		W_SCALAR:missing_value = 1.e+36f ;
+	float XSMRPOOL(time, lndgrid) ;
+		XSMRPOOL:long_name = "temporary photosynthate C pool" ;
+		XSMRPOOL:units = "gC/m^2" ;
+		XSMRPOOL:cell_methods = "time: mean" ;
+		XSMRPOOL:_FillValue = 1.e+36f ;
+		XSMRPOOL:missing_value = 1.e+36f ;
+	float XSMRPOOL_RECOVER(time, lndgrid) ;
+		XSMRPOOL_RECOVER:long_name = "C flux assigned to recovery of negative xsmrpool" ;
+		XSMRPOOL_RECOVER:units = "gC/m^2/s" ;
+		XSMRPOOL_RECOVER:cell_methods = "time: mean" ;
+		XSMRPOOL_RECOVER:_FillValue = 1.e+36f ;
+		XSMRPOOL_RECOVER:missing_value = 1.e+36f ;
+	float ZBOT(time, lndgrid) ;
+		ZBOT:long_name = "atmospheric reference height" ;
+		ZBOT:units = "m" ;
+		ZBOT:cell_methods = "time: mean" ;
+		ZBOT:_FillValue = 1.e+36f ;
+		ZBOT:missing_value = 1.e+36f ;
+	float ZWT(time, lndgrid) ;
+		ZWT:long_name = "water table depth (vegetated landunits only)" ;
+		ZWT:units = "m" ;
+		ZWT:cell_methods = "time: mean" ;
+		ZWT:_FillValue = 1.e+36f ;
+		ZWT:missing_value = 1.e+36f ;
+	float ZWT_PERCH(time, lndgrid) ;
+		ZWT_PERCH:long_name = "perched water table depth (vegetated landunits only)" ;
+		ZWT_PERCH:units = "m" ;
+		ZWT_PERCH:cell_methods = "time: mean" ;
+		ZWT_PERCH:_FillValue = 1.e+36f ;
+		ZWT_PERCH:missing_value = 1.e+36f ;
+
+// global attributes:
+		:title = "CLM History file information" ;
+		:comment = "NOTE: None of the variables are weighted by land fraction!" ;
+		:Conventions = "CF-1.0" ;
+		:history = "created on 02/14/14 19:39:45" ;
+		:source = "Community Land Model CLM4.0" ;
+		:hostname = "userdefined" ;
+		:username = "bandre" ;
+		:version = "" ;
+		:revision_id = "$Id: histFileMod.F90 42903 2012-12-21 15:32:10Z muszala $" ;
+		:case_title = "UNSET" ;
+		:case_id = "ugrid-1x1x10-subsurface-richards-may" ;
+		:Surface_dataset = "surfdata_1x1pt_US-Brw_simyr1850_ugrid_c131015.nc" ;
+		:Initial_conditions_dataset = "arbitrary initialization" ;
+		:PFT_physiological_constants_dataset = "clm_params.c130821.nc" ;
+		:Time_constant_3Dvars_filename = "./ugrid-1x1x10-subsurface-richards-may.clm2.h0.0001-01-01-00000.nc" ;
+		:Time_constant_3Dvars = "ZSOI:DZSOI:WATSAT:SUCSAT:BSW:HKSAT:ZLAKE:DZLAKE" ;
+data:
+
+ levgrnd = 0.007100635, 0.027925, 0.06225858, 0.1188651, 0.2121934, 
+    0.3660658, 0.6197585, 1.038027, 1.727635, 2.864607, 4.739157, 7.829766, 
+    12.92532, 21.32647, 35.17762 ;
+
+ levlak = 0.05, 0.6, 2.1, 4.6, 8.1, 12.6, 18.6, 25.6, 34.325, 44.775 ;
+
+ levdcmp = 1 ;
+
+ time = 10 ;
+
+ mcdate = 10111 ;
+
+ mcsec = 0 ;
+
+ mdcur = 10 ;
+
+ mscur = 0 ;
+
+ nstep = 480 ;
+
+ time_bounds =
+  0, 10 ;
+
+ date_written =
+  "02/14/14" ;
+
+ time_written =
+  "19:39:45" ;
+
+ lon = 203.3741 ;
+
+ lat = 70.8225 ;
+
+ area = 123.6517 ;
+
+ topo = 0 ;
+
+ landfrac = 1 ;
+
+ landmask = 1 ;
+
+ pftmask = 1 ;
+
+ ACTUAL_IMMOB =
+  2.80121e-12 ;
+
+ AGNPP =
+  0 ;
+
+ ALT =
+  0 ;
+
+ ALTMAX =
+  0 ;
+
+ ALTMAX_LASTYEAR =
+  35.17762 ;
+
+ AR =
+  5.406375e-11 ;
+
+ BAF_CROP =
+  0 ;
+
+ BAF_PEATF =
+  0 ;
+
+ BCDEP =
+  8.212629e-15 ;
+
+ BGNPP =
+  0 ;
+
+ BTRAN =
+  0.4372512 ;
+
+ BUILDHEAT =
+  0 ;
+
+ COL_CTRUNC =
+  6.500259e-07 ;
+
+ COL_FIRE_CLOSS =
+  0 ;
+
+ COL_FIRE_NLOSS =
+  0 ;
+
+ COL_NTRUNC =
+  5.489894e-08 ;
+
+ CPOOL =
+  0 ;
+
+ CWDC =
+  1.012123e-05 ;
+
+ CWDC_HR =
+  0 ;
+
+ CWDC_LOSS =
+  2.400947e-14 ;
+
+ CWDC_TO_LITR2C =
+  1.82472e-14 ;
+
+ CWDC_TO_LITR3C =
+  5.762273e-15 ;
+
+ CWDN =
+  2.024247e-08 ;
+
+ CWDN_TO_LITR2N =
+  3.649439e-17 ;
+
+ CWDN_TO_LITR3N =
+  1.152455e-17 ;
+
+ DEADCROOTC =
+  0 ;
+
+ DEADCROOTN =
+  0 ;
+
+ DEADSTEMC =
+  0.03658336 ;
+
+ DEADSTEMN =
+  7.316672e-05 ;
+
+ DENIT =
+  5.426748e-10 ;
+
+ DISPVEGC =
+  0.04592575 ;
+
+ DISPVEGN =
+  0.0003067264 ;
+
+ DSTDEP =
+  2.347785e-12 ;
+
+ DSTFLXT =
+  0 ;
+
+ DWT_CLOSS =
+  0 ;
+
+ DWT_CONV_CFLUX =
+  0 ;
+
+ DWT_CONV_NFLUX =
+  0 ;
+
+ DWT_NLOSS =
+  0 ;
+
+ DWT_PROD100C_GAIN =
+  0 ;
+
+ DWT_PROD100N_GAIN =
+  0 ;
+
+ DWT_PROD10C_GAIN =
+  0 ;
+
+ DWT_PROD10N_GAIN =
+  0 ;
+
+ DWT_SEEDC_TO_DEADSTEM =
+  0 ;
+
+ DWT_SEEDC_TO_LEAF =
+  0 ;
+
+ DWT_SEEDN_TO_DEADSTEM =
+  0 ;
+
+ DWT_SEEDN_TO_LEAF =
+  0 ;
+
+ EFLX_DYNBAL =
+  0 ;
+
+ EFLX_GRND_LAKE =
+  _ ;
+
+ EFLX_LH_TOT =
+  164.8883 ;
+
+ EFLX_LH_TOT_R =
+  164.8883 ;
+
+ EFLX_LH_TOT_U =
+  _ ;
+
+ ELAI =
+  7.477638e-05 ;
+
+ ER =
+  2.52872e-09 ;
+
+ ERRH2O =
+  NaNf ;
+
+ ERRH2OSNO =
+  NaNf ;
+
+ ERRSEB =
+  2.043981e-15 ;
+
+ ERRSOI =
+  -1.140423e-10 ;
+
+ ERRSOL =
+  -6.938894e-19 ;
+
+ ESAI =
+  0.2842913 ;
+
+ FAREA_BURNED =
+  0 ;
+
+ FCEV =
+  0 ;
+
+ FCOV =
+  0.04321459 ;
+
+ FCTR =
+  3.360733e-05 ;
+
+ FGEV =
+  164.8882 ;
+
+ FGR =
+  -1189.993 ;
+
+ FGR12 =
+  -91.26765 ;
+
+ FGR_R =
+  -1189.993 ;
+
+ FGR_U =
+  _ ;
+
+ FH2OSFC =
+  0 ;
+
+ FIRA =
+  122.0806 ;
+
+ FIRA_R =
+  122.0806 ;
+
+ FIRA_U =
+  _ ;
+
+ FIRE =
+  297.6808 ;
+
+ FIRE_R =
+  297.6808 ;
+
+ FIRE_U =
+  _ ;
+
+ FLDS =
+  175.6001 ;
+
+ FPG =
+  1 ;
+
+ FPI =
+  1 ;
+
+ FPSN =
+  0 ;
+
+ FPSN_WC =
+  0 ;
+
+ FPSN_WJ =
+  0 ;
+
+ FPSN_WP =
+  0 ;
+
+ FROOTC =
+  0 ;
+
+ FROOTC_ALLOC =
+  0 ;
+
+ FROOTC_LOSS =
+  0 ;
+
+ FROOTN =
+  0 ;
+
+ FROST_TABLE =
+  3.801882 ;
+
+ FSA =
+  0 ;
+
+ FSAT =
+  0.04321459 ;
+
+ FSA_R =
+  0 ;
+
+ FSA_U =
+  _ ;
+
+ FSDS =
+  1.349922 ;
+
+ FSDSND =
+  0.2021056 ;
+
+ FSDSNDLN =
+  0.2748096 ;
+
+ FSDSNI =
+  0.4728553 ;
+
+ FSDSVD =
+  0.1210692 ;
+
+ FSDSVDLN =
+  0.1647158 ;
+
+ FSDSVI =
+  0.5538917 ;
+
+ FSDSVILN =
+  0.7510275 ;
+
+ FSH =
+  903.0237 ;
+
+ FSH_G =
+  915.7087 ;
+
+ FSH_NODYNLNDUSE =
+  903.0237 ;
+
+ FSH_R =
+  903.0237 ;
+
+ FSH_U =
+  _ ;
+
+ FSH_V =
+  -12.68503 ;
+
+ FSM =
+  0 ;
+
+ FSM_R =
+  0 ;
+
+ FSM_U =
+  _ ;
+
+ FSNO =
+  0 ;
+
+ FSNO_EFF =
+  0 ;
+
+ FSR =
+  1.349922 ;
+
+ FSRND =
+  0.2021056 ;
+
+ FSRNDLN =
+  0.2748096 ;
+
+ FSRNI =
+  0.4728553 ;
+
+ FSRVD =
+  0.1210692 ;
+
+ FSRVDLN =
+  0.1647158 ;
+
+ FSRVI =
+  0.5538917 ;
+
+ FUELC =
+  0.6050973 ;
+
+ GC_HEAT1 =
+  15543.23 ;
+
+ GC_ICE1 =
+  1132.243 ;
+
+ GC_LIQ1 =
+  5696.221 ;
+
+ GPP =
+  0 ;
+
+ GR =
+  0 ;
+
+ GROSS_NMIN =
+  2.382596e-10 ;
+
+ H2OCAN =
+  1.016902e-25 ;
+
+ H2OSFC =
+  0 ;
+
+ H2OSNO =
+  0 ;
+
+ H2OSNO_TOP =
+  0 ;
+
+ H2OSOI =
+  61.81219,
+  5.478773,
+  0.7176304,
+  0.3328521,
+  0.3591755,
+  0.4033646,
+  0.5111405,
+  0.5319805,
+  0.43482,
+  0.43482,
+  0,
+  0,
+  0,
+  0,
+  0 ;
+
+ HC =
+  15542.01 ;
+
+ HCSOI =
+  15542.01 ;
+
+ HEAT_FROM_AC =
+  0 ;
+
+ HR =
+  2.474656e-09 ;
+
+ HTOP =
+  0.08153783 ;
+
+ INT_SNOW =
+  0 ;
+
+ LAISHA =
+  7.477718e-05 ;
+
+ LAISUN =
+  0 ;
+
+ LAKEICEFRAC =
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _ ;
+
+ LAKEICETHICK =
+  _ ;
+
+ LAND_UPTAKE =
+  2.52872e-09 ;
+
+ LAND_USE_FLUX =
+  0 ;
+
+ LEAFC =
+  0.009342386 ;
+
+ LEAFC_ALLOC =
+  0 ;
+
+ LEAFC_LOSS =
+  5.529962e-11 ;
+
+ LEAFN =
+  0.0002335597 ;
+
+ LEAF_MR =
+  5.406375e-11 ;
+
+ LFC2 =
+  0 ;
+
+ LF_CONV_CFLUX =
+  0 ;
+
+ LITFALL =
+  4.330554e-10 ;
+
+ LITHR =
+  9.168621e-11 ;
+
+ LITR1C =
+  8.225576e-05 ;
+
+ LITR1C_TO_SOIL1C =
+  1.416141e-10 ;
+
+ LITR1N =
+  3.209462e-06 ;
+
+ LITR1N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ LITR1N_TO_SOIL1N =
+  9.058217e-12 ;
+
+ LITR1_HR =
+  9.054019e-11 ;
+
+ LITR2C =
+  1.150435e-05 ;
+
+ LITR2C_TO_SOIL2C =
+  8.902014e-13 ;
+
+ LITR2N =
+  1.591515e-07 ;
+
+ LITR2N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ LITR2N_TO_SOIL2N =
+  2.736685e-14 ;
+
+ LITR2_HR =
+  1.088024e-12 ;
+
+ LITR3C =
+  5.983344e-06 ;
+
+ LITR3C_TO_SOIL3C =
+  1.41994e-13 ;
+
+ LITR3N =
+  8.27855e-08 ;
+
+ LITR3N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ LITR3N_TO_SOIL3N =
+  2.767084e-15 ;
+
+ LITR3_HR =
+  5.799756e-14 ;
+
+ LITTERC =
+  9.974345e-05 ;
+
+ LITTERC_HR =
+  9.168621e-11 ;
+
+ LITTERC_LOSS =
+  2.343325e-10 ;
+
+ LIVECROOTC =
+  0 ;
+
+ LIVECROOTN =
+  0 ;
+
+ LIVESTEMC =
+  0 ;
+
+ LIVESTEMN =
+  0 ;
+
+ MEG_acetaldehyde =
+  4.604038e-19 ;
+
+ MEG_acetic_acid =
+  6.906056e-20 ;
+
+ MEG_acetone =
+  1.427305e-17 ;
+
+ MEG_carene_3 =
+  5.65221e-18 ;
+
+ MEG_ethanol =
+  4.604038e-19 ;
+
+ MEG_formaldehyde =
+  9.208074e-20 ;
+
+ MEG_isoprene =
+  8.966903e-20 ;
+
+ MEG_methanol =
+  9.561322e-18 ;
+
+ MEG_pinene_a =
+  8.686195e-18 ;
+
+ MEG_thujene_a =
+  2.098383e-19 ;
+
+ MR =
+  5.406375e-11 ;
+
+ M_LITR1C_TO_LEACHING =
+  0 ;
+
+ M_LITR2C_TO_LEACHING =
+  0 ;
+
+ M_LITR3C_TO_LEACHING =
+  0 ;
+
+ M_SOIL1C_TO_LEACHING =
+  0 ;
+
+ M_SOIL2C_TO_LEACHING =
+  0 ;
+
+ M_SOIL3C_TO_LEACHING =
+  0 ;
+
+ M_SOIL4C_TO_LEACHING =
+  0 ;
+
+ NBP =
+  -2.52872e-09 ;
+
+ NDEPLOY =
+  0 ;
+
+ NDEP_TO_SMINN =
+  4.381302e-10 ;
+
+ NEE =
+  2.52872e-09 ;
+
+ NEP =
+  -2.52872e-09 ;
+
+ NET_NMIN =
+  2.354583e-10 ;
+
+ NFIRE =
+  0 ;
+
+ NFIX_TO_SMINN =
+  0 ;
+
+ NPP =
+  -5.406375e-11 ;
+
+ OCDEP =
+  3.347111e-14 ;
+
+ O_SCALAR =
+  1 ;
+
+ PARVEGLN =
+  0 ;
+
+ PBOT =
+  102896.6 ;
+
+ PCO2 =
+  29.29465 ;
+
+ PFT_CTRUNC =
+  0 ;
+
+ PFT_FIRE_CLOSS =
+  0 ;
+
+ PFT_FIRE_NLOSS =
+  0 ;
+
+ PFT_NTRUNC =
+  0 ;
+
+ PLANT_NDEMAND =
+  0 ;
+
+ POTENTIAL_IMMOB =
+  2.80121e-12 ;
+
+ PROD100C =
+  0 ;
+
+ PROD100C_LOSS =
+  0 ;
+
+ PROD100N =
+  0 ;
+
+ PROD100N_LOSS =
+  0 ;
+
+ PROD10C =
+  0 ;
+
+ PROD10C_LOSS =
+  0 ;
+
+ PROD10N =
+  0 ;
+
+ PROD10N_LOSS =
+  0 ;
+
+ PRODUCT_CLOSS =
+  0 ;
+
+ PRODUCT_NLOSS =
+  0 ;
+
+ PSNSHA =
+  0 ;
+
+ PSNSHADE_TO_CPOOL =
+  0 ;
+
+ PSNSUN =
+  0 ;
+
+ PSNSUN_TO_CPOOL =
+  0 ;
+
+ Q2M =
+  0.0005263808 ;
+
+ QBOT =
+  0.000428 ;
+
+ QCHARGE =
+  0 ;
+
+ QDRAI =
+  0 ;
+
+ QDRAI_PERCH =
+  0 ;
+
+ QDRAI_XS =
+  0 ;
+
+ QDRIP =
+  0 ;
+
+ QFLOOD =
+  0 ;
+
+ QFLX_ICE_DYNBAL =
+  0 ;
+
+ QFLX_LIQ_DYNBAL =
+  0 ;
+
+ QH2OSFC =
+  0 ;
+
+ QINFL =
+  -2.158404e-07 ;
+
+ QINTR =
+  0 ;
+
+ QIRRIG =
+  0 ;
+
+ QOVER =
+  0 ;
+
+ QRGWL =
+  0 ;
+
+ QRUNOFF =
+  NaNf ;
+
+ QRUNOFF_NODYNLNDUSE =
+  NaNf ;
+
+ QRUNOFF_R =
+  NaNf ;
+
+ QRUNOFF_U =
+  _ ;
+
+ QSNOMELT =
+  0 ;
+
+ QSNWCPICE =
+  0 ;
+
+ QSNWCPICE_NODYNLNDUSE =
+  0 ;
+
+ QSOIL =
+  6.592891e-05 ;
+
+ QVEGE =
+  0 ;
+
+ QVEGT =
+  1.343756e-11 ;
+
+ RAIN =
+  0 ;
+
+ RETRANSN =
+  2.695841e-07 ;
+
+ RETRANSN_TO_NPOOL =
+  0 ;
+
+ RH2M =
+  86.59574 ;
+
+ RH2M_R =
+  86.59574 ;
+
+ RH2M_U =
+  _ ;
+
+ RR =
+  0 ;
+
+ SABG =
+  0 ;
+
+ SABG_PEN =
+  0 ;
+
+ SABV =
+  0 ;
+
+ SEEDC =
+  0 ;
+
+ SEEDN =
+  0 ;
+
+ SMINN =
+  9.360319e-05 ;
+
+ SMINN_LEACHED =
+  0 ;
+
+ SMINN_TO_DENIT_L1S1 =
+  0 ;
+
+ SMINN_TO_DENIT_L2S2 =
+  0 ;
+
+ SMINN_TO_DENIT_L3S3 =
+  0 ;
+
+ SMINN_TO_DENIT_S1S2 =
+  1.843377e-15 ;
+
+ SMINN_TO_DENIT_S2S3 =
+  1.015168e-17 ;
+
+ SMINN_TO_DENIT_S3S4 =
+  0 ;
+
+ SMINN_TO_DENIT_S4 =
+  2.380742e-12 ;
+
+ SMINN_TO_NPOOL =
+  0 ;
+
+ SMINN_TO_PLANT =
+  0 ;
+
+ SMINN_TO_SOIL1N_L1 =
+  2.742961e-12 ;
+
+ SMINN_TO_SOIL2N_L2 =
+  4.681661e-14 ;
+
+ SMINN_TO_SOIL2N_S1 =
+  -1.843377e-13 ;
+
+ SMINN_TO_SOIL3N_L3 =
+  1.143232e-14 ;
+
+ SMINN_TO_SOIL3N_S2 =
+  -1.015168e-15 ;
+
+ SMINN_TO_SOIL4N_S3 =
+  0 ;
+
+ SNOBCMCL =
+  0 ;
+
+ SNOBCMSL =
+  0 ;
+
+ SNODSTMCL =
+  0 ;
+
+ SNODSTMSL =
+  0 ;
+
+ SNOOCMCL =
+  0 ;
+
+ SNOOCMSL =
+  0 ;
+
+ SNOW =
+  0 ;
+
+ SNOWDP =
+  0 ;
+
+ SNOWICE =
+  0 ;
+
+ SNOWLIQ =
+  0 ;
+
+ SNOW_DEPTH =
+  0 ;
+
+ SNOW_SINKS =
+  NaNf ;
+
+ SNOW_SOURCES =
+  NaNf ;
+
+ SOIL1C =
+  4.599893e-05 ;
+
+ SOIL1C_TO_SOIL2C =
+  5.688135e-12 ;
+
+ SOIL1N =
+  3.833244e-06 ;
+
+ SOIL1N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ SOIL1N_TO_SOIL2N =
+  6.583489e-13 ;
+
+ SOIL1_HR =
+  2.212052e-12 ;
+
+ SOIL2C =
+  1.041021e-06 ;
+
+ SOIL2C_TO_SOIL3C =
+  1.868832e-14 ;
+
+ SOIL2N =
+  8.675178e-08 ;
+
+ SOIL2N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ SOIL2N_TO_SOIL3N =
+  2.883999e-15 ;
+
+ SOIL2_HR =
+  1.591968e-14 ;
+
+ SOIL3C =
+  0 ;
+
+ SOIL3C_TO_SOIL4C =
+  0 ;
+
+ SOIL3N =
+  0 ;
+
+ SOIL3N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ SOIL3N_TO_SOIL4N =
+  0 ;
+
+ SOIL3_HR =
+  0 ;
+
+ SOIL4C =
+  9.998965 ;
+
+ SOIL4N =
+  0.9998965 ;
+
+ SOIL4N_TNDNCY_VERT_TRANS =
+  0 ;
+
+ SOIL4N_TO_SMINN =
+  2.380742e-10 ;
+
+ SOIL4_HR =
+  2.380742e-09 ;
+
+ SOILC =
+  9.999012 ;
+
+ SOILC_HR =
+  2.38297e-09 ;
+
+ SOILC_LOSS =
+  2.38297e-09 ;
+
+ SOILICE =
+  988.0754,
+  131.1976,
+  16.97524,
+  0.6759871,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0 ;
+
+ SOILLIQ =
+  4.997161,
+  8.026224,
+  14.11897,
+  24.21589,
+  44.39422,
+  82.19867,
+  171.7333,
+  294.6844,
+  397.1168,
+  654.7349,
+  0,
+  0,
+  0,
+  0,
+  0 ;
+
+ SOILPSI =
+  -0.006208787,
+  -0.009149137,
+  -0.0162447,
+  -0.03382864,
+  -0.06135565,
+  -0.0868489,
+  -0.007249325,
+  -0.001716864,
+  -0.002032011,
+  -0.002032011,
+  -15,
+  -15,
+  -15,
+  -15,
+  -15 ;
+
+ SOILWATER_10CM =
+  1166.524 ;
+
+ SOMC_FIRE =
+  0 ;
+
+ SOMHR =
+  2.38297e-09 ;
+
+ SOM_C_LEACHED =
+  0 ;
+
+ SR =
+  2.474656e-09 ;
+
+ STORVEGC =
+  0.5590612 ;
+
+ STORVEGN =
+  0.02236272 ;
+
+ SUPPLEMENT_TO_SMINN =
+  0 ;
+
+ SoilAlpha =
+  0.9999978 ;
+
+ SoilAlpha_U =
+  _ ;
+
+ TAUX =
+  -0.2430627 ;
+
+ TAUY =
+  -0.2430627 ;
+
+ TBOT =
+  249.3361 ;
+
+ TBUILD =
+  _ ;
+
+ TG =
+  272.17 ;
+
+ TG_R =
+  272.17 ;
+
+ TG_U =
+  _ ;
+
+ TH2OSFC =
+  270.2063 ;
+
+ THBOT =
+  249.3361 ;
+
+ TKE1 =
+  _ ;
+
+ TLAI =
+  7.477638e-05 ;
+
+ TLAKE =
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _ ;
+
+ TOTCOLC =
+  10.60408 ;
+
+ TOTCOLN =
+  1.022667 ;
+
+ TOTECOSYSC =
+  10.60411 ;
+
+ TOTECOSYSN =
+  1.022667 ;
+
+ TOTLITC =
+  9.974345e-05 ;
+
+ TOTLITN =
+  3.4514e-06 ;
+
+ TOTPFTC =
+  0.6049621 ;
+
+ TOTPFTN =
+  0.02266944 ;
+
+ TOTPRODC =
+  0 ;
+
+ TOTPRODN =
+  0 ;
+
+ TOTSOMC =
+  9.999012 ;
+
+ TOTSOMN =
+  0.9999004 ;
+
+ TOTVEGC =
+  0.604987 ;
+
+ TOTVEGN =
+  0.02266944 ;
+
+ TREFMNAV =
+  247.2426 ;
+
+ TREFMNAV_R =
+  247.2426 ;
+
+ TREFMNAV_U =
+  _ ;
+
+ TREFMXAV =
+  254.842 ;
+
+ TREFMXAV_R =
+  254.842 ;
+
+ TREFMXAV_U =
+  _ ;
+
+ TSA =
+  250.6741 ;
+
+ TSAI =
+  0.2842913 ;
+
+ TSA_R =
+  250.6741 ;
+
+ TSA_U =
+  _ ;
+
+ TSOI =
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15,
+  273.15 ;
+
+ TSOI_10CM =
+  272.9778 ;
+
+ TSOI_ICE =
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _,
+  _ ;
+
+ TV =
+  257.1809 ;
+
+ TWS =
+  NaNf ;
+
+ T_SCALAR =
+  0.3628874 ;
+
+ U10 =
+  6.698067 ;
+
+ URBAN_AC =
+  0 ;
+
+ URBAN_HEAT =
+  0 ;
+
+ VOCFLXT =
+  6.769422e-16 ;
+
+ VOLR =
+  0 ;
+
+ WA =
+  4000 ;
+
+ WASTEHEAT =
+  0 ;
+
+ WF =
+  32.31205 ;
+
+ WIND =
+  5.896027 ;
+
+ WOODC =
+  0.03658336 ;
+
+ WOODC_ALLOC =
+  0 ;
+
+ WOODC_LOSS =
+  2.320104e-11 ;
+
+ WOOD_HARVESTC =
+  0 ;
+
+ WOOD_HARVESTN =
+  0 ;
+
+ W_SCALAR =
+  0.5668625 ;
+
+ XSMRPOOL =
+  -2.491712e-05 ;
+
+ XSMRPOOL_RECOVER =
+  0 ;
+
+ ZBOT =
+  5 ;
+
+ ZWT =
+  8.801882 ;
+
+ ZWT_PERCH =
+  3.801882 ;
+}
