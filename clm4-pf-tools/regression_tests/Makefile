@@ -81,3 +81,11 @@ FORCE :
 
 clean :
 	-rm -f *.testlog *~
+
+clobber : clean
+	-rm -rf ../../test_cases
+
+libpflotran.a : FORCE
+	@if [ -d $(PFLOTRAN_DIR)/src/clm-pflotran ]; then \
+		$(MAKE) --directory=$(PFLOTRAN_DIR)/src/clm-pflotran $(MAKECMDGOALS); \
+	fi
