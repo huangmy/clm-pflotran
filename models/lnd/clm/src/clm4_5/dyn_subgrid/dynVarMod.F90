@@ -272,6 +272,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: ndims  ! number of dimensions of the underlying variable
+    type(dyn_file_type) :: ncid   ! pio netCDF file id
     
     character(len=*), parameter :: subname = 'read_variable'
     !-----------------------------------------------------------------------
@@ -282,10 +283,11 @@ contains
     end if
 
     ndims = size(this%data_shape)
+    ncid = this%dyn_file
     if (ndims == 1) then
-       call read_variable_1d(this, nt, data)
+       call read_variable_1d(this, ncid, nt, data)
     else if (ndims == 2) then
-       call read_variable_2d(this, nt, data)
+       call read_variable_2d(this, ncid, nt, data)
     else
        call shr_sys_abort(subname//' ERROR: read_variable can only handle 1 or 2 dimensions')
     end if
@@ -301,19 +303,20 @@ contains
   ! DIMS 1,2
   !-----------------------------------------------------------------------
 # 264 "dynVarMod.F90.in"
-  subroutine read_variable_1d(this, nt, data)
+  subroutine read_variable_1d(this, ncid, nt, data)
     !
     ! !DESCRIPTION:
     ! Read a time slice of a 1-d variable
     ! This routine applies the conversion given by conversion_factor.
     !
     ! !USES:
-    use ncdio_pio      , only : ncd_io
+    use ncdio_pio      , only : ncd_io,file_desc_t
     use surfrdUtilsMod , only : check_sums_equal_1
     !
     ! !ARGUMENTS:
     class(dyn_var_type) , intent(in)  :: this    ! this object
     integer             , intent(in)  :: nt      ! time index to read
+    type(dyn_file_type),intent(inout) :: ncid   ! pio netCDF file id
     ! variable holding data read from file (note that this is 1-d regardless of the
     ! dimensionality of the underlying data)
     real(r8)            , intent(out) :: data(:) 
@@ -334,7 +337,7 @@ contains
     allocate(arrayl(this%data_shape(1), this%data_shape(2)))
 #endif
 
-    call ncd_io(ncid=this%dyn_file, varname=this%varname, flag='read', data=arrayl, &
+    call ncd_io(ncid=ncid, varname=this%varname, flag='read', data=arrayl, &
          dim1name=this%dim1name, nt=nt, readvar=readvar)
     if (.not. readvar) then
        call shr_sys_abort(subname//' ERROR: ' // trim(this%varname) // ' NOT on file')
@@ -357,7 +360,7 @@ contains
   ! DIMS 1,2
   !-----------------------------------------------------------------------
 # 264 "dynVarMod.F90.in"
-  subroutine read_variable_2d(this, nt, data)
+  subroutine read_variable_2d(this, ncid, nt, data)
     !
     ! !DESCRIPTION:
     ! Read a time slice of a 2-d variable
@@ -369,6 +372,7 @@ contains
     !
     ! !ARGUMENTS:
     class(dyn_var_type) , intent(in)  :: this    ! this object
+    type(dyn_file_type),intent(inout) :: ncid   ! pio netCDF file id
     integer             , intent(in)  :: nt      ! time index to read
     ! variable holding data read from file (note that this is 1-d regardless of the
     ! dimensionality of the underlying data)
@@ -390,7 +394,7 @@ contains
     allocate(arrayl(this%data_shape(1), this%data_shape(2)))
 #endif
 
-    call ncd_io(ncid=this%dyn_file, varname=this%varname, flag='read', data=arrayl, &
+    call ncd_io(ncid=ncid, varname=this%varname, flag='read', data=arrayl, &
          dim1name=this%dim1name, nt=nt, readvar=readvar)
     if (.not. readvar) then
        call shr_sys_abort(subname//' ERROR: ' // trim(this%varname) // ' NOT on file')
