@@ -1,8 +1,26 @@
 ================================================================================
-SVN $Id: ChangeLog 57342 2014-02-14 21:09:13Z muszala $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140214a/ChangeLog $
+SVN $Id: ChangeLog 57448 2014-02-20 17:09:40Z jshollen $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140220/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: jshollen
+Date: 20 Feb 2014
+Model: scripts
+Version: scripts4_140220
+One-line: added ERS_D A,X compset tests to yellowstone and goldbach. 
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: muszala
+Date: 14 Feb 2014
+Model: scripts
+Version: scripts4_140214b
+One-line: remove _Mmpich for nag on goldbach
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
 ================================================================================
 Originator: muszala
 Date: 14 Feb 2014

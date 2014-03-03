@@ -111,8 +111,12 @@
         <machine compiler="pgi" testtype="prerelease">goldbach</machine>
       </test>
       <test name="ERS_D">
+        <machine compiler="intel" testtype="prealpha">goldbach</machine>
+        <machine compiler="pgi" testtype="prealpha">goldbach</machine>
         <machine compiler="pgi" testtype="prebeta">hopper</machine>
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
+        <machine compiler="intel" testtype="prealpha">yellowstone</machine>
+        <machine compiler="pgi" testtype="prealpha">yellowstone</machine>
       </test>
       <test name="NCK">
         <machine compiler="pgi" testtype="prebeta">bluewaters</machine>
@@ -138,7 +142,7 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="prealpha">goldbach</machine>
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
@@ -1252,10 +1256,10 @@
         <machine compiler="intel" testtype="aux_rasm">yellowstone</machine>
       </test>
       <test name="ERS_D">
+        <machine compiler="nag" testtype="prealpha">goldbach</machine>
         <machine compiler="intel" testtype="aux_drv">yellowstone</machine>
       </test>
-      <test name="ERS_D_Mmpich">
-        <machine compiler="nag" testtype="prealpha">goldbach</machine>
+      <test name="ERS_D">
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
       <test name="PET_PT">
@@ -1468,7 +1472,7 @@
         <machine compiler="pgi" testtype="prerelease">hopper</machine>
         <machine compiler="ibm" testtype="prerelease">intrepid</machine>
       </test>
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
     </grid>
@@ -1537,7 +1541,7 @@
         <machine compiler="intel" testtype="prebeta">janus</machine>
         <machine compiler="gnu" testtype="prealpha">yellowstone</machine>
       </test>
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
     </grid>
@@ -1846,7 +1850,7 @@
   </compset>
   <compset name="FW">
     <grid name="f19_f19">
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
     </grid>
@@ -1872,7 +1876,7 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
     </grid>
@@ -2020,7 +2024,7 @@
       </test>
     </grid>
     <grid name="1x1_mexicocityMEX">
-      <test name="SMS_D_Mmpich">
+      <test name="SMS_D">
         <machine compiler="nag" testtype="aux_clm">goldbach</machine>
       </test>
     </grid>
@@ -2048,25 +2052,25 @@
     <grid name="f45_f45">
       <test name="SMS">
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/ptsRLA">edison</machine>
-        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">goldbach</machine>
-        <machine compiler="pgi"   testtype="prebeta"          testmods="clm/ptsRLA">goldbach</machine>
-        <machine compiler="pgi"   testtype="prerelease"       testmods="clm/ptsRLA">hopper</machine>
-        <machine compiler="ibm"   testtype="prerelease"       testmods="clm/ptsRLA">intrepid</machine>
-        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">janus</machine>
-        <machine compiler="intel" testtype="aux_clm"          testmods="clm/ptsRLA">yellowstone</machine>
-        <machine compiler="gnu"   testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
-        <machine compiler="pgi"   testtype="prebeta"          testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="pgi" testtype="prebeta" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsRLA">hopper</machine>
+        <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsRLA">intrepid</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLA">janus</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="gnu" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
       </test>
       <test name="SMS">
-        <machine compiler="intel" testtype="aux_clm_ys_pgi"   testmods="clm/ptsRLB">edison</machine>
-        <machine compiler="pgi"   testtype="aux_clm"          testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm_ys_pgi" testmods="clm/ptsRLB">edison</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsRLB">yellowstone</machine>
       </test>
       <test name="SMS">
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/ptsROA">edison</machine>
-        <machine compiler="pgi"   testtype="prerelease"       testmods="clm/ptsROA">hopper</machine>
-        <machine compiler="ibm"   testtype="prerelease"       testmods="clm/ptsROA">intrepid</machine>
-        <machine compiler="intel" testtype="aux_clm"          testmods="clm/ptsROA">yellowstone</machine>
+        <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsROA">intrepid</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsROA">yellowstone</machine>
       </test>
     </grid>
     <grid name="f45_g37">
@@ -2191,7 +2195,7 @@
         <machine compiler="intel" testtype="aux_clm" testmods="clm/default">goldbach</machine>
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/default">goldbach</machine>
       </test>
-      <test name="ERS_Mmpich">
+      <test name="ERS">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/ciso">goldbach</machine>
       </test>
       <test name="PET_P15x2_D">
@@ -2203,7 +2207,7 @@
         <machine compiler="intel" testtype="aux_clm_short" testmods="clm/ciso">goldbach</machine>
         <machine compiler="pgi" testtype="aux_clm_short" testmods="clm/ciso">goldbach</machine>
       </test>
-      <test name="PET_P16x2_D_Mmpich">
+      <test name="PET_P16x2_D">
         <machine compiler="nag" testtype="aux_clm_short" testmods="clm/ciso">goldbach</machine>
       </test>
       <test name="PET_P24x2_D">
@@ -2364,7 +2368,7 @@
         <machine compiler="intel" testtype="prebeta">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta">yellowstone</machine>
       </test>
-      <test name="SMS_Mmpich">
+      <test name="SMS">
         <machine compiler="nag" testtype="aux_clm">goldbach</machine>
       </test>
     </grid>
@@ -2481,21 +2485,21 @@
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
+      <test name="ERS">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/decStart">goldbach</machine>
+        <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
+      </test>
       <test name="ERS_D">
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/decStart">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
         <machine compiler="pgi" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
+        <machine compiler="nag" testtype="prealpha">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
-      <test name="ERS_D_Mmpich">
+      <test name="ERS_D">
         <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
-        <machine compiler="nag" testtype="prealpha">goldbach</machine>
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
-      </test>
-      <test name="ERS_Mmpich">
-        <machine compiler="nag" testtype="aux_clm" testmods="clm/decStart">goldbach</machine>
-        <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
       </test>
       <test name="PET_P15x2_Lm13">
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">yellowstone</machine>
@@ -2625,17 +2629,7 @@
       </test>
     </grid>
     <grid name="f45_f45">
-      <test name="SMS_Mmpi-serial">
-        <machine compiler="nag"   testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
-        <machine compiler="pgi"   testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
-      </test>
-      <test name="SMS_D_Mmpi-serial">
-        <machine compiler="nag"   testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
-        <machine compiler="pgi"   testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
-      </test>
-      <test name="SMS_Mmpich">
+      <test name="SMS">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
       </test>
       <test name="SMS">
@@ -2643,6 +2637,16 @@
       </test>
       <test name="SMS">
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsROA">goldbach</machine>
+      </test>
+      <test name="SMS_D_Mmpi-serial">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+      </test>
+      <test name="SMS_Mmpi-serial">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/ptsRLA">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -2667,14 +2671,14 @@
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
+      <test name="ERI">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
+      </test>
       <test name="ERI_D">
         <machine compiler="intel" testtype="aux_clm_ys_intel">edison</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
-      </test>
-      <test name="ERI_Mmpich">
-        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
       </test>
       <test name="ERS_D">
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/rootlit">edison</machine>
@@ -2682,14 +2686,14 @@
         <machine compiler="pgi" testtype="aux_clm" testmods="clm/ciso">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/rootlit">yellowstone</machine>
       </test>
-      <test name="ERS_D_Mmpich">
+      <test name="ERS_D">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
         <machine compiler="nag" testtype="prebeta" testmods="clm/reduceOutput">goldbach</machine>
       </test>
-      <test name="ERS_Ld42_Mmpich">
+      <test name="ERS_Ld42">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
       </test>
-      <test name="SMS_Ln48_D_Mmpich">
+      <test name="SMS_Ln48_D">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/oldhyd">goldbach</machine>
       </test>
     </grid>
@@ -2701,6 +2705,9 @@
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
+      <test name="ERI">
+        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
+      </test>
       <test name="ERI_D">
         <machine compiler="intel" testtype="aux_clm_ys_pgi">edison</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
@@ -2708,10 +2715,7 @@
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm">yellowstone</machine>
       </test>
-      <test name="ERI_D_Mmpich">
-        <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
-      </test>
-      <test name="ERI_Mmpich">
+      <test name="ERI_D">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
       </test>
     </grid>
@@ -2722,7 +2726,7 @@
         <machine compiler="intel" testtype="aux_clm" testmods="clm/vrtlay">yellowstone</machine>
         <machine compiler="intel" testtype="aux_clm">yellowstone</machine>
       </test>
-      <test name="ERS_D_Mmpich">
+      <test name="ERS_D">
         <machine compiler="nag" testtype="prealpha">goldbach</machine>
         <machine compiler="nag" testtype="prebeta">goldbach</machine>
       </test>
@@ -2730,7 +2734,7 @@
   </compset>
   <compset name="ICLM45BGCCROP">
     <grid name="1x1_numaIA">
-      <test name="ERS_Lm3_Mmpich">
+      <test name="ERS_Lm3">
         <machine compiler="nag" testtype="aux_clm">goldbach</machine>
       </test>
     </grid>
@@ -2740,7 +2744,7 @@
       </test>
     </grid>
     <grid name="f10_f10">
-      <test name="ERS_D_Mmpich">
+      <test name="ERS_D">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/allActive">goldbach</machine>
       </test>
       <test name="ERS_Ly5">
@@ -2765,7 +2769,7 @@
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
-      <test name="SMS_Ly1_Mmpich">
+      <test name="SMS_Ly1">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
         <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
       </test>
@@ -2896,7 +2900,7 @@
         <machine compiler="intel" testtype="aux_clm_short">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm_short">yellowstone</machine>
       </test>
-      <test name="ERS_D_Mmpich">
+      <test name="ERS_D">
         <machine compiler="nag" testtype="aux_clm_short" testmods="clm/reduceOutput">goldbach</machine>
       </test>
     </grid>
@@ -3286,7 +3290,7 @@
       </test>
     </grid>
     <grid name="f10_f10">
-      <test name="SMS_Mmpich">
+      <test name="SMS">
         <machine compiler="nag" testtype="aux_clm" testmods="clm/reduceOutput">goldbach</machine>
       </test>
     </grid>
@@ -3468,15 +3472,15 @@
     </grid>
     <grid name="f45_f45">
       <test name="SMS">
-        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB" >janus</machine>
-        <machine compiler="gnu"   testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
-        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
-        <machine compiler="pgi"   testtype="prebeta" testmods="clm/ptsRLB" testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB">janus</machine>
+        <machine compiler="gnu" testtype="prebeta" testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLB">yellowstone</machine>
+        <machine compiler="pgi" testtype="prebeta" testmods="clm/ptsRLB">yellowstone</machine>
       </test>
       <test name="SMS">
-        <machine compiler="pgi" testtype="prebeta"    testmods="clm/ptsROA" testmods="clm/ptsROA">hopper</machine>
-        <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsROA" testmods="clm/ptsROA">hopper</machine>
-        <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsROA" testmods="clm/ptsROA">intrepid</machine>
+        <machine compiler="pgi" testtype="prebeta" testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsROA">hopper</machine>
+        <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsROA">intrepid</machine>
       </test>
     </grid>
     <grid name="f45_g37">
@@ -3642,8 +3646,12 @@
       <test name="ERS_D">
         <machine compiler="pgi" testtype="aux_rasm">eastwind</machine>
         <machine compiler="intel" testtype="aux_rasm">evergreen</machine>
+        <machine compiler="intel" testtype="prealpha">goldbach</machine>
+        <machine compiler="pgi" testtype="prealpha">goldbach</machine>
         <machine compiler="pgi" testtype="aux_rasm">olympus</machine>
         <machine compiler="intel" testtype="aux_drv">yellowstone</machine>
+        <machine compiler="intel" testtype="prealpha">yellowstone</machine>
+        <machine compiler="pgi" testtype="prealpha">yellowstone</machine>
       </test>
       <test name="PET_PT">
         <machine compiler="intel" testtype="prebeta">goldbach</machine>

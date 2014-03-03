@@ -61,9 +61,7 @@ setenv OMP_NUM_THREADS ${maxthrds}
 if (\$MPILIB == "mpi-serial") then
     \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
 else if (\$MPILIB == "openmpi") then
-    mpirun --mca btl openib -machinefile \$PBS_NODEFILE -np ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
-else if (\$MPILIB == "mpich") then
-    mpiexec -n ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
+    mpiexec --machinefile \$PBS_NODEFILE -n ${maxtasks} \${EXEROOT}/cesm.exe >&! cesm.log.\$LID
 endif
 wait
 

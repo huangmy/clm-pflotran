@@ -14,6 +14,7 @@ if (-e /usr/share/modules/init/csh) then
   module load comp-intel/2013.5.192
   module load mpi-sgi/mpt.2.08r7
   module load netcdf/4.0-i10.1
+  module load cmake/2.8.12.1
   module load nas
 endif
 

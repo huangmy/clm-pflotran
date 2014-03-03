@@ -218,7 +218,7 @@
 <machine MACH="goldbach">
          <DESC>"NCAR CGD Linux Cluster 16 pes/node, batch system is PBS"</DESC>
          <COMPILERS>pgi,intel,nag</COMPILERS>
-         <MPILIBS>openmpi,mpich,mpi-serial</MPILIBS>
+         <MPILIBS>openmpi,mpi-serial</MPILIBS>
          <RUNDIR>/scratch/cluster/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/scratch/cluster/$CCSMUSER/$CASE/bld</EXEROOT>
          <OBJROOT>$EXEROOT</OBJROOT>
