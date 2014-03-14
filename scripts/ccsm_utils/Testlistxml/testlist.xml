@@ -3155,6 +3155,9 @@
       </test>
     </grid>
     <grid name="f19_g16">
+      <test name="ERS_Ld9">
+        <machine compiler="pgi" testtype="aux_glc" testmods="cism/override_glc_frac" comment="Make sure glc override options work correctly, and restart properly">yellowstone</machine>
+      </test>
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
       </test>

@@ -370,10 +370,10 @@ contains
              upscale_temp = 0.d0
           endwhere
 
-          call mean_to_global(instance%ups,   &
-                              upscale_temp,   &
-                              g_water_in,     &
-                              instance%out_mask)
+          call local_to_global_avg(instance%ups,   &
+                                   upscale_temp,   &
+                                   g_water_in,     &
+                                   instance%out_mask)
           deallocate(upscale_temp)
           upscale_temp => null()
        endif
@@ -407,10 +407,10 @@ contains
                            real(instance%lgrid%delta%pt(1),dp), &
                            real(instance%lgrid%delta%pt(2),dp))
 
-          call mean_to_global(instance%ups,   &
-                              routing_temp,   &
-                              g_water_out,    &
-                              instance%out_mask)
+          call local_to_global_avg(instance%ups,   &
+                                   routing_temp,   &
+                                   g_water_out,    &
+                                   instance%out_mask)
 
           deallocate(upscale_temp,routing_temp)
           upscale_temp => null()
@@ -527,7 +527,6 @@ contains
 
     !TODO - Are these needed?
     real(dp),dimension(:,:),pointer :: thck_temp    => null() ! temporary array for volume calcs
-    real(dp),dimension(:,:),pointer :: calve_temp   => null() ! temporary array for calving flux
 
     integer :: i, j, k, nx, ny, il, jl, ig, jg
 
@@ -535,9 +534,7 @@ contains
 
     ice_tstep = .false.
 
-    !TODO - Are these needed?  thck_temp is just water-equiv ice thickness 
     call coordsystem_allocate(instance%lgrid, thck_temp)
-    call coordsystem_allocate(instance%lgrid, calve_temp)
 
     ! ------------------------------------------------------------------------
     ! Sort out some local orography and remove bathymetry. This relies on the 
@@ -678,14 +675,6 @@ contains
 
           endif  ! evolve_ice
 
-          ! Add the calved ice to the ablation field
-
-          !TODO - Use this to compute the solid ice runoff,grofi?
-          !       Also add basal melting (bmlt) to the liquid runoff, grofl.
-
-          call glide_get_calving(instance%model, calve_temp)
-          calve_temp = calve_temp * rhoi/rhow
-
           ! write ice sheet diagnostics at specified interval (model%numerics%dt_diag)
 
           call glide_write_diagnostics(instance%model,                  &
@@ -717,11 +706,6 @@ contains
                                 time = time*hours2years)
 
     ! Deallocate
-
-    if (associated(calve_temp)) then
-       deallocate(calve_temp)
-       calve_temp => null()
-    end if
 
     if (associated(thck_temp)) then
        deallocate(thck_temp)
@@ -832,10 +816,10 @@ contains
 
     select case (instance%whichprecip)
 
-    case(1)
+    case(PRECIP_STANDARD)
        ! Do nothing to the precip field
 
-    case(2)
+    case(PRECIP_RL)
        ! Use the Roe/Lindzen parameterisation
        call glint_precip(instance%prcp, &
                          instance%xwind, &
@@ -854,7 +838,6 @@ contains
 
     ! Convert from mm/s to m/s - very important!
 
-!WHL    instance%prcp = instance%prcp*0.001
     instance%prcp = instance%prcp * 1.d-3
 
   end subroutine glint_calc_precip

@@ -39,11 +39,11 @@ module glimmer_physcon
   save
 
   !TODO - Verify that all physical constants are mks. (I think they are.)
-  !       Add a d0 to scyr, rhoi and grav
 
-  real(dp),parameter :: scyr = 31556926.d0       ! Number of seconds in a year (s). 
-                                                 ! Note that this is for a 365.242 day year, and might need changing.
-
+!!  real(dp),parameter :: scyr = 31556926.d0       ! Number of seconds in a year (s). 
+!!                                                 ! Note that this is for a 365.242 day year, and might need changing.
+  real(dp),parameter :: scyr = 31536000.d0       ! Number of seconds in a year of exactly 365 days 
+                                                 ! Changed from a year of 365.242 days to be consistent with CESM
   real(dp),parameter :: pi = 3.14159265358979d0  !< Value of \f$\pi\f$.
 
   real(dp),parameter :: rhoi = 910.d0            !< The density of ice (kg m<SUP>-3</SUP>)
@@ -54,6 +54,7 @@ module glimmer_physcon
   real(dp),parameter :: rhos = 2600.0d0          !*FD The density of solid till (kg m$^{-3}$)
   real(dp),parameter :: f = - rhoo / rhoi
 
+  real(dp),parameter :: rearth  = 6.37122d6      ! radius of earth (m)
   real(dp),parameter :: grav = 9.81d0            !< The acceleration due to gravity (m s<SUP>-2</SUP>)
 
   integer, parameter :: gn = 3                   !< The power dependency of Glenn's flow law.

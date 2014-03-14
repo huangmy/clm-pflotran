@@ -734,10 +734,8 @@ CAM[45]%L60  => CAM with 60 layers and full gravity wave spectrum:
 <CLM_CO2_TYPE compset="_CAM.*_CLM"     >diagnostic</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="_CLM.*_BGC%BDRD">diagnostic</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="_CLM.*_BGC%BPRP">prognostic</CLM_CO2_TYPE>
-<!-- To get answers the same as current code don't update CO2_TYPE yet
 <CLM_CO2_TYPE compset="20TR.*_DATM"    >diagnostic</CLM_CO2_TYPE>
 <CLM_CO2_TYPE compset="RCP.*_DATM"     >diagnostic</CLM_CO2_TYPE>
--->
 
 <CLM_FORCE_COLDSTART compset="_CLM.+CISM"        >on</CLM_FORCE_COLDSTART>
 <CLM_FORCE_COLDSTART compset="4804.*_CLM.*_CISM1">off</CLM_FORCE_COLDSTART>
@@ -944,6 +942,8 @@ RTM%FLOOD => RTM model with flood
 <GLC_NEC compset="_CISM">10</GLC_NEC> 
 <GLC_NEC compset="_X"   >10</GLC_NEC> 
 
+<CLM_UPDATE_GLC_AREAS compset="_CISM">TRUE</CLM_UPDATE_GLC_AREAS>
+
 <desc compset="_CISM1" >cism1:</desc>
 <desc compset="_CISM2P">cism2 (parallel):</desc>
 <desc compset="_CISM2S">cism2 (serial):</desc>
@@ -1048,13 +1048,11 @@ CISM2S => cism2 (serial)
 <DATM_CLMNCEP_YR_END   compset="PDAY_DATM.*_CLM.*_DICE%NULL_DOCN%NULL_SROF_SGLC_SWAV">2003</DATM_CLMNCEP_YR_END> 
 
 <DATM_CO2_TSERIES                    >none</DATM_CO2_TSERIES>
-<!-- To get answers the same as current code don't update CO2_TSERIES yet
 <DATM_CO2_TSERIES compset="RCP8_DATM">rcp8.5</DATM_CO2_TSERIES>
 <DATM_CO2_TSERIES compset="RCP6_DATM">rcp6.0</DATM_CO2_TSERIES>
 <DATM_CO2_TSERIES compset="RCP4_DATM">rcp4.5</DATM_CO2_TSERIES>
 <DATM_CO2_TSERIES compset="RCP2_DATM">rcp2.6</DATM_CO2_TSERIES>
 <DATM_CO2_TSERIES compset="20TR_DATM">20tr</DATM_CO2_TSERIES>
--->
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->
@@ -1554,10 +1552,8 @@ DOCN%COPY => docn copy mode
 <CCSM_BGC compset="_DATM"    >none</CCSM_BGC>
 <CCSM_BGC compset="_BGC%BPRP">CO2C</CCSM_BGC>
 <CCSM_BGC compset="_BGC%BDRD">CO2C</CCSM_BGC>
-<!-- To get answers the same as current code don't update CCSM_BGC yet
 <CCSM_BGC compset="20TR.*_DATM%(QIA|CRU)">CO2A</CCSM_BGC>
 <CCSM_BGC compset="RCP.*_DATM%(QIA|CRU)" >CO2A</CCSM_BGC>
--->
 
 <!-- ======================================= -->
 <!--          USER_DEFINED section           -->

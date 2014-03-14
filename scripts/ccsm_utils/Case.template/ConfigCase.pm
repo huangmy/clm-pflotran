@@ -99,6 +99,24 @@ use English;
 use IO::File;
 use XML::Lite;
 use XML::LibXML;
+# Check for the existence of XML::LibXML in whatever perl distribution happens to be in use.
+# If not found, print a warning message then exit.
+eval {
+    require XML::LibXML;
+    XML::LibXML->import();
+};
+if($@)
+{
+    my $warning = <<END;
+WARNING:
+  The perl module XML::LibXML is needed for XML parsing in the CESM script system.
+  Please contact your local systems administrators or IT staff and have them install it for
+  you, or install the module locally.  
+
+END
+    print "$warning\n";
+	exit(1);
+}
 use Data::Dumper;
 
 sub new
