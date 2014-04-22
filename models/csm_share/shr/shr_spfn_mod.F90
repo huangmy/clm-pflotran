@@ -104,7 +104,7 @@ real(r8), parameter :: xminr8 = tiny(1._r8)
 ! Largest number that, when added to 1., yields 1.
 real(r8), parameter :: xsmallr8 = epsr8/2._r8
 ! Largest argument for which erfcx > 0.
-real(r8), parameter :: xmaxr8 = 1/(sqrtpi*xminr8)
+real(r8), parameter :: xmaxr8 = 1._r8/(sqrtpi*xminr8)
 
 ! Single precision
 !---------------------------------------------------------------------
@@ -117,7 +117,7 @@ real(r4), parameter :: xminr4 = tiny(1._r4)
 ! Largest number that, when added to 1., yields 1.
 real(r4), parameter :: xsmallr4 = epsr4/2._r4
 ! Largest argument for which erfcx > 0.
-real(r4), parameter :: xmaxr4 = 1/(sqrtpi*xminr4)
+real(r4), parameter :: xmaxr4 = 1._r4/(real(sqrtpi,r4)*xminr4)
 
 
 ! For gamma/igamma

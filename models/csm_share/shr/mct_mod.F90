@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: mct_mod.F90 50927 2013-09-06 23:24:23Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_131231/shr/mct_mod.F90 $
+! SVN $Id: mct_mod.F90 58409 2014-03-20 23:20:44Z santos@ucar.edu $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/shr_assert_macro_tags/shr_assert_macro_n04_share3_140115/shr/mct_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -55,6 +55,8 @@ module mct_mod
    use m_AttrVect           ,only: mct_aVect_exportRattr  => exportRattr
    use m_AttrVect           ,only: mct_aVect_getIList     => getIList
    use m_AttrVect           ,only: mct_aVect_getRList     => getRList
+   use m_AttrVect           ,only: mct_aVect_getIList2c   => getIListToChar
+   use m_AttrVect           ,only: mct_aVect_getRList2c   => getRListToChar
    use m_AttrVect           ,only: mct_aVect_exportIList2c=> exportIListToChar
    use m_AttrVect           ,only: mct_aVect_exportRList2c=> exportRListToChar
    use m_AttrVect           ,only: mct_aVect_nIAttr       => nIAttr
@@ -62,7 +64,8 @@ module mct_mod
    use m_AttrVect           ,only: mct_aVect_copy         => Copy
    use m_AttrVect           ,only: mct_aVect_permute      => Permute
    use m_AttrVect           ,only: mct_aVect_unpermute    => Unpermute
-   use m_AttrVect           ,only: mct_aVect_sharedindices=> AVSharedIndices
+   use m_AttrVect           ,only: mct_aVect_SharedIndices=> AVSharedIndices
+   use m_AttrVect           ,only: mct_aVect_setSharedIndices=> SharedIndices
    use m_AttrVectComms      ,only: mct_aVect_scatter      => scatter
    use m_AttrVectComms      ,only: mct_aVect_gather       => gather 
    use m_AttrVectComms      ,only: mct_aVect_bcast        => bcast  

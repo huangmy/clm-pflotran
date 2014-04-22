@@ -1,8 +1,17 @@
 ================================================================================
-SVN $Id: ChangeLog 56317 2013-12-31 21:24:32Z sacks $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_131231/ChangeLog $
+SVN $Id: ChangeLog 58409 2014-03-20 23:20:44Z santos@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/shr_assert_macro_tags/shr_assert_macro_n04_share3_140115/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+===========================
+Originator: tcraig
+Date: 2014/01/15
+Model: share
+Version: share3_140115
+One-line summary: add uses for mct routines
+
+M       shr/mct_mod.F90
+
 ===========================
 Originator: sacks
 Date: 2013/12/31
