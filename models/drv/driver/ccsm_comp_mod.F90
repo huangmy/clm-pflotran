@@ -31,7 +31,7 @@ module ccsm_comp_mod
    use shr_map_mod,       only: shr_map_setDopole
    use shr_mpi_mod,       only: shr_mpi_min, shr_mpi_max
    use shr_mem_mod,       only: shr_mem_init, shr_mem_getusage
-   use shr_cal_mod,       only: shr_cal_date2ymd
+   use shr_cal_mod,       only: shr_cal_date2ymd, shr_cal_ymd2date, shr_cal_advdateInt
    use shr_orb_mod,       only: shr_orb_params
    use shr_reprosum_mod,  only: shr_reprosum_setopts
    use mct_mod            ! mct_ wrappers for mct lib
@@ -263,6 +263,8 @@ module ccsm_comp_mod
    integer  :: month                  ! Current date (MM)
    integer  :: day                    ! Current date (DD)
    integer  :: tod                    ! Current time of day (seconds)
+   integer  :: ymdtmp                 ! temporary date (YYYYMMDD)
+   integer  :: todtmp                 ! temporary time of day (seconds)
    character(CL) :: orb_mode          ! orbital mode
    integer  :: orb_iyear              ! orbital year
    integer  :: orb_iyear_align        ! associated with model year
@@ -274,11 +276,18 @@ module ccsm_comp_mod
    real(r8) :: orb_obliqr             ! Earths obliquity in rad
    real(r8) :: orb_lambm0             ! Mean long of perihelion at vernal equinox (radians)
    real(r8) :: orb_mvelpp             ! moving vernal equinox long
+   real(r8) :: wall_time_limit        ! wall time limit in hours
+   real(r8) :: wall_time              ! current wall time used
+   character(CS) :: force_stop_at     ! force stop at next (month, day, etc)
+   logical  :: force_stop             ! force the model to stop
+   integer  :: force_stop_ymd         ! force stop ymd
+   integer  :: force_stop_tod         ! force stop tod
 
    !--- for documenting speed of the model ---
    character( 8) :: dstr              ! date string
    character(10) :: tstr              ! time string
    integer       :: begStep, endStep  ! Begining and ending step number
+   character(CL) :: calendar          ! calendar name
    real(r8)      :: simDays           ! Number of simulated days
    real(r8)      :: SYPD              ! Simulated years per day
    real(r8)      :: Time_begin        ! Start time
@@ -413,7 +422,9 @@ module ccsm_comp_mod
    character(CL) :: hist_a2x_flds     = 'Faxa_swndr:Faxa_swvdr:Faxa_swndf:Faxa_swvdf'
 !  character(CL) :: hist_a2x24hr_flds = 'all'
    character(CL) :: hist_a2x3hrp_flds = 'Faxa_rainc:Faxa_rainl:Faxa_snowc:Faxa_snowl'
-   character(CL) :: hist_a2x3hr_flds  = 'Sa_z:Sa_u:Sa_v:Sa_tbot:Sa_ptem:Sa_shum:Sa_dens:Sa_pbot:Sa_pslv:Faxa_lwdn'
+   character(CL) :: hist_a2x3hr_flds  = 'Sa_z:Sa_u:Sa_v:Sa_tbot:Sa_ptem:Sa_shum:Sa_dens:Sa_pbot:Sa_pslv:Faxa_lwdn:&
+        &Faxa_rainc:Faxa_rainl:Faxa_snowc:Faxa_snowl:&
+        &Faxa_swndr:Faxa_swvdr:Faxa_swndf:Faxa_swvdf'
 
    ! --- other ---
    integer  :: ka,km,k1,k2,k3         ! aVect field indices
@@ -538,6 +549,7 @@ subroutine ccsm_pre_init1()
 
    Global_Comm=MPI_COMM_WORLD
    comp_comm = MPI_COMM_NULL
+   time_brun = mpi_wtime()
 
    call shr_pio_init1(num_inst_total,NLFileName, Global_Comm)
    !
@@ -810,6 +822,8 @@ subroutine ccsm_pre_init2()
         wav_gnam=wav_gnam                         , &
         cpl_decomp=seq_mctext_decomp              , & 
         shr_map_dopole=shr_map_dopole             , &
+        wall_time_limit=wall_time_limit           , &
+        force_stop_at=force_stop_at               , &
         reprosum_use_ddpdd=reprosum_use_ddpdd     , &
         reprosum_diffmax=reprosum_diffmax         , &
         reprosum_recompute=reprosum_recompute)
@@ -1811,10 +1825,13 @@ end subroutine ccsm_init
 105 format( A, 2i8, A, f10.2, A, f10.2, A, A, i5, A, A)
 106 format( A, f23.12)
 107 format( A, 2i8, A, f12.4, A, f12.4 )
+108 format( A, f10.2, A, i8.8)
+109 format( A, 2f10.3)
 
    call seq_infodata_putData(infodata,atm_phase=1,lnd_phase=1,ocn_phase=1,ice_phase=1)
    call seq_timemgr_EClockGetData( EClock_d, stepno=begstep)
    call seq_timemgr_EClockGetData( EClock_d, dtime=dtime)
+   call seq_timemgr_EClockGetData( EClock_d, calendar=calendar)
    ncpl = 86400/dtime
    cktime_acc = 0._r8
    cktime_cnt = 0
@@ -1827,6 +1844,9 @@ end subroutine ccsm_init
       endif
       stop_alarm = .true.
    endif
+   force_stop = .false.
+   force_stop_ymd = -1
+   force_stop_tod = -1
 
    !----------------------------------------------------------
    ! Beginning of basic time step loop
@@ -1847,7 +1867,7 @@ end subroutine ccsm_init
       ! they return to the driver).  Write timestamp and run alarm status
       !----------------------------------------------------------
 
-      call seq_timemgr_clockAdvance( seq_SyncClock)
+      call seq_timemgr_clockAdvance( seq_SyncClock, force_stop, force_stop_ymd, force_stop_tod)
       call seq_timemgr_EClockGetData( EClock_d, curr_ymd=ymd, curr_tod=tod )
       call shr_cal_date2ymd(ymd,year,month,day)
       stop_alarm    = seq_timemgr_alarmIsOn(EClock_d,seq_timemgr_alarm_stop)
@@ -3061,6 +3081,36 @@ end subroutine ccsm_init
                  ' avg dt = ',cktime_acc(1)/cktime_cnt(1),' dt = ',cktime 
             Time_bstep = mpi_wtime()
             call shr_sys_flush(logunit)
+         endif
+      endif
+      if (tod == 0 .and. wall_time_limit > 0.0_r8 .and. .not. force_stop) then
+         time_erun = mpi_wtime()
+         ! time_*run is seconds, wall_time_limit is hours
+         wall_time = (time_erun - time_brun) / 3600._r8   ! convert secs to hrs
+         write(logunit,109) subname//' check wall_time_limit: ',wall_time, wall_time_limit
+         if (wall_time > wall_time_limit) then
+            force_stop = .true.
+            force_stop_tod = 0
+            if (trim(force_stop_at) == 'month') then
+               call shr_cal_date2ymd(ymd,year,month,day)
+               month = month + 1
+               do while (month > 12)
+                  month = month - 12
+                  year = year + 1
+               enddo
+               call shr_cal_ymd2date(year,month,1,force_stop_ymd)
+            elseif (trim(force_stop_at) == 'year') then  ! next year
+               call shr_cal_date2ymd(ymd,year,month,day)
+               call shr_cal_ymd2date(year+1,1,1,force_stop_ymd)
+            elseif (trim(force_stop_at) == 'day') then   ! next day
+               ymdtmp = ymd
+               call shr_cal_advDateInt(1,'days'  ,ymdtmp,0,force_stop_ymd,todtmp,calendar)
+            else    ! day is default
+               ymdtmp = ymd
+               call shr_cal_advDateInt(1,'days'  ,ymdtmp,0,force_stop_ymd,todtmp,calendar)
+            endif
+            write(logunit,108) subname//' reached wall_time_limit (hours) =',wall_time_limit, &
+                               ' :stop at ',force_stop_ymd
          endif
       endif
       if (tod == 0 .or. info_debug > 1) then

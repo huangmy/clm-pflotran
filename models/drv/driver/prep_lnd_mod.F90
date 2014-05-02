@@ -230,10 +230,69 @@ contains
     type(mct_aVect), intent(in)     :: g2x_l 
     type(mct_aVect), intent(inout)  :: x2l_l 
     !----------------------------------------------------------------------- 
+    integer       :: nflds,i,i1,o1
+    logical       :: iamroot
+    logical, save :: first_time = .true.
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    character(CL) :: field   ! string converted to char
+    type(mct_aVect_sharedindices),save :: a2x_sharedindices
+    type(mct_aVect_sharedindices),save :: r2x_sharedindices
+    type(mct_aVect_sharedindices),save :: g2x_sharedindices
+    character(*), parameter   :: subname = '(prep_lnd_merge) '
 
-    call mct_aVect_copy(aVin=a2x_l, aVout=x2l_l, vector=mct_usevector)
-    call mct_aVect_copy(aVin=r2x_l, aVout=x2l_l, vector=mct_usevector)
-    call mct_aVect_copy(aVin=g2x_l, aVout=x2l_l, vector=mct_usevector)
+    !----------------------------------------------------------------------- 
+
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
+
+    if (first_time) then
+       nflds = mct_aVect_nRattr(x2l_l)
+
+       allocate(mrgstr(nflds))
+       do i = 1,nflds
+          field = mct_aVect_getRList2c(i, x2l_l)
+          mrgstr(i) = subname//'x2l%'//trim(field)//' ='
+       enddo
+
+       call mct_aVect_setSharedIndices(a2x_l, x2l_l, a2x_SharedIndices)
+       call mct_aVect_setSharedIndices(r2x_l, x2l_l, r2x_SharedIndices)
+       call mct_aVect_setSharedIndices(g2x_l, x2l_l, g2x_SharedIndices)
+
+       !--- document copy operations ---
+       do i=1,a2x_SharedIndices%shared_real%num_indices
+          i1=a2x_SharedIndices%shared_real%aVindices1(i)
+          o1=a2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, a2x_l)
+          mrgstr(o1) = trim(mrgstr(o1))//' = a2x%'//trim(field)
+       enddo
+       do i=1,r2x_SharedIndices%shared_real%num_indices
+          i1=r2x_SharedIndices%shared_real%aVindices1(i)
+          o1=r2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, r2x_l)
+          mrgstr(o1) = trim(mrgstr(o1))//' = r2x%'//trim(field)
+       enddo
+       do i=1,g2x_SharedIndices%shared_real%num_indices
+          i1=g2x_SharedIndices%shared_real%aVindices1(i)
+          o1=g2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, g2x_l)
+          mrgstr(o1) = trim(mrgstr(o1))//' = g2x%'//trim(field)
+       enddo
+    endif
+
+    call mct_aVect_copy(aVin=a2x_l, aVout=x2l_l, vector=mct_usevector, sharedIndices=a2x_SharedIndices)
+    call mct_aVect_copy(aVin=r2x_l, aVout=x2l_l, vector=mct_usevector, sharedIndices=r2x_SharedIndices)
+    call mct_aVect_copy(aVin=g2x_l, aVout=x2l_l, vector=mct_usevector, sharedIndices=g2x_SharedIndices)
+
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do i = 1,nflds
+             write(logunit,'(A)') trim(mrgstr(i))
+          enddo
+       endif
+       deallocate(mrgstr)
+    endif
+
+    first_time = .false.
 
   end subroutine prep_lnd_merge
 

@@ -63,7 +63,6 @@ module prep_ocn_mod
   !--------------------------------------------------------------------------
 
   private :: prep_ocn_merge
-  private :: getfld
 
   !--------------------------------------------------------------------------
   ! Private data
@@ -492,23 +491,27 @@ contains
     type(mct_aVect), intent(inout) :: x2o_o
     !
     ! Local variables
-    integer  :: n,ka,ki,ko,kir,kor
+    integer  :: n,ka,ki,ko,kr,kw,kx,kir,kor,i,i1,o1,ierr
+    integer  :: kof,kif
     integer  :: lsize
-    integer  :: noflds,naflds,niflds,nxflds
-    integer  :: kof,kaf,kif,kxf
+    integer  :: noflds,naflds,niflds,nrflds,nwflds,nxflds
     real(r8) :: ifrac,ifracr
     real(r8) :: afrac,afracr
     real(r8) :: frac_sum
     real(r8) :: avsdr, anidr, avsdf, anidf   ! albedos
     real(r8) :: fswabsv, fswabsi             ! sw
-    character(CL) :: field_ocn   ! string converted to char
-    character(CL) :: field_atm   ! string converted to char
-    character(CL) :: field_ice   ! string converted to char
-    character(CL) :: field_xao   ! string converted to char
-    character(CL) :: itemc_ocn   ! string converted to char
-    character(CL) :: itemc_atm   ! string converted to char
-    character(CL) :: itemc_ice   ! string converted to char
-    character(CL) :: itemc_xao   ! string converted to char
+    character(CL),allocatable :: field_ocn(:)   ! string converted to char
+    character(CL),allocatable :: field_atm(:)   ! string converted to char
+    character(CL),allocatable :: field_ice(:)   ! string converted to char
+    character(CL),allocatable :: field_rof(:)   ! string converted to char
+    character(CL),allocatable :: field_wav(:)   ! string converted to char
+    character(CL),allocatable :: field_xao(:)   ! string converted to char
+    character(CL),allocatable :: itemc_ocn(:)   ! string converted to char
+    character(CL),allocatable :: itemc_atm(:)   ! string converted to char
+    character(CL),allocatable :: itemc_ice(:)   ! string converted to char
+    character(CL),allocatable :: itemc_rof(:)   ! string converted to char
+    character(CL),allocatable :: itemc_wav(:)   ! string converted to char
+    character(CL),allocatable :: itemc_xao(:)   ! string converted to char
     integer, save :: index_a2x_Faxa_swvdr
     integer, save :: index_a2x_Faxa_swvdf
     integer, save :: index_a2x_Faxa_swndr
@@ -536,8 +539,14 @@ contains
     logical :: iamroot  
     logical, save, pointer :: amerge(:),imerge(:),xmerge(:)
     integer, save, pointer :: aindx(:), iindx(:), oindx(:), xindx(:)
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    type(mct_aVect_sharedindices),save :: a2x_sharedindices
+    type(mct_aVect_sharedindices),save :: i2x_sharedindices
+    type(mct_aVect_sharedindices),save :: r2x_sharedindices
+    type(mct_aVect_sharedindices),save :: w2x_sharedindices
+    type(mct_aVect_sharedindices),save :: xao_sharedindices
     logical, save :: first_time = .true.
-    character(*),parameter :: subName = '(prep_x2o_merge) '
+    character(*),parameter :: subName = '(prep_ocn_merge) '
     !----------------------------------------------------------------------- 
 
     call seq_comm_setptrs(CPLID, iamroot=iamroot)
@@ -545,6 +554,8 @@ contains
     noflds = mct_aVect_nRattr(x2o_o)
     naflds = mct_aVect_nRattr(a2x_o)
     niflds = mct_aVect_nRattr(i2x_o)
+    nrflds = mct_aVect_nRattr(r2x_o)
+    nwflds = mct_aVect_nRattr(w2x_o)
     nxflds = mct_aVect_nRattr(xao_o)
 
     if (first_time) then
@@ -587,6 +598,13 @@ contains
        allocate(aindx(noflds), amerge(noflds))
        allocate(iindx(noflds), imerge(noflds))
        allocate(xindx(noflds), xmerge(noflds))
+       allocate(field_atm(naflds), itemc_atm(naflds))
+       allocate(field_ice(niflds), itemc_ice(niflds))
+       allocate(field_ocn(noflds), itemc_ocn(noflds))
+       allocate(field_rof(nrflds), itemc_rof(nrflds))
+       allocate(field_wav(nwflds), itemc_wav(nwflds))
+       allocate(field_xao(nxflds), itemc_xao(nxflds))
+       allocate(mrgstr(noflds))
        aindx(:) = 0
        iindx(:) = 0
        xindx(:) = 0
@@ -594,93 +612,199 @@ contains
        imerge(:) = .true.
        xmerge(:) = .true.
 
-       do kof = 1,noflds
-          call getfld(kof, x2o_o, field_ocn, itemc_ocn)
-          if (field_ocn(1:2) == 'PF') then
+       do ko = 1,noflds
+          field_ocn(ko) = mct_aVect_getRList2c(ko, x2o_o)
+          itemc_ocn(ko) = trim(field_ocn(ko)(scan(field_ocn(ko),'_'):))
+       enddo
+       do ka = 1,naflds
+          field_atm(ka) = mct_aVect_getRList2c(ka, a2x_o)
+          itemc_atm(ka) = trim(field_atm(ka)(scan(field_atm(ka),'_'):))
+       enddo
+       do ki = 1,niflds
+          field_ice(ki) = mct_aVect_getRList2c(ki, i2x_o)
+          itemc_ice(ki) = trim(field_ice(ki)(scan(field_ice(ki),'_'):))
+       enddo
+       do kr = 1,nrflds
+          field_rof(kr) = mct_aVect_getRList2c(kr, r2x_o)
+          itemc_rof(kr) = trim(field_rof(kr)(scan(field_rof(kr),'_'):))
+       enddo
+       do kw = 1,nwflds
+          field_wav(kw) = mct_aVect_getRList2c(kw, w2x_o)
+          itemc_wav(kw) = trim(field_wav(kw)(scan(field_wav(kw),'_'):))
+       enddo
+       do kx = 1,nxflds
+          field_xao(kx) = mct_aVect_getRList2c(kx, xao_o)
+          itemc_xao(kx) = trim(field_xao(kx)(scan(field_xao(kx),'_'):))
+       enddo
+
+       call mct_aVect_setSharedIndices(a2x_o, x2o_o, a2x_SharedIndices)
+       call mct_aVect_setSharedIndices(i2x_o, x2o_o, i2x_SharedIndices)
+       call mct_aVect_setSharedIndices(r2x_o, x2o_o, r2x_SharedIndices)
+       call mct_aVect_setSharedIndices(w2x_o, x2o_o, w2x_SharedIndices)
+       call mct_aVect_setSharedIndices(xao_o, x2o_o, xao_SharedIndices)
+
+       do ko = 1,noflds
+          !--- document merge ---
+          mrgstr(ko) = subname//'x2o%'//trim(field_ocn(ko))//' ='
+          if (field_ocn(ko)(1:2) == 'PF') then
              cycle ! if flux has first character as P, pass straight through 
           end if
-          if (field_ocn(1:1) == 'S' .and. field_ocn(2:2) /= 'x') then
+          if (field_ocn(ko)(1:1) == 'S' .and. field_ocn(ko)(2:2) /= 'x') then
              cycle ! ignore all ocn states that do not have a Sx_ prefix 
           end if
-          if (trim(field_ocn) == 'Foxx_swnet'.or. &
-              trim(field_ocn) == 'Faxa_snow' .or. &
-              trim(field_ocn) == 'Faxa_rain' .or. &
-              trim(field_ocn) == 'Faxa_prec') then
+          if (trim(field_ocn(ko)) == 'Foxx_swnet'.or. &
+              trim(field_ocn(ko)) == 'Faxa_snow' .or. &
+              trim(field_ocn(ko)) == 'Faxa_rain' .or. &
+              trim(field_ocn(ko)) == 'Faxa_prec') then
              cycle ! ignore swnet, snow, rain, prec - treated explicitly above
           end if
-!          if (trim(field_ocn(1:5)) == 'Foxx_') then
+!          if (trim(field_ocn(ko)(1:5)) == 'Foxx_') then
 !             cycle ! ignore runoff fields from land - treated in coupler
 !          end if
 
-          do kaf = 1,naflds
-             call getfld(kaf, a2x_o, field_atm, itemc_atm)
-             if (trim(itemc_ocn) == trim(itemc_atm)) then
-                if ((trim(field_ocn) == trim(field_atm))) then
-                   if (field_atm(1:1) == 'F') amerge(kof) = .false.
+          do ka = 1,naflds
+             if (trim(itemc_ocn(ko)) == trim(itemc_atm(ka))) then
+                if ((trim(field_ocn(ko)) == trim(field_atm(ka)))) then
+                   if (field_atm(ka)(1:1) == 'F') amerge(ko) = .false.
                 end if
-                aindx(kof) = kaf
-                exit
+                ! --- make sure only one field matches ---
+                if (aindx(ko) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple ka field matches for ',trim(itemc_atm(ka))
+                   call shr_sys_abort(subname//' ERROR multiple ka field matches')
+                endif
+                aindx(ko) = ka
              end if
           end do
-          do kif = 1,niflds
-             call getfld(kif, i2x_o, field_ice, itemc_ice)
-             if (field_ice(1:1) == 'F' .and. field_ice(2:4) == 'aii') then
+          do ki = 1,niflds
+             if (field_ice(ki)(1:1) == 'F' .and. field_ice(ki)(2:4) == 'aii') then
                 cycle ! ignore all i2x_o fluxes that are ice/atm fluxes
              end if
-             if (trim(itemc_ocn) == trim(itemc_ice)) then
-                if ((trim(field_ocn) == trim(field_ice))) then
-                   if (field_ice(1:1) == 'F') imerge(kof) = .false.
+             if (trim(itemc_ocn(ko)) == trim(itemc_ice(ki))) then
+                if ((trim(field_ocn(ko)) == trim(field_ice(ki)))) then
+                   if (field_ice(ki)(1:1) == 'F') imerge(ko) = .false.
                 end if
-                iindx(kof) = kif
-                exit
+                ! --- make sure only one field matches ---
+                if (iindx(ko) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple ki field matches for ',trim(itemc_ice(ki))
+                   call shr_sys_abort(subname//' ERROR multiple ki field matches')
+                endif
+                iindx(ko) = ki
              end if
           end do
-          do kxf = 1,nxflds
-             call getfld(kxf, xao_o, field_xao, itemc_xao)
-             if (trim(itemc_ocn) == trim(itemc_xao)) then
-                if ((trim(field_ocn) == trim(field_xao))) then
-                   if (field_xao(1:1) == 'F') xmerge(kof) = .false.
+          do kx = 1,nxflds
+             if (trim(itemc_ocn(ko)) == trim(itemc_xao(kx))) then
+                if ((trim(field_ocn(ko)) == trim(field_xao(kx)))) then
+                   if (field_xao(kx)(1:1) == 'F') xmerge(ko) = .false.
                 end if
-                xindx(kof) = kxf
-                exit
+                ! --- make sure only one field matches ---
+                if (xindx(ko) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple kx field matches for ',trim(itemc_xao(kx))
+                   call shr_sys_abort(subname//' ERROR multiple kx field matches')
+                endif
+                xindx(ko) = kx
              end if
           end do
-          if (aindx(kof) == 0) itemc_atm = 'unset'
-          if (iindx(kof) == 0) itemc_ice = 'unset'
-          if (xindx(kof) == 0) itemc_xao = 'unset'
 
-          if (iamroot) then
-             write(logunit,10)trim(itemc_ocn),&
-                  trim(itemc_xao),trim(itemc_ice),trim(itemc_atm)
-10           format(' ',' ocn field: ',a15,', xao merge: ',a15, &
-                  ', ice merge: ',a15,', atm merge: ',a15)
-             write(logunit, *)'field_ocn,kof,imerge,amerge,xmerge= ',&
-                  trim(field_ocn),kof,imerge(kof),xmerge(kof),amerge(kof) 
-         end if
+          ! --- add some checks ---
+
+          ! --- make sure no merge of BOTH atm and xao ---
+          if (aindx(ko) > 0 .and. xindx(ko) > 0) then
+             write(logunit,*) subname,' ERROR: aindx and xindx both non-zero, not allowed'
+             call shr_sys_abort(subname//' ERROR aindx and xindx both non-zero')
+          endif
+ 
+          ! --- make sure all terms agree on merge or non-merge aspect ---
+          if (aindx(ko) > 0 .and. iindx(ko) > 0 .and. (amerge(ko) .neqv. imerge(ko))) then
+             write(logunit,*) subname,' ERROR: aindx and iindx merge logic error'
+             call shr_sys_abort(subname//' ERROR aindx and iindx merge logic error')
+          endif
+          if (aindx(ko) > 0 .and. xindx(ko) > 0 .and. (amerge(ko) .neqv. xmerge(ko))) then
+             write(logunit,*) subname,' ERROR: aindx and xindx merge logic error'
+             call shr_sys_abort(subname//' ERROR aindx and xindx merge logic error')
+          endif
+          if (xindx(ko) > 0 .and. iindx(ko) > 0 .and. (xmerge(ko) .neqv. imerge(ko))) then
+             write(logunit,*) subname,' ERROR: xindx and iindx merge logic error'
+             call shr_sys_abort(subname//' ERROR xindx and iindx merge logic error')
+          endif
+
        end do
 
-       first_time = .false.
     end if
     
     call mct_aVect_zero(x2o_o)
 
-    call mct_aVect_copy(aVin=a2x_o, aVout=x2o_o, vector=mct_usevector)
-    call mct_aVect_copy(aVin=i2x_o, aVout=x2o_o, vector=mct_usevector)
-    call mct_aVect_copy(aVin=r2x_o, aVout=x2o_o, vector=mct_usevector)
-    call mct_aVect_copy(aVin=w2x_o, aVout=x2o_o, vector=mct_usevector)
-    call mct_aVect_copy(aVin=xao_o, aVout=x2o_o, vector=mct_usevector)
+    !--- document copy operations ---
+    if (first_time) then
+       !--- document merge ---
+       do i=1,a2x_SharedIndices%shared_real%num_indices
+          i1=a2x_SharedIndices%shared_real%aVindices1(i)
+          o1=a2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = a2x%'//trim(field_atm(i1))
+       enddo
+       do i=1,i2x_SharedIndices%shared_real%num_indices
+          i1=i2x_SharedIndices%shared_real%aVindices1(i)
+          o1=i2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = i2x%'//trim(field_ice(i1))
+       enddo
+       do i=1,r2x_SharedIndices%shared_real%num_indices
+          i1=r2x_SharedIndices%shared_real%aVindices1(i)
+          o1=r2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = r2x%'//trim(field_rof(i1))
+       enddo
+       do i=1,w2x_SharedIndices%shared_real%num_indices
+          i1=w2x_SharedIndices%shared_real%aVindices1(i)
+          o1=w2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = w2x%'//trim(field_wav(i1))
+       enddo
+       do i=1,xao_SharedIndices%shared_real%num_indices
+          i1=xao_SharedIndices%shared_real%aVindices1(i)
+          o1=xao_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = xao%'//trim(field_xao(i1))
+       enddo
+    endif
+
+!    call mct_aVect_copy(aVin=a2x_o, aVout=x2o_o, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=i2x_o, aVout=x2o_o, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=r2x_o, aVout=x2o_o, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=w2x_o, aVout=x2o_o, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=xao_o, aVout=x2o_o, vector=mct_usevector)
+    call mct_aVect_copy(aVin=a2x_o, aVout=x2o_o, vector=mct_usevector, sharedIndices=a2x_SharedIndices)
+    call mct_aVect_copy(aVin=i2x_o, aVout=x2o_o, vector=mct_usevector, sharedIndices=i2x_SharedIndices)
+    call mct_aVect_copy(aVin=r2x_o, aVout=x2o_o, vector=mct_usevector, sharedIndices=r2x_SharedIndices)
+    call mct_aVect_copy(aVin=w2x_o, aVout=x2o_o, vector=mct_usevector, sharedIndices=w2x_SharedIndices)
+    call mct_aVect_copy(aVin=xao_o, aVout=x2o_o, vector=mct_usevector, sharedIndices=xao_SharedIndices)
+
+    !--- document manual merges ---
+    if (first_time) then
+       mrgstr(index_x2o_Foxx_swnet) = trim(mrgstr(index_x2o_Foxx_swnet))//' = '// &
+          'afracr*(a2x%Faxa_swvdr*(1.0-xao%So_avsdr) + '// &
+          'a2x%Faxa_swvdf*(1.0-xao%So_avsdf) + '// &
+          'a2x%Faxa_swndr*(1.0-xao%So_anidr) + '// &
+          'a2x%Faxa_swndf*(1.0-xao%So_anidf)) + '// &
+          'ifrac*i2x%Fioi_swpen'
+       mrgstr(index_x2o_Faxa_snow) = trim(mrgstr(index_x2o_Faxa_snow))//' = '// &
+          'afrac*(a2x%Faxa_snowc + a2x%Faxa_snowl)*flux_epbalfact'
+       mrgstr(index_x2o_Faxa_rain) = trim(mrgstr(index_x2o_Faxa_rain))//' = '// &
+          'afrac*(a2x%Faxa_rainc + a2x%Faxa_rainl)*flux_epbalfact'
+       mrgstr(index_x2o_Faxa_prec) = trim(mrgstr(index_x2o_Faxa_prec))//' = '// &
+          'afrac*(a2x%Faxa_snowc + a2x%Faxa_snowl + a2x%Faxa_rainc + a2x%Faxa_rainl)*flux_epbalfact'
+       mrgstr(index_x2o_Foxx_rofl) = trim(mrgstr(index_x2o_Foxx_rofl))//' = '// &
+          '(r2x%Forr_rofl + r2x%Flrr_flood + g2x%Fogg_rofl)*flux_epbalfact'
+       mrgstr(index_x2o_Foxx_rofi) = trim(mrgstr(index_x2o_Foxx_rofi))//' = '// &
+          '(r2x%Forr_rofi + g2x%Fogg_rofi)*flux_epbalfact'
+    endif
 
     ! Compute input ocn state (note that this only applies to non-land portion of gridcell)
 
-    ki  = mct_aVect_indexRa(fractions_o,"ifrac",perrWith=subName)
-    ko  = mct_aVect_indexRa(fractions_o,"ofrac",perrWith=subName)
+    kif = mct_aVect_indexRa(fractions_o,"ifrac",perrWith=subName)
+    kof = mct_aVect_indexRa(fractions_o,"ofrac",perrWith=subName)
     kir = mct_aVect_indexRa(fractions_o,"ifrad",perrWith=subName)
     kor = mct_aVect_indexRa(fractions_o,"ofrad",perrWith=subName)
     lsize = mct_aVect_lsize(x2o_o)
     do n = 1,lsize
 
-       ifrac = fractions_o%rAttr(ki,n)
-       afrac = fractions_o%rAttr(ko,n)
+       ifrac = fractions_o%rAttr(kif,n)
+       afrac = fractions_o%rAttr(kof,n)
        frac_sum = ifrac + afrac
        if ((frac_sum) /= 0._r8) then
           ifrac = ifrac / (frac_sum)
@@ -727,62 +851,83 @@ contains
                                               g2x_o%rAttr(index_g2x_Fogg_rofi , n)) * flux_epbalfact
     end do
 
-    do kof = 1,noflds
+    do ko = 1,noflds
+       !--- document merge ---
+       if (first_time) then
+          if (iindx(ko) > 0) then
+             if (imerge(ko)) then 
+                mrgstr(ko) = trim(mrgstr(ko))//' + ifrac*i2x%'//trim(field_ice(iindx(ko)))
+             else
+                mrgstr(ko) = trim(mrgstr(ko))//' = ifrac*i2x%'//trim(field_ice(iindx(ko)))
+             end if
+          end if
+          if (aindx(ko) > 0) then
+             if (amerge(ko)) then 
+                mrgstr(ko) = trim(mrgstr(ko))//' + afrac*a2x%'//trim(field_atm(aindx(ko)))
+             else
+                mrgstr(ko) = trim(mrgstr(ko))//' = afrac*a2x%'//trim(field_atm(aindx(ko)))
+             end if
+          end if
+          if (xindx(ko) > 0) then
+             if (xmerge(ko)) then
+                mrgstr(ko) = trim(mrgstr(ko))//' + afrac*xao%'//trim(field_xao(xindx(ko)))
+             else
+                mrgstr(ko) = trim(mrgstr(ko))//' = afrac*xao%'//trim(field_xao(xindx(ko)))
+             end if
+          end if
+       endif
+
        do n = 1,lsize
-          ifrac = fractions_o%rAttr(ki,n)
-          afrac = fractions_o%rAttr(ko,n)
+          ifrac = fractions_o%rAttr(kif,n)
+          afrac = fractions_o%rAttr(kof,n)
           frac_sum = ifrac + afrac
           if ((frac_sum) /= 0._r8) then
              ifrac = ifrac / (frac_sum)
              afrac = afrac / (frac_sum)
           endif
-          if (iindx(kof) > 0) then
-             if (imerge(kof)) then 
-                x2o_o%rAttr(kof,n) = x2o_o%rAttr(kof,n) + i2x_o%rAttr(iindx(kof),n) * ifrac
+          if (iindx(ko) > 0) then
+             if (imerge(ko)) then 
+                x2o_o%rAttr(ko,n) = x2o_o%rAttr(ko,n) + i2x_o%rAttr(iindx(ko),n) * ifrac
              else
-                x2o_o%rAttr(kof,n) = i2x_o%rAttr(iindx(kof),n) * ifrac
+                x2o_o%rAttr(ko,n) = i2x_o%rAttr(iindx(ko),n) * ifrac
              end if
           end if
-          if (aindx(kof) > 0) then
-             if (amerge(kof)) then
-                x2o_o%rAttr(kof,n) = x2o_o%rAttr(kof,n) + a2x_o%rAttr(aindx(kof),n) * afrac
+          if (aindx(ko) > 0) then
+             if (amerge(ko)) then
+                x2o_o%rAttr(ko,n) = x2o_o%rAttr(ko,n) + a2x_o%rAttr(aindx(ko),n) * afrac
              else
-                x2o_o%rAttr(kof,n) = a2x_o%rAttr(aindx(kof),n) * afrac
+                x2o_o%rAttr(ko,n) = a2x_o%rAttr(aindx(ko),n) * afrac
              end if
           end if
-          if (xindx(kof) > 0) then
-             if (xmerge(kof)) then
-                x2o_o%rAttr(kof,n) = x2o_o%rAttr(kof,n) + xao_o%rAttr(xindx(kof),n) * afrac
+          if (xindx(ko) > 0) then
+             if (xmerge(ko)) then
+                x2o_o%rAttr(ko,n) = x2o_o%rAttr(ko,n) + xao_o%rAttr(xindx(ko),n) * afrac
              else
-                x2o_o%rAttr(kof,n) = xao_o%rAttr(xindx(kof),n) * afrac
+                x2o_o%rAttr(ko,n) = xao_o%rAttr(xindx(ko),n) * afrac
              end if
           end if
        end do
     end do
 
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do ko = 1,noflds
+             write(logunit,'(A)') trim(mrgstr(ko))
+          enddo
+       endif
+       deallocate(mrgstr)
+       deallocate(field_atm,itemc_atm)
+       deallocate(field_ocn,itemc_ocn)
+       deallocate(field_ice,itemc_ice)
+       deallocate(field_rof,itemc_rof)
+       deallocate(field_wav,itemc_wav)
+       deallocate(field_xao,itemc_xao)
+    endif
+
+    first_time = .false.
+
   end subroutine prep_ocn_merge
-
-  !================================================================================================
-
-  subroutine getfld(n, av, field, suffix)
-    integer         , intent(in)    :: n
-    type(mct_aVect) , intent(in)    :: av 
-    character(len=*), intent(out)   :: field
-    character(len=*), intent(out)   :: suffix
-
-    type(mct_string) :: mstring     ! mct char type
-
-    call mct_aVect_getRList(mstring,n,av)
-    field  = mct_string_toChar(mstring)
-    suffix = trim(field(scan(field,'_'):))
-    call mct_string_clean(mstring)
-
-    if (field(1:1) /= 'S' .and. field(1:1) /= 'F' .and. field(1:2) /= 'PF') then
-       write(6,*)'field attribute',trim(field),' must start with S or F or PF' 
-       call shr_sys_abort()
-    end if
-
-  end subroutine getfld
 
   !================================================================================================
 

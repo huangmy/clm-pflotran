@@ -231,8 +231,52 @@ contains
     type(mct_aVect), intent(inout)  :: x2g_g  ! output
     !----------------------------------------------------------------------- 
 
+    integer       :: nflds,i,i1,o1
+    logical       :: iamroot
+    logical, save :: first_time = .true.
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    character(CL) :: field   ! string converted to char
+    type(mct_aVect_sharedindices),save :: s2x_sharedindices
+    character(*), parameter   :: subname = '(prep_glc_merge) '
+
+    !----------------------------------------------------------------------- 
+
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
+
+    if (first_time) then
+       nflds = mct_aVect_nRattr(x2g_g)
+
+       allocate(mrgstr(nflds))
+       do i = 1,nflds
+          field = mct_aVect_getRList2c(i, x2g_g)
+          mrgstr(i) = subname//'x2g%'//trim(field)//' ='
+       enddo
+
+       call mct_aVect_setSharedIndices(s2x_g, x2g_g, s2x_SharedIndices)
+
+       !--- document copy operations ---
+       do i=1,s2x_SharedIndices%shared_real%num_indices
+          i1=s2x_SharedIndices%shared_real%aVindices1(i)
+          o1=s2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, s2x_g)
+          mrgstr(o1) = trim(mrgstr(o1))//' = s2x%'//trim(field)
+       enddo
+    endif
+
     ! Create input glc state directly from land snow output state
-    call mct_aVect_copy(aVin=s2x_g, aVout=x2g_g, vector=mct_usevector)
+    call mct_aVect_copy(aVin=s2x_g, aVout=x2g_g, vector=mct_usevector, sharedIndices=s2x_SharedIndices)
+
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do i = 1,nflds
+             write(logunit,'(A)') trim(mrgstr(i))
+          enddo
+       endif
+       deallocate(mrgstr)
+    endif
+
+    first_time = .false.
 
   end subroutine prep_glc_merge
 

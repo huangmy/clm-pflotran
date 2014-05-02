@@ -124,7 +124,7 @@ module seq_flds_mod
    use shr_kind_mod,   only : CX => shr_kind_CX, CXX => shr_kind_CXX
    use shr_sys_mod,    only : shr_sys_abort
    use seq_drydep_mod, only : seq_drydep_init, seq_drydep_read, lnd_drydep
-   use seq_comm_mct,   only : seq_comm_iamroot, seq_comm_setptrs
+   use seq_comm_mct,   only : seq_comm_iamroot, seq_comm_setptrs, logunit
    use shr_megan_mod,  only : shr_megan_readnl, shr_megan_mechcomps_n
    use shr_carma_mod,  only : shr_carma_readnl
 
@@ -322,6 +322,8 @@ module seq_flds_mod
      namelist /seq_cplflds_userspec/ &          
           cplflds_custom
 
+     character(len=*),parameter :: subname = '(seq_flds_set) '
+
 !-------------------------------------------------------------------------------
 
      call seq_comm_setptrs(ID,mpicom=mpicom)
@@ -341,7 +343,7 @@ module seq_flds_mod
         glc_nec   = 0
 
         unitn = shr_file_getUnit()
-        write(6,"(A)") 'seq_flds_mod: read seq_cplflds_inparm namelist from: '&
+        write(logunit,"(A)") subname//': read seq_cplflds_inparm namelist from: '&
              //trim(nmlfile)
         open( unitn, file=trim(nmlfile), status='old' )
         ierr = 1
@@ -349,7 +351,7 @@ module seq_flds_mod
            read(unitn,nml=seq_cplflds_inparm,iostat=ierr)
            if (ierr < 0) then
               call shr_sys_abort( &
-                   "seq_flds_mod :: namelist read returns an EOF or EOR condition" )
+                   subname//"ERROR: namelist read returns an EOF or EOR condition" )
            end if
         end do
         close(unitn)
@@ -373,7 +375,7 @@ module seq_flds_mod
         cplflds_custom(:) = ' '
 
         unitn = shr_file_getUnit()
-        write(6,"(A)") 'seq_flds_mod: read seq_cplflds_userspec namelist from: '&
+        write(logunit,"(A)") subname//': read seq_cplflds_userspec namelist from: '&
              //trim(nmlfile)
         open( unitn, file=trim(nmlfile), status='old' )
         ierr = 1
@@ -381,7 +383,7 @@ module seq_flds_mod
            read(unitn,nml=seq_cplflds_userspec,iostat=ierr)
            if (ierr < 0) then
               call shr_sys_abort( &
-                   "seq_flds_mod :: namelist read returns an EOF or EOR condition" )
+                   subname//"ERROR: namelist read returns an EOF or EOR condition" )
            end if
         end do
         close(unitn)
@@ -409,8 +411,8 @@ module seq_flds_mod
               is_state = .false.
               is_flux  = .true.
            else
-              write(6,*)' seq_flds_mod: error for fldname = ',trim(fldname)
-              call shr_sys_abort("fldname must start with S, F, or P")
+              write(logunit,*) subname//'ERROR: fldname must start with S,F,P, not ',trim(fldname)
+              call shr_sys_abort(subname//"ERROR: fldname must start with S, F, or P")
            end if
 
            select case (trim(fldflow))
@@ -451,7 +453,7 @@ module seq_flds_mod
               if (is_state) call seq_flds_add(x2g_states,trim(fldname))
               if (is_flux ) call seq_flds_add(x2g_fluxes,trim(fldname))
            case default
-              write(6,*) 'seq_flds_mod: error ',trim(cplflds_custom(n)),&
+              write(logunit,*) subname//'ERROR: ',trim(cplflds_custom(n)),&
                    ' not a recognized value'
               call shr_sys_abort()
            end select
@@ -1509,67 +1511,81 @@ module seq_flds_mod
      attname  = 'Figg_rofi'
      call metadata_set(attname, longname, stdname, units)
 
-     do num = 1,seq_flds_glc_nec
-        write(cnum,'(i2.2)') num
+     name = 'Sg_icemask'
+     call seq_flds_add(g2x_states,trim(name))     
+     call seq_flds_add(x2l_states,trim(name))
+     longname = 'Ice sheet grid coverage on global grid'
+     stdname  = 'ice_sheet_grid_mask'
+     units    = 'unitless'
+     attname  = 'Sg_icemask'
+     call metadata_set(attname, longname, stdname, units)     
 
-        ! glc fields: lnd->glc 
+     ! If glc_nec > 0, then create coupling fields for all glc elevation classes
+     ! (1:glc_nec) plus bare land (index 0). Note that, if glc_nec = 0, then we don't
+     ! even need the bare land (0) index.
+     if (seq_flds_glc_nec > 0) then
+        do num = 0,seq_flds_glc_nec
+           write(cnum,'(i2.2)') num
 
-        name = 'Sl_tsrf' // cnum
-        call seq_flds_add(l2x_states,trim(name))
-        call seq_flds_add(x2g_states,trim(name))
-        longname = 'Surface temperature  of glacier elevation class ' // cnum 
-        stdname  = 'surface_temperature'
-        units    = 'deg C'
-        attname  = 'Sl_tsrf' // cnum
-        call metadata_set(attname, longname, stdname, units)
+           ! glc fields: lnd->glc 
 
-        name = 'Sl_topo' // cnum
-        call seq_flds_add(l2x_states,trim(name))
-        call seq_flds_add(x2g_states,trim(name))
-        longname = 'Surface height of glacier elevation class ' // cnum 
-        stdname  = 'height'
-        units    = 'm'
-        attname  = 'Sl_topo' // cnum
-        call metadata_set(attname, longname, stdname, units)
+           name = 'Sl_tsrf' // cnum
+           call seq_flds_add(l2x_states,trim(name))
+           call seq_flds_add(x2g_states,trim(name))
+           longname = 'Surface temperature  of glacier elevation class ' // cnum 
+           stdname  = 'surface_temperature'
+           units    = 'deg C'
+           attname  = 'Sl_tsrf' // cnum
+           call metadata_set(attname, longname, stdname, units)
 
-        name = 'Flgl_qice' // cnum
-        call seq_flds_add(l2x_fluxes,trim(name))
-        call seq_flds_add(x2g_fluxes,trim(name))
-        longname = 'New glacier ice flux of elevation class ' // cnum
-        stdname  = 'ice_flux_out_of_glacier'
-        units    = 'kg m-2 s-1'
-        attname  = 'Fgll_qice' // cnum
-        call metadata_set(attname, longname, stdname, units)
+           name = 'Sl_topo' // cnum
+           call seq_flds_add(l2x_states,trim(name))
+           call seq_flds_add(x2g_states,trim(name))
+           longname = 'Surface height of glacier elevation class ' // cnum 
+           stdname  = 'height'
+           units    = 'm'
+           attname  = 'Sl_topo' // cnum
+           call metadata_set(attname, longname, stdname, units)
 
-        ! glc fields: glc->lnd 
+           name = 'Flgl_qice' // cnum
+           call seq_flds_add(l2x_fluxes,trim(name))
+           call seq_flds_add(x2g_fluxes,trim(name))
+           longname = 'New glacier ice flux of elevation class ' // cnum
+           stdname  = 'ice_flux_out_of_glacier'
+           units    = 'kg m-2 s-1'
+           attname  = 'Fgll_qice' // cnum
+           call metadata_set(attname, longname, stdname, units)
 
-        name = 'Sg_frac' // cnum
-        call seq_flds_add(g2x_states,trim(name))
-        call seq_flds_add(x2l_states,trim(name))
-        longname = 'Fraction of glacier area of elevation class ' // cnum
-        stdname  = 'glacier_area_fraction'
-        units    = 'unitless'    
-        attname  = 'Sg_frac' // cnum
-        call metadata_set(attname, longname, stdname, units)
+           ! glc fields: glc->lnd 
 
-        name = 'Sg_topo' // cnum
-        call seq_flds_add(g2x_states,trim(name))
-        call seq_flds_add(x2l_states,trim(name))
-        longname = 'Surface height of glacier of elevation class ' // cnum
-        stdname  = 'height'
-        units    = 'm'
-        attname  = 'Sg_topo' // cnum
-        call metadata_set(attname, longname, stdname, units)
+           name = 'Sg_frac' // cnum
+           call seq_flds_add(g2x_states,trim(name))
+           call seq_flds_add(x2l_states,trim(name))
+           longname = 'Fraction of glacier area of elevation class ' // cnum
+           stdname  = 'glacier_area_fraction'
+           units    = 'unitless'    
+           attname  = 'Sg_frac' // cnum
+           call metadata_set(attname, longname, stdname, units)
 
-        name = 'Flgg_hflx' // cnum
-        call seq_flds_add(g2x_fluxes,trim(name))
-        call seq_flds_add(x2l_fluxes,trim(name))
-        longname = 'Downward heat flux from glacier interior of elevation class ' // cnum
-        stdname  = 'downward_heat_flux_in_glacier'
-        units    = 'W m-2'    
-        attname  = 'Flgg_hflx' // cnum
-        call metadata_set(attname, longname, stdname, units)
-     end do
+           name = 'Sg_topo' // cnum
+           call seq_flds_add(g2x_states,trim(name))
+           call seq_flds_add(x2l_states,trim(name))
+           longname = 'Surface height of glacier of elevation class ' // cnum
+           stdname  = 'height'
+           units    = 'm'
+           attname  = 'Sg_topo' // cnum
+           call metadata_set(attname, longname, stdname, units)
+
+           name = 'Flgg_hflx' // cnum
+           call seq_flds_add(g2x_fluxes,trim(name))
+           call seq_flds_add(x2l_fluxes,trim(name))
+           longname = 'Downward heat flux from glacier interior of elevation class ' // cnum
+           stdname  = 'downward_heat_flux_in_glacier'
+           units    = 'W m-2'    
+           attname  = 'Flgg_hflx' // cnum
+           call metadata_set(attname, longname, stdname, units)
+        end do
+     end if
 
      if (flds_co2a) then
 
@@ -1774,36 +1790,37 @@ module seq_flds_mod
      seq_flds_x2w_fluxes = trim(x2w_fluxes)
 
      if (seq_comm_iamroot(ID)) then
-        write(6,"(A)")'seq_flds_mod: seq_flds_a2x_states= ',trim(seq_flds_a2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_a2x_fluxes= ',trim(seq_flds_a2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2a_states= ',trim(seq_flds_x2a_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2a_fluxes= ',trim(seq_flds_x2a_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_l2x_states= ',trim(seq_flds_l2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_l2x_fluxes= ',trim(seq_flds_l2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2l_states= ',trim(seq_flds_x2l_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2l_fluxes= ',trim(seq_flds_x2l_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_i2x_states= ',trim(seq_flds_i2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_i2x_fluxes= ',trim(seq_flds_i2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2i_states= ',trim(seq_flds_x2i_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2i_fluxes= ',trim(seq_flds_x2i_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_o2x_states= ',trim(seq_flds_o2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_o2x_fluxes= ',trim(seq_flds_o2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2o_states= ',trim(seq_flds_x2o_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2o_fluxes= ',trim(seq_flds_x2o_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_g2x_states= ',trim(seq_flds_g2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_g2x_fluxes= ',trim(seq_flds_g2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2g_states= ',trim(seq_flds_x2g_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2g_fluxes= ',trim(seq_flds_x2g_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_xao_states= ',trim(seq_flds_xao_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_xao_albedo= ',trim(seq_flds_xao_albedo)
-        write(6,"(A)")'seq_flds_mod: seq_flds_r2x_states= ',trim(seq_flds_r2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_r2x_fluxes= ',trim(seq_flds_r2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2r_states= ',trim(seq_flds_x2r_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2r_fluxes= ',trim(seq_flds_x2r_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_w2x_states= ',trim(seq_flds_w2x_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_w2x_fluxes= ',trim(seq_flds_w2x_fluxes)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2w_states= ',trim(seq_flds_x2w_states)
-        write(6,"(A)")'seq_flds_mod: seq_flds_x2w_fluxes= ',trim(seq_flds_x2w_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_a2x_states= ',trim(seq_flds_a2x_states)
+        write(logunit,"(A)") subname//': seq_flds_a2x_fluxes= ',trim(seq_flds_a2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2a_states= ',trim(seq_flds_x2a_states)
+        write(logunit,"(A)") subname//': seq_flds_x2a_fluxes= ',trim(seq_flds_x2a_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_l2x_states= ',trim(seq_flds_l2x_states)
+        write(logunit,"(A)") subname//': seq_flds_l2x_fluxes= ',trim(seq_flds_l2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2l_states= ',trim(seq_flds_x2l_states)
+        write(logunit,"(A)") subname//': seq_flds_x2l_fluxes= ',trim(seq_flds_x2l_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_i2x_states= ',trim(seq_flds_i2x_states)
+        write(logunit,"(A)") subname//': seq_flds_i2x_fluxes= ',trim(seq_flds_i2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2i_states= ',trim(seq_flds_x2i_states)
+        write(logunit,"(A)") subname//': seq_flds_x2i_fluxes= ',trim(seq_flds_x2i_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_o2x_states= ',trim(seq_flds_o2x_states)
+        write(logunit,"(A)") subname//': seq_flds_o2x_fluxes= ',trim(seq_flds_o2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2o_states= ',trim(seq_flds_x2o_states)
+        write(logunit,"(A)") subname//': seq_flds_x2o_fluxes= ',trim(seq_flds_x2o_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_g2x_states= ',trim(seq_flds_g2x_states)
+        write(logunit,"(A)") subname//': seq_flds_g2x_fluxes= ',trim(seq_flds_g2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2g_states= ',trim(seq_flds_x2g_states)
+        write(logunit,"(A)") subname//': seq_flds_x2g_fluxes= ',trim(seq_flds_x2g_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_xao_states= ',trim(seq_flds_xao_states)
+        write(logunit,"(A)") subname//': seq_flds_xao_fluxes= ',trim(seq_flds_xao_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_xao_albedo= ',trim(seq_flds_xao_albedo)
+        write(logunit,"(A)") subname//': seq_flds_r2x_states= ',trim(seq_flds_r2x_states)
+        write(logunit,"(A)") subname//': seq_flds_r2x_fluxes= ',trim(seq_flds_r2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2r_states= ',trim(seq_flds_x2r_states)
+        write(logunit,"(A)") subname//': seq_flds_x2r_fluxes= ',trim(seq_flds_x2r_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_w2x_states= ',trim(seq_flds_w2x_states)
+        write(logunit,"(A)") subname//': seq_flds_w2x_fluxes= ',trim(seq_flds_w2x_fluxes)
+        write(logunit,"(A)") subname//': seq_flds_x2w_states= ',trim(seq_flds_x2w_states)
+        write(logunit,"(A)") subname//': seq_flds_x2w_fluxes= ',trim(seq_flds_x2w_fluxes)
      end if
 
      call catFields(seq_flds_dom_fields, seq_flds_dom_coord , seq_flds_dom_other )
@@ -1851,6 +1868,7 @@ module seq_flds_mod
 
      !EOP
 
+     character(len=*),parameter :: subname = '(seq_flds_add) '
      !-------------------------------------------------------------------------------
      !
      !-------------------------------------------------------------------------------
@@ -1861,9 +1879,9 @@ module seq_flds_mod
         outfld = trim(outfld)//':'//trim(str)
      end if
      if (len_trim(outfld) >= CXX) then
-        write(6,*)'fields are = ',trim(outfld)
-        write(6,*)'fields length = ',len_trim(outfld)  
-        call shr_sys_abort('add: maximum length of xxx_states or xxx_fluxes has been exceeded')
+        write(logunit,*)'fields are = ',trim(outfld)
+        write(logunit,*)'fields length = ',len_trim(outfld)  
+        call shr_sys_abort(subname//'ERROR: maximum length of xxx_states or xxx_fluxes has been exceeded')
      end if
 
    end subroutine seq_flds_add
@@ -1894,6 +1912,7 @@ module seq_flds_mod
 
      !EOP
 
+     character(len=*),parameter :: subname = '(seq_flds_catFields) '
      !-------------------------------------------------------------------------------
      !
      !-------------------------------------------------------------------------------
@@ -1901,19 +1920,19 @@ module seq_flds_mod
      outfield = ''
      if (len_trim(str1) > 0 .and. len_trim(str2) > 0) then
         if (len_trim(str1) + len_trim(str2) + 1 > len(outfield)) then
-           call shr_sys_abort('catFields: maximum length of string has been exceeded sum')
+           call shr_sys_abort(subname//' ERROR: maximum length of string has been exceeded sum')
         endif
         outfield = trim(str1)//':'//trim(str2)
      else
         if (len_trim(str1) > 0) then
            if (len_trim(str1) > len(outfield)) then
-              call shr_sys_abort('catFields: maximum length of string has been exceeded str1')
+              call shr_sys_abort(subname//' ERROR: maximum length of string has been exceeded str1')
            endif
            outfield = trim(str1)
         endif
         if (len_trim(str2) > 0) then
            if (len_trim(str2) > len(outfield)) then
-              call shr_sys_abort('catFields: maximum length of string has been exceeded str2')
+              call shr_sys_abort(subname//' ERROR: maximum length of string has been exceeded str2')
            endif
            outfield = trim(str2)
         endif
@@ -1950,6 +1969,7 @@ module seq_flds_mod
 
      type(mct_list)   :: mctIstr  ! mct list from input cstring
      type(mct_string) :: mctOStr  ! mct string for output outfield
+     character(len=*),parameter :: subname = '(seq_flds_getField) '
 
      !-------------------------------------------------------------------------------
      !
@@ -1979,11 +1999,12 @@ module seq_flds_mod
      character(len=*), intent(in) :: units    
 
      !EOP
+     character(len=*),parameter :: subname = '(seq_flds_metadata_set) '
 
      n_entries = n_entries + 1
      if (n_entries > nmax) then
-        write(6,*)'n_entries= ',n_entries,' nmax = ',nmax,' attname= ',trim(attname)
-        call shr_sys_abort('nmax fields in lookup_entry table exceeded') 
+        write(logunit,*)'n_entries= ',n_entries,' nmax = ',nmax,' attname= ',trim(attname)
+        call shr_sys_abort(subname//'ERROR: nmax fields in lookup_entry table exceeded') 
      end if
 
      lookup_entry(n_entries,1) = trim(attname )
@@ -2016,6 +2037,7 @@ module seq_flds_mod
      character(len=*),parameter :: undef = 'undefined'
      character(len=*),parameter :: unknown = 'unknown'
      logical :: found
+     character(len=*),parameter :: subname = '(seq_flds_esmf_metadata_get) '
 
      !--- define field metadata (name, long_name, standard_name, units) ---
 

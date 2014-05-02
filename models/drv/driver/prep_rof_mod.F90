@@ -253,22 +253,55 @@ contains
     integer, save :: index_lfrac
     logical, save :: first_time = .true.
     real(r8)      :: lfrac
+    integer       :: nflds,lsize
+    logical       :: iamroot
+    character(CL) :: field        ! field string
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    character(*), parameter   :: subname = '(prep_rof_merge) '
+
     !----------------------------------------------------------------------- 
 
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
+    lsize = mct_aVect_lsize(x2r_r)
+
     if (first_time) then
+       nflds = mct_aVect_nRattr(x2r_r)
+
+       allocate(mrgstr(nflds))
+       do i = 1,nflds
+          field = mct_aVect_getRList2c(i, x2r_r)
+          mrgstr(i) = subname//'x2r%'//trim(field)//' ='
+       enddo
+
        index_l2x_Flrl_rofl = mct_aVect_indexRA(l2x_r,'Flrl_rofl' )
        index_l2x_Flrl_rofi = mct_aVect_indexRA(l2x_r,'Flrl_rofi' )
        index_x2r_Flrl_rofl = mct_aVect_indexRA(x2r_r,'Flrl_rofl' )
        index_x2r_Flrl_rofi = mct_aVect_indexRA(x2r_r,'Flrl_rofi' )
        index_lfrac = mct_aVect_indexRA(fractions_r,"lfrac")
-       first_time = .false.
+
+       mrgstr(index_x2r_Flrl_rofl) = trim(mrgstr(index_x2r_Flrl_rofl))//' = '// &
+          'lfrac*l2x%Flrl_rofl'
+       mrgstr(index_x2r_Flrl_rofi) = trim(mrgstr(index_x2r_Flrl_rofi))//' = '// &
+          'lfrac*l2x%Flrl_rofi'
     end if
 
-    do i = 1,mct_aVect_lsize(x2r_r)
+    do i = 1,lsize
        lfrac = fractions_r%rAttr(index_lfrac,i)
        x2r_r%rAttr(index_x2r_Flrl_rofl,i) = l2x_r%rAttr(index_l2x_Flrl_rofl,i) * lfrac
        x2r_r%rAttr(index_x2r_Flrl_rofi,i) = l2x_r%rAttr(index_l2x_Flrl_rofi,i) * lfrac
     end do
+
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do i = 1,nflds
+             write(logunit,'(A)') trim(mrgstr(i))
+          enddo
+       endif
+       deallocate(mrgstr)
+    endif
+
+    first_time = .false.
 
   end subroutine prep_rof_merge
 

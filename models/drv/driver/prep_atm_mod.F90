@@ -48,7 +48,6 @@ module prep_atm_mod
   !--------------------------------------------------------------------------
 
   private :: prep_atm_merge
-  private :: getfld
 
   !--------------------------------------------------------------------------
   ! Private data
@@ -279,26 +278,32 @@ contains
     !
     ! Local workspace
     real(r8) :: fracl, fraci, fraco
-    integer  :: n,ka,ki,kl,ko,kx,kof,kif,klf
+    integer  :: n,ka,ki,kl,ko,kx,kof,kif,klf,i,i1,o1
     integer  :: lsize       
     integer  :: index_x2a_Sf_lfrac
     integer  :: index_x2a_Sf_ifrac
     integer  :: index_x2a_Sf_ofrac
-    character(CL) :: field_atm   ! string converted to char
-    character(CL) :: field_lnd   ! string converted to char
-    character(CL) :: field_ice   ! string converted to char
-    character(CL) :: field_xao   ! string converted to char
-    character(CL) :: field_ocn   ! string converted to char
-    character(CL) :: itemc_atm   ! string converted to char
-    character(CL) :: itemc_lnd   ! string converted to char
-    character(CL) :: itemc_ice   ! string converted to char
-    character(CL) :: itemc_xao   ! string converted to char
-    character(CL) :: itemc_ocn   ! string converted to char
+    character(CL),allocatable :: field_atm(:)   ! string converted to char
+    character(CL),allocatable :: field_lnd(:)   ! string converted to char
+    character(CL),allocatable :: field_ice(:)   ! string converted to char
+    character(CL),allocatable :: field_xao(:)   ! string converted to char
+    character(CL),allocatable :: field_ocn(:)   ! string converted to char
+    character(CL),allocatable :: itemc_atm(:)   ! string converted to char
+    character(CL),allocatable :: itemc_lnd(:)   ! string converted to char
+    character(CL),allocatable :: itemc_ice(:)   ! string converted to char
+    character(CL),allocatable :: itemc_xao(:)   ! string converted to char
+    character(CL),allocatable :: itemc_ocn(:)   ! string converted to char
     logical :: iamroot  
-    logical :: first_time = .true.
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    logical, save :: first_time = .true.
+    type(mct_aVect_sharedindices),save :: l2x_sharedindices
+    type(mct_aVect_sharedindices),save :: o2x_sharedindices
+    type(mct_aVect_sharedindices),save :: i2x_sharedindices
+    type(mct_aVect_sharedindices),save :: xao_sharedindices
     logical, pointer, save :: lmerge(:),imerge(:),xmerge(:),omerge(:)
     integer, pointer, save :: lindx(:), iindx(:), oindx(:),xindx(:)
-    integer, save          :: naflds, klflds,niflds,noflds,nxflds
+    integer, save          :: naflds, nlflds,niflds,noflds,nxflds
+    character(*), parameter   :: subname = '(prep_atm_merge) '
     !-----------------------------------------------------------------------
     !
     call seq_comm_getdata(CPLID, iamroot=iamroot)
@@ -306,7 +311,7 @@ contains
     if (first_time) then
           
        naflds = mct_aVect_nRattr(x2a_a)
-       klflds = mct_aVect_nRattr(l2x_a)
+       nlflds = mct_aVect_nRattr(l2x_a)
        niflds = mct_aVect_nRattr(i2x_a)
        noflds = mct_aVect_nRattr(o2x_a)
        nxflds = mct_aVect_nRattr(xao_a)
@@ -315,6 +320,12 @@ contains
        allocate(iindx(naflds), imerge(naflds))
        allocate(xindx(naflds), xmerge(naflds))
        allocate(oindx(naflds), omerge(naflds))
+       allocate(field_atm(naflds), itemc_atm(naflds))
+       allocate(field_lnd(nlflds), itemc_lnd(nlflds))
+       allocate(field_ice(niflds), itemc_ice(niflds))
+       allocate(field_ocn(noflds), itemc_ocn(noflds))
+       allocate(field_xao(nxflds), itemc_xao(nxflds))
+       allocate(mrgstr(naflds))
 
        lindx(:) = 0
        iindx(:) = 0
@@ -325,78 +336,138 @@ contains
        xmerge(:)  = .true.
        omerge(:)  = .true.
 
+       do ka = 1,naflds
+          field_atm(ka) = mct_aVect_getRList2c(ka, x2a_a)
+          itemc_atm(ka) = trim(field_atm(ka)(scan(field_atm(ka),'_'):))
+       enddo
+       do kl = 1,nlflds
+          field_lnd(kl) = mct_aVect_getRList2c(kl, l2x_a)
+          itemc_lnd(kl) = trim(field_lnd(kl)(scan(field_lnd(kl),'_'):))
+       enddo
+       do ki = 1,niflds
+          field_ice(ki) = mct_aVect_getRList2c(ki, i2x_a)
+          itemc_ice(ki) = trim(field_ice(ki)(scan(field_ice(ki),'_'):))
+       enddo
+       do ko = 1,noflds
+          field_ocn(ko) = mct_aVect_getRList2c(ko, o2x_a)
+          itemc_ocn(ko) = trim(field_ocn(ko)(scan(field_ocn(ko),'_'):))
+       enddo
+       do kx = 1,nxflds
+          field_xao(kx) = mct_aVect_getRList2c(kx, xao_a)
+          itemc_xao(kx) = trim(field_xao(kx)(scan(field_xao(kx),'_'):))
+       enddo
+
+       call mct_aVect_setSharedIndices(l2x_a, x2a_a, l2x_SharedIndices)
+       call mct_aVect_setSharedIndices(o2x_a, x2a_a, o2x_SharedIndices)
+       call mct_aVect_setSharedIndices(i2x_a, x2a_a, i2x_SharedIndices)
+       call mct_aVect_setSharedIndices(xao_a, x2a_a, xao_SharedIndices)
+
        ! Field naming rules
        ! Only atm states that are Sx_... will be merged
        ! Only fluxes that are F??x_... will be merged 
        ! All fluxes will be multiplied by corresponding component fraction
 
        do ka = 1,naflds
-          call getfld(ka, x2a_a, field_atm, itemc_atm)
-          if (field_atm(1:2) == 'PF') then
+          !--- document merge ---
+          mrgstr(ka) = subname//'x2a%'//trim(field_atm(ka))//' ='
+          if (field_atm(ka)(1:2) == 'PF') then
              cycle ! if flux has first character as P, pass straight through 
           end if
-          if (field_atm(1:1) == 'S' .and. field_atm(2:2) /= 'x') then
+          if (field_atm(ka)(1:1) == 'S' .and. field_atm(ka)(2:2) /= 'x') then
              cycle ! any state fields that are not Sx_ will just be copied
           end if
 
-          do kl = 1,klflds
-             call getfld(kl, l2x_a, field_lnd, itemc_lnd)
-             if (trim(itemc_atm) == trim(itemc_lnd)) then
-                if ((trim(field_atm) == trim(field_lnd))) then
-                   if (field_lnd(1:1) == 'F') lmerge(ka) = .false.
+          do kl = 1,nlflds
+             if (trim(itemc_atm(ka)) == trim(itemc_lnd(kl))) then
+                if ((trim(field_atm(ka)) == trim(field_lnd(kl)))) then
+                   if (field_lnd(kl)(1:1) == 'F') lmerge(ka) = .false.
                 end if
+                ! --- make sure only one field matches ---
+                if (lindx(ka) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple kl field matches for ',trim(itemc_lnd(kl))
+                   call shr_sys_abort(subname//' ERROR multiple kl field matches')
+                endif
                 lindx(ka) = kl
-                exit 
              end if
           end do
           do ki = 1,niflds
-             call getfld(ki, i2x_a, field_ice, itemc_ice)
-             if (field_ice(1:1) == 'F' .and. field_ice(2:4) == 'ioi') then
+             if (field_ice(ki)(1:1) == 'F' .and. field_ice(ki)(2:4) == 'ioi') then
                 cycle ! ignore all fluxes that are ice/ocn fluxes
              end if
-             if (trim(itemc_atm) == trim(itemc_ice)) then
-                if ((trim(field_atm) == trim(field_ice))) then
-                   if (field_ice(1:1) == 'F') imerge(ka) = .false.
+             if (trim(itemc_atm(ka)) == trim(itemc_ice(ki))) then
+                if ((trim(field_atm(ka)) == trim(field_ice(ki)))) then
+                   if (field_ice(ki)(1:1) == 'F') imerge(ka) = .false.
                 end if
+                ! --- make sure only one field matches ---
+                if (iindx(ka) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple ki field matches for ',trim(itemc_ice(ki))
+                   call shr_sys_abort(subname//' ERROR multiple ki field matches')
+                endif
                 iindx(ka) = ki
-                exit 
              end if
           end do
           do kx = 1,nxflds
-             call getfld(kx, xao_a, field_xao, itemc_xao)
-             if (trim(itemc_atm) == trim(itemc_xao)) then
-                if ((trim(field_atm) == trim(field_xao))) then
-                   if (field_xao(1:1) == 'F') xmerge(ka) = .false.
+             if (trim(itemc_atm(ka)) == trim(itemc_xao(kx))) then
+                if ((trim(field_atm(ka)) == trim(field_xao(kx)))) then
+                   if (field_xao(kx)(1:1) == 'F') xmerge(ka) = .false.
                 end if
+                ! --- make sure only one field matches ---
+                if (xindx(ka) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple kx field matches for ',trim(itemc_xao(kx))
+                   call shr_sys_abort(subname//' ERROR multiple kx field matches')
+                endif
                 xindx(ka) = kx
-                exit 
              end if
           end do
           do ko = 1,noflds
-             call getfld(ko, o2x_a, field_ocn, itemc_ocn)
-             if (trim(itemc_atm) == trim(itemc_ocn)) then
-                if ((trim(field_atm) == trim(field_ocn))) then
-                   if (field_ocn(1:1) == 'F') omerge(ka) = .false.
+             if (trim(itemc_atm(ka)) == trim(itemc_ocn(ko))) then
+                if ((trim(field_atm(ka)) == trim(field_ocn(ko)))) then
+                   if (field_ocn(ko)(1:1) == 'F') omerge(ka) = .false.
                 end if
+                ! --- make sure only one field matches ---
+                if (oindx(ka) /= 0) then
+                   write(logunit,*) subname,' ERROR: found multiple ko field matches for ',trim(itemc_ocn(ko))
+                   call shr_sys_abort(subname//' ERROR multiple ko field matches')
+                endif
                 oindx(ka) = ko
-                exit 
              end if
           end do
-          if (lindx(ka) == 0) itemc_lnd = 'unset'
-          if (iindx(ka) == 0) itemc_ice = 'unset'
-          if (xindx(ka) == 0) itemc_xao = 'unset'
-          if (oindx(ka) == 0) itemc_ocn = 'unset'
 
-          if (iamroot) then
-             write(logunit,10)trim(itemc_atm),trim(itemc_lnd),&
-                  trim(itemc_ice),trim(itemc_xao),trim(itemc_ocn)
-10           format(' ',' atm field: ',a15,', lnd merge: ',a15, &
-                  ', ice merge: ',a15,', xao merge: ',a15,', ocn merge: ',a15)
-             write(logunit, *)'field_atm,lmerge, imerge, xmerge, omerge= ',&
-                  trim(field_atm),lmerge(ka),imerge(ka),xmerge(ka),omerge(ka)
-         end if
+          ! --- add some checks ---
+
+          ! --- make sure all terms agree on merge or non-merge aspect ---
+          if (oindx(ka) > 0 .and. xindx(ka) > 0) then
+             write(logunit,*) subname,' ERROR: oindx and xindx both non-zero, not allowed ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR oindx and xindx both non-zero')
+          endif
+
+          ! --- make sure all terms agree on merge or non-merge aspect ---
+          if (lindx(ka) > 0 .and. iindx(ka) > 0 .and. (lmerge(ka) .neqv. imerge(ka))) then
+             write(logunit,*) subname,' ERROR: lindx and iindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR lindx and iindx merge logic error')
+          endif
+          if (lindx(ka) > 0 .and. xindx(ka) > 0 .and. (lmerge(ka) .neqv. xmerge(ka))) then
+             write(logunit,*) subname,' ERROR: lindx and xindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR lindx and xindx merge logic error')
+          endif
+          if (lindx(ka) > 0 .and. oindx(ka) > 0 .and. (lmerge(ka) .neqv. omerge(ka))) then
+             write(logunit,*) subname,' ERROR: lindx and oindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR lindx and oindx merge logic error')
+          endif
+          if (xindx(ka) > 0 .and. iindx(ka) > 0 .and. (xmerge(ka) .neqv. imerge(ka))) then
+             write(logunit,*) subname,' ERROR: xindx and iindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR xindx and iindx merge logic error')
+          endif
+          if (xindx(ka) > 0 .and. oindx(ka) > 0 .and. (xmerge(ka) .neqv. omerge(ka))) then
+             write(logunit,*) subname,' ERROR: xindx and oindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR xindx and oindx merge logic error')
+          endif
+          if (iindx(ka) > 0 .and. oindx(ka) > 0 .and. (imerge(ka) .neqv. omerge(ka))) then
+             write(logunit,*) subname,' ERROR: iindx and oindx merge logic error ',trim(itemc_atm(ka))
+             call shr_sys_abort(subname//' ERROR iindx and oindx merge logic error')
+          endif
+
        end do
-       first_time = .false.
     end if
 
     ! Zero attribute vector
@@ -419,21 +490,90 @@ contains
        x2a_a%rAttr(index_x2a_Sf_ofrac,n) = fractions_a%Rattr(kof,n)
     end do
 
+    !--- document fraction operations ---
+    if (first_time) then
+       mrgstr(index_x2a_sf_lfrac) = trim(mrgstr(index_x2a_sf_lfrac))//' = fractions_a%lfrac'
+       mrgstr(index_x2a_sf_ifrac) = trim(mrgstr(index_x2a_sf_ifrac))//' = fractions_a%ifrac'
+       mrgstr(index_x2a_sf_ofrac) = trim(mrgstr(index_x2a_sf_ofrac))//' = fractions_a%ofrac'
+    endif
+
     ! Copy attributes that do not need to be merged
     ! These are assumed to have the same name in 
     ! (o2x_a and x2a_a) and in (l2x_a and x2a_a), etc.
 
-    call mct_aVect_copy(aVin=l2x_a, aVout=x2a_a, vector=mct_usevector)
-    call mct_aVect_copy(aVin=o2x_a, aVout=x2a_a, vector=mct_usevector)
-    call mct_aVect_copy(aVin=i2x_a, aVout=x2a_a, vector=mct_usevector) 
-    call mct_aVect_copy(aVin=xao_a, aVout=x2a_a, vector=mct_usevector)
+    !--- document copy operations ---
+    if (first_time) then
+       !--- document merge ---
+       do i=1,l2x_SharedIndices%shared_real%num_indices
+          i1=l2x_SharedIndices%shared_real%aVindices1(i)
+          o1=l2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = l2x%'//trim(field_lnd(i1))
+       enddo
+       do i=1,o2x_SharedIndices%shared_real%num_indices
+          i1=o2x_SharedIndices%shared_real%aVindices1(i)
+          o1=o2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = o2x%'//trim(field_ocn(i1))
+       enddo
+       do i=1,i2x_SharedIndices%shared_real%num_indices
+          i1=i2x_SharedIndices%shared_real%aVindices1(i)
+          o1=i2x_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = i2x%'//trim(field_ice(i1))
+       enddo
+       do i=1,xao_SharedIndices%shared_real%num_indices
+          i1=xao_SharedIndices%shared_real%aVindices1(i)
+          o1=xao_SharedIndices%shared_real%aVindices2(i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = xao%'//trim(field_xao(i1))
+       enddo
+    endif
+
+!    call mct_aVect_copy(aVin=l2x_a, aVout=x2a_a, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=o2x_a, aVout=x2a_a, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=i2x_a, aVout=x2a_a, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=xao_a, aVout=x2a_a, vector=mct_usevector)
+    call mct_aVect_copy(aVin=l2x_a, aVout=x2a_a, vector=mct_usevector, sharedIndices=l2x_SharedIndices)
+    call mct_aVect_copy(aVin=o2x_a, aVout=x2a_a, vector=mct_usevector, sharedIndices=o2x_SharedIndices)
+    call mct_aVect_copy(aVin=i2x_a, aVout=x2a_a, vector=mct_usevector, sharedIndices=i2x_SharedIndices) 
+    call mct_aVect_copy(aVin=xao_a, aVout=x2a_a, vector=mct_usevector, sharedIndices=xao_SharedIndices)
 
     ! If flux to atm is coming only from the ocean (based on field being in o2x_a) - 
     ! -- then scale by both ocean and ice fraction
     ! If flux to atm is coming only from the land or ice or coupler
     ! -- then do scale by fraction above
-    
+   
     do ka = 1,naflds
+       !--- document merge ---
+       if (first_time) then
+          if (lindx(ka) > 0) then
+             if (lmerge(ka)) then 
+                mrgstr(ka) = trim(mrgstr(ka))//' + lfrac*l2x%'//trim(field_lnd(lindx(ka)))
+             else
+                mrgstr(ka) = trim(mrgstr(ka))//' = lfrac*l2x%'//trim(field_lnd(lindx(ka)))
+             end if
+          end if
+          if (iindx(ka) > 0) then
+             if (imerge(ka)) then 
+                mrgstr(ka) = trim(mrgstr(ka))//' + ifrac*i2x%'//trim(field_ice(iindx(ka)))
+             else
+                mrgstr(ka) = trim(mrgstr(ka))//' = ifrac*i2x%'//trim(field_ice(iindx(ka)))
+             end if
+          end if
+          if (xindx(ka) > 0) then
+             if (xmerge(ka)) then
+                mrgstr(ka) = trim(mrgstr(ka))//' + ofrac*xao%'//trim(field_xao(xindx(ka)))
+             else
+                mrgstr(ka) = trim(mrgstr(ka))//' = ofrac*xao%'//trim(field_xao(xindx(ka)))
+             end if
+          end if
+          if (oindx(ka) > 0) then
+             if (omerge(ka)) then
+                mrgstr(ka) = trim(mrgstr(ka))//' + ofrac*o2x%'//trim(field_ocn(oindx(ka)))
+             end if
+             if (.not. omerge(ka)) then
+                mrgstr(ka) = trim(mrgstr(ka))//' + (ifrac+ofrac)*o2x%'//trim(field_ocn(oindx(ka)))
+             end if
+          end if
+       endif
+
        do n = 1,lsize
           fracl = fractions_a%Rattr(klf,n)
           fraci = fractions_a%Rattr(kif,n)
@@ -472,28 +612,24 @@ contains
        end do
     end do
 
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do ka = 1,naflds
+             write(logunit,'(A)') trim(mrgstr(ka))
+          enddo
+       endif
+       deallocate(mrgstr)
+       deallocate(field_atm,itemc_atm)
+       deallocate(field_lnd,itemc_lnd)
+       deallocate(field_ice,itemc_ice)
+       deallocate(field_ocn,itemc_ocn)
+       deallocate(field_xao,itemc_xao)
+    endif
+
+    first_time = .false.
+
   end subroutine prep_atm_merge
-
-  !================================================================================================
-
-  subroutine getfld(n, av, field, suffix)
-    integer         , intent(in)    :: n
-    type(mct_aVect) , intent(in)    :: av 
-    character(len=*), intent(out)   :: field
-    character(len=*), intent(out)   :: suffix
-
-    type(mct_string) :: mstring     ! mct char type
-
-    call mct_aVect_getRList(mstring,n,av)
-    field  = mct_string_toChar(mstring)
-    suffix = trim(field(scan(field,'_'):))
-    call mct_string_clean(mstring)
-
-    if (field(1:1) /= 'S' .and. field(1:1) /= 'F' .and. field(1:2) /= 'PF') then
-       write(6,*)'field attribute',trim(field),' must start with S or F or PF' 
-       call shr_sys_abort()
-    end if
-  end subroutine getfld
 
   !================================================================================================
 

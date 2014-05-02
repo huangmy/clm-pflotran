@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: seq_infodata_mod.F90 55277 2013-11-13 20:02:22Z mvertens $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_07/shr/seq_infodata_mod.F90 $
+! SVN $Id: seq_infodata_mod.F90 59750 2014-05-01 15:17:20Z sacks $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_10/shr/seq_infodata_mod.F90 $
 !===============================================================================
 !BOP ===========================================================================
 !
@@ -101,6 +101,8 @@ MODULE seq_infodata_mod
       real(SHR_KIND_R8)       :: orb_mvelpp      ! See shr_orb_mod
       character(SHR_KIND_CL)  :: flux_epbal      ! selects E,P,R adjustment technique 
       logical                 :: flux_albav      ! T => no diurnal cycle in ocn albedos
+      real(SHR_KIND_R8)       :: wall_time_limit ! force stop time limit (hours)
+      character(SHR_KIND_CS)  :: force_stop_at   ! when to force a stop (month, day, etc)
       character(SHR_KIND_CL)  :: atm_gnam        ! atm grid
       character(SHR_KIND_CL)  :: lnd_gnam        ! lnd grid
       character(SHR_KIND_CL)  :: ocn_gnam        ! ocn grid
@@ -291,6 +293,8 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
     real(SHR_KIND_R8)      :: orb_mvelpp         ! mvelp plus pi
     character(SHR_KIND_CL) :: flux_epbal         ! selects E,P,R adjustment technique 
     logical                :: flux_albav         ! T => no diurnal cycle in ocn albedos
+    real(SHR_KIND_R8)      :: wall_time_limit    ! force stop time limit (hours)
+    character(SHR_KIND_CS) :: force_stop_at      ! when to force a stop (month, day, etc)
     character(SHR_KIND_CL) :: atm_gnam           ! atm grid
     character(SHR_KIND_CL) :: lnd_gnam           ! lnd grid
     character(SHR_KIND_CL) :: ocn_gnam           ! ocn grid
@@ -340,10 +344,10 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
          atm_adiabatic, atm_ideal_phys, aqua_planet,aqua_planet_sst, &
          brnch_retain_casename, info_debug, bfbflag,       &
          restart_pfile, restart_file, run_barriers,        &
-         single_column, scmlat,                            &
+         single_column, scmlat, force_stop_at,             &
          scmlon, logFilePostFix, outPathRoot,              &
          perpetual, perpetual_ymd, flux_epbal, flux_albav, &
-         orb_iyear_align, orb_mode,                        &
+         orb_iyear_align, orb_mode, wall_time_limit,       &
          orb_iyear, orb_obliq, orb_eccen, orb_mvelp,       &
          ice_gnam, rof_gnam, glc_gnam, wav_gnam,           &
          atm_gnam, lnd_gnam, ocn_gnam, cpl_decomp,         &
@@ -406,6 +410,8 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
        orb_mvelp             = SHR_ORB_UNDEF_REAL
        flux_epbal            = 'off'
        flux_albav            = .false.
+       wall_time_limit       = -1.0
+       force_stop_at         = 'month'
        atm_gnam              = 'undefined'
        lnd_gnam              = 'undefined'
        ocn_gnam              = 'undefined'
@@ -493,6 +499,8 @@ SUBROUTINE seq_infodata_Init( infodata, nmlfile, ID)
        infodata%perpetual_ymd         = perpetual_ymd
        infodata%flux_epbal            = flux_epbal
        infodata%flux_albav            = flux_albav
+       infodata%wall_time_limit       = wall_time_limit
+       infodata%force_stop_at         = force_stop_at
        infodata%atm_gnam              = atm_gnam
        infodata%lnd_gnam              = lnd_gnam
        infodata%ocn_gnam              = ocn_gnam
@@ -757,8 +765,8 @@ SUBROUTINE seq_infodata_GetData( infodata, case_name, case_desc, timing_dir,  &
            nextsw_cday, precip_fact, flux_epbal, flux_albav, glcrun_alarm,    &
            glc_g2lupdate, atm_aero, run_barriers, esmf_map_flag,              &
            ocean_tight_coupling, do_budgets, do_histinit, drv_threading,      &
-           budget_inst, budget_daily, budget_month,                           &
-           budget_ann, budget_ltann, budget_ltend ,                           &
+           budget_inst, budget_daily, budget_month, wall_time_limit,          &
+           budget_ann, budget_ltann, budget_ltend , force_stop_at,            &
            histaux_a2x    , histaux_a2x3hr, histaux_a2x3hrp , histaux_l2x1yr, &
            histaux_a2x24hr, histaux_l2x   , histaux_r2x     , orb_obliq,      &
            cpl_cdf64, orb_iyear, orb_iyear_align, orb_mode, orb_mvelp,        &
@@ -813,6 +821,8 @@ SUBROUTINE seq_infodata_GetData( infodata, case_name, case_desc, timing_dir,  &
    real(SHR_KIND_R8)   ,optional, intent(OUT) :: orb_mvelp     ! See shr_orb_mod
    character(len=*)    ,optional, intent(OUT) :: flux_epbal    ! selects E,P,R adjustment technique 
    logical             ,optional, intent(OUT) :: flux_albav    ! T => no diurnal cycle in ocn albedos
+   real(SHR_KIND_R8)   ,optional, intent(OUT) :: wall_time_limit ! force stop wall time (hours)
+   character(len=*)    ,optional, intent(OUT) :: force_stop_at ! force stop at next (month, day, etc)
    character(len=*)    ,optional, intent(OUT) :: atm_gnam      ! atm grid
    character(len=*)    ,optional, intent(OUT) :: lnd_gnam      ! lnd grid
    character(len=*)    ,optional, intent(OUT) :: ocn_gnam      ! ocn grid
@@ -954,6 +964,8 @@ SUBROUTINE seq_infodata_GetData( infodata, case_name, case_desc, timing_dir,  &
     if ( present(orb_mvelp)      ) orb_mvelp      = infodata%orb_mvelp
     if ( present(flux_epbal)     ) flux_epbal     = infodata%flux_epbal
     if ( present(flux_albav)     ) flux_albav     = infodata%flux_albav
+    if ( present(wall_time_limit)) wall_time_limit= infodata%wall_time_limit
+    if ( present(force_stop_at)  ) force_stop_at  = infodata%force_stop_at
     if ( present(atm_gnam)       ) atm_gnam       = infodata%atm_gnam
     if ( present(lnd_gnam)       ) lnd_gnam       = infodata%lnd_gnam
     if ( present(ocn_gnam)       ) ocn_gnam       = infodata%ocn_gnam
@@ -1089,9 +1101,9 @@ SUBROUTINE seq_infodata_PutData( infodata, case_name, case_desc, timing_dir,  &
            atm_gnam, ocn_gnam, info_debug, dead_comps, read_restart,          &
            shr_map_dopole, vect_map, aoflux_grid, run_barriers,               &
            nextsw_cday, precip_fact, flux_epbal, flux_albav, glcrun_alarm,    &
-           glc_g2lupdate, atm_aero, esmf_map_flag,                            &
+           glc_g2lupdate, atm_aero, esmf_map_flag, wall_time_limit,           &
            ocean_tight_coupling, do_budgets, do_histinit, drv_threading,      &
-           budget_inst, budget_daily, budget_month,                           &
+           budget_inst, budget_daily, budget_month, force_stop_at,            &
            budget_ann, budget_ltann, budget_ltend ,                           &
            histaux_a2x    , histaux_a2x3hr, histaux_a2x3hrp , histaux_l2x1yr, &
            histaux_a2x24hr, histaux_l2x   , histaux_r2x     , orb_obliq,      &
@@ -1147,6 +1159,8 @@ SUBROUTINE seq_infodata_PutData( infodata, case_name, case_desc, timing_dir,  &
    real(SHR_KIND_R8)   ,optional, intent(IN) :: orb_mvelp     ! See shr_orb_mod
    character(len=*)    ,optional, intent(IN) :: flux_epbal    ! selects E,P,R adjustment technique 
    logical             ,optional, intent(IN) :: flux_albav    ! T => no diurnal cycle in ocn albedos
+   real(SHR_KIND_R8)   ,optional, intent(IN) :: wall_time_limit ! force stop wall time (hours)
+   character(len=*)    ,optional, intent(IN) :: force_stop_at ! force a stop at next (month, day, etc)
    character(len=*)    ,optional, intent(IN) :: atm_gnam   ! atm grid
    character(len=*)    ,optional, intent(IN) :: lnd_gnam   ! lnd grid
    character(len=*)    ,optional, intent(IN) :: ocn_gnam   ! ocn grid
@@ -1286,6 +1300,8 @@ SUBROUTINE seq_infodata_PutData( infodata, case_name, case_desc, timing_dir,  &
     if ( present(orb_mvelp)      ) infodata%orb_mvelp      = orb_mvelp
     if ( present(flux_epbal)     ) infodata%flux_epbal     = flux_epbal
     if ( present(flux_albav)     ) infodata%flux_albav     = flux_albav
+    if ( present(wall_time_limit)) infodata%wall_time_limit= wall_time_limit
+    if ( present(force_stop_at)  ) infodata%force_stop_at  = force_stop_at
     if ( present(atm_gnam)       ) infodata%atm_gnam       = atm_gnam
     if ( present(lnd_gnam)       ) infodata%lnd_gnam       = lnd_gnam
     if ( present(ocn_gnam)       ) infodata%ocn_gnam       = ocn_gnam
@@ -1449,6 +1465,8 @@ subroutine seq_infodata_bcast(infodata,mpicom)
     call shr_mpi_bcast(infodata%orb_mvelpp,            mpicom)
     call shr_mpi_bcast(infodata%flux_epbal,            mpicom)
     call shr_mpi_bcast(infodata%flux_albav,            mpicom)
+    call shr_mpi_bcast(infodata%wall_time_limit,       mpicom)
+    call shr_mpi_bcast(infodata%force_stop_at,         mpicom)
     call shr_mpi_bcast(infodata%atm_gnam,              mpicom)
     call shr_mpi_bcast(infodata%lnd_gnam,              mpicom)
     call shr_mpi_bcast(infodata%ocn_gnam,              mpicom)
@@ -2044,6 +2062,8 @@ SUBROUTINE seq_infodata_print( infodata )
 
        write(logunit,F0A) subname,'flux_epbal               = ', trim(infodata%flux_epbal)
        write(logunit,F0L) subname,'flux_albav               = ', infodata%flux_albav
+       write(logunit,F0R) subname,'wall_time_limit          = ', infodata%wall_time_limit
+       write(logunit,F0A) subname,'force_stop_at            = ', trim(infodata%force_stop_at)
        write(logunit,F0A) subname,'atm_gridname             = ', trim(infodata%atm_gnam)
        write(logunit,F0A) subname,'lnd_gridname             = ', trim(infodata%lnd_gnam)
        write(logunit,F0A) subname,'ocn_gridname             = ', trim(infodata%ocn_gnam)
