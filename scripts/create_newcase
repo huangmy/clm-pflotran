@@ -2029,7 +2029,7 @@ sub list_grids
   print "\n";
   # Component grids
   print "======================================================\n";
-  print ("Component Grids:  name (alias) \n");
+  print ("Component Grids:  name\t(alias)\t(desc)\t(nx)\t(ny) \n");
   print "======================================================\n";
   my @e = $xml->elements_by_name( "gridhorz" );
   my %a = ();
@@ -2038,26 +2038,41 @@ sub list_grids
     my $hgrid = clean($attr{'name'});
     my $alias = clean($attr{'alias'});
     my $gridname;
-    if ($alias) {
-      print "    $hgrid ($alias)  \n";
-    } else {
-      print "    $hgrid \n";
+    printf "    %-20s ", $hgrid;
+    foreach my $item ( "alias" ) {
+       if ($attr{$item}) {
+         print " ($item: $attr{$item})";
+       }
     }
+    my @children = $e->get_children();
+    my %elements = undef;
+    foreach my $child (@children) {
+       my $name = clean($child->get_name());
+       $elements{$name} = clean($child->get_text());
+    }
+    foreach my $item ( "desc", "nx", "ny" ) {
+       if ($elements{$item}) {
+         print " ($item: $elements{$item})";
+       }
+    }
+    print " \n";
   }
   print ("  \n");
   # Model grids
   print "======================================================\n";
-  print ("Model Grids:  name (alias) \n");
+  print ("Model Grids:  name\t(alias)\t(compset) \n");
   print "======================================================\n";
   my @e = $xml->elements_by_name( "GRID" );
   while ( my $e = shift @e ) {
     my %attr = $e->get_attributes();
     my $text = clean($e->get_text());
-    if ($attr{'alias'}) {
-      print "model grid: $text (alias $attr{'alias'})\n";
-    } else {
-      print "model grid: $text \n";
+    printf "%s %-87s ", "model grid: ", $text;
+    foreach my $item ( "alias", "compset" ) {
+       if ($attr{$item}) {
+         print " ($item: $attr{$item})";
+       }
     }
+    print "\n";
   }    
   print " \n";
 

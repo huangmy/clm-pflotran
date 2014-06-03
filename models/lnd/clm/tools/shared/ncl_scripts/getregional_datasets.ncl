@@ -4,11 +4,11 @@
 ;
 ;  Erik Kluzek
 ;  Aug/28/2009
-;  $Id: getregional_datasets.ncl 55580 2013-11-23 18:40:57Z erik $
+;  $Id: getregional_datasets.ncl 60694 2014-05-27 22:16:25Z erik $
 ;  $HeadURL;
 ;
+load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl";
 begin
-  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl";
   ; ===========================================================================================================
   ;
   ; IMPORTANT NOTE: EDIT THE FOLLOWING TO CUSTOMIZE or use ENV VARIABLE SETTINGS

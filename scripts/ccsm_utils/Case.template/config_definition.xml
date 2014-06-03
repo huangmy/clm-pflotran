@@ -3726,6 +3726,14 @@ restarting where the previous finished."
  sdesc="Whether to compare the baseline"
 ></entry>
 
+<entry id="MODEL_GEN_COMP"
+ type="char"
+ valid_values=""
+ value="UNSET"
+ group="case_test"
+ sdesc="Whether to compare model component history files on compare or generate (and which model)"
+></entry>
+
 <entry id="BASEGEN_CASE"
  type="char"
  valid_values=""

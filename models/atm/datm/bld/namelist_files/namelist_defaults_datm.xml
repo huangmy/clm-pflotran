@@ -48,7 +48,6 @@ Currently the following streams are supported (term definitions precede the stre
     co2tseries      = Time series of prescribed CO2 forcing
     Anomaly.Forcing = Time series of correction terms
     BC              = Bias Correction for a stream to a given set of observations
-    WRF             = Coupling to WRF model
     WW3             = Wave model forcing
 
     Anomaly.Forcing.Humidity 
@@ -132,7 +131,6 @@ Currently the following streams are supported (term definitions precede the stre
     presaero.rcp6.0
     presaero.rcp8.5
 
-    WRF
     WW3
 
 -->
@@ -160,7 +158,6 @@ Currently the following streams are supported (term definitions precede the stre
 <streamslist datm_mode="CORE2_NYF" >CORE2_NYF.GISS,CORE2_NYF.GXGXS,CORE2_NYF.NCEP</streamslist>
 <streamslist datm_mode="CORE2_IAF" >CORE2_IAF.GCGCS.PREC,CORE2_IAF.GISS.LWDN,CORE2_IAF.GISS.SWDN,CORE2_IAF.GISS.SWUP,CORE2_IAF.NCEP.DN10,CORE2_IAF.NCEP.Q_10,CORE2_IAF.NCEP.SLP_,CORE2_IAF.NCEP.T_10,CORE2_IAF.NCEP.U_10,CORE2_IAF.NCEP.V_10,CORE2_IAF.CORE2.ArcFactor</streamslist>
 <streamslist datm_mode="CPLHIST3HrWx">CPLHIST3HrWx.Solar,CPLHIST3HrWx.Precip,CPLHIST3HrWx.nonSolarNonPrecip</streamslist>
-<streamslist datm_mode="WRF"      >WRF</streamslist>
 <streamslist datm_mode="WW3"      >WW3</streamslist>
 
 <!-- =========================================  -->
@@ -295,7 +292,7 @@ Currently the following streams are supported (term definitions precede the stre
 <strm_year_end   stream="CLM1PT.CLM_USRDAT">$DATM_CLMNCEP_YR_END</strm_year_end>
 <strm_domdir     stream="CLM1PT.CLM_USRDAT">$ATM_DOMAIN_PATH</strm_domdir>
 <strm_domfil     stream="CLM1PT.CLM_USRDAT">$ATM_DOMAIN_FILE</strm_domfil>
-<strm_datdir     stream="CLM1PT.CLM_USRDAT">$DIN_LOC_ROOT/atm/datm7/CLM1PT_data/$CLM_USRDAT_NAME</strm_datdir>
+<strm_datdir     stream="CLM1PT.CLM_USRDAT">$DIN_LOC_ROOT_CLMFORC/$CLM_USRDAT_NAME/CLM1PT_data</strm_datdir>
 <strm_datfil     stream="CLM1PT.CLM_USRDAT">%ym.nc</strm_datfil>
 <strm_offset     stream="CLM1PT.CLM_USRDAT">0</strm_offset>
 <strm_tintalgo   stream="CLM1PT.CLM_USRDAT">nearest</strm_tintalgo>
@@ -1524,106 +1521,6 @@ ncep.v_10.T62.2009.20120412.nc
 </strm_domvar>
 <strm_datvar     stream="CORE2_IAF.CORE2.ArcFactor">
   TarcFactor tarcf
-</strm_datvar>
-
-<!-- =========================================  -->
-<!-- WRF (wr50a)                                -->
-<!-- =========================================  -->
-
-<strm_year_start stream="WRF">1989</strm_year_start>
-<strm_year_end   stream="WRF">1993</strm_year_end>
-<strm_year_align stream="WRF">1989</strm_year_align>
-<strm_domdir     stream="WRF">$DIN_LOC_ROOT/atm/datm7/WRF_110603</strm_domdir>
-<strm_domfil     stream="WRF">wrf-wr50a-cordexgrid.nc</strm_domfil>
-<strm_datdir     stream="WRF">$DIN_LOC_ROOT/atm/datm7/WRF_110603</strm_datdir>
-<strm_datfil     stream="WRF">
-   wrf-198901-cf.nc
-   wrf-198902-cf.nc
-   wrf-198903-cf.nc
-   wrf-198904-cf.nc
-   wrf-198905-cf.nc
-   wrf-198906-cf.nc
-   wrf-198907-cf.nc
-   wrf-198908-cf.nc
-   wrf-198909-cf.nc
-   wrf-198910-cf.nc
-   wrf-198911-cf.nc
-   wrf-198912-cf.nc
-   wrf-199001-cf.nc
-   wrf-199002-cf.nc
-   wrf-199003-cf.nc
-   wrf-199004-cf.nc
-   wrf-199005-cf.nc
-   wrf-199006-cf.nc
-   wrf-199007-cf.nc
-   wrf-199008-cf.nc
-   wrf-199009-cf.nc
-   wrf-199010-cf.nc
-   wrf-199011-cf.nc
-   wrf-199012-cf.nc
-   wrf-199101-cf.nc
-   wrf-199102-cf.nc
-   wrf-199103-cf.nc
-   wrf-199104-cf.nc
-   wrf-199105-cf.nc
-   wrf-199106-cf.nc
-   wrf-199107-cf.nc
-   wrf-199108-cf.nc
-   wrf-199109-cf.nc
-   wrf-199110-cf.nc
-   wrf-199111-cf.nc
-   wrf-199112-cf.nc
-   wrf-199201-cf.nc
-   wrf-199202-cf.nc
-   wrf-199203-cf.nc
-   wrf-199204-cf.nc
-   wrf-199205-cf.nc
-   wrf-199206-cf.nc
-   wrf-199207-cf.nc
-   wrf-199208-cf.nc
-   wrf-199209-cf.nc
-   wrf-199210-cf.nc
-   wrf-199211-cf.nc
-   wrf-199212-cf.nc
-   wrf-199301-cf.nc
-   wrf-199302-cf.nc
-   wrf-199303-cf.nc
-   wrf-199304-cf.nc
-   wrf-199305-cf.nc
-   wrf-199306-cf.nc
-   wrf-199307-cf.nc
-   wrf-199308-cf.nc
-   wrf-199309-cf.nc
-   wrf-199310-cf.nc
-   wrf-199311-cf.nc
-   wrf-199312-cf.nc
-</strm_datfil>
-<strm_offset     stream="WRF">0</strm_offset>
-<strm_tintalgo   stream="WRF">linear</strm_tintalgo>
-<strm_domvar     stream="WRF">
-  time    time
-  xc      lon
-  yc      lat
-  area    area
-  mask    mask
-</strm_domvar>
-<strm_datvar     stream="WRF">
-  rho     dens
-  slp     pslv
-  p_sfc   pbot
-  q_2m    shum
-  T_2m    tbot
-  Th_2m   ptem
-  u_10m_tr  u
-  v_10m_tr  v
-  Z_sfc   z
-  LW_d    lwdn
-  SW_d    swdn
-  SW_u    swup
-  rain_c  rainc
-  rain_nc rainl
-  snow_c  snowc
-  snow_nc snowl
 </strm_datvar>
 
 <!-- == WW3 ==== -->

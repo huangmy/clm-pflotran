@@ -369,13 +369,6 @@ use the T62_g16 resolution instead:
   <nx>139734</nx> <ny>1</ny>    
 </gridhorz>
 
-<!-- WRF regional grids-->
-
-<gridhorz name="wus12">
-  <nx>341</nx>  <ny>337</ny>  
-  <desc>WRF 12-km Western US samegrid configuration</desc>
-</gridhorz>
-
 <!-- WW3 grids-->
 
 <gridhorz name="ww3a">
@@ -504,10 +497,8 @@ use the T62_g16 resolution instead:
 <EPS_AMASK atm_grid=".+"   >1.0e-13</EPS_AMASK>
 
 <EPS_AGRID atm_grid=".+"   >1.0e-12</EPS_AGRID>
-<EPS_AGRID atm_grid="wus12">1.0e-03</EPS_AGRID>
 
 <EPS_AAREA atm_grid=".+"   >9.0e-07</EPS_AAREA>
-<EPS_AAREA atm_grid="wus12">1.0e-03</EPS_AAREA>
 
 <EPS_OMASK ocn_grid=".+">1.0e-06</EPS_OMASK>
 <EPS_OGRID ocn_grid=".+">1.0e-02</EPS_OGRID>
@@ -516,7 +507,6 @@ use the T62_g16 resolution instead:
 <EPS_FRAC atm_grid=".+"   >1.0e-02</EPS_FRAC>
 
 <VECT_MAP atm_grid=".+"   >cart3d</VECT_MAP>
-<VECT_MAP atm_grid="wus12">none</VECT_MAP>
 
 <!-- ======================================================== -->
 <!-- SECTION GRIDS: atm/lnd (and ocn/ice if same as atm)       -->

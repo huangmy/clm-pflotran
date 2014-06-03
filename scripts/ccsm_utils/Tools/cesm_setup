@@ -309,6 +309,8 @@ if (! $clean ) {
 	{
 	    $sysmod .= "COMPARE_BASELINE='' baseline_name_cmp=$xmlvars{'BASELINE_NAME_CMP'} BASECMP_CASE=$xmlvars{'BASECMP_CASE'} ";
 	}
+
+        $sysmod .= "MODEL_GEN_COMP=$xmlvars{'MODEL_GEN_COMP'} ";
 	
 	if($xmlvars{'CLEANUP'} eq 'TRUE')
 	{

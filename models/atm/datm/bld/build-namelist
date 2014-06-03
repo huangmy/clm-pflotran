@@ -510,6 +510,10 @@ foreach my $stream ( @streams ) {
     my $outstream = "datm.streams.txt" . ".$stream" . "$INST_STRING";
     if (-e "$CASEROOT/user_$outstream") {
 
+        if ( ! -w "$CASEROOT/user_$outstream" ) {
+           print "Your user streams file is read-only: $CASEROOT/user_$outstream\n";
+           die "Make it writable to continue\n";
+        }
 	my $command = "cp -p $CASEROOT/user_$outstream $bldconfdir/$outstream";
 	system($command) == 0  or die "system $command failed: $? \n";
 
