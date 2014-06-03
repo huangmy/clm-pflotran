@@ -1,7 +1,7 @@
 """Parser for an XML test list.
 
 Public classes:
-TestSuiteSpec - Specification of a unit test suites directories.
+TestSuiteSpec - Specification of unit test suite directories.
 
 Public functions:
 suites_from_xml - Generator returning test suite descriptions.
