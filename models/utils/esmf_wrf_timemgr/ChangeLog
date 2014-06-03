@@ -1,4 +1,23 @@
 ===============================================================
+Originator: muszala
+Date: May 29, 2014
+Model: esmf_wrf_timemgr
+Version: esmf_wrf_timemgr_140529
+One-line Summary: change deallocate statements in ESMF_ClockMod.F90
+
+M       ESMF_ClockMod.F90
+===============================================================
+Originator: muszala
+Date: May 23, 2014
+Model: esmf_wrf_timemgr
+Version: esmf_wrf_timemgr_140523
+One-line Summary: add if(associated) to ESMF_ClockDestroy
+
+Note: use with rtm1_0_38 and tested with clm4_5_72.  this should work with older
+versions of clm and rtm however.
+
+M       ESMF_ClockMod.F90
+===============================================================
 Originator: santos
 Date: Feb 13, 2012
 Model: esmf_wrf_timemgr
