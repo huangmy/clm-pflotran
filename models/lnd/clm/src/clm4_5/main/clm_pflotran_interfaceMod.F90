@@ -1177,6 +1177,7 @@ contains
     use clm_varcon,           only : denh2o, denice
     use clm_varpar,           only : nlevsoi
     use filterMod,            only : clumpfilter
+    use PFLOTRAN_Constants_module
 
   ! !ARGUMENTS:
     implicit none
@@ -1200,8 +1201,9 @@ contains
     ! h2osoi_ice(:,:)  == ice lens (kg/m2)
     ! h2osoi_vol(:,:) == volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
     ! col%cgridcell(:) == column's gridcell
-    PetscScalar, pointer :: sat_clm_loc(:) 
+    PetscScalar, pointer :: sat_clm_loc(:)
     PetscScalar, pointer :: watsat_clm_loc(:)
+    PetscScalar, pointer :: sat_ice_clm_loc(:)
     PetscErrorCode :: ierr
     integer :: j
     real(r8):: tmp
@@ -1229,9 +1231,29 @@ contains
         cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
              cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
         cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
-        !TODO(2013-07-02) update ice if pflotran is in TH mode.
       enddo
-   enddo
+    enddo
+
+    if (pflotran_m%option%iflowmode == TH_MODE .and. &
+        pflotran_m%option%use_th_freezing) then
+
+      call VecGetArrayF90(clm_pf_idata%sat_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
+
+      do fc = 1,num_hydrologyc
+        c = filter_hydrologyc(fc)
+        g = col%gridcell(c)
+        gcount = g - bounds%begg
+        do j = 1, nlevsoi
+          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevsoi + j) * cps%watsat(c,j) * cps%dz(c,j) * denice
+          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
+                                cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
+          cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
+        enddo
+      enddo
+
+      call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
+
+    endif
 
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr); CHKERRQ(ierr)
