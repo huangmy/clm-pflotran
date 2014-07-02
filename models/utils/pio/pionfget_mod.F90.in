@@ -2,7 +2,7 @@
 !>
 !! @file 
 !! $Revision: 925 $
-!! $LastChangedDate: 2014-01-24 12:55:17 -0800 (Fri, 24 Jan 2014) $
+!! $LastChangedDate: 2014-01-24 13:55:17 -0700 (Fri, 24 Jan 2014) $
 !! @brief Read Routines for non-decomposed NetCDF data.
 !<
 module pionfget_mod

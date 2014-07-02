@@ -4,7 +4,7 @@
 !! @brief Derived datatypes and constants for PIO
 !! 
 !! $Revision: 943 $
-!! $LastChangedDate: 2014-02-14 08:20:17 -0800 (Fri, 14 Feb 2014) $
+!! $LastChangedDate: 2014-02-14 09:20:17 -0700 (Fri, 14 Feb 2014) $
 !<
 module pio_types
     use pio_kinds
