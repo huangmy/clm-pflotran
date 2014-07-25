@@ -637,6 +637,8 @@ contains
     character(len=256) :: locfn                    ! local filEname
     character(len= 32) :: subname = 'clm_pf_interface_init' ! subroutine name
     integer :: mxsoil_color                        ! maximum number of soil color classes
+    
+    integer :: nlevmapped
 
     integer :: closelatidx,closelonidx
     real(r8):: closelat,closelon
@@ -721,10 +723,17 @@ contains
 
     ! Compute number of cells in CLM domain.
     ! Assumption-1: One column per CLM grid cell.
-    ! Assumption-2: nz = nlevsoi and nz /= nlevgrnd. Need to add a flag in input
-    !               file to differenticate if PFLOTRAN grid is 'nlevsoi' or
-    !               'nlevgrnd' deep.
-    clm_npts = (bounds%endg - bounds%begg + 1)*nlevsoi
+
+    ! Check if the number of CLM vertical soil layers defined in the mapping
+    ! file read by PFLOTRAN matches either nlevsoi or nlevgrnd
+    clm_pf_idata%nzclm_mapped = pflotran_m%map_clm_sub_to_pf_sub%clm_nlevsoi
+    nlevmapped                = clm_pf_idata%nzclm_mapped
+    if ( (nlevmapped /= nlevsoi) .and. (nlevmapped /= nlevgrnd) ) then
+       call endrun(trim(subname)//' ERROR: Number of layers PFLOTRAN thinks CLM should '// &
+                'have do not match either nlevsoi or nlevgrnd. Abortting' )
+    end if
+
+    clm_npts = (bounds%endg - bounds%begg + 1)*nlevmapped
     clm_surf_npts = (bounds%endg - bounds%begg + 1)
     allocate(clm_cell_ids_nindex( 1:clm_npts))
     allocate(clm_surf_cell_ids_nindex(1:clm_surf_npts))
@@ -733,12 +742,12 @@ contains
     clm_npts = 0
     clm_surf_npts = 0
     do g = bounds%begg, bounds%endg
-       do j = 1,nlevsoi
+       do j = 1,nlevmapped
           clm_npts = clm_npts + 1
-          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevsoi + j - 1
+          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevmapped + j - 1
        enddo
        clm_surf_npts=clm_surf_npts + 1
-       clm_surf_cell_ids_nindex(clm_surf_npts)=(ldecomp%gdc2glo(g)-1)*nlevsoi
+       clm_surf_cell_ids_nindex(clm_surf_npts)=(ldecomp%gdc2glo(g)-1)*nlevmapped
     enddo
 
     ! CLM: Subsurface domain (local and ghosted cells)
@@ -787,7 +796,7 @@ contains
 
     if (pflotran_m%option%iflowmode == TH_MODE) pflotran_th_mode = .true.
 
-    if(pflotran_m%option%nsurfflowdof > 0) then
+    if (pflotran_m%option%nsurfflowdof > 0) then
       pflotran_surfaceflow = .true.
       call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
                                     clm_surf_npts, PF_SRF_TO_CLM_SRF)
@@ -996,27 +1005,18 @@ contains
           press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(c) - zsoi(lev))
           press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(2.0_r8 - zsoi(lev))
 
-          if (lev <= nlevsoi) then
-            hksat_x_clm_loc(gcount*nlevsoi + lev ) = hksat_x_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*cwtgcell(c)
-            hksat_y_clm_loc(gcount*nlevsoi + lev ) = hksat_y_clm_loc(gcount*nlevsoi + lev ) + hksat_tmp*cwtgcell(c)
-            hksat_z_clm_loc(gcount*nlevsoi + lev ) = hksat_z_clm_loc(gcount*nlevsoi + lev ) + hksat(c,lev)*cwtgcell(c)
-            sucsat_clm_loc( gcount*nlevsoi + lev ) = sucsat_clm_loc( gcount*nlevsoi + lev ) + sucsat(c,lev)*cwtgcell(c)
-            watsat_clm_loc( gcount*nlevsoi + lev ) = watsat_clm_loc( gcount*nlevsoi + lev ) + watsat(c,lev)*cwtgcell(c)
-            bsw_clm_loc(    gcount*nlevsoi + lev ) = bsw_clm_loc(    gcount*nlevsoi + lev ) + bsw_tmp*cwtgcell(c)
-            press_clm_loc(  gcount*nlevsoi + lev ) = press_clm_loc(  gcount*nlevsoi + lev ) + press_tmp*cwtgcell(c)
+          if (lev <= nlevmapped) then
 
-            if(pflotran_m%option%myrank .eq. -1) then
-              write(*,*),gcount,nlevsoi,lev, gcount*nlevsoi + lev, &
-                                      sucsat_clm_loc( gcount*nlevsoi + lev ), &
-                                      bsw_clm_loc(    gcount*nlevsoi + lev ), &
-                                      watsat_clm_loc( gcount*nlevsoi + lev ), &
-                                      hksat_x_clm_loc(gcount*nlevsoi + lev ), &
-                                      hksat_y_clm_loc(gcount*nlevsoi + lev ), &
-                                      hksat_z_clm_loc(gcount*nlevsoi + lev ), &
-                                      998.2_r8*9.81_r8*(zwt(c) - zsoi(lev)), zwt(c), zsoi(lev)
-            endif
+            hksat_x_clm_loc(gcount*nlevmapped + lev ) = hksat_x_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_y_clm_loc(gcount*nlevmapped + lev ) = hksat_y_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_z_clm_loc(gcount*nlevmapped + lev ) = hksat_z_clm_loc(gcount*nlevmapped + lev ) + hksat(c,lev)*cwtgcell(c)
+            sucsat_clm_loc( gcount*nlevmapped + lev ) = sucsat_clm_loc( gcount*nlevmapped + lev ) + sucsat(c,lev)*cwtgcell(c)
+            watsat_clm_loc( gcount*nlevmapped + lev ) = watsat_clm_loc( gcount*nlevmapped + lev ) + watsat(c,lev)*cwtgcell(c)
+            bsw_clm_loc(    gcount*nlevmapped + lev ) = bsw_clm_loc(    gcount*nlevmapped + lev ) + bsw_tmp*cwtgcell(c)
+            press_clm_loc(  gcount*nlevmapped + lev ) = press_clm_loc(  gcount*nlevmapped + lev ) + press_tmp*cwtgcell(c)
           endif
-        enddo 
+
+        enddo
       endif
     enddo ! do c = bounds%begc, bounds%endc
 
@@ -1050,10 +1050,12 @@ contains
           if (.not. lakpoi(l)) then  !not lake
             g = cgridcell(c)
             gcount = g - bounds%begg
-            do j = 1, nlevsoi
-              t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
+            do j = 1, nlevmapped
+              t_soisno(c, j) = temp_clm_loc(gcount*nlevmapped + j) + 273.15_r8
             enddo
-            t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
+            if ( nlevmapped /= nlevgrnd) then
+              t_soisno(c, nlevmapped+1:nlevgrnd) = t_soisno(c, nlevmapped)
+            end if
           endif
         endif
       enddo
@@ -1070,7 +1072,7 @@ contains
           g = cgridcell(c)
           gcount = g - bounds%begg
           do j = 1, nlevsoi
-            h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi+j)*dz(c,j)*1.e3_r8
+            h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*dz(c,j)*1.e3_r8
             h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
                  h2osoi_ice(c,j)/dz(c,j)/denice
             h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
@@ -1206,6 +1208,7 @@ contains
     PetscScalar, pointer :: sat_ice_clm_loc(:)
     PetscErrorCode :: ierr
     integer :: j
+    integer :: nlevmapped
     real(r8):: tmp
   !EOP
   !-----------------------------------------------------------------------
@@ -1222,12 +1225,14 @@ contains
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr); CHKERRQ(ierr)
 
+    nlevmapped = clm_pf_idata%nzclm_mapped
+
     do fc = 1,num_hydrologyc
       c = filter_hydrologyc(fc)
       g = col%gridcell(c)
       gcount = g - bounds%begg
       do j = 1, nlevsoi
-        cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevsoi + j) * cps%watsat(c,j) * cps%dz(c,j) * denh2o
+        cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j) * cps%watsat(c,j) * cps%dz(c,j) * denh2o
         cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
              cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
         cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
@@ -1244,7 +1249,7 @@ contains
         g = col%gridcell(c)
         gcount = g - bounds%begg
         do j = 1, nlevsoi
-          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevsoi + j) * cps%watsat(c,j) * cps%dz(c,j) * denice
+          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevmapped + j) * cps%watsat(c,j) * cps%dz(c,j) * denice
           cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
                                 cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
           cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
@@ -1329,6 +1334,7 @@ contains
     PetscScalar, pointer :: qflx_clm_loc(:)   !
     PetscScalar, pointer :: area_clm_loc(:)   !
     PetscErrorCode :: ierr
+    integer :: nlevmapped
     real(r8) :: area
 
   !EOP
@@ -1356,11 +1362,13 @@ contains
     call VecGetArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
+    nlevmapped = clm_pf_idata%nzclm_mapped
+
     ! Initialize to ZERO
     do g = bounds%begg, bounds%endg
-      do j = 1,nlevsoi
+      do j = 1,nlevmapped
         gcount = g - bounds%begg
-        qflx_clm_loc(gcount*nlevsoi + j ) = 0.0_r8
+        qflx_clm_loc(gcount*nlevmapped + j ) = 0.0_r8
       end do
     end do
 
@@ -1380,7 +1388,7 @@ contains
         gcount = g - bounds%begg
         j = 1
         area = area_clm_loc(gcount*nlevsoi+j)
-        qflx_clm_loc(gcount*nlevsoi + j) = qflx_clm_loc(gcount*nlevsoi + j) + &
+        qflx_clm_loc(gcount*nlevmapped + j) = qflx_clm_loc(gcount*nlevmapped + j) + &
              cwf%qflx_infl(c)*col%wtgcell(c)*area
       end if
     enddo
@@ -1435,15 +1443,14 @@ contains
         if (temp(c) /= 0._r8) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
           area = area_clm_loc(gcount*nlevsoi+j)
-          qflx_clm_loc(gcount*nlevsoi + j ) = &
-                              qflx_clm_loc(gcount*nlevsoi + j ) - &
+          qflx_clm_loc(gcount*nlevmapped + j ) = &
+                              qflx_clm_loc(gcount*nlevmapped + j ) - &
                               qflx_tran_veg_col(c)*rootr_col(c,j)*area
         end if
       end do
     end do
 
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
-    !qflx_clm_loc = 0._r8
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
@@ -1496,6 +1503,7 @@ contains
     integer  :: j,c,g                     !  indices
     integer  :: fc                        ! lake filtered column indices
     integer  :: gcount
+    integer  :: nlevmapped
 
     PetscScalar, pointer :: temp_clm_loc(:)  !
     PetscErrorCode :: ierr
@@ -1509,14 +1517,18 @@ contains
 
     call VecGetArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
 
+    nlevmapped = clm_pf_idata%nzclm_mapped
+
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
        g = cgridcell(c)
        gcount = g - bounds%begg
-       do j = 1, nlevsoi
-          t_soisno(c,j) = temp_clm_loc(gcount*nlevsoi+j)+273.15_r8
+       do j = 1, nlevmapped
+          t_soisno(c,j) = temp_clm_loc(gcount*nlevmapped+j) + 273.15_r8
        enddo
-       t_soisno(c,nlevsoi+1:nlevgrnd) = t_soisno(c,nlevsoi)
+       if ( nlevmapped /= nlevgrnd) then
+          t_soisno(c, nlevmapped+1:nlevgrnd) = t_soisno(c, nlevmapped)
+       end if
     enddo
 
     call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
