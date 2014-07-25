@@ -622,8 +622,10 @@ subroutine shr_scam_checkSurface(scmlon, scmlat, ocn_compid, ocn_mpicom, &
    character(len=CL)      :: restfils = 'unset'
    character(len=CL)      :: ocn_in = 'unset'
    integer(IN)   :: nfrac
+   logical :: force_prognostic_true = .false.
    namelist /dom_inparm/ sstcyc, nrevsn, rest_pfile, bndtvs, focndomain
-   namelist / docn_nml / ocn_in, decomp, restfilm, restfils
+   namelist / docn_nml / ocn_in, decomp, force_prognostic_true, &
+        restfilm, restfils
 
 !-------------------------------------------------------------------------------
 ! Notes:

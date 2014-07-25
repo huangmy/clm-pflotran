@@ -366,7 +366,7 @@ pure function find_first_loc_{DIMS}d(mask) result (loc_vec)
 
 ! Remove compiler warnings (statement will be optimized out).
 
-#if (! defined CPRPGI)
+#if (! defined CPRPGI && ! defined CPRCRAY)
   if (.false. .and. mask) loc_vec = loc_vec
 #endif
 
