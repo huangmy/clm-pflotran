@@ -13,9 +13,6 @@ Running the tests
 -----------------
 
 1. Download the three repos: (i)PFLOTRAN repo; (ii)CLM repo; and (iii) Repo containing inputdata for regression tests
-
-
-    ::
     
         export RTEST_DIR=$PWD
         hg clone https://bitbucket.org/clm_pflotran/pflotran-clm-trunk
@@ -23,24 +20,17 @@ Running the tests
         hg clone https://bitbucket.org/clm_pflotran/clm-pflotran-data-trunk-testing
     
 2. Test pflotran regression tests
-
-    ::
     
         cd ${RTEST_DIR}/pflotran-clm-trunk/src/pflotran
         make test
     
 3. Build libpflotran.a
-
-    ::
     
         cd ${RTEST_DIR}/pflotran-clm-trunk/src/clm-pflotran
         ./link_files.sh; 
         make libpflotran.a
     
 4. Create a configuration file for your machine and fill in ALL the fields:
-
-
-    ::
     
         mkdir ~/.cesm
         hostname -s
@@ -71,15 +61,11 @@ Running the tests
 
 
 5. Update to 'clm_pflotran' branch
-
-    ::
     
         cd $RTEST_DIR/clm-pflotran-trunk
         hg update clm_pflotran
     
 6. Create a local.cfg file
-
-    ::
     
         cd ${RTEST_DIR}/clm-pflotran-trunk/clm4-pf-tools/regression_tests
         cat > local.cfg <<EOF
@@ -95,8 +81,6 @@ Running the tests
         EOF
         
 7. Run the tests
-
-    ::
     
         make test
 
