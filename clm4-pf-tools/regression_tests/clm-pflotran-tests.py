@@ -10,6 +10,18 @@ Author: Ben Andre <bandre@lbl.gov>
 from __future__ import print_function
 from __future__ import division
 
+import sys
+
+if sys.hexversion < 0x02070000:
+    # NOTE(bja, 2014-07-28) Doesn't appear to be possible to show this
+    # message before the syntax error without a wrapper script....
+    print(70 * "*")
+    print("ERROR: {0} requires python >= 2.7.x. ".format(sys.argv[0]))
+    print("It appears that you are running python {0}".format(
+        ".".join(str(x) for x in sys.version_info[0:3])))
+    print(70 * "*")
+    sys.exit(1)
+
 import argparse
 import copy
 from collections import deque
@@ -24,7 +36,6 @@ import re
 import shutil
 import string
 import subprocess
-import sys
 import textwrap
 import time
 import traceback
@@ -115,14 +126,21 @@ class TestMachine(object):
     def _read_config_file(self, filename):
         # NOTE(bja, 2013-10-12) reading the config file in the class
         # makes it harder to unit test the class!
-        self._config_filename = filename
+        if filename is "":
+            home_dir = os.path.expanduser("~")
+            cfg_file = "{0}/.cesm/clm-pflotran-machines.cfg".format(home_dir)
+        else:
+            cfg_file = filename
+        self._config_filename = os.path.abspath(cfg_file)
         config = config_parser.SafeConfigParser()
         config.read(self._config_filename)
         if not config.has_section(self._builder_id):
-            raise Exception("ERROR: machine config does not contain a section for"
-                            "current host: {0}".format(self._builder_id))
-        host_info = list_to_dict(config.items(self._builder_id))
+            raise Exception(
+"""ERROR: machine config does not contain a section for current host.
+    host : {0}
+    machines.cfg : {1}""".format(self._builder_id, filename))
         
+        host_info = list_to_dict(config.items(self._builder_id))
         machine = self._set_host_property(host_info, "machine")
         
         if machine == "userdefined":
@@ -1557,18 +1575,21 @@ def setup_test_suite_log(txtwrap, local_config):
     else:
         print("    unknown", file=testlog)
 
-    print("\nCLM-PFLOTRAN regression repository status :", file=testlog)
-    print("-------------------------------------------", file=testlog)
-    repo = local_config["regression_dir"]
-    if os.path.isdir("{0}/.hg".format(repo)):
-        os.chdir(repo)
-        cmd = ["hg", "parent"]
-        append_command_to_log(cmd, testlog, tempfile)
-        cmd = ["hg", "status", "-q"]
-        append_command_to_log(cmd, testlog, tempfile)
-        print("\n\n", file=testlog)
-    else:
-        print("    unknown", file=testlog)
+    if False:
+        # NOTE(bja, 2014-07-28) keeping until it is clear that we don't
+        # want to use a separate repo.
+        print("\nCLM-PFLOTRAN regression repository status :", file=testlog)
+        print("-------------------------------------------", file=testlog)
+        repo = local_config["regression_dir"]
+        if os.path.isdir("{0}/.hg".format(repo)):
+            os.chdir(repo)
+            cmd = ["hg", "parent"]
+            append_command_to_log(cmd, testlog, tempfile)
+            cmd = ["hg", "status", "-q"]
+            append_command_to_log(cmd, testlog, tempfile)
+            print("\n\n", file=testlog)
+        else:
+            print("    unknown", file=testlog)
 
     print("\nPFLOTRAN repository status :", file=testlog)
     print("----------------------------", file=testlog)
@@ -1677,8 +1698,8 @@ def commandline_options():
                         help="local configuration file to use (location of petsc, pflotran for this test)")
 
     parser.add_argument("-m", "--machines-config-file",
-                        nargs=1, default=None, required=True,
-                        help="machines configuration file to use")
+                        nargs=1, default=[""],
+                        help="machines configuration file to use. Defaults to ~/.cesm/clm-pflotran-machines.cfg")
 
     parser.add_argument("-t", "--test-config-files",
                         nargs='+', default=None, required=True,

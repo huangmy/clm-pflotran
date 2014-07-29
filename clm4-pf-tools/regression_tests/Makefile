@@ -7,9 +7,9 @@ ifdef python
     PYTHON=$(python)
 endif
 
-MACHINES=machines.cfg
+MACHINES=
 ifdef machines
-    MACHINES=$(machines)
+    MACHINES=--machines-config-file $(machines)
 endif
 
 LOCAL_CFG=local.cfg
@@ -39,8 +39,7 @@ COMMON_EXE= \
 
 TEST_CMD=$(PYTHON) ./clm-pflotran-tests.py $(OPTS) \
     --cesm-root-dir $(CESM_ROOT) \
-    --local-config-file $(LOCAL_CFG) \
-    --machines-config-file $(MACHINES) \
+    --local-config-file $(LOCAL_CFG)
 
 test : FORCE
 	$(TEST_CMD) --test-config-files $(COMMON_EXE) $(STANDARD_TESTS)
