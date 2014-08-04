@@ -9,7 +9,11 @@ module purge
 module load  TACC TACC-paths Linux cluster cluster-paths
 
 if ( $COMPILER == "intel" ) then
-  module load intel/13.1.1.163
+    module load intel/13.1.1.163
+else if ($COMPILER == "intel14") then
+    module load intel/14.0.1.106
+endif
+
 #  module load mkl/13.0.2.146
 # Currently trilinos is only supported with the INTEL compiler
 #  module load trilinos/11.0.3
@@ -19,15 +23,29 @@ if ( $COMPILER == "intel" ) then
     module load mvapich2
   endif
   if ( $MPILIB == "impi") then
-     module swap mvapich2 impi
+     module unload mvapich2
+     if ($COMPILER == "intel14") then
+     module load impi/4.1.2.040
+     else 	
+     module impi
+     endif
   endif
-module load hdf5
-module load netcdf
+
+  if ($COMPILER == "intel14") then
+    setenv TACC_NETCDF_DIR /work/02463/srinathv/netcdf/4.2.1.1/intel/14.0.1.106/snb
+  else
+    module load hdf5
+    module load netcdf
+  endif
 #module load parallel-netcdf/4.2.1.1
 endif
 
+
 if ( $COMPILER == "intelmic" ) then
-  module load intel/13.1.1.163
+    module load intel/13.1.1.163
+else if ($COMPILER == "intelmic14") then
+    module load intel/14.0.1.106
+  endif
 #  module load mkl/13.0.2.146
 # Currently trilinos is only supported with the INTEL compiler
 #  module load trilinos/11.0.3
@@ -37,16 +55,46 @@ if ( $COMPILER == "intelmic" ) then
 #    module load mvapich2/1.9a2
 #  endif
   if ( $MPILIB == "impi") then
-	module swap mvapich2 impi
+      module unload mvapich2
+      if ($COMPILER == "intelmic14") then
+	module load impi/4.1.2.040
+      else
+	module load impi
+      endif
   endif
-#module load netcdf/4.2.1.1
-setenv TACC_NETCDF_DIR /work/02463/srinathv/netcdf/mic
-#module load parallel-netcdf/4.2.1.1
+  
+  if ($COMPILER == "intelmic14") then
+    setenv TACC_NETCDF_DIR /work/02463/srinathv/netcdf/4.2.1.1/intel/14.0.1.106/mic
+  else
+    setenv TACC_NETCDF_DIR /work/02463/srinathv/netcdf/mic
+  endif
+
 endif
+
+#if ( $COMPILER == "intelmic14" ) then
+#  module load intel/14.0.1.106
+#  module load mkl/13.0.2.146
+# Currently trilinos is only supported with the INTEL compiler
+#  module load trilinos/11.0.3
+# Currently esmf is only supported with the INTEL compiler
+  #module load esmf
+#  if ( $MPILIB == "mvapich2") then
+#    module load mvapich2/1.9a2
+#  endif
+#  if ( $MPILIB == "impi") then
+#	module swap mvapich2/1.9a2 impi/4.1.2.040
+#  endif
+#module load netcdf/4.2.1.1
+#setenv TACC_NETCDF_DIR /work/02463/srinathv/netcdf/4.2.1.1/intel/14.0.1.106/mic
+#module load parallel-netcdf/4.2.1.1
+#endif
+
+
 
 #transfer netcdf from stampdede var to cesm var
 setenv NETCDF_PATH $TACC_NETCDF_DIR
 module load cmake
+module list
 
 # -------------------------------------------------------------------------
 # Build and runtime environment variables - edit before the initial build 
@@ -54,7 +102,7 @@ module load cmake
 limit stacksize unlimited
 limit datasize  unlimited
 
-setenv OMP_STACKSIZE 256M
+#setenv OMP_STACKSIZE 256M
 #setenv MP_LABELIO yes
 
 # MPI Environment

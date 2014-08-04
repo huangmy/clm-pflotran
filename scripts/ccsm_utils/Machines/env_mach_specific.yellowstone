@@ -30,15 +30,15 @@ if ( $COMPILER == "intel" ) then
   module load esmf
   if ( $MPILIB == "mpi-serial") then
     if ( $DEBUG == "TRUE") then
-      module load esmf-5.3.0-ncdfio-uni-g
+      module load esmf-6.3.0r-ncdfio-uni-g
     else
-      module load esmf-5.3.0-ncdfio-uni-O
+      module load esmf-6.3.0r-ncdfio-uni-O
     endif
   else
     if ( $DEBUG == "TRUE") then
-      module load esmf-5.3.0-defio-mpi-g
+      module load esmf-6.3.0r-defio-mpi-g
     else
-      module load esmf-5.3.0-defio-mpi-O
+      module load esmf-6.3.0r-defio-mpi-O
     endif
   endif
 endif
