@@ -797,7 +797,6 @@ for mct, etc.
 </compiler>
 
 <compiler MACH="goldbach">
- <MPI_LIB_NAME MPILIB="mpich"> mpich</MPI_LIB_NAME>
  <MPI_LIB_NAME MPILIB="openmpi"> mpi</MPI_LIB_NAME>
  <LAPACK_LIBDIR> /usr/lib64 </LAPACK_LIBDIR>
  <ADD_SLIBS>$(shell $(NETCDF_PATH)/bin/nf-config --flibs)</ADD_SLIBS>
@@ -805,7 +804,6 @@ for mct, etc.
 
 <compiler COMPILER="intel" MACH="goldbach">
  <NETCDF_PATH> /usr/local/netcdf-4.3.0-intel-cluster-2013.4.183</NETCDF_PATH>
- <MPI_PATH MPILIB="mpich"> /cluster/mvapich-1.2.0-qlc-intel-cluster-2013.4.183</MPI_PATH>
  <MPI_PATH MPILIB="openmpi"> /cluster/openmpi-1.4.3-qlc-intel-cluster-2013.4.183</MPI_PATH>
  <ADD_LDFLAGS> -Wl,-rpath,/usr/local/netcdf-4.3.0-intel-cluster-2013.4.183/lib </ADD_LDFLAGS>
  <ADD_LDFLAGS> -Wl,-rpath,/cluster/openmpi-1.4.3-qlc-intel-cluster-2013.4.183/lib</ADD_LDFLAGS>
@@ -815,7 +813,6 @@ for mct, etc.
  <ADD_CFLAGS DEBUG="FALSE"> -O2 </ADD_CFLAGS>
  <ADD_FFLAGS DEBUG="FALSE"> -O2 </ADD_FFLAGS>
  <NETCDF_PATH> /usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7</NETCDF_PATH>
- <MPI_PATH MPILIB="mpich"> /cluster/mvapich-1.2.0-qlc-pgi-pgcc-pghf-13.7</MPI_PATH>
  <MPI_PATH MPILIB="openmpi"> /cluster/openmpi-1.4.3-qlc-pgi-pgcc-pghf-13.7</MPI_PATH>
  <ADD_LDFLAGS> -lgomp </ADD_LDFLAGS>
  <ADD_LDFLAGS> -Wl,-R/usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7/lib</ADD_LDFLAGS>
@@ -823,8 +820,8 @@ for mct, etc.
 </compiler>
 
 <compiler COMPILER="nag" MACH="goldbach">
- <NETCDF_PATH> /usr/local/netcdf-4.3.0-gcc-g++-4.4.7-3-nag-5.3.1-907</NETCDF_PATH>
- <MPI_PATH MPILIB="mpich"> /home/santos/mpich-gcc-nag</MPI_PATH>
+ <NETCDF_PATH> /usr/local/netcdf-gcc-nag</NETCDF_PATH>
+ <MPI_PATH MPILIB="openmpi"> /usr/local/openmpi-gcc-nag</MPI_PATH>
  <PFUNIT_PATH>/home/santos/pFUnit/pFUnit_NAG</PFUNIT_PATH>
  <!-- needed for nag pio build.. -->
  <ADD_CPPDEFS> -DNO_C_SIZEOF </ADD_CPPDEFS>
