@@ -45,12 +45,10 @@ module clm_driver
   use ndepStreamMod       , only : ndep_interp
   use CNVerticalProfileMod, only : decomp_vertprofiles
   use CNFireMod           , only : CNFireInterp
-  use STATICEcosysDynMod  , only : EcosystemDyn
   use ActiveLayerMod      , only : alt_calc
   use DUSTMod             , only : DustDryDep, DustEmission
   use VOCEmissionMod      , only : VOCEmission
   use seq_drydep_mod      , only : n_drydep, drydep_method, DD_XLND
-  use STATICEcosysDynMod  , only : interpMonthlyVeg
   use DryDepVelocity      , only : depvel_compute
   use ch4Mod              , only : ch4
   use abortutils          , only : endrun
@@ -59,6 +57,7 @@ module clm_driver
   use DaylengthMod        , only : UpdateDaylength
   use clm_atmlnd          , only : clm_map2gcell, downscale_forcings
   use clm_glclnd          , only : update_clm_s2x
+  use SatellitePhenologyMod, only : SatellitePhenology, interpMonthlyVeg
   use perf_mod
   !
   ! !PUBLIC TYPES:
@@ -69,11 +68,11 @@ module clm_driver
   !
   ! !PRIVATE MEMBER FUNCTIONS:
   private :: write_diagnostic        ! Write diagnostic information to log file
-!-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
 
 contains
 
-!-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
 subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   !
   ! !DESCRIPTION:
@@ -82,10 +81,11 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   ! the calling tree is given in the description of this module.
   !
   ! !USES:
+  !
   use clm_varctl, only : use_pflotran
   use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
        clm_pf_update_soil_temperature, clm_pf_update_drainage
-  
+  !
   ! !ARGUMENTS:
   implicit none
   logical ,        intent(in) :: doalb       ! true if time for surface albedo calc
@@ -117,7 +117,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   integer :: ier                       ! error code
   type(bounds_type) :: bounds_clump    ! bounds
   type(bounds_type) :: bounds_proc     ! bounds
-!-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
 
   ! Determine processor bounds and clumps for this processor
 
@@ -132,7 +132,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
   ! Specified phenology
   ! ============================================================================
   
-
   if (use_cn) then 
      ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
      if ( n_drydep > 0 .and. drydep_method == DD_XLND ) then
@@ -145,7 +144,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      ! This also determines whether it is time to read new monthly vegetation and
      ! obtain updated leaf area index [mlai1,mlai2], stem area index [msai1,msai2],
      ! vegetation top [mhvt1,mhvt2] and vegetation bottom [mhvb1,mhvb2]. The
-     ! weights obtained here are used in subroutine ecosystemdyn to obtain time
+     ! weights obtained here are used in subroutine SatellitePhenology to obtain time
      ! interpolated values.
      if (doalb .or. ( n_drydep > 0 .and. drydep_method == DD_XLND )) then
         call t_startf('interpMonthlyVeg')
@@ -303,7 +302,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      ! Surface Radiation for non-urban columns
 
      call SurfaceRadiation(bounds_clump, &
-                           filter(nc)%num_nourbanp, filter(nc)%nourbanp)
+          filter(nc)%num_nourbanp, filter(nc)%nourbanp)
 
      ! Surface Radiation for urban columns
 
@@ -394,6 +393,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
 
      call t_stopf('bgc')
 
+
      ! ============================================================================
      ! Determine soil/snow temperatures including ground temperature and
      ! update surface fluxes for new ground temperature.
@@ -414,6 +414,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      call pft2col(bounds_clump, filter(nc)%num_nolakec, filter(nc)%nolakec)
      call t_stopf('pft2col')
 
+
      ! ============================================================================
      ! Vertical (column) soil and surface hydrology
      ! ============================================================================
@@ -428,7 +429,6 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
                      
      call t_stopf('hydro2 without drainage')
      
-
      ! ============================================================================
      ! Update soil temperatures from PFLOTRAN
      ! ============================================================================
@@ -480,6 +480,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      call t_startf('ecosysdyn')
 
      if (use_cn) then
+
         ! fully prognostic canopy structure and C-N biogeochemistry
         ! - CNDV defined: prognostic biogeography; else prescribed
         ! - crop model:   crop algorithms called from within CNEcosystemDyn
@@ -489,17 +490,19 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
              filter(nc)%soilp, filter(nc)%num_pcropp, &
              filter(nc)%pcropp, doalb)
         
-        
         call CNAnnualUpdate(bounds_clump, &
              filter(nc)%num_soilc,&
              filter(nc)%soilc, filter(nc)%num_soilp, &
              filter(nc)%soilp)
+
      else
+
         ! Prescribed biogeography,
         ! prescribed canopy structure, some prognostic carbon fluxes
-        call EcosystemDyn(bounds_clump, &
+        call SatellitePhenology(bounds_clump, &
              filter(nc)%num_nolakep, filter(nc)%nolakep, &
              doalb)
+
      end if
      call t_stopf('ecosysdyn')
 
@@ -702,7 +705,7 @@ subroutine clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
      if (rstwr) then
         call t_startf('clm_drv_io_wrest')
         filer = restFile_filename(rdate=rdate)
-        call restFile_write( bounds_proc, filer, nlend, rdate=rdate )
+        call restFile_write( bounds_proc, filer, rdate=rdate )
         if (use_pflotran) then
            call clm_pf_write_restart(rdate)
         end if
@@ -726,10 +729,11 @@ subroutine write_diagnostic (wrtdia, nstep)
   ! !USES:
   use clm_atmlnd , only : clm_l2a
   use decompMod  , only : get_proc_bounds, get_proc_global
-  use spmdMod    , only : masterproc, npes, MPI_REAL8, MPI_ANY_SOURCE, &
-                          MPI_STATUS_SIZE, mpicom, MPI_SUM
+  use spmdMod    , only : masterproc, npes, MPI_REAL8, MPI_ANY_SOURCE
+  use spmdMod    , only : MPI_STATUS_SIZE, mpicom, MPI_SUM
   use shr_sys_mod, only : shr_sys_flush
   use abortutils , only : endrun
+  use shr_log_mod, only : errMsg => shr_log_errMsg
   !
   ! !ARGUMENTS:
   implicit none
@@ -768,7 +772,7 @@ subroutine write_diagnostic (wrtdia, nstep)
               call mpi_recv(psum, 1, MPI_REAL8, p, 999, mpicom, status, ier)
               if (ier/=0) then
                  write(iulog,*) 'write_diagnostic: Error in mpi_recv()'
-                 call endrun
+                 call endrun(msg=errMsg(__FILE__, __LINE__))
               end if
               tsum = tsum + psum
            end do
@@ -776,14 +780,14 @@ subroutine write_diagnostic (wrtdia, nstep)
            call mpi_send(psum, 1, MPI_REAL8, 0, 999, mpicom, ier)
            if (ier/=0) then
               write(iulog,*) 'write_diagnostic: Error in mpi_send()'
-              call endrun
+              call endrun(msg=errMsg(__FILE__, __LINE__))
            end if
         end if
      else
         call mpi_reduce(psum, tsum, 1, MPI_REAL8, MPI_SUM, 0, mpicom, ier)
         if (ier/=0) then
            write(iulog,*) 'write_diagnostic: Error in mpi_reduce()'
-           call endrun
+           call endrun(msg=errMsg(__FILE__, __LINE__))
         end if
      endif
      if (masterproc) then
