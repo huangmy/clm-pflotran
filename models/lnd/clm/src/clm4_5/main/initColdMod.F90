@@ -548,6 +548,7 @@ contains
     cws%h2osoi_vol(bounds%begc:bounds%endc,         1:) = spval
     cws%h2osoi_liq(bounds%begc:bounds%endc,-nlevsno+1:) = spval
     cws%h2osoi_ice(bounds%begc:bounds%endc,-nlevsno+1:) = spval
+    cws%fsat(bounds%begc:bounds%endc)                   = 0._r8
 
     do c = bounds%begc,bounds%endc
        l = col%landunit(c)
