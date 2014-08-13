@@ -1080,8 +1080,8 @@ contains
         endif
       endif
     enddo
-    call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 
     deallocate(sand3d,clay3d,organic3d)
     end associate
