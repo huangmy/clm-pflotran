@@ -1136,7 +1136,7 @@ contains
     )
 
     call VecGetArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
-    call VecGetArrayF90(clm_pf_idata%rain_clm,rain_temp_clm_loc,ierr)
+    call VecGetArrayF90(clm_pf_idata%rain_temp_clm,rain_temp_clm_loc,ierr)
     count = 0
     do fc = 1, num_hydrologyc
 
@@ -1154,7 +1154,7 @@ contains
       rain_temp_clm_loc(count) = forc_t(c) - 273.15_r8
     enddo
     call VecRestoreArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
-    call VecRestoreArrayF90(clm_pf_idata%rain_clm,rain_temp_clm_loc,ierr)
+    call VecRestoreArrayF90(clm_pf_idata%rain_temp_clm,rain_temp_clm_loc,ierr)
 
     end associate
   end subroutine set_sflow_forcing_clm_pf
