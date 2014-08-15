@@ -8,11 +8,12 @@ module.
 Exported functions:
 best_match - Search for a specific element in an XML tree.
 all_matches - Search for all matching elements in an XML tree.
+elements_to_dict - Create a dict from XML entries with a key attribute.
 """
 
 from comparable import Comparable
 
-__all__ = ("best_match", "all_matches")
+__all__ = ("best_match", "all_matches", "elements_to_dict")
 
 class ElementMatch(Comparable):
 
@@ -24,7 +25,9 @@ class ElementMatch(Comparable):
     __eq__ - Test if quality is same as another match.
     __lt__ - Compare quality to another match.
     __nonzero__/__bool__ - Test for a valid match.
-    get_text - Get the text within the element.
+
+    Public data:
+    element - Element for the match (None if no match). Read-only.
 
     Note that using __eq__ to test quality interferes with hashable
     collections, so for now, __hash__ = None.
@@ -66,19 +69,25 @@ class ElementMatch(Comparable):
 
     __nonzero__ = __bool__
 
-    def get_text(self):
-        """Get text from valid matches, or None for null matches."""
-        if self:
-            return self._element.text
+    @property
+    def element(self):
+        """Element from a valid match, or None for a null match."""
+        return self._element
 
-def element_attribute_match(element, attributes):
+# Right now this is treated as private to the module. But it's getting big
+# enough to justify having its own tests, maybe.
+def _element_attribute_match(element, attributes, ignore=[]):
     """Check an element to see if it matches the given attributes.
 
     If an element passes the check, give it a "quality" corresponding to
     the number of matched attributes. Otherwise, return null match.
+
+    The ignore attribute specifies attributes to ignore.
     """
     match_quality = 0
     for key in element.keys():
+        if key in ignore:
+            continue
         if key in attributes and attributes[key] == element.get(key):
             match_quality += 1
         else:
@@ -88,15 +97,15 @@ def element_attribute_match(element, attributes):
 def best_match(xml_tree, path, attributes={}):
     """Find the best match for a path with attributes in an XML tree.
 
-    The return value is the match's text.
+    The return value is the matched element.
 
     Arguments:
     xml_tree - A tree from the xml.etree.ElementTree module.
     path - The path to search for.
-    attributes - A dictionary containing attributes to match. Not all
-                 attributes must be present on an element to get a match,
-                 but any attributes present must match this input, and
-                 the "best" match has the most matches.
+    attributes - A dict containing attributes to match. Not all attributes
+                 must be present on an element to get a match, but any
+                 attributes present must match this input, and the "best"
+                 match has the most matches.
 
     The attributes argument defaults to an empty dict.
     """
@@ -116,7 +125,8 @@ def best_match(xml_tree, path, attributes={}):
         # best match from subelements.
         best_match = ElementMatch()
         for trial_element in element.findall(path_head):
-            local_match = element_attribute_match(trial_element, attributes)
+            local_match = _element_attribute_match(trial_element,
+                                                   attributes)
             if local_match:
                 new_match = \
                     find_best_below(trial_element, path_tail)
@@ -130,20 +140,23 @@ def best_match(xml_tree, path, attributes={}):
     element = xml_tree.getroot()
     match = find_best_below(element, path)
 
-    return match.get_text()
+    return match.element
 
-def all_matches(xml_tree, path, attributes={}):
+def all_matches(xml_tree, path, attributes={}, ignore=[]):
     """Find all matches for a path with attributes in an XML tree.
 
-    This is a generator. Each of the returned values will be the text of
-    one of the matches found.
+    This is a generator. Each of the returned values will be a matching
+    element.
 
     Arguments:
     xml_tree - A tree from the xml.etree.ElementTree module.
     path - The path to search for.
-    attributes - A dictionary containing attributes to match. Not all
-                 attributes must be present on an element to get a match,
-                 but any attributes present must match this input.
+    attributes - A dict containing attributes to match. Not all attributes
+                 must be present on an element to get a match, but any
+                 attributes present must match this input.
+    ignore - A list of attributes to ignore when matching. Attributes in
+             this list are ignored regardless of whether or not they are in
+             the attributes dict.
 
     The attributes argument defaults to an empty dict.
     """
@@ -161,10 +174,29 @@ def all_matches(xml_tree, path, attributes={}):
         # Search through subelements that match the next part of the path.
         # For each one, call self recursively to get all subelement matches.
         for trial_element in element.findall(path_head):
-            if element_attribute_match(trial_element, attributes):
+            if _element_attribute_match(trial_element, attributes, ignore):
                 for match in find_matches_below(trial_element, path_tail):
                     yield match
 
     element = xml_tree.getroot()
     for match in find_matches_below(element, path):
-        yield match.get_text()
+        yield match.element
+
+def elements_to_dict(elements, key_attr="key"):
+    """Uses a key attribute to produce a dict from ElementTree elements.
+
+    For each element, it creates an entry in the returned dict. The key is
+    determined by key_attr, and the value is the text of the element.
+
+    Arguments:
+    elements - An iterable of elements to convert.
+    key_attr - The name of an attribute. Each element must have this
+               attribute to be included in the dict, and the value of this
+               attribute will be used as the key.
+    """
+
+    return dict(
+        (elem.get(key_attr), elem.text)
+        for elem in elements
+        if key_attr in elem.keys()
+        )

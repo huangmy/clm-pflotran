@@ -1,5 +1,55 @@
 ==================================================
 Originator: santos
+Date: 2014/05/06
+Component: unit_testing
+Version: unit_testing_0_05
+One-line summary: Python refactoring and environment changes.
+
+A       python/environment.py
+A       python/test_environment.py
+        - New classes for dealing with modules.
+        - "expand_env" function
+        - SoftEnvInterface is present, but still not ready for use.
+
+M       python/machine_setup.py
+        - Start refactoring to shift toward a more object oriented
+          approach.
+        - Add yellowstone/PGI module.
+        - Start moving toward MPI support.
+
+M       python/printer.py
+        - Change CMakePrinter name to ScriptPrinter, add very basic
+          indentation hook.
+
+M       python/xml_test_list.py
+        - Correct docstring grammar.
+
+M       python/xml_utils.py
+M       python/test_xml_utils.py
+        - Add ability to ignore attributes.
+        - Add "elements_to_dict" dictionary translation function.
+        - These are not currently used, but were added in anticipation of
+          environment xml file changes.
+
+M       run_tests.py
+        - Changes needed due to interface changes in other modules.
+        - "-R" option replaced with "-T", which is a generic way to add
+          arguments to CTest.
+        - Add --use-mpi option (only changes compiler command determined
+          from Machines currently).
+        - Change Machines directory detection. Machines is now considered
+          optional if not using a CESM build type, but is mandatory
+          otherwise.
+        - Fix bug where environment was not loaded correctly when
+          rebuilding without "--clean" on yellowstone.
+        - Remove CESM_Macros.CMake when cleaning a build.
+        - Fail when make fails, instead of passing "-k" and ignoring the
+          error code. This is too dangerous; the ability to keep going can
+          be reimplemented when we have a more nuanced way to detect and
+          alert the user to build errors.
+
+==================================================
+Originator: santos
 Date: 2013/12/26
 Component: unit_testing
 Version: unit_testing_0_04

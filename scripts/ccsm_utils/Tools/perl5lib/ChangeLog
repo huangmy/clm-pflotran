@@ -2,6 +2,25 @@
   Description of changes
 ==============================================================
 ==============================================================
+Tag name:  perl5lib_140520
+Originator(s):  sacks
+Date: May 20, 2014
+One-lne Summary: In unit tests, change naming convention for CLM's fpftdyn
+
+CLM will soon be changing its naming convention for fpftdyn (renaming it to
+flanduse_transient). To remain consistent, I am changing the naming convention
+similarly in the perl5lib tests. Note that these changes are limited to the tests.
+
+M       t/04.t
+M       t/namelist_defaults_usr_files.xml
+M       t/namelist_definition_clm.xml
+A  +    t/usrfiles/landuse.timeseries_1x1_boulderCO_c090804_simyr1850-2000.nc
+        > moved from t/usrfiles/surfdata.pftdyn_1x1_boulderCO_c090804_simyr1850-2000.nc
+D       t/usrfiles/surfdata.pftdyn_1x1_boulderCO_c090804_simyr1850-2000.nc
+        > moved to t/usrfiles/landuse.timeseries_1x1_boulderCO_c090804_simyr1850-2000.nc
+
+
+==============================================================
 Tag name:  perl5lib_130718
 Originator(s):  jedwards
 Date: July 18, 2013

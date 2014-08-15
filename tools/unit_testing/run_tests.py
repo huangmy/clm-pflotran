@@ -54,7 +54,7 @@ python_dir = search_paths(
 
 sys.path.append(python_dir)
 
-from machine_setup import add_compiler_env
+from machine_setup import MachineCompilerSettings
 from printer import Printer
 from xml_test_list import *
 
@@ -109,7 +109,9 @@ parser.add_option(
     )
 parser.add_option(
     "--compiler", dest="compiler", default="gnu",
-    help="""Compiler vendor for build (gnu, ibm, intel, nag, or pgi)."""
+    help="""Compiler vendor for build (gnu, ibm, intel, nag, or pgi).
+
+Only used for lookup in CESM Machines files."""
     )
 parser.add_option(
     "--enable-genf90", dest="genf90", action="store_true",
@@ -132,12 +134,13 @@ parser.add_option(
     help="""Location where tests are specified."""
     )
 parser.add_option(
-    "-R", "--tests-regex", dest="tests_regex",
-    help="""Run only tests matching the regex provided.
-
-Note that CTest tests use CTest regex matching, but other tests use Python
-regex matching, so complex expressions may not be interpreted the same by
-both."""
+    "-T", "--ctest-args", dest="ctest_args",
+    help="""Additional arguments to pass to CTest."""
+    )
+parser.add_option(
+    "--use-mpi", dest="use_mpi", action="store_true",
+    default=False,
+    help="""Turn on MPI support for tests."""
     )
 parser.add_option(
     "-v", "--verbose", dest="verbose", action="store_true",
@@ -209,17 +212,36 @@ else:
     cesm_cmake_dir = search_paths("CESM_utils.cmake", cesm_cmake_guesses)
 
 # CESM Machines directory.
-# For now, a bit of a hack; we may or may not really need Machines, so just
-# hard-code a couple of guesses rather than using search_paths.
 if options.machines_dir is not None:
     machines_dir = os.path.abspath(options.machines_dir)
 else:
+    machines_guesses = []
+
     if cesm_root_dir is not None:
-        machines_dir = os.path.join(
-            cesm_root_dir, "scripts", "ccsm_utils", "Machines"
-            )
-    else:
-        machines_dir = os.path.abspath("Machines")
+        machines_guesses.append(os.path.join(cesm_root_dir, "scripts",
+                                             "ccsm_utils", "Machines"))
+
+    machines_guesses.append(os.path.abspath("Machines"))
+
+    # We may not need Machines depending on build type and environment, so
+    # don't necessarily.
+    try:
+        machines_dir = search_paths("config_compilers.xml",
+                                    machines_guesses)
+    except AssertionError:
+        if options.build_type.startswith("CESM"):
+            raise Exception(
+                "CESM build type selected, but could not find Machines."
+                )
+        else:
+            machines_dir = None
+
+if machines_dir is None:
+    compiler_xml = None
+else:
+    compiler_xml = os.path.join(machines_dir, "config_compilers.xml")
+    assert file_exists(compiler_xml), "Machines directory should be "+ \
+        machines_dir+" but no config_compilers.xml is there!"
 
 # Get test specification directories from command line options.
 suite_specs = []
@@ -249,6 +271,17 @@ if not file_exists(build_dir):
 os.chdir(build_dir)
 
 #=================================================
+# Set the machine/compiler specific environment.
+#=================================================
+
+if machines_dir is not None:
+
+    mach_settings = MachineCompilerSettings(options.compiler.lower(),
+                                            compiler_xml,
+                                            options.use_mpi)
+    mach_settings.set_compiler_env()
+
+#=================================================
 # Functions to perform various stages of build.
 #=================================================
 
@@ -266,6 +299,8 @@ def cmake_stage(name, test_spec_dir):
             os.remove("CMakeCache.txt")
         if "CMakeFiles" in pwd_contents:
             rmtree("CMakeFiles")
+        if "CESM_Macros.cmake" in pwd_contents:
+            os.remove("CESM_Macros.cmake")
 
     if not file_exists("CMakeCache.txt"):
 
@@ -292,12 +327,11 @@ def cmake_stage(name, test_spec_dir):
         if not options.color:
             cmake_command.append("-DUSE_COLOR=OFF")
 
-        compiler_xml_path = os.path.join(machines_dir, "config_compilers.xml")
-
         macros_path = os.path.abspath("CESM_Macros.cmake")
 
-        add_compiler_env(options.compiler.lower(), compiler_xml_path,
-                         macros_path)
+        if machines_dir is not None:
+            with open(macros_path, "w") as macros_file:
+                mach_settings.write_cmake_macros(macros_file)
 
         subprocess.check_call(cmake_command)
 
@@ -312,13 +346,12 @@ def make_stage(name):
     if options.clean:
         subprocess.check_call(["make","clean"])
 
-    make_command = ["make", "-k"]
+    make_command = ["make"]
 
     if options.verbose:
         make_command.append("VERBOSE=1")
 
-    # Don't check this; we want other tests to run even if some fail.
-    subprocess.call(make_command)
+    subprocess.check_call(make_command)
 
 #=================================================
 # Iterate over input suite specs, building the tests.
@@ -368,8 +401,8 @@ for spec in suite_specs:
         if options.verbose:
             ctest_command.append("-VV")
 
-        if options.tests_regex is not None:
-            ctest_command.extend(["-R", options.tests_regex])
+        if options.ctest_args is not None:
+            ctest_command.extend(options.ctest_args.split(" "))
 
         subprocess.call(ctest_command)
 

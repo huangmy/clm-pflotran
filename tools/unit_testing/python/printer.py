@@ -6,14 +6,14 @@ the Python 3 function from __future__ in order to run with Python 2.
 
 Public classes:
 Printer - Print output with some basic formatting.
-CMakePrinter - Print CMake source file, with some formatting for comments.
+ScriptPrinter - Print script source file, with formatting for comments.
 """
 # Python 3 compatible printing in Python 2.
 from __future__ import print_function
 
 import sys
 
-__all__ = ("Printer", "CMakePrinter")
+__all__ = ("Printer", "ScriptPrinter")
 
 # Declaring this to be a descendant of "object" makes it a "new-style"
 # class. Done to prevent a clash with Python 3, which makes all classes
@@ -85,7 +85,7 @@ class Printer(object):
         import curses.ascii
 
         if self._color:
-            # ANSII sequence turns the text bright red.
+            # ANSI sequence turns the text bright red.
             esc_char = chr(curses.ascii.ESC)
             to_red_text = esc_char+"[1;31m"
             to_default_text = esc_char+"[0m"
@@ -97,38 +97,55 @@ class Printer(object):
                           error_message+to_default_text+"\n")
 
 
-class CMakePrinter(Printer):
+class ScriptPrinter(Printer):
 
-    """Specialized printer object for writing a CMake Macros file.
+    """Specialized printer object for printing a script.
 
     Modified public routines:
     __init__ - Restricts constructor (no longer takes a "color" argument).
-    comment - Overrides parent routine: print a CMake comment.
+    print - Now does indentation.
+    comment - Overrides parent routine: print a comment with a "#".
     print_header - Extends parent routine: prints a section header.
+
+    Public data:
+    indent_level - Current level of indentation. Must be nonnegative.
     """
 
-    def __init__(self, output=sys.stdout, error=sys.stderr):
-        """Initialize a CMakePrinter.
+    def __init__(self, output=sys.stdout, error=sys.stderr, indent_size=2):
+        """Initialize a ScriptPrinter.
 
         Arguments:
         output - File object to print to.
         error - File object to print errors to.
+        indent_size - Size to indent code blocks.
 
-        The intention is that output is the file to push CMake output to,
-        but error still prints log messages (e.g. to the terminal).
+        The intention is that output is the file to push the output to, but
+        error still prints log messages (e.g. to the terminal).
         """
-        super(CMakePrinter, self).__init__(output, error, color=False)
+        super(ScriptPrinter, self).__init__(output, error, color=False)
+        self.indent_size = indent_size
+        self.indent_level = 0
 
     def comment(self, item):
-        """Write a CMake comment (prepends "#")."""
+        """Write a comment (prepends "#")."""
         self.print("# "+item)
 
     def print_header(self, string):
-        """Write a header in a CMake comment.
+        """Write a header in a comment.
 
         Only difference from vanilla printer is that it adds a bit more
         space for readability.
         """
         self.print("")
-        super(CMakePrinter, self).print_header(string)
+        super(ScriptPrinter, self).print_header(string)
         self.print("")
+
+    def print(self, item, end="\n"):
+        """Print the argument with current level of indentation.
+
+        Arguments:
+        item - Object to be printed.
+        end - String appended to the end.
+        """
+        new_item = (" "*self.indent_size*self.indent_level)+str(item)
+        super(ScriptPrinter, self).print(new_item, end)

@@ -58,10 +58,9 @@ contains
                                  pflotran_th_mode
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : sb, capr, cnfac, hvap, &
-                                 icol_roof, icol_sunwall, icol_shadewall, &
-                                 icol_road_perv, icol_road_imperv, istwet, &
-                                 denh2o, denice, cpice,  cpliq,hfus, tfrz,&
-                                 istice, istice_mec, istsoil, istcrop
+                                 denh2o, denice, cpice,  cpliq,hfus, tfrz
+    use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
+    use landunit_varcon, only : istwet, istice, istice_mec, istsoil, istcrop
     use clm_varpar     , only : nlevsno, nlevgrnd, max_pft_per_col, nlevurb
     use BandDiagonalMod, only : BandDiagonal
     ! pflotran interface
@@ -1047,9 +1046,9 @@ contains
      ! !USES:
      use clmtype
      use clm_varcon  , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
-                              cpice,  cpliq,  istice, istice_mec, istwet, &
-                              icol_roof, icol_sunwall, icol_shadewall, &
-                              icol_road_perv, icol_road_imperv, thk_bedrock
+                              cpice,  cpliq, thk_bedrock
+     use landunit_varcon,only:istice, istice_mec, istwet
+     use column_varcon,only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
      use clm_varpar  , only : nlevsno, nlevgrnd, nlevurb, nlevsoi
      use clm_varctl  , only : iulog
      !
@@ -1465,8 +1464,9 @@ contains
      ! !USES:
      use clmtype
      use clm_time_manager, only : get_step_size
-     use clm_varcon  , only : tfrz, hfus, grav, istsoil, &
-          istcrop, icol_roof, icol_sunwall, icol_shadewall, icol_road_perv,istice_mec
+     use clm_varcon  , only : tfrz, hfus, grav
+     use column_varcon,only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv
+     use landunit_varcon,only:istsoil, istcrop, istice_mec
      use clm_varpar  , only : nlevsno, nlevgrnd,nlevurb
      use clm_varctl  , only : iulog
      !
