@@ -376,7 +376,7 @@ class RegressionTest(object):
         self._initialize_case_script()
         # FIXME(bja, 2013-10) need to link_dirtree if necessary....
 
-    def run_test(self, suitelog):
+    def run_test(self, update_baselines, suitelog):
         status = self._create_case(suitelog)
         if status != 0:
             raise RuntimeError("{0} : create case failed.".format(self.name()))
@@ -390,8 +390,16 @@ class RegressionTest(object):
         if status != 0:
             raise RuntimeError("{0} : run case failed.".format(self.name()))
         status = self._test_case(suitelog)
-        if status != 0:
+        if status != 0 and not update_baselines:
+            # NOTE(bja, 2014-08-14) trust that the user has previously
+            # checked the failed test and really wants to update!
             raise RuntimeError("{0} : test case failed.".format(self.name()))
+
+        if update_baselines:
+            status = self._update_baselines(suitelog)
+            if status != 0:
+                raise RuntimeError("{0} : update baselines failed.".format(self.name()))
+
         self._finalize_case()
 
     def _create_case(self, suitelog):
@@ -548,6 +556,33 @@ class RegressionTest(object):
             print(" failed.", file=suitelog)
         return status
 
+    def _update_baselines(self, suitelog):
+        """Replace the baseline test results with the current simulation
+        results at the user's request.
+
+        Assumes that the cdl files have already been generated from
+        the nc files during the test stage!
+
+        """
+        status = 0
+        baseline_filename = "{0}/{1}.cdl".format(self._local_config["regression_dir"],
+                                             self._regression_info["file"])
+        current_filename = "{0}/run/{1}.cdl".format(self._case_dir, self._regression_info["file"])
+        try:
+            shutil.copy(current_filename, baseline_filename)
+        except Exception as e:
+            print("ERROR: Could not update baseline results :\n", file=suitelog)
+            print(e)
+            status = 1
+
+        if status == 0:
+            self._status["update-baseline"] = True
+            print("Baseline results replaced with current results.", file=suitelog)
+        else:
+            self._status["update-baseline"] = False
+
+        return status
+
     def _finalize_case(self):
         """Do any cleanup necessary (e.g. close the case script file)
         """
@@ -556,7 +591,7 @@ class RegressionTest(object):
     def status(self, suitelog):
         """Report the overall test status.
         """
-        print("Test '{0}' status :\n    {1}".format(self.name(), self._status), file=suitelog)
+        print("Test status : '{0}' \n    {1}".format(self.name(), self._status), file=suitelog)
         stat = 0
         for s in self._status:
             if self._status[s] is False:
@@ -1668,17 +1703,23 @@ def summary_report(run_time, report, outfile):
     return num_failures
 
 
-def print_no_baseline_warning(testlog):
+def print_baseline_warning(update_baselines, testlog):
     print(80 * '*')
     print("*")
     print("* WARNING: only minimal testing against a baseline is implemented!")
     print("*")
+    if update_baselines:
+        print("* WARNING: updating baselines with current simulation results!")
+        print("*")
     print(80 * '*')
 
     print(80 * '*', file=testlog)
     print("*", file=testlog)
     print("* WARNING: only minimal testing against a baseline is implemented!", file=testlog)
     print("*", file=testlog)
+    if update_baselines:
+        print("* WARNING: updating baselines with current simulation results!", file=testlog)
+        print("*", file=testlog)
     print(80 * '*', file=testlog)
 
 
@@ -1709,6 +1750,9 @@ def commandline_options():
                         nargs=1, default=None, required=True,
                         help="path to the root cesm directory to use")
 
+    parser.add_argument("--update-baselines", default=False, action='store_true',
+                        help="blindly update all test baselines to the current simulation results.")
+
     options = parser.parse_args()
     return options
 
@@ -1725,7 +1769,7 @@ def main(options):
     txtwrap = textwrap.TextWrapper(width=78, subsequent_indent=4*" ")
     suitelog = setup_test_suite_log(txtwrap, local_config)
 
-    print_no_baseline_warning(suitelog)
+    print_baseline_warning(options.update_baselines, suitelog)
 
     status = {}
 
@@ -1744,7 +1788,7 @@ def main(options):
             test.setup(test_config, machine, local_config, cesm_root_dir, suitelog)
             if options.debug:
                 print(test, file=suitelog)
-            test.run_test(suitelog)
+            test.run_test(options.update_baselines, suitelog)
         except Exception as e:
             print(str(e), file=suitelog)
         status[test.name()] = test.status(suitelog)

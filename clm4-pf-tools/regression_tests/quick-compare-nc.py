@@ -148,30 +148,36 @@ def check_tolerance(previous, current, tolerance, tolerance_type):
     """
     """
     status = 0
+
+    absolute = abs(previous - current)
+    if previous != 0:
+        relative = absolute / previous
+    elif current != 0:
+        relative = absolute / current
+    else:# both are zero
+        relative = 0.0
+    percent_diff = 100.0 * relative
+
+    other_diff = "{0:4.2g} % diff".format(percent_diff)
     if tolerance_type == "absolute":
-        delta = abs(previous - current)
-    elif (tolerance_type == "relative" or
-          tolerance_type == "percent"):
-        if previous != 0:
-            delta = abs(previous - current) / previous
-        elif current != 0:
-            delta = abs(previous - current) / current
-        else:
-            # both are zero
-            delta = 0.0
-        if tolerance_type == "percent":
-            delta *= 100.0
+        delta = absolute
+    elif (tolerance_type == "relative"):
+        delta = relative
+    elif tolerance_type == "percent":
+        delta = percent_diff
+        other_diff = "|{0:g}| diff".format(absolute)
     else:
         # should never get here....
         raise Exception("ERROR: unknown test tolerance_type '{0}'.".format(tolerance_type))
 
+
     if delta > tolerance:
         status = 1
-        print("    FAIL: {0} > {1} [{2}]".format(
-            delta, tolerance, tolerance_type))
+        print("    FAIL: {0:.4g} > {1} [{2}]  ({3})".format(
+            delta, tolerance, tolerance_type, other_diff))
     elif False:
-        print("    PASS: {0} <= {1} [{2}]".format(
-            delta, tolerance, tolerance_type))
+        print("    PASS: {0:.4g} <= {1} [{2}]  ({3})".format(
+            delta, tolerance, tolerance_type, other_diff))
 
     return status
     
