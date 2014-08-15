@@ -3055,6 +3055,12 @@
         <machine compiler="intel" testtype="aux_clm45">yellowstone</machine>
       </test>
     </grid>
+    <grid name="f09_g16">
+      <test name="SMS">
+         <machine compiler="intel" testtype="aux_clm45" testmods="clm/af_bias_v5">yellowstone</machine>
+         <machine compiler="nag" testtype="aux_clm45" testmods="clm/af_bias_v5">goldbach</machine>
+      </test>
+    </grid>
     <grid name="f19_g16">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>

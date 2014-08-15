@@ -1,9 +1,34 @@
 ================================================================================
- SVN $Id: ChangeLog 58185 2014-03-12 19:08:30Z erik $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_140312/ChangeLog $
+ SVN $Id: ChangeLog 62092 2014-07-23 15:22:21Z muszala $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_140723/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+
+================================================================================
+Originator: muszala
+Date: July 23 2014
+Model: datm7
+Version: datm8_140723
+One-line summary:  support for lai streams and anomaly forcing
+
+Clean up code in datm_comp_mod.F90 for anomaly forcing and streams.  Add a
+datm option for V5 CRUNCEP files (CLMCRUNCEP_V5 is a new datm_mode option).
+Add streams for lai in namelist_files/namelist_defaults_datm.xml.
+
+M       datm_comp_mod.F90
+M       bld/unit_testers/build-namelist_test.pl
+M       bld/namelist_files/namelist_defaults_datm.xml
+M       bld/namelist_files/namelist_definition_datm.xml
+
+================================================================================
+Originator: tcraig
+Date: Apr 24 2014
+Model: datm7
+Version: datm8_140424
+One-line summary:  update pioinit call
+
+M       datm_comp_mod.F90
 
 ================================================================================
 Originator: erik
