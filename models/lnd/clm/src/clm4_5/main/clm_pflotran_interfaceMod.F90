@@ -579,6 +579,7 @@ contains
     integer  :: local_num_l      ! local number of landunits across this processor
     integer  :: local_num_c      ! local number of columns across this processor
     integer  :: local_num_p      ! local number of pfts across this processor
+    integer  :: local_num_cohorts ! local number of ed cohorts across this processor
     integer  :: n,g,l,c,p,lev,j  ! indices
     integer  :: gcount
 
@@ -692,7 +693,7 @@ contains
          )
 
     ! Determine necessary indices
-    call get_proc_total(iam, local_num_g, local_num_l, local_num_c, local_num_p)
+    call get_proc_total(iam, local_num_g, local_num_l, local_num_c, local_num_p, local_num_cohorts)
 
     !------------------------------------------------------------------------
     allocate(pflotran_m)
