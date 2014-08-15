@@ -2891,18 +2891,18 @@
   <compset name="ICLM45CNED">
     <grid name="1x1_brazil">
       <test name="ERS_D_Mmpi-serial">
-        <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
-        <machine compiler="nag" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
-        <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
+        <machine compiler="nag" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
+        <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTest">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTest">yellowstone</machine>
       </test>
     </grid>
     <grid name="5x5_amazon">
       <test name="SMS_D_Mmpi-serial">
-        <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
-        <machine compiler="nag" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
-        <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTestGb">goldbach</machine>
+        <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
+        <machine compiler="nag" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
+        <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTest">goldbach</machine>
         <machine compiler="intel" testtype="aux_clm45" testmods="clm/edTest">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_clm45" testmods="clm/edTest">yellowstone</machine>
       </test>
