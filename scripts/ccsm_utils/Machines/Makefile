@@ -272,7 +272,7 @@ ifndef CISM_LIBDIR
   CISM_LIBDIR=$(GLC_DIR)/lib
 endif
 
-INCLDIR +=  -I$(MCT_LIBDIR)/mct -I$(MCT_LIBDIR)/mpeu -I$(PIO_LIBDIR) -I$(GPTL_LIBDIR) -I$(CODEROOT)/utils/pio -I$(EXEROOT)/lib/include
+INCLDIR +=  -I$(MCT_LIBDIR)/mct -I$(MCT_LIBDIR)/mpeu -I$(PIO_LIBDIR) -I$(GPTL_LIBDIR) -I$(CODEROOT)/utils/pio -I$(EXEROOT)/lib/include -I$(CODEROOT)/csm_share/shr
 
 #
 # Use the MCT dir for the cache for all configure calls because it is the first one 

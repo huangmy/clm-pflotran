@@ -1,5 +1,7 @@
 module SoilTemperatureMod
 
+#include "shr_assert.h"
+
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:
   ! Calculates snow and soil temperatures including phase change
@@ -8,7 +10,6 @@ module SoilTemperatureMod
   use abortutils     ,  only: endrun
   use perf_mod       ,  only: t_startf, t_stopf
   use decompMod      ,  only: bounds_type
-  use shr_assert_mod , only : shr_assert
   use shr_log_mod    , only : errMsg => shr_log_errMsg
   !
   ! !PUBLIC TYPES:
@@ -140,10 +141,10 @@ contains
     real(r8), pointer :: gflux_clm_loc(:)
 
     ! Enforce expected array sizes
-    call shr_assert((ubound(xmf)        == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(fact)       == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(xmf_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(c_h2osfc)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(xmf)        == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(fact)       == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(xmf_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(c_h2osfc)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
 
    associate(& 
@@ -1074,9 +1075,9 @@ contains
     call t_startf( 'SoilThermProp' )
 
     ! Enforce expected array sizes
-    call shr_assert((ubound(cv)        == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(tk)        == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(tk_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(cv)        == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(tk)        == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(tk_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
    associate(& 
    ltype                     =>    lun%itype               , & ! Input:  [integer (:)]  landunit type                            
@@ -1301,10 +1302,10 @@ contains
     call t_startf( 'PhaseChangeH2osfc' )
 
     ! Enforce expected array sizes
-    call shr_assert((ubound(fact)       == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(dhsdT)      == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(c_h2osfc)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(xmf_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(fact)       == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(dhsdT)      == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(c_h2osfc)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(xmf_h2osfc) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
    associate(& 
    frac_sno                  =>    cps%frac_sno_eff        , & ! Input:  [real(r8) (:)]  fraction of ground covered by snow (0 to 1)
@@ -1498,9 +1499,9 @@ contains
     call t_startf( 'PhaseChangebeta' )
 
     ! Enforce expected array sizes
-    call shr_assert((ubound(fact)  == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(dhsdT) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
-    call shr_assert((ubound(xmf)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(fact)  == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(dhsdT) == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(xmf)   == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
    associate(& 
    qflx_snow_melt            =>    cwf%qflx_snow_melt      , & ! Input:  [real(r8) (:)]  net snow melt                           

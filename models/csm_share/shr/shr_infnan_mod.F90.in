@@ -148,17 +148,19 @@ type(shr_infnan_inf_type), public, parameter :: shr_infnan_neginf = &
      shr_infnan_inf_type(.false.)
 
 ! Bit patterns for implementation without ieee_arithmetic.
+! Note that in order to satisfy gfortran's range check, we have to use
+! ibset to set the sign bit from a BOZ pattern.
 #ifndef HAVE_IEEE_ARITHMETIC
 ! Single precision.
 integer(i4), parameter :: ssnan_pat = int(Z'7FA00000',i4)
 integer(i4), parameter :: sqnan_pat = int(Z'7FC00000',i4)
 integer(i4), parameter :: sposinf_pat = int(Z'7F800000',i4)
-integer(i4), parameter :: sneginf_pat = int(Z'FF800000',i4)
+integer(i4), parameter :: sneginf_pat = ibset(sposinf_pat,bit_size(1_i4)-1)
 ! Double precision.
 integer(i8), parameter :: dsnan_pat = int(Z'7FF4000000000000',i8)
 integer(i8), parameter :: dqnan_pat = int(Z'7FF8000000000000',i8)
 integer(i8), parameter :: dposinf_pat = int(Z'7FF0000000000000',i8)
-integer(i8), parameter :: dneginf_pat = int(Z'FFF0000000000000',i8)
+integer(i8), parameter :: dneginf_pat = ibset(dposinf_pat,bit_size(1_i8)-1)
 #endif
 
 contains

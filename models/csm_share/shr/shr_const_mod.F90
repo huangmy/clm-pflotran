@@ -1,6 +1,6 @@
 !===============================================================================
 ! SVN $Id: shr_const_mod.F90 6749 2007-10-04 20:58:20Z jwolfe $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_131231/shr/shr_const_mod.F90 $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/shr_assert_macro_tags/shr_assert_macro_n04_share3_140115/shr/shr_const_mod.F90 $
 !===============================================================================
 
 MODULE shr_const_mod
