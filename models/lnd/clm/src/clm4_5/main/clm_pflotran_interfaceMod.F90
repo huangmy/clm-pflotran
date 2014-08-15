@@ -527,8 +527,8 @@ contains
     use shr_assert_mod , only : shr_assert
     use shr_log_mod    , only : errMsg => shr_log_errMsg
     use clmtype
-    use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column, &
-         use_pflotran, pflotran_surfaceflow, pflotran_th_mode
+    use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column
+    use clm_varctl      , only : use_pflotran, pflotran_surfaceflow, pflotran_th_mode
     use decompMod       , only : bounds_type, get_proc_total, &
          ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
@@ -538,10 +538,9 @@ contains
     use fileutils       , only : getfil
     use spmdMod         , only : mpicom, masterproc, iam
     use organicFileMod  , only : organicrd
-    use clm_varcon      , only : istice, istdlak, istwet, istice_mec,  &
-         icol_roof, icol_sunwall, icol_shadewall, &
-         icol_road_perv, icol_road_imperv, zisoi, zsoi, &
-         istsoil, denice, denh2o
+    use landunit_varcon , only : istsoil, istice, istdlak, istwet, istice_mec
+    use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
+    use clm_varcon      , only : zisoi, zsoi, denice, denh2o
     use abortutils      , only : endrun
 
     use ncdio_pio
