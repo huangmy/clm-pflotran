@@ -1174,7 +1174,7 @@ class RegressionTest(object):
         # set universal flags
         din_loc = "{0}/cesm-inputdata".format(self._local_config["data_dir"])
         status += self._run_xml_change(xmlfile, "DIN_LOC_ROOT", din_loc)
-        status += self._run_xml_change(xmlfile, "DIN_LOC_ROOT_CLMFORC", "'$DIN_LOC_ROOT'")
+        status += self._run_xml_change(xmlfile, "DIN_LOC_ROOT_CLMFORC", "$DIN_LOC_ROOT/atm/datm7")
 
         run_dir = "{0}/{1}".format(os.getcwd(), "run")
         os.mkdir(run_dir)
