@@ -212,12 +212,71 @@ contains
     type(mct_aVect), intent(in)    :: frac_w ! input
     type(mct_aVect), intent(inout) :: x2w_w  ! output
     !-----------------------------------------------------------------------
+    integer       :: nflds,i,i1,o1
+    logical       :: iamroot
+    logical, save :: first_time = .true.
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    character(CL) :: field   ! string converted to char
+    type(mct_aVect_sharedindices),save :: a2x_sharedindices
+    type(mct_aVect_sharedindices),save :: o2x_sharedindices
+    type(mct_aVect_sharedindices),save :: i2x_sharedindices
+    character(*), parameter   :: subname = '(prep_wav_merge) '
+
+    !----------------------------------------------------------------------- 
+
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
+
+    if (first_time) then
+       nflds = mct_aVect_nRattr(x2w_w)
+
+       allocate(mrgstr(nflds))
+       do i = 1,nflds
+          field = mct_aVect_getRList2c(i, x2w_w)
+          mrgstr(i) = subname//'x2w%'//trim(field)//' ='
+       enddo
+
+       call mct_aVect_setSharedIndices(a2x_w, x2w_w, a2x_SharedIndices)
+       call mct_aVect_setSharedIndices(o2x_w, x2w_w, a2x_SharedIndices)
+       call mct_aVect_setSharedIndices(i2x_w, x2w_w, a2x_SharedIndices)
+
+       !--- document copy operations ---
+       do i=1,a2x_SharedIndices%shared_real%num_indices
+          i1=a2x_SharedIndices%shared_real%aVindices1(i)
+          o1=a2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, a2x_w)
+          mrgstr(o1) = trim(mrgstr(o1))//' = a2x%'//trim(field)
+       enddo
+       do i=1,o2x_SharedIndices%shared_real%num_indices
+          i1=o2x_SharedIndices%shared_real%aVindices1(i)
+          o1=o2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, o2x_w)
+          mrgstr(o1) = trim(mrgstr(o1))//' = o2x%'//trim(field)
+       enddo
+       do i=1,i2x_SharedIndices%shared_real%num_indices
+          i1=i2x_SharedIndices%shared_real%aVindices1(i)
+          o1=i2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, i2x_w)
+          mrgstr(o1) = trim(mrgstr(o1))//' = i2x%'//trim(field)
+       enddo
+    endif
 
     ! Create input wave state directly from atm, ocn, ice output state
 
-    call mct_aVect_copy(aVin=a2x_w, aVout=x2w_w, vector=mct_usevector)
-    call mct_aVect_copy(aVin=o2x_w, aVout=x2w_w, vector=mct_usevector)
-    call mct_aVect_copy(aVin=i2x_w, aVout=x2w_w, vector=mct_usevector)
+    call mct_aVect_copy(aVin=a2x_w, aVout=x2w_w, vector=mct_usevector, sharedIndices=a2x_SharedIndices)
+    call mct_aVect_copy(aVin=o2x_w, aVout=x2w_w, vector=mct_usevector, sharedIndices=o2x_SharedIndices)
+    call mct_aVect_copy(aVin=i2x_w, aVout=x2w_w, vector=mct_usevector, sharedIndices=i2x_SharedIndices)
+
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do i = 1,nflds
+             write(logunit,'(A)') trim(mrgstr(i))
+          enddo
+       endif
+       deallocate(mrgstr)
+    endif
+
+    first_time = .false.
 
   end subroutine prep_wav_merge
 

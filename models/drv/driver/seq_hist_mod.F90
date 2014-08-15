@@ -520,8 +520,8 @@ subroutine seq_hist_writeavg(infodata, EClock_d, &
 
             x2c => component_get_x2c_cx(rof(iidx))
             lsize = mct_aVect_lsize(x2c)
-            call mct_aVect_init(x2l_lx_avg(iidx), x2c, lsize)
-            call mct_aVect_zero(x2l_lx_avg(iidx))
+            call mct_aVect_init(x2r_rx_avg(iidx), x2c, lsize)
+            call mct_aVect_zero(x2r_rx_avg(iidx))
          enddo
       endif
       if (ocn_present) then

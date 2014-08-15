@@ -18,9 +18,9 @@ endif
 
 if ( $COMPILER == "pgi" ) then
     setenv MPI_PATH /cluster/openmpi-qlc-pgi
-    setenv PGI /usr/local/pgi-pgcc-pghf-13.7
+    setenv PGI /usr/local/pgi-pgcc-pghf-14.1
     # Runtime environment variables
-    setenv PATH ${PGI}/linux86/bin:${MPI_PATH}/bin:${PATH}
+    setenv PATH ${PGI}/linux86-64/bin:${MPI_PATH}/bin:${PATH}
     setenv LD_LIBRARY_PATH ${PGI}/linux86-64/lib:${PGI}/linux86-64/libso:/usr/local/netcdf-4.3.0-pgi-pgcc-pghf-13.7/lib:/usr/local/pgi-pg-pgcc-pghf-13.7/linux86-64/lib:${MPI_PATH}/lib64
     setenv P4_GLOBMEMSIZE 500000000
 endif

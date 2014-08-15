@@ -1,6 +1,3 @@
-! This namelist switches some glc_mec-related flags, in order to test different branches
-! than are tested with the default options
-
 ! The following namelist changes are copied from the standard glcMEC user_nl_clm file:
  hist_dov2xy    = .true.,.false.
  hist_ndens     = 1,1
@@ -9,6 +6,9 @@
  hist_fincl2    = 'QICE'
  hist_nhtfrq    =-24,-8
  hist_mfilt     = 1,3
+
+! Set max snow persistence to a small number so that smb from bare land can potentially be triggered
+ glc_snow_persistence_max_days = 2
 
 ! The following namelist changes are specific to this testmods directory:
  glcmec_downscale_rain_snow_convert = .true.

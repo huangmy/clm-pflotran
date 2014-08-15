@@ -234,7 +234,8 @@ contains
     type(mct_aVect) , intent(inout) :: x2i_i
     !
     ! Local variables
-    integer       :: i
+    integer       :: i,i1,o1,lsize
+    integer       :: niflds
     integer, save :: index_a2x_Faxa_rainc
     integer, save :: index_a2x_Faxa_rainl
     integer, save :: index_a2x_Faxa_snowc
@@ -245,9 +246,22 @@ contains
     integer, save :: index_x2i_Faxa_snow
     integer, save :: index_x2i_Fixx_rofi
     logical, save :: first_time = .true.
+    logical       :: iamroot
+    character(CL),allocatable :: mrgstr(:)   ! temporary string
+    character(CL) :: field   ! string converted to char
+    type(mct_aVect_sharedindices),save :: o2x_sharedindices
+    type(mct_aVect_sharedindices),save :: a2x_sharedindices
+    type(mct_aVect_sharedindices),save :: g2x_sharedindices
+    character(*), parameter   :: subname = '(prep_ice_merge) '
     !----------------------------------------------------------------------- 
 
+    call seq_comm_getdata(CPLID, iamroot=iamroot)
+    lsize = mct_aVect_lsize(x2i_i)
+
     if (first_time) then
+       niflds = mct_aVect_nRattr(x2i_i)
+
+       allocate(mrgstr(niflds))
        index_a2x_Faxa_snowc = mct_aVect_indexRA(a2x_i,'Faxa_snowc')
        index_a2x_Faxa_snowl = mct_aVect_indexRA(a2x_i,'Faxa_snowl')
        index_a2x_Faxa_rainc = mct_aVect_indexRA(a2x_i,'Faxa_rainc')
@@ -257,17 +271,57 @@ contains
        index_x2i_Faxa_rain  = mct_aVect_indexRA(x2i_i,'Faxa_rain' )
        index_x2i_Faxa_snow  = mct_aVect_indexRA(x2i_i,'Faxa_snow' )
        index_x2i_Fixx_rofi  = mct_aVect_indexRA(x2i_i,'Fixx_rofi') 
-       first_time = .false.
-    end if
 
-    call mct_aVect_copy(aVin=o2x_i, aVout=x2i_i, vector=mct_usevector)
-    call mct_aVect_copy(aVin=a2x_i, aVout=x2i_i, vector=mct_usevector)
-    call mct_aVect_copy(aVin=g2x_i, aVout=x2i_i, vector=mct_usevector)
+       do i = 1,niflds
+          field = mct_aVect_getRList2c(i, x2i_i)
+          mrgstr(i) = subname//'x2i%'//trim(field)//' ='
+       enddo
+
+       call mct_aVect_setSharedIndices(o2x_i, x2i_i, o2x_SharedIndices)
+       call mct_aVect_setSharedIndices(a2x_i, x2i_i, a2x_SharedIndices)
+       call mct_aVect_setSharedIndices(g2x_i, x2i_i, g2x_SharedIndices)
+
+       !--- document copy operations ---
+       do i=1,o2x_SharedIndices%shared_real%num_indices
+          i1=o2x_SharedIndices%shared_real%aVindices1(i)
+          o1=o2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, o2x_i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = o2x%'//trim(field)
+       enddo
+       do i=1,a2x_SharedIndices%shared_real%num_indices
+          i1=a2x_SharedIndices%shared_real%aVindices1(i)
+          o1=a2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, a2x_i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = a2x%'//trim(field)
+       enddo
+       do i=1,g2x_SharedIndices%shared_real%num_indices
+          i1=g2x_SharedIndices%shared_real%aVindices1(i)
+          o1=g2x_SharedIndices%shared_real%aVindices2(i)
+          field = mct_aVect_getRList2c(i1, g2x_i)
+          mrgstr(o1) = trim(mrgstr(o1))//' = g2x%'//trim(field)
+       enddo
+
+       !--- document manual merges ---
+       mrgstr(index_x2i_Faxa_rain) = trim(mrgstr(index_x2i_Faxa_rain))//' = '// &
+          '(a2x%Faxa_rainc + a2x%Faxa_rainl)*flux_epbalfact'
+       mrgstr(index_x2i_Faxa_snow) = trim(mrgstr(index_x2i_Faxa_snow))//' = '// &
+          '(a2x%Faxa_snowc + a2x%Faxa_snowl)*flux_epbalfact'
+       mrgstr(index_x2i_Fixx_rofi) = trim(mrgstr(index_x2i_Fixx_rofi))//' = '// &
+          '(g2x%Figg_rofi + r2x%Firr_rofi)*flux_epbalfact'
+
+    endif
+
+!    call mct_aVect_copy(aVin=o2x_i, aVout=x2i_i, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=a2x_i, aVout=x2i_i, vector=mct_usevector)
+!    call mct_aVect_copy(aVin=g2x_i, aVout=x2i_i, vector=mct_usevector)
+    call mct_aVect_copy(aVin=o2x_i, aVout=x2i_i, vector=mct_usevector, sharedIndices=o2x_SharedIndices)
+    call mct_aVect_copy(aVin=a2x_i, aVout=x2i_i, vector=mct_usevector, sharedIndices=a2x_SharedIndices)
+    call mct_aVect_copy(aVin=g2x_i, aVout=x2i_i, vector=mct_usevector, sharedIndices=g2x_SharedIndices)
 
     ! Merge total snow and precip for ice input
     ! Scale total precip and runoff by flux_epbalfact 
 
-    do i = 1,mct_aVect_lsize(x2i_i)
+    do i = 1,lsize
        x2i_i%rAttr(index_x2i_Faxa_rain,i) = a2x_i%rAttr(index_a2x_Faxa_rainc,i) + &
 	                                    a2x_i%rAttr(index_a2x_Faxa_rainl,i)
        x2i_i%rAttr(index_x2i_Faxa_snow,i) = a2x_i%rAttr(index_a2x_Faxa_snowc,i) + &
@@ -279,6 +333,18 @@ contains
        x2i_i%rAttr(index_x2i_Faxa_snow,i) = x2i_i%rAttr(index_x2i_Faxa_snow,i) * flux_epbalfact
        x2i_i%rAttr(index_x2i_Fixx_rofi,i) = x2i_i%rAttr(index_x2i_Fixx_rofi,i) * flux_epbalfact
     end do
+ 
+    if (first_time) then
+       if (iamroot) then
+          write(logunit,'(A)') subname//' Summary:'
+          do i = 1,niflds
+             write(logunit,'(A)') trim(mrgstr(i))
+          enddo
+       endif
+       deallocate(mrgstr)
+    endif
+
+    first_time = .false.
 
   end subroutine prep_ice_merge
 

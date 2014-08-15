@@ -442,6 +442,26 @@ subroutine esmfshr_infodata_convert(infodata,ID,state,direction,rc)
     endif
 
     if (i2s) then
+       call seq_infodata_Getdata(infodata, wall_time_limit=real_buf)
+       call ESMF_AttributeSet(state, name="wall_time_limit", value=real_buf, rc=localrc)
+       if(localrc /= ESMF_SUCCESS) call ESMF_Finalize(rc=localrc, endflag=ESMF_END_ABORT)
+    else
+       call ESMF_AttributeGet(state, name="wall_time_limit", value=real_buf, rc=localrc)
+       if(localrc /= ESMF_SUCCESS) call ESMF_Finalize(rc=localrc, endflag=ESMF_END_ABORT)
+       call seq_infodata_Putdata(infodata, wall_time_limit=real_buf)
+    endif
+
+    if (i2s) then
+       call seq_infodata_Getdata(infodata, force_stop_at=char_buf)
+       call ESMF_AttributeSet(state, name="force_stop_at", value=char_buf, rc=localrc)
+       if(localrc /= ESMF_SUCCESS) call ESMF_Finalize(rc=localrc, endflag=ESMF_END_ABORT)
+    else
+       call ESMF_AttributeGet(state, name="force_stop_at", value=char_buf, rc=localrc)
+       if(localrc /= ESMF_SUCCESS) call ESMF_Finalize(rc=localrc, endflag=ESMF_END_ABORT)
+       call seq_infodata_Putdata(infodata, force_stop_at=char_buf)
+    endif
+
+    if (i2s) then
        call seq_infodata_Getdata(infodata, atm_gnam=char_buf)
        call ESMF_AttributeSet(state, name="atm_gnam", value=char_buf, rc=localrc)
        if(localrc /= ESMF_SUCCESS) call ESMF_Finalize(rc=localrc, endflag=ESMF_END_ABORT)

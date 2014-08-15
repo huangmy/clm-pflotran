@@ -1,8 +1,72 @@
 ================================================================================
- SVN $Id: ChangeLog 55697 2013-12-01 07:58:58Z tcraig $
- SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_07/ChangeLog $
+ SVN $Id: ChangeLog 59750 2014-05-01 15:17:20Z sacks $
+ SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_10/ChangeLog $
 ================================================================================
 Information on changes to cpl7
+================================================================================
+Originator: sacks
+Date: 1 May 2014
+Model: cpl7
+Version: drvseq5_0_10
+One-line summary: add fields for CLM <-> CISM coupling; add to hist_a2x3hr_flds
+
+This is meant to go with cism1_140501 and an upcoming CLM tag (probably either
+clm4_5_72 or clm4_5_73), although these may not be strictly required.
+
+*** Add fields for CLM <-> CISM coupling. 
+M       shr/seq_flds_mod.F90
+
+*** Unrelated change: Add to hist_a2x3hr_fields, to give all fields needed for
+    MOAR runs (note: I was not able to test this change, because the writing of
+    this auxiliary hist file is currently broken)
+M       driver/ccsm_comp_mod.F90
+
+================================================================================
+Originator: tcraig
+Date: 15 Jan 2014
+Model: cpl7
+Version: drvseq5_0_09
+One-line summary: update merge with self documentation and sharedindices,
+ avghist set from env file, wall_time_limit feature added
+
+- all merge methods now self-documenting
+- add sharedindices feature to merge to improve performance
+- avghist namelist now set from env file
+- wall_time_limit feature added via new namelist, wall_time_limit (hours)
+  and force_stop_at (day,month,year) variables.
+- new checks added to "auto" merges to make sure there is only one matching
+  field name, make sure the same fraction can't be applied automatically
+  more than once, and to make sure the fraction logic is consistent
+  between merged fields.
+- coupling fields now written to cpl.log file
+- minor issues like add missing subname strings, fix write to 6, etc.
+- depends on:
+  scripts4_140115a
+  share3_140115
+  compiler_fixes_n04_MCT_2.8.3
+
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_drv.xml
+M       bld/namelist_files/namelist_definition_drv.xml
+M       shr_esmf/esmfshr_infodata_mod.F90
+M       driver/prep_wav_mod.F90
+M       driver/prep_ice_mod.F90
+M       driver/prep_glc_mod.F90
+M       driver/prep_lnd_mod.F90
+M       driver/ccsm_comp_mod.F90
+M       driver/prep_ocn_mod.F90
+M       driver/prep_atm_mod.F90
+M       driver/prep_rof_mod.F90
+M       shr/seq_timemgr_mod.F90
+M       shr/seq_infodata_mod.F90
+M       shr/seq_flds_mod.F90
+================================================================================
+Originator: tcraig
+Date: 16 Dec 2013
+Model: cpl7
+Version: drvseq5_0_08
+One-line summary: Fix coupler time average history bug
+M       driver/seq_hist_mod.F90
 ================================================================================
 Originator: tcraig
 Date: 30 Nov 2013
@@ -22,8 +86,8 @@ Model: cpl7
 Version: drvseq5_0_06
 One-line summary: more driver refactoring to enalbe coexisting MCT/ESMF compatiblity at driver level
 
-brought in commap branch into driver trunk	
-	
+brought in commap branch into driver trunk
+
 moved instantiation of atm, lnd, rof, ocn, ice, glc, wav instances from ccsm_comp_mod.F90
 to component_type_mod.F90
 
@@ -34,7 +98,7 @@ to component_type_mod.F90
 	type(component_type), target :: ice(num_inst_ice)
 	type(component_type), target :: glc(num_inst_glc)
 	type(component_type), target :: wav(num_inst_wav)
-	
+
 M       driver/ccsm_comp_mod.F90
 M       driver/component_mod.F90
 M       driver/component_type_mod.F90

@@ -2058,6 +2058,7 @@
         <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsRLA">intrepid</machine>
         <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLA">janus</machine>
         <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsRLA">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsROA">yellowstone</machine>
         <machine compiler="gnu" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
         <machine compiler="intel" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
         <machine compiler="pgi" testtype="prebeta" testmods="clm/ptsRLA">yellowstone</machine>
@@ -2070,7 +2071,6 @@
         <machine compiler="intel" testtype="aux_clm_ys_intel" testmods="clm/ptsROA">edison</machine>
         <machine compiler="pgi" testtype="prerelease" testmods="clm/ptsROA">hopper</machine>
         <machine compiler="ibm" testtype="prerelease" testmods="clm/ptsROA">intrepid</machine>
-        <machine compiler="intel" testtype="aux_clm" testmods="clm/ptsROA">yellowstone</machine>
       </test>
     </grid>
     <grid name="f45_g37">
@@ -3085,6 +3085,11 @@
     </grid>
   </compset>
   <compset name="IG1850CLM45">
+    <grid name="T31_g37">
+      <test name="SMS_Lm37">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/glcMEC_long" comment="Long enough test for SMB to be generated in bare land areas; add a month beyond the 3rd year to allow time for CLM to respond to CISM forcing from the 3rd year. (Note: if we had spun-up initial conditions for an IG compset, we could test this with much shorter test, if it also used the glc override options - much of the need for this long test is to allow the snow pack to spin up.)">yellowstone</machine>
+      </test>
+    </grid>
     <grid name="f09_g16">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
@@ -3097,7 +3102,7 @@
       </test>
       <test name="PEM_D">
         <machine compiler="intel" testtype="aux_clm_ys_pgi">edison</machine>
-        <machine compiler="pgi" testtype="aux_clm" testmods="clm/glcMEC">yellowstone</machine>
+        <machine compiler="pgi" testtype="aux_clm" testmods="clm/glcMEC_increase">yellowstone</machine>
       </test>
     </grid>
   </compset>
@@ -3128,6 +3133,11 @@
     </grid>
   </compset>
   <compset name="IG20TRCLM45">
+    <grid name="T31_g37">
+      <test name="ERS_D_Ld10">
+        <machine compiler="intel" testtype="aux_clm" testmods="clm/glcMEC_decrease" comment="test transient PFTs (via 20TR) in conjunction with changing glacier area">yellowstone</machine>
+      </test>
+    </grid>
     <grid name="f19_g16">
       <test name="SBN">
         <machine compiler="null" testtype="null">null</machine>
@@ -3151,11 +3161,11 @@
   <compset name="IGCLM45">
     <grid name="T31_g37">
       <test name="ERS_Ly5">
-        <machine compiler="intel" testtype="aux_glc" comment="need IG ERS test to catch problems with fields sent before the end of the first year after restart">yellowstone</machine>
+        <machine compiler="intel" testtype="aux_glc" testmods="clm/glcMEC_long" comment="Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also use glcMEC_long testmods to get shorter snow_persistence_max - the main motivation here is to have a long ERS test that checks restart of the snow_persistence stuff (which more belongs in the aux_clm test list, but was added here to avoid needing to add a long ERS test to that test list)... this is mainly needed because we do not have an IG test that uses spun-up initial conditions, so we currently need a long test to completely test the restartability of the snow_persistence stuff.">yellowstone</machine>
       </test>
     </grid>
     <grid name="f19_g16">
-      <test name="ERS_Ld9">
+      <test name="ERS_D_Ld9">
         <machine compiler="pgi" testtype="aux_glc" testmods="cism/override_glc_frac" comment="Make sure glc override options work correctly, and restart properly">yellowstone</machine>
       </test>
       <test name="SBN">

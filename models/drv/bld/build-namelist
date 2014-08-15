@@ -396,6 +396,8 @@ add_default($nl, 'flux_albav');
 add_default($nl, 'flux_epbal');
 add_default($nl, 'info_debug');
 add_default($nl, 'cpl_decomp');
+add_default($nl, 'wall_time_limit');
+add_default($nl, 'force_stop_at');
 
 add_default($nl, 'do_histinit');
 add_default($nl, 'shr_map_dopole');
