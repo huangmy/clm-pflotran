@@ -1299,6 +1299,14 @@ such a dataset would be 1x1pt_boulderCO_c090722. The default value is UNSET.
 This is an advanced flag and should only be used by expert users."
 ></entry> 
 
+<entry id="CLM_UPDATE_GLC_AREAS" 
+ type="logical"
+ valid_values="TRUE,FALSE"
+ value="FALSE" 
+ group="run_component_clm"
+ sdesc="Whether CLM should update its areas based on glacier areas sent from GLC"
+></entry>
+
 <!-- ======================================================================= -->
 <!-- VIC                                                                     -->
 <!-- ======================================================================= -->

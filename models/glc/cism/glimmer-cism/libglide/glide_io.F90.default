@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! WARNING: this file was automatically generated on
-! Tue, 24 Sep 2013 20:14:55 +0000
+! Tue, 03 Dec 2013 22:57:35 +0000
 ! from ncdf_template.F90.in
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -775,7 +775,7 @@ contains
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = parallel_put_att(NCO%id, varid, 'scale_factor',(scale_flwa))
        status = parallel_put_att(NCO%id, varid, 'long_name', 'Pre-exponential flow law parameter')
-       status = parallel_put_att(NCO%id, varid, 'units', 'pascal/year')
+       status = parallel_put_att(NCO%id, varid, 'units', 'pascal^(-n) year^(-1)')
        if (glimmap_allocated(model%projection)) then
           status = parallel_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
           status = parallel_put_att(NCO%id, varid, 'coordinates', 'lon lat')
@@ -794,7 +794,7 @@ contains
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = parallel_put_att(NCO%id, varid, 'scale_factor',(scale_flwa))
        status = parallel_put_att(NCO%id, varid, 'long_name', 'Pre-exponential flow law parameter')
-       status = parallel_put_att(NCO%id, varid, 'units', 'pascal/year')
+       status = parallel_put_att(NCO%id, varid, 'units', 'pascal^(-n) year^(-1)')
        if (glimmap_allocated(model%projection)) then
           status = parallel_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
           status = parallel_put_att(NCO%id, varid, 'coordinates', 'lon lat')

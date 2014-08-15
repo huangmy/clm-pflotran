@@ -1,8 +1,79 @@
 ================================================================================
-SVN $Id: ChangeLog 57448 2014-02-20 17:09:40Z jshollen $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140220/ChangeLog $
+SVN $Id: ChangeLog 57910 2014-03-05 16:45:23Z sacks $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140305/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+
+================================================================================
+Originator: sacks
+Date: 5 March 2014
+Model: scripts
+Version: scripts4_140305
+One-line: Modify an aux_glc test
+
+M       ccsm_utils/Testlistxml/testmods_dirs/cism/override_glc_frac/user_nl_cism
+
+================================================================================
+Originator: sacks
+Date: 4 March 2014
+Model: scripts
+Version: scripts4_140304
+One-line: Add an aux_glc test
+
+A       ccsm_utils/Testlistxml/testmods_dirs/cism
+A       ccsm_utils/Testlistxml/testmods_dirs/cism/override_glc_frac
+A       ccsm_utils/Testlistxml/testmods_dirs/cism/override_glc_frac/user_nl_cism
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: 24 Feb 2014
+Model: scripts
+Version: scripts4_140224a
+One-line: Check for the existence of XML::LibXML in the machine's perl installation, 
+warn and exit if not found. 
+
+M       create_test
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       create_newcase
+
+================================================================================
+Originator: erik
+Date: 24 Feb 2014
+Model: scripts
+Version: scripts4_140224
+One-line: Turn on transient CO2 streams for transient I compsets
+
+Turn DATM_CO2_TSERIES on for datm as well as other variables needed to 
+turn on transient CO2 for both historical and RCP scenarios.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+
+================================================================================
+Originator: sacks
+Date: 21 Feb 2014
+Model: scripts
+Version: scripts4_140221a
+One-line: rename GLC_UPDATE_CLM_AREAS to CLM_UPDATE_GLC_AREAS and move to run_component_clm
+
+Erik points out that, since this option is specific to CLM, this is where it belongs.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: sacks
+Date: 21 Feb 2014
+Model: scripts
+Version: scripts4_140221
+One-line: Add GLC_UPDATE_CLM_AREAS env_run.xml variable
+
+This will control whether CLM responds to dynamic areas coming from CISM
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
 ================================================================================
 Originator: jshollen
 Date: 20 Feb 2014

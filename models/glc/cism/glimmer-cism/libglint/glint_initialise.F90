@@ -302,8 +302,8 @@ contains
     call glint_io_writeall(instance, instance%model)
     call glint_mbal_io_writeall(instance, instance%model, outfiles=instance%out_first)
 
-    if (instance%whichprecip == 2) need_winds=.true.
-    if (instance%whichacab == 3) then
+    if (instance%whichprecip == PRECIP_RL) need_winds=.true.
+    if (instance%whichacab == MASS_BALANCE_EBM) then   ! not currently supported
        need_winds = .true.
        enmabal = .true.
     end if
@@ -848,17 +848,26 @@ contains
     ! Internal variables
     !------------------------------------------------------------------------------------
 
-    !------------------------------------------------------------------------------------
-
     ! Variables needed for restart with glint.
-    ! TODO I am simply inserting outmask because it was the only variable with hot=1 in glint_vars.def
-    !      Not sure it is needed
+    ! TODO I am inserting out_mask because it was the only variable with hot=1 in the old glint_vars.def
+    !      Not sure outflux is needed
     call glint_add_to_restart_variable_list('outmask')
+
+    ! The variables rofi_tavg, rofl_tavg, and hflx_tavg are time-averaged fluxes on the local grid
+    !  from the previous coupling interval. They are included here so that the coupler can be sent
+    !  the correct fluxes after restart; otherwise these fluxes would have values of zero.
+    ! These arrays are created only when Glint is run in GCM mode.
+    !TODO - Add av_count_output so we can restart in the middle of a mass balance timestep?
+   
+    if (instance%whichacab == MASS_BALANCE_GCM) then
+       call glint_add_to_restart_variable_list('rofi_tavg rofl_tavg hflx_tavg')
+    endif
 
     ! Variables needed for restart with glint_mbal
     ! No variables had hot=1 in glint_mbal_vars.def, so I am not adding any restart variables here.
     ! call glint_mbal_add_to_restart_variable_list('')
 
   end subroutine define_glint_restart_variables
+
 
 end module glint_initialise
