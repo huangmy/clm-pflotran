@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: main.F90 46983 2013-05-09 22:08:12Z tcraig $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/gen_mapping_files/runoff_to_ocn/src/main.F90 $
+! SVN $Id: main.F90 56036 2013-12-13 22:22:05Z mlevy@ucar.edu $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/gen_mapping_files/runoff_to_ocn/src/main.F90 $
 !===============================================================================
 
 PROGRAM main
@@ -34,6 +34,7 @@ PROGRAM main
    !--- namelis vars ---
    character(180) :: gridtype      ! type of run-off grid
    character(180) :: file_roff     ! file name: rtm rdirc file
+   character(180) :: file_roff_out ! file name: rtm rdirc file
    character(180) :: file_ocn      ! file name: ocn scrip grid file
    character(180) :: file_nn       ! file name: orig matrix, corrected
    character(180) :: file_new      ! file name: orig matrix, corrected, smoothed, sorted -- done
@@ -42,11 +43,12 @@ PROGRAM main
    logical        :: step1         ! gen nn
    logical        :: step2         ! gen smooth
    logical        :: step3         ! mat mult
-
+   logical        :: lmake_rSCRIP  ! .true. => convert runoff grid to SCRIP
 
    namelist / input_nml / &
       gridtype      &
    ,  file_roff     &
+   ,  file_roff_out &
    ,  file_ocn      &
    ,  file_nn       &
    ,  file_new      &
@@ -54,6 +56,7 @@ PROGRAM main
    ,  title         &
    ,  eFold         &
    ,  rMax          &
+   ,  lmake_rSCRIP  &
    ,  step1, step2, step3
 
    !--- formats ---
@@ -78,7 +81,7 @@ PROGRAM main
 
    write(6,F10) "correct/smooth/sort runoff -> ocean map"
    write(6,F10) "SVN &
-   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130716/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
+   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
 
    call shr_timer_init()
 
@@ -98,6 +101,10 @@ PROGRAM main
    step1         = .true.
    step2         = .true.
    step3         = .true.
+
+   ! These two variables typically don't appear in namelist
+   lmake_rSCRIP  = .false.    
+   file_roff_out = "runoff.nc"
 
    open (10,file="runoff_map.nml",status="old",action="read")
    read (10,nml=input_nml,iostat=rCode)
@@ -122,6 +129,17 @@ PROGRAM main
 
    call date_and_time(dstr,tstr)
    write(6,F12) dstr(1:4),dstr(5:6),dstr(7:8) ,tstr(1:2),tstr(3:4),tstr(5:6)
+
+   if (lmake_rSCRIP) then
+     write(6,F10) "Generating SCRIP file from runoff input"
+     ! note that this overloads ofilename in map_gridRead... use as
+     ! ocean scrip grid file in normal use, but output scrip grid file
+     ! when generating SCRIP file from runoff data.
+     call map_gridRead(map_orig, trim(file_roff), trim(file_roff_out),        &
+                       gridtype, .true.)
+     write(6,*) "Successfully generated ", trim(file_roff_out)
+     stop
+   end if
 
    !----------------------------------------------------------------------------
    write(6,F10) "Step 1: read grid info & create nearest neighbor map"

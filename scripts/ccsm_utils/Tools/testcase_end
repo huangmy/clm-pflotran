@@ -224,6 +224,49 @@ if ( $?COMPARE_BASELINE ) then
   endif
 endif
 
+#======================================================================
+# Run the component gen compare to compare component history files
+# (Currently only recognizes cism, clm2 and could be used for cpl as well)
+# (Could be easily extended to recognize other components with the history extension list)
+#======================================================================
+if ( $MODEL_GEN_COMP != "UNSET" ) then
+   if      ( "$MODEL_GEN_COMP" == "cism" ) then
+      set extension_list = "h"
+   else if ( "$MODEL_GEN_COMP" == "clm2" ) then
+      set extension_list = "h0 h1 h2 h3 h4 h5"
+   else if ( "$MODEL_GEN_COMP" == "cpl" ) then
+      set extension_list = "hi"
+   endif
+   foreach type ( compare_hist generate )
+      set all_bfail=1
+      foreach extension ( $extension_list )
+         set test_hist=`cd $RUNDIR; ls -1 ${CASE}.${MODEL_GEN_COMP}*.${extension}*.nc | tail -1`
+         set base_hist="${MODEL_GEN_COMP}.${extension}.nc"
+         set ran="nope"
+         if ( "$type" == "compare_hist" && $?BASECMP_NAME ) then
+            set ran="yep"
+            $CASETOOLS/component_compare.sh -baseline_dir $BASECMP_DIR \
+             -test_dir $RUNDIR -test_hist "$test_hist" -baseline_hist $base_hist >> $TESTSTATUS_LOG
+         endif
+         if ( "$type" == "generate" && $?BASEGEN_NAME ) then
+            set ran="yep"
+            $CASETOOLS/component_generate.sh -baseline_dir $BASEGEN_DIR \
+             -test_dir $RUNDIR -test_hist "$test_hist" -baseline_hist $base_hist >> $TESTSTATUS_LOG
+         endif
+         if ( "$ran" == "yep" ) then
+            set compstatus = `tail -1 $TESTSTATUS_LOG | cut -d ':' -f 1`
+            if ( "$compstatus" != "BFAIL_NA" ) then
+               set all_bfail=0
+               echo "$compstatus ${CASEBASEID}.${MODEL_GEN_COMP}.${extension}.${type}.${BASECMP_NAME} " >>& $TESTSTATUS_OUT
+            endif
+         endif
+      end
+      if ( $all_bfail  == 1 && "$ran" == "yep" ) then
+         echo "BFAIL_NA ${CASEBASEID}.${MODEL_GEN_COMP}.all_extensions.${type}.${BASECMP_NAME} " >>& $TESTSTATUS_OUT
+      endif
+   end
+endif
+
 if ( $?CPLLOG_INIT) then
    if (-e $CPLLOG_INIT) then
       echo " " >>& $TESTSTATUS_LOG

@@ -14,7 +14,8 @@ module restFileMod
   use abortutils  , only : endrun
   use clm_varctl  , only : iulog, use_cn
   use surfrdMod   , only : crop_prog
-  use ncdio_pio       
+  use ncdio_pio   , only : file_desc_t, ncd_pio_createfile, ncd_pio_openfile, ncd_global, &
+                           ncd_pio_closefile, ncd_defdim, ncd_putatt, ncd_enddef, check_dim
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -604,7 +605,7 @@ contains
     call ncd_putatt(ncid, NCD_GLOBAL, 'host'    , trim(hostname))
     call ncd_putatt(ncid, NCD_GLOBAL, 'version' , trim(version))
     call ncd_putatt(ncid, NCD_GLOBAL, 'source'  , trim(source))
-    str = '$Id: restFileMod.F90 42841 2012-12-19 15:48:22Z mvertens $'
+    str = '$Id: restFileMod.F90 60694 2014-05-27 22:16:25Z erik $'
     call ncd_putatt(ncid, NCD_GLOBAL, 'revision_id'    , trim(str))
     call ncd_putatt(ncid, NCD_GLOBAL, 'case_title'     , trim(ctitle))
     call ncd_putatt(ncid, NCD_GLOBAL, 'case_id'        , trim(caseid))

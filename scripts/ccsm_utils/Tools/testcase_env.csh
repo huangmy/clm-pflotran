@@ -15,6 +15,9 @@ else
   echo "setenv TEST_TESTID " >> $CASE.test || exit -1
 endif
 
+# MODEL_GEN_COMP option
+echo "setenv MODEL_GEN_COMP $MODEL_GEN_COMP" >> $CASE.test || exit -1
+
 if ( $?BASELINE_ROOT ) then
    # continue
 else if ( $?CCSM_BASELINE) then
@@ -72,4 +75,5 @@ if ( $?CLEANUP ) then
 else
   echo "unsetenv CLEANUP" >> $CASE.test || exit -1
 endif
+
 
