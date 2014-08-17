@@ -226,14 +226,14 @@ contains
           call shr_sys_flush(logunit)
           
           if (present(seq_flds_x2c_fluxes)) then
-             call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes)
+             call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes, mask_spval=.true.)
           end if
 
           call comp_init( EClock, comp(eci)%cdata_cc, comp(eci)%x2c_cc, comp(eci)%c2x_cc, &
                NLFilename=NLFilename )
           
           if (present(seq_flds_c2x_fluxes)) then
-             call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes)
+             call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes, mask_spval=.true.)
           end if
           
           if (drv_threading) call seq_comm_setnthreads(nthreads_GLOID)
@@ -419,7 +419,7 @@ contains
                 call ESMF_StateGet(comp(eci)%x2c_cc_state, itemName="x2d", array=x2c_cc_array, rc=rc)
                 if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-                call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes)
+                call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes, mask_spval=.true.)
              end if
 
              !-----------------------------------
@@ -437,7 +437,7 @@ contains
                 call ESMF_StateGet(comp(eci)%c2x_cc_state, itemName="d2x", array=c2x_cc_array, rc=rc)
                 if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-                call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes)
+                call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes, mask_spval=.true.)
              end if
 
              ! Convert appropriate export state attributes back to infodata, 
@@ -904,7 +904,7 @@ contains
                   'areafact_'//comp(eci)%oneletterid//'_'//trim(comp(eci)%name))
 
              ! Area correct component initialization output fields
-             call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes)
+             call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes, mask_spval=.true.)
 
           endif
 
@@ -1016,13 +1016,13 @@ contains
              if (drv_threading) call seq_comm_setnthreads(comp(1)%nthreads_compid) 
 
              if (comp_prognostic .and. firstloop) then
-                call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes)
+                call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes, mask_spval=.true.)
              end if
 
              call comp_run(EClock, comp(eci)%cdata_cc, comp(eci)%x2c_cc, comp(eci)%c2x_cc)
 
              if (phase == 1) then
-                call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes)
+                call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes, mask_spval=.true.)
              endif
 
              if (drv_threading) call seq_comm_setnthreads(nthreads_GLOID)
@@ -1129,7 +1129,7 @@ contains
 
           ! Apply area correction factor from x2c on mct attribute vector
           if (comp_prognostic) then
-             call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes)
+             call mct_avect_vecmult(comp(eci)%x2c_cc, comp(eci)%drv2mdl, seq_flds_x2c_fluxes, mask_spval=.true.)
           end if
 
           ! Convert mct attribute vector to esmf array
@@ -1162,7 +1162,7 @@ contains
           if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
        
           ! Apply area correction for c2x on mct attribute vector
-          call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes)
+          call mct_avect_vecmult(comp(eci)%c2x_cc, comp(eci)%mdl2drv, seq_flds_c2x_fluxes, mask_spval=.true.)
 
           if (drv_threading) call seq_comm_setnthreads(nthreads_GLOID)
 

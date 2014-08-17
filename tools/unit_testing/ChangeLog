@@ -1,5 +1,26 @@
 ==================================================
 Originator: santos
+Date: 2014/07/29
+Component: unit_testing
+Version: unit_testing_0_07
+One-line summary: Define USE_CONTIGUOUS using config_compilers.xml
+
+M       python/machine_setup.py
+        - Use config_compilers.xml to define the USE_CONTIGUOUS macro.
+
+==================================================
+Originator: santos
+Date: 2014/06/12
+Component: unit_testing
+Version: unit_testing_0_06
+One-line summary: Add "--output-on-failure" to ctest invocation.
+
+M       run_tests.py
+        - Pass "--output-on-failure" to CTest, as this behavior is almost
+          always desirable.
+
+==================================================
+Originator: santos
 Date: 2014/05/06
 Component: unit_testing
 Version: unit_testing_0_05

@@ -4,14 +4,13 @@
 
 <authorgroup>
 <author>
-<firstname>Mariana Vertenstein, Alice Bertini, Tony Craig, Jim
-Edwards, Mike Levy, Andrew Mai, Jay Schollenberger </firstname>
-<affiliation>
-<orgname>NCAR</orgname>
-</affiliation>
+   <firstname>CESM Software Engineering Group</firstname>
+   <surname>(CSEG)</surname>
+   <affiliation>
+   <orgname> NCAR </orgname>
+   </affiliation>
 </author>
 </authorgroup>
 
-<date>2013-10-21</date>
-
+<date>Last Update 2014-05-02</date>
 </bookinfo>

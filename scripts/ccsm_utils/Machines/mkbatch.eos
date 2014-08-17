@@ -64,10 +64,13 @@ else
 endif
 
 @ mppnodes = $mppsum / ${MAX_TASKS_PER_NODE}
+if ( $mppnodes < 1 ) then
+  @ mppnodes = 1
+endif
 
 cat >! $file << EOF1
 #!/bin/csh -f
-#PBS -A ${PROJECT}dev
+#PBS -A ${PROJECT}
 #PBS -N ${jobname}
 #PBS -q batch
 #PBS -l nodes=${mppnodes}

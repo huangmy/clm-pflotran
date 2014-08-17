@@ -303,7 +303,8 @@ contains
     if(compare2) then
        n2 = size(file(2)%var(vid(2))%dimids)
        if(n2/=n1) then
-          print *,'WARNING variable ',trim(file(1)%var(vid(1))%name),' dims differ but total size is the same, will try to compare anyway'
+          print *,'WARNING variable ',trim(file(1)%var(vid(1))%name),&
+               ' dims differ but total size is the same, will try to compare anyway'
        endif
 
        

@@ -8,8 +8,6 @@ source ./Tools/ccsm_getenv || exit -1
 
 # Determine tasks and threads for batch queue 
 
-
-
 set maxthrds = 0
 set minthrds = $MAX_TASKS_PER_NODE
 @ n = 0
@@ -111,6 +109,8 @@ cat >! $file << EOF1
 #BSUB -W ${time_limit}
 #BSUB -P ${account_name}
 set maxthrds = $maxthrds
+source /glade/apps/opt/lmod/lmod/init/csh
+module load perlmods
 EOF1
 if ($?task_geo) then
 cat >> $file << EOF2
@@ -195,7 +195,8 @@ cat >! $CASEROOT/${CASE}.l_archive << EOF1
 #-----------------------------------------------------------------------
 
 cd $CASEROOT 
-
+source /glade/apps/opt/lmod/lmod/init/csh
+module load perlmods
 source ./Tools/ccsm_getenv || exit -1
 
 #----------------------------------------------

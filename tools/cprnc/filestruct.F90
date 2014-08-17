@@ -144,10 +144,12 @@ contains
           ierr = nf90_get_att(file2%fh,id2, trim(attname), attchar2)
           if(ierr==NF90_NOERR) then
              if(trim(attname).ne.'case' .and. attchar1(1:attlen) .ne. attchar2(1:attlen)) then
-                print *, 'Attribute ',trim(attname),' from file1: ',attchar1(1:attlen),' does not match that found on file2: ',attchar2(1:attlen)
+                print *, 'Attribute ',trim(attname),' from file1: ',attchar1(1:attlen),&
+                     ' does not match that found on file2: ',attchar2(1:attlen)
              end if
           else
-             print *, 'Attribute ',trim(attname),' from file1: ',attchar1(1:attlen),' not found on file2'
+             print *, 'Attribute ',trim(attname),' from file1: ',attchar1(1:attlen),&
+                  ' not found on file2'
           end if
           if(id1==NF90_GLOBAL .and. trim(attname) .eq. 'case') then
              print *, 'CASE 1 : ',trim(attchar1)

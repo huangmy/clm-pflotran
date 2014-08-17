@@ -1584,26 +1584,29 @@ run is started.
 <title>POP: How do I initialize POP2 with a spun-up initial condition?</title>
 
 <para>
-The recommended method for initializing the CESM active ocean model
-(POP2) in a CESM startup case is to use the default settings; these
-initialize the ocean model from a state of rest. Occasionally,
-however, researchers are interested in initializing the ocean model
-from a "spun up" ocean condition that was generated from an existing
-CESM run. To accommodate their request, a nonstandard method of
-initializing the model was developed. It is called the startup_spunup
-option. The startup_spunup initialization is a research option that is
-designed for use by expert users only.
+The startup/spunup initialization option is a specialized active-ocean model suboption 
+available in the CESM1.1 POP2 model which can be used only in conjunction with a 
+CESM "startup" case; it is not designed to work with "hybrid" or "branch" cases. 
 </para>
-
 <para>
-Because of the complex interactions between the ocean-model
-parameterizations used to generate the spun-up case, $CASE_SP, and
-those used in the new startup case, it is impossible to provide a
-single recommended spun-up ocean initial condition for all
-cases. Instead, researchers must carefully select an existing solution
-whose case conditions closely match those in the new case. A mismatch
-of options between the spun-up case and the new case can result in
-scientifically invalid solutions.
+The recommended method for initializing the CESM active ocean model (POP2) 
+in a CESM startup case is to use the default settings; these initialize the 
+ocean model from Levitus initial conditions and a state of rest. 
+Occasionally, however, researchers are interested in a startup run in which 
+only the ocean model is initialized from a "spun up" ocean condition generated 
+from a previous CESM run. To accommodate their request, a nonstandard method 
+of initializing POP2 in a startup case was developed. 
+It is called the startup_spunup option. 
+It is a research option that is designed for use by expert users only. 
+</para>
+<para>
+Because of the complex interactions between the ocean-model parameterizations 
+used to generate the spun-up case and those used in the new startup case, 
+it is impossible to provide a single recommended spun-up ocean initial 
+condition for all circumstances. Instead, researchers must carefully 
+select an existing solution whose case conditions closely match those in the new case. 
+A mismatch of options between the spun-up case and the new case can result in 
+scientifically invalid solutions. 
 </para>
 
 <para>
@@ -1614,8 +1617,9 @@ When a startup_spunup case is necessary, use this procedure:
 
 <listitem>
 <para>
-Create a new case, $CASE. By default, $CASE will be a
-"startup run."
+Currently, the default RUN_TYPE XML variable is set to "hybrid". User's will
+need to change the RUN_TYPE to "startup" after running create_newcase 
+using the xmlchange command as follows:
 </para>
 <screen>
 > create_newcase -case ~/cesm/EXAMPLE_CASEocn \
@@ -1623,6 +1627,7 @@ Create a new case, $CASE. By default, $CASE will be a
                  -compset B20TR \ 
                  -res 0.9x1.25_gx1v6 
 > cd ~/cesm/EXAMPLE_CASEocn
+> xmlchange -file env_run.xml -id RUN_TYPE -val startup
 > ./cesm_setup
 </screen>
 </listitem>

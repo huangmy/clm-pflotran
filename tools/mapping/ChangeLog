@@ -1,8 +1,77 @@
 ================================================================================
-SVN $Id: ChangeLog 56089 2013-12-18 00:50:07Z mlevy@ucar.edu $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/ChangeLog $
+SVN $Id: ChangeLog 61636 2014-07-02 22:20:37Z mlevy@ucar.edu $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
+================================================================================
+Originator: mlevy
+Date: Jul 2 2014
+Model: mapping
+Version: mapping_140702b
+One-line summary: no longer need plots directory
+
+D       plots
+================================================================================
+Originator: mlevy
+Date: Jul 2 2014
+Model: mapping
+Version: mapping_140702a
+One-line summary: Allow output to be redirected to any directory
+
+M       SCRIP2plot.ncl
+M       gridplot.sh
+================================================================================
+Originator: mlevy
+Date: Jul 2 2014
+Model: mapping
+Version: mapping_140702
+One-line summary: Add tool to generate plot of SCRIP grid files (see
+                  "gridplot.sh -h" for usage); output will be in plots/
+                  directory
+
+A       plots
+A       SCRIP2plot.ncl
+A       gridplot.sh
+================================================================================
+Originator: mlevy
+Date: Jun 3 2014
+Model: mapping
+Version: mapping_140603
+One-line summary: Add $MPIEXEC to determination of $ESMF_VER (avoids error
+                  when using parallel ESMF tools; $MPIEXEC is blank when
+                  using serial ESMF tools).
+
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+================================================================================
+Originator: mlevy
+Date: Apr 22 2014
+Model: mapping
+Version: mapping_140422a
+One-line summary: Three more changes
+                  1) gen_domain does not assume nv = 4
+                  2) runoff_to_ocn tool has better support for skipping
+                     steps / using ESMF to build nearest neighbor map
+                  3) check_map utility prints ESMF version to screen
+
+M       gen_domain_files/src/gen_domain.F90
+M       gen_mapping_files/runoff_to_ocn/src/main.F90
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+================================================================================
+Originator: mlevy
+Date: Apr 22 2014
+Model: mapping
+Version: mapping_140422
+One-line summary: Three changes
+                  1) map_field utility works with mapping to / from unstructured
+                     grids
+                  2) create_ESMF_map.sh script uses ESMF 6.3.0r on yellowstone
+                     (6.1.1 and 6.2.0 are no longer available)
+                  3) check_map utility does better job determining dimension
+                     of grids being mapped
+
+M       map_field/src/map_field.F90
+M       gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh
+M       check_maps/src/ESMF_RegridWeightGenCheck.F90
 ================================================================================
 Originator: mlevy
 Date: Dec 17 2013
