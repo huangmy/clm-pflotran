@@ -217,7 +217,7 @@
 
 <machine MACH="goldbach">
          <DESC>"NCAR CGD Linux Cluster 16 pes/node, batch system is PBS"</DESC>
-         <COMPILERS>pgi,intel,nag</COMPILERS>
+         <COMPILERS>pgi,intel,nag,gnu</COMPILERS>
          <MPILIBS>openmpi,mpi-serial</MPILIBS>
          <RUNDIR>/scratch/cluster/$CCSMUSER/$CASE/run</RUNDIR>
          <EXEROOT>/scratch/cluster/$CCSMUSER/$CASE/bld</EXEROOT>
@@ -480,7 +480,7 @@
 <machine MACH="stampede">
         <DESC>TACC DELL, os is Linux, 16 pes/node, batch system is SLURM</DESC>
         <OS>LINUX</OS>
-        <COMPILERS>intel,intelmic</COMPILERS>
+        <COMPILERS>intel,intelmic,intel14,intelmic14</COMPILERS>
         <MPILIBS>impi,mvapich2,mpi-serial</MPILIBS>
         <RUNDIR>$SCRATCH/$CASE/run</RUNDIR>
         <EXEROOT>$SCRATCH/$CASE/bld</EXEROOT>
