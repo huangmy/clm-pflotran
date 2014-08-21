@@ -141,10 +141,11 @@ else
       unsetenv MP_PE_AFFINITY
       unsetenv MP_TASK_AFFINITY
       unsetenv MP_CPU_BIND_LIST 
+      #mpirun -n $ntask_tot -machinefile $MACHINEFILE \$EXEROOT/cesm.exe >&! cesm.log.\$LID
       mpirun.lsf \$CESMDATAROOT/tools/bin/hybrid_launch  \$EXEROOT/cesm.exe >&! cesm.log.\$LID
     else
       setenv TARGET_PROCESSOR_LIST AUTO_SELECT
-      mpirun -n $ntask_tot -machinefile $MACHINEFILE \$EXEROOT/cesm.exe >&! cesm.log.\$LID
+      mpirun.lsf \$CESMDATAROOT/tools/bin/launch  \$EXEROOT/cesm.exe >&! cesm.log.\$LID
    endif
 endif
 

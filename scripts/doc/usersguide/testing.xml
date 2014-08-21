@@ -384,10 +384,22 @@ have problems with which compsets and/or resolutions.
 
 <itemizedlist>
 <listitem>
-<para>All models are bit-for-bit reproducible with different processor counts
-EXCEPT pop.  The BFBFLAG must be set to TRUE in the &env_run.xml; file if the
-coupler is to meet this condition.  There will be a performance penalty when
-this flag is set.</para>
+<para>All models are bit-for-bit reproducible on different processor
+counts EXCEPT for POP2 and CICE diagnostics. The coupler is not
+bit-for-bit reproducible out of the box. The BFBFLAG must be set to
+TRUE in the &env_run.xml; file for the coupler to be bit-for-bit
+reproducible. If you have a configuration where you expect bit-for-bit
+reproducibility when you change the processor count AND you want to
+validate this, then the BFBFLAG must be set to TRUE in the env_run.xml
+file if the coupler is to meet this condition. The main purpose of the
+BFBFLAG is to enforce a specific order of operations in the mapping
+implementation. This constraint can impact mapping performance so it
+is recommended that the BFBFLAG be set to FALSE in production. Also
+note that the CESM system is fully bit-for-bit reproducible when
+rerunning the same configuration on the same processor count. The
+BFBFLAG is only required when trying to reproduce answers when
+changing processor counts.
+</para>
 </listitem>
 <listitem>
 <para>Some of the active components cannot run with the mpi serial

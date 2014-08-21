@@ -396,7 +396,7 @@ for spec in suite_specs:
 
         output.print_header("Running CTest tests for "+name+".")
 
-        ctest_command = ["ctest"]
+        ctest_command = ["ctest", "--output-on-failure"]
 
         if options.verbose:
             ctest_command.append("-VV")

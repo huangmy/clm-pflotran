@@ -1583,7 +1583,7 @@ The default is constant."
 
 <entry id="OCN_TRANSIENT" 
  type="char"
- valid_values="unset,1850-2000"  
+ valid_values="unset,1850-2000,rcp4.5,rcp8.5"  
  value="unset" 
  group="run_component_pop2"
  sdesc="specification of transient forcing datasets"
@@ -1632,6 +1632,22 @@ Users should NOT EDIT this setting."
  value="FALSE"
  group="run_component_pop2"
  sdesc="tavg output control for high-frequency output"
+></entry>
+
+<entry id="OCN_ONEDIM" 
+ type="char"
+ valid_values="TRUE,FALSE"  
+ value="FALSE" 
+ group="run_component_pop2"
+ sdesc="TRUE turns off all horizontal motion in POP2"
+></entry> 
+
+<entry id="POP_TAVG_R8"
+ type="char"
+ valid_values="TRUE,FALSE"
+ value="FALSE"
+ group="build_component_pop2"
+ sdesc="If TRUE then time-averaged history files from POP2 will contain double precision output"
 ></entry>
 
 <entry id="POP_AUTO_DECOMP"
@@ -2063,7 +2079,11 @@ NULL. "
  valid_values=""
  value="UNSET" 
  group="run_sstice"
- sdesc="Sets sst/ice_cov stream name for pres runs, only used in F,A compset"
+ sdesc="Prescribed SST and ice coverage stream name."
+ ldesc="
+Sets SST and ice coverage stream name for prescribed runs.
+
+Only used in F and A compsets."
 ></entry> 
 
 <entry id="SSTICE_DATA_FILENAME" 
@@ -2071,10 +2091,11 @@ NULL. "
  valid_values=""
  value="UNSET" 
  group="run_sstice"
- sdesc="Sets sst/ice_cov data filename for prescribed runs, only used in F,A compset"
+ sdesc="Prescribed SST and ice coverage data file name."
  ldesc="
-Sets sst/ice_cov filename for AMIP runs, only used in F and A compsets 
-Default is UNSET."
+Sets SST and ice coverage data file name for prescribed runs.
+
+Only used in F and A compsets."
 ></entry> 
 
 <entry id="SSTICE_GRID_FILENAME" 
@@ -2082,7 +2103,11 @@ Default is UNSET."
  valid_values=""
  value="UNSET" 
  group="run_sstice"
- sdesc="Sets sst/ice_cov grid filename for pres runs, only used in F,A compset"
+ sdesc="Prescribed SST and ice coverage grid file name."
+ ldesc="
+Sets SST and ice coverage grid file name for prescribed runs.
+
+Only used in F and A compsets."
 ></entry> 
 
 <entry id="SSTICE_YEAR_ALIGN" 
@@ -2090,11 +2115,21 @@ Default is UNSET."
  valid_values=""
  value="-999" 
  group="run_sstice"
- sdesc="Sets model year align of sst/ice_cov for pres runs, only used in F,A compset"
+ sdesc="The model year that corresponds to SSTICE_YEAR_START on the data file."
  ldesc="
-Sets model year align of sst/ice_cov for pres runs, only used in F,A compset
-Type is integer, 
-Default is -999"
+Prescribed SST and ice coverage data will be aligned so that the first year of
+data corresponds to SSTICE_YEAR_ALIGN in the model. For instance, if the first
+year of prescribed data is the same as the first year of the model run, this
+should be set to the year given in RUN_STARTDATE.
+
+If SSTICE_YEAR_ALIGN is later than the model's starting year, or if the model is
+run after the prescribed data ends (as determined by SSTICE_YEAR_END), the
+default behavior is to assume that the data from SSTICE_YEAR_START to
+SSTICE_YEAR_END cyclically repeats. This behavior is controlled by the
+&quot;taxmode&quot; stream option; see the data model documentation for more
+details.
+
+Only used in F and A compsets."
 ></entry> 
 
 <entry id="SSTICE_YEAR_START" 
@@ -2102,11 +2137,13 @@ Default is -999"
  valid_values=""
  value="-999" 
  group="run_sstice"
- sdesc="Sets year start of sst/ice_cov for pres runs, only used in F,A compset"
+ sdesc="The first year of data to use from SSTICE_DATA_FILENAME."
  ldesc="
-Sets start year of sst/ice_cov for AMIP runs, only used in F and A compsets.
-Type is integer, 
-Default is -999."
+This is the first year of prescribed SST and ice coverage data to use. For
+example, if a data file has data for years 0-99, and SSTICE_YEAR_START is 10,
+years 0-9 in the file will not be used.
+
+Only used in F and A compsets."
 ></entry> 
 
 <entry id="SSTICE_YEAR_END" 
@@ -2114,12 +2151,14 @@ Default is -999."
  valid_values=""
  value="-999" 
  group="run_sstice"
- sdesc="Sets year end of sst/ice_cov for pres runs, only used in F,A compset"
+ sdesc="The last year of data to use from SSTICE_DATA_FILENAME."
  ldesc="
-Sets end year of sst/ice_cov for AMIP runs, only used in F and A compset.
-Type is integer, 
-Default is -999."
-></entry> 
+This is the last year of prescribed SST and ice coverage data to use. For
+example, if a data file has data for years 0-99, and SSTICE_YEAR_END is 49,
+years 50-99 in the file will not be used.
+
+Only used in F and A compsets."
+></entry>
 
 <!-- ======================================================================= -->
 <!-- env_batch.xml                                                           -->
@@ -2569,6 +2608,16 @@ Default is -999."
 <!-- env_build.xml                                                           -->
 <!-- ======================================================================= -->
 
+<entry id="CESMSCRATCHROOT"
+ type="char"
+ valid_values=""
+ value="UNSET"
+ group="build_def"
+ sdesc="scratch root directory for each machine.  For now, primarily used for shared library builds"
+ ldesc="
+The CESM 'scratchroot' root directory.  Base diretory for build and run directories."
+></entry>
+
 <entry id="EXEROOT" 
  type="char"
  valid_values=""  
@@ -2586,6 +2635,7 @@ EXEROOT is set in CCSMROOT/scripts/ccsm_utils/Machines/config_machines.xml
 for each supported machine.  Must explicitly set it in env_build.xml for a
 userdefined machine."
 ></entry> 
+
 
 <entry id="OS" 
  type="char"
@@ -2807,6 +2857,23 @@ executable. This is currently only supported for certain machines."
  sdesc="case lib include directory (set automatically to $EXEROOT/lib/include - DO NOT EDIT)"
 ></entry>
 
+<entry id="SHAREDLIBROOT"
+ type="char"
+ valid_values=""
+ value="$EXEROOT"
+ group="build_derived"
+ sdesc="Shared library root, (set automatically to $EXEROOT - DO NOT EDIT)"
+></entry>
+
+<entry id="SHAREDLIBROOTDIR"
+ type="char"
+ valid_values=""
+ value="$EXEROOT"
+ group="build_derived"
+ sdesc="Shared library root directory, neeed for cleaning shared builds (set automatically to $EXEROOT - DO NOT EDIT)"
+></entry>
+
+
 <!-- ======================================================================= -->
 <!-- env_run.xml - drv namelist                                              -->
 <!-- ======================================================================= -->
@@ -2975,19 +3042,30 @@ RUNDIR allows you to keep the run directory separate from the build directory."
  sdesc="number of wav coupling intervals per NCPL_BASE_PERIOD (integer)"
 ></entry>
 
-<entry id="OCN_TIGHT_COUPLING" 
- type="logical"
- valid_values="TRUE,FALSE" 
- value="FALSE" 
+<entry id="CPL_SEQ_OPTION"
+ type="char"
+ valid_values="CESM1_ORIG,CESM!_ORIG_TIGHT,CESM1_MOD,CESM1_MOD_TIGHT,RASM_OPTION1,RASM_OPTION2"
+ value="CESM1_MOD"
  group="run_coupling"
- sdesc="if TRUE, treats ocean model like lnd/ice in coupling"
+ sdesc="coupler sequencing option"
+ ldesc=
+"coupler sequencing option. CESM1_ORIG is the cesm1.1 implementation.  
+CESM!_MOD includes a cesm1.3 mod that swaps ocean merging and atm/ocn flux 
+computation.  RASM_OPTION1 runs prep ocean before the ocean coupling reducing 
+most of the lags and field inconsistency but still allowing the ocean to run 
+concurrently with the ice and atmosphere.  RASM_OPTION2 is similar to RASM_OPTION1 
+but sequences the ice model, prep ocean and ocean model in that order.  The 
+ocean model loses some of the concurrency with the ice model.  CESM1_ORIG_TIGHT
+and CESM1_MOD_TIGHT are consistent with the old variables ocean_tight_coupling = true
+in the driver.  That namelist is gone and the cpl_seq_option flags take it's place.
+TIGHT coupling makes no sense with the OPTION5 and OPTION6 flags."
 ></entry>
 
 <entry id="LOGDIR" 
  type="char"
  valid_values=""  
  value="$CASEROOT/logs" 
- group="run_dout"
+ group="run_desc"
  sdesc="directory where log files should be copied"
  ldesc="
 Extra copies of the component log files will be saved here."
@@ -3048,15 +3126,18 @@ $CCSMROOT/scripts/ccsm_utils/Machines/config_machines.xml'
 If TRUE, short term archiving will be turned on. (default is TRUE)"
 ></entry>
 
-<entry id="DOUT_S_ROOT" type="char" valid_values="" value="UNSET"
-group="run_dout" sdesc="local short term archiving root directory"
-ldesc="
+<entry id="DOUT_S_ROOT" 
+ type="char" 
+ valid_values="" 
+ value="UNSET"
+ group="run_dout" 
+ sdesc="local short term archiving root directory"
+ ldesc="
 Root directory for short term archiving. This directory must be
 visible to compute nodes."
-
 ></entry> 
 
-<entry id="DOUT_S_SAVE_INT_REST_FILES" 
+<entry id="DOUT_S_SAVE_INTERIM_RESTART_FILES" 
  type="logical"
  valid_values="TRUE,FALSE"  
  value="FALSE" 
@@ -3067,29 +3148,44 @@ If TRUE, perform short term archiving on all interim restart files,
 not just those at the end of the run. By default, this value is FALSE.
 The restart files are saved under the specific component directory
 ($CASE/$COMPONENT/rest rather than the top-level $CASE/rest directory).
+Interim restart files are created using the REST_N and REST_OPTION variables.
 This is for expert users ONLY and requires expert knowledge. We will
 not document this further in this guide."
+></entry> 
+
+<entry id="DOUT_S_SAVE_EVERY_NTH_RESTART_FILE_SET" 
+ type="integer"
+ valid_values=""  
+ value="0" 
+ group="run_dout"
+ sdesc="Save every Nth set of restart files and delete all others."
+ ldesc="
+If value is greater than 0, then only save the nth restart set in the DOUT_S_ROOT/rest location. 
+Always preserve the most recent restart set regardless."
 ></entry> 
 
 <entry id="DOUT_S_SAVE_ALL_ON_DISK" 
  type="logical"
  valid_values="TRUE,FALSE"  
- value="FALSE" 
+ value="TRUE" 
  group="run_dout"
  sdesc="logical to save contents of the short term archive on disk"
  ldesc="
-If TRUE, replicate the short term archive DOUT_S_ROOT in DOUT_S_SAVE_ROOT
-before calling lt_archive.sh to write DOUT_S_ROOT to the HPSS and delete
-from the disk. This keeps the output data on disk after the long term
-archiver is run. The rest directory is not saved."
+If TRUE, create hardlinks from the short term archive DOUT_S_ROOT.locked
+directory to the DOUT_S_ROOT directory. This also keeps the output data 
+in DOUT_S_ROOT on disk after the long term (lt_archive.sh) archiver is run."
 ></entry> 
 
-<entry id="DOUT_S_SAVE_ROOT" type="char" valid_values="" value="UNSET"
-group="run_dout" sdesc="local root directory for saving output on disk"
-ldesc="
-Root directory for saving on disk the contents of the short term archival directory. This directory must be
-visible to compute nodes."
-
+<entry id="DOUT_S_GENERATE_TSERIES" 
+ type="logical"
+ valid_values="TRUE,FALSE"  
+ value="FALSE" 
+ group="run_dout"
+ sdesc="logical to generate time-series files from the history time-slice files"
+ ldesc="
+If TRUE, create the single variable time series files using the history time slice files.
+All the time invariant metadata is included in each variable time series file header. 
+Rules for how the tseries files are created are specified in the env_archive.xml file."
 ></entry> 
 
 <entry id="DOUT_L_MS" 
@@ -3128,7 +3224,7 @@ Root directory on long term archiving store system for long-term data archives."
  sdesc="logical to tar up long term archiver history files"
  ldesc="
 If true, DOUT_L_HTAR the long-term archiver will store history data in annual tar files. 
-Default is FALSE"
+Default is FALSE. Not currently implemented."
 ></entry> 
 
 <entry id="CPL_DECOMP" 
@@ -3143,7 +3239,7 @@ Default is FALSE"
  type="char"
  valid_values=""  
  value="/UNSET" 
- group="run_dout"
+ group="case_test"
  sdesc="standard ccsm baselines directory for testing"
 ></entry> 
 
@@ -3151,7 +3247,7 @@ Default is FALSE"
  type="char"
  valid_values=""  
  value="/UNSET" 
- group="run_dout"
+ group="case_test"
  sdesc="standard location of the cprnc tool"
 ></entry> 
 

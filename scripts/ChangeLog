@@ -1,9 +1,817 @@
 ================================================================================
-SVN $Id: ChangeLog 59853 2014-05-02 19:06:17Z muszala $
-SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/addclm50_tags/addclm50_n09_ED_scripts_015_140305_rev/ChangeLog $
+SVN $Id: ChangeLog 62710 2014-08-14 22:52:50Z erik $
+SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140814a/ChangeLog $
 ================================================================================
 This file describes what tags were created and why
 ================================================================================
+Originator: erik
+Date: 14 Aug 2014
+Model: scripts
+Version: scripts4_140814a
+One-line: Add support_level to grids and compsets, delete or add tests for configurations
+          fix ERH test, add B and F compsets with CLM45BGC, change compsets for klindsay
+          to use CLM45BGC
+
+Fix several bugs:
+
+2024 nlcompareonly option to create_test not working correctly for reporting
+2019 ERH tests don't save the base env_run.xml, so have trouble when resubmitted...
+2018 Failed tests in cesm1_3_beta11 needed for CLM
+2005 Remove untested named compsets and grids
+1999 T85_g16 has inconsistent land domain and surface datasets
+
+M       create_test ---- Improve documentation, add notes about changes that
+           cause trouble (bug 2024). Allow regular expression matching for
+             -xml_compiler and -xml_category. Run testBuildSubmit for nlcompareonly
+           option.
+M       create_newcase - Inform user of support level and add it to -list
+           option, also abort if bad aption given to -list
+M       ccsm_utils/Case.template/config_compsets.xml -- Add support_level to
+           compsets that can't be tested. Add B and F compsets with CLM45BGC
+           change BPRP compsets for klindsay to use CLM45BGC
+           compsets added: BC5L45BGC, B1850C5L45BGC, BPIPDC5L45BGC, 
+                           BRCP85C5L45BGC, F1850C5L45BGC, FC5L45BGC
+           compsets rm: F20TR, F20C5TRCN, F1850CNMAM3, I20TRCRUCLM45CN
+           compsets mv: B1850BPRPCLM45=>B1850BPRPL45BGC, B1850BPRPC5CLM45=>B1850BPRPC5L45BGC
+                        F20C5TR=>F1850PDC5L45BGC
+M       ccsm_utils/Case.template/config_grid.xml --- Remove some unused
+           grids: T05, T21, T85_f09_g16, f45_g37, f05_f05, ne120_f09_g16,
+                  ne120_f02_t12, ne240_g16, ne240_f02_t12, f09_g16_rx1,
+                  ne30_f09_g16_rx1
+           Add support_level to grids
+M       ccsm_utils/Testcases/ERH_script -- Save base env_run so rerunable
+M       ccsm_utils/Testcases/SBN_script -- Set COMPARE_BASELINE=FALSE so
+          won't do history or log file comparison, only namelist comparison
+M       ccsm_utils/Testlistxml/testlist.xml - Add CAM5/CLM45BGC B and F tests
+          add tests with CLM45BGC to: mira, edison, janus
+          add some yellowstone_gnu tests to aux_clm45
+M       ccsm_utils/Tools/cs.status ---- Add logic for nobatch, and abort if
+          filename NOT correctly renamed
+M       ccsm_utils/Tools/cs.submit ---- Abort if filename NOT correctly renamed
+M       ccsm_utils/Tools/testcase_end - Do NOT delete the TestStatus.nlcomp file, 
+          so that the test can be "rerun"
+
+================================================================================
+Originator: jedwards
+Date: 14 Aug 2014
+Model: scripts
+Version: scripts4_140814
+One-line: resolve env and xml vars used in user_nl_*
+
+M   ccsm_utils/Tools/user_nl_add
+
+
+================================================================================
+Originator: jshollen
+Date: 13 Aug 2014
+Model: scripts
+Version: scripts4_140813
+One-line: create_production_test needed to write an env_test.xml file.
+
+M       ccsm_utils/Tools/create_production_test
+
+================================================================================
+Originator: jshollen
+Date: 5 Aug 2014
+Model: scripts
+Version: scripts4_140805
+One-line: added CSL timing test list.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: muszala
+Date: 4 Aug 2014
+Model: scripts
+Version: scripts4_140804
+One-line: add support for cruncep v5 files and add anomaly forcing tests
+
+MM      ccsm_utils/Case.template/config_definition.xml
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/af_bias_v5
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: sacks
+Date: 1 Aug 2014
+Model: scripts
+Version: scripts4_140801
+One-line: fix component_gen_comp to allow regex metacharacters in the testid
+
+M       ccsm_utils/Tools/component_gen_comp
+
+================================================================================
+Originator: jshollen
+Date: 31 Jul 2014
+Model: scripts
+Version: scripts4_140731
+One-line: added B1850BPRPCLM45, B1850BPRPC5CLM45 compsets for Keith Lindsay's CSL timings
+
+M       ccsm_utils/Case.template/config_compsets.xml
+
+================================================================================
+Originator: mlevy
+Date: 28 Jul 2014
+Model: scripts
+Version: scripts4_140728
+One-line: Rename C_ONED compset to C_ONEDIM and OCN_ONED env_run variable to
+          OCN_ONEDIM
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jshollen
+Date: 21 Jul 2014
+Model: scripts
+Version: scripts4_140722
+One-line: create_newcase will now print out where compsets/grids are tested, requires
+perl5lib_140722, create_test will now sanely refuse to create duplicate tests. 
+
+ M      .
+M       create_test
+M       SVN_EXTERNAL_DIRECTORIES
+M       create_newcase
+
+================================================================================
+Originator: jshollen
+Date: 21 Jul 2014
+Model: scripts
+Version: scripts4_140721
+One-line: cs.status enhancements, will do throughput performance comparisons
+as well as calculate total cost.  See script help for details.
+
+M       ccsm_utils/Tools/cs.status
+
+================================================================================
+Originator: mlevy
+Date: 14 Jul 2014
+Model: scripts
+Version: scripts4_140714
+One-line: New compset for POP (single column); easier double precision output
+
+M       ccsm_utils/Case.template/config_compsets.xml
+        - Add C1D (C_ONED) compset
+M       ccsm_utils/Case.template/config_definition.xml
+        - Add OCN_ONED variable to env_run.xml, POP_TAVG_R8 to env_build.xml
+
+================================================================================
+Originator: sacks
+Date: 8 Jul 2014
+Model: scripts
+Version: scripts4_140708
+One-line: Remove untested cism-related compsets and grids, or add tests for them
+
+*** Remove untested EGCN and EG1850CN, and unneeded EG1850CNTEST (now there are now EGCN compsets)
+M       ccsm_utils/Case.template/config_compsets.xml
+
+*** Remove untested T31_T31_gl10, f09_f09_gl10, f19_g16_gl10
+M       ccsm_utils/Case.template/config_grid.xml
+
+*** Remove tests of EG1850CNTEST from prerelease list, change some B20TRCN to
+    BG20TRCN tests in prebeta, and add a BG20TRCN test on edison
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: santos
+Date: 2 Jul 2014
+Model: scripts
+Version: scripts4_140702
+One-line: Fix check_input_data verbose option.
+
+M       ccsm_utils/Tools/check_input_data
+        - Fix hack to stop printing data list files by default.
+
+================================================================================
+Originator: santos
+Date: 1 Jul 2014
+Model: scripts
+Version: scripts4_140701
+One-line: Add messing tests to prebeta.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+         - Add tests for the following compsets:
+           - F_1850-PDAY_CAM5
+           - F_1996_WACCMX
+           - F_2000_WACCM5
+           - F_ADIAB_PHYS
+           - F_IDEAL_PHYS
+
+================================================================================
+Originator: erik
+Date: 29 Jun 2014
+Model: scripts
+Version: scripts4_140629
+One-line: CLM script changes from clm4_6_00 to scripts trunk
+
+Move clm scripts branch tag to trunk. Adds in ED and CLM50 compsets and tests.
+Fix the issue with IGCN for cesm1_3_alpha11a (CLM_UPDATE_GLC_AREAS should be FALSE for clm40).
+
+Fixes issue with T85 and T341 grids (bug 1999). Fix whitespace indentation in create_newcase.
+
+Add some more tests in for CLM. Add a new testlist aux_scripts for scripts testing.
+
+D       ccsm_utils/Testlistxml/testmods_dirs/clm/edTestGb -- Remove special test directory
+              for for ED on goldbach, no longer needed.
+
+M       ccsm_utils/Case.template/config_compsets.xml -- Change names for ED compsets a bit,
+              set CLM_UPDATE_GLC_AREAS to FALSE for clm40, TRUE for clm45 only.
+M       ccsm_utils/Case.template/config_grid.xml ------ Fix T85 and T341 grids (bug 1999)
+M       ccsm_utils/Testlistxml/testlist.xml ----------- Add aux_script test list, add some CLM
+              tests to prebeta, prealpha test lists
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/default/user_nl_clm_0001 - Remove BUILDHEAT/Qanth
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/default/user_nl_clm_0002 - Remove BUILDHEAT/Qanth
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/edTest/user_nl_clm ------- Remove special ED params
+             file now in CLM build-namelist namelist_defaults.
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLA/xmlchange_cmnds --- Remove setting of ROOTPE
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsRLB/xmlchange_cmnds --- Remove setting of ROOTPE
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROA/xmlchange_cmnds --- Remove setting of ROOTPE
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/ptsROB/xmlchange_cmnds --- Remove setting of ROOTPE
+
+M       ccsm_utils/Tools/testcase_env.csh - Use baseline_name_gen/cmp in Uppercase! (bug 1982)
+M       ccsm_utils/Tools/testcase_end ----- Remove un-needed "set extension_list"
+
+M       create_newcase ---- Change formatting (indentation)
+
+================================================================================
+Originator: tcraig
+Date: 26 Jun 2014
+Model: scripts
+Version: scripts4_140626
+One-line: Update for new cpl_seq_options, remove ocn_tight_coupling
+
+M       ccsm_utils/Tools/check_case
+M       ccsm_utils/Tools/timing/getTiming2.pl
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jshollen
+Date: 24 Jun 2014
+Model: scripts
+Version: scripts4_140624
+One-line: New test for Mike, 2 runs, 2nd run gets half the tasks and double the 
+threads, BFB flag TRUE for env_run and usr_nl_pop
+
+M       ccsm_utils/Testlistxml/testlist.xml
+M       ccsm_utils/Testcases/config_tests.xml
+A       ccsm_utils/Testcases/OEM_script
+A       ccsm_utils/Testcases/OEM_build.csh
+
+================================================================================
+Originator: jedwards
+Date: 24 Jun 2014
+Model: scripts
+Version: scripts4_140624
+One-line: correct test issue when running compare without Generate
+
+M   ccsm_utils/Tools/testcase_end
+
+
+================================================================================
+Originator: jshollen
+Date: 23 Jun 2014
+Model: scripts
+Version: scripts4_140623
+One-line: Have xmlchange make backup copies of all files it changes,
+in order to prevent file corruption due to filesystem problems. 
+
+M       ccsm_utils/Tools/xmlchange
+
+================================================================================
+Originator: santos
+Date: 28 May 2014
+Model: scripts
+Version: scripts4_140528a
+One-line: Shorten FSD and WACCM-5 tests.
+
+M       ccsm_utils/Testlistxml/testlist.xml
+        - Add "_Ld3" to FSDSMAM, FSDSSOA, FSDWSF, and B1850W5CN tests.
+
+================================================================================
+Originator: mlevy
+Date: 28 May 2014
+Model: scripts
+Version: scripts4_140528
+One-line: Fix two bugs when using Darwin tracer module in POP2
+
+1) create_newcase was setting OCN_TRACER_MODULE_OPT to " darwin" rather than
+   "darwin" and the leading space was causing problems in other scripts
+
+2) CDARWIN, GDARWIN, and G1850DARWIN should all be using drof rather than rtm
+   for the runoff component
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       create_newcase
+================================================================================
+Originator: sacks
+Date: 20 May 2014
+Model: scripts
+Version: scripts4_140520a
+One-line: Rename CLM's fpftdyn to flanduse_timeseries in tests; update perl5lib
+
+  Depends on an upcoming CLM tag (currently slated for clm4_5_75), but this
+  dependency only matters if you are running the aux_clm tests.
+
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetEarly/README
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetEarly/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetLate/README
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetLate/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetMid/README
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetMid/user_nl_clm
+
+*** Update perl5lib to a version that does similar renames for its unit tests
+M       SVN_EXTERNAL_DIRECTORIES
+
+================================================================================
+Originator: jedwards
+Date: 20 May 2014
+Model: scripts
+Version: scripts4_140520
+One-line: Get cpl logs from case directory instead of DOUT_S_ROOT
+
+
+M       create_clone
+M       ccsm_utils/Tools/testcase_end
+M       ccsm_utils/Testcases/ERB_script
+M       ccsm_utils/Testcases/ERH_script
+M       ccsm_utils/Testcases/SSP_script
+M       ccsm_utils/Testcases/LAR_script
+M       ccsm_utils/Testcases/ERI_script
+
+
+================================================================================
+Originator: jshollen
+Date: 16 May 2014
+Model: scripts
+Version: scripts4_140516
+One-line: Test script fixes.
+
+M       create_test
+M       ccsm_utils/Tools/cesm_postrun_setup
+M       ccsm_utils/Tools/testcase_end
+
+================================================================================
+Originator: santos
+Date: 15 May 2014
+Model: scripts
+Version: scripts4_140515d
+One-line: Don't have check_input_data always print file lists.
+
+M       ccsm_utils/Tools/check_input_data
+        - Add verbose option to control printing of input_data_list files
+          found. This output is rarely useful and frequently confuses
+          users, so cesm_prestage shouldn't be producing it.
+
+================================================================================
+Originator: jedwards
+Date: 15 May 2014
+Model: scripts
+Version: scripts4_140515c
+One-line: Deleted some needed code in the previous (15a) commit
+
+M        ccsm_utils/Tools/cesm_setup
+
+
+================================================================================
+Originator: santos
+Date: 15 May 2014
+Model: scripts
+Version: scripts4_140515b
+One-line: Clarify descriptions of the SSTICE variables.
+
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jedwards
+Date: 15 May 2014
+Model: scripts
+Version: scripts4_140515a
+One-line: Need to setenv for testcase_env.csh
+
+M            ccsm_utils/Tools/testcase_env.csh
+M            ccsm_utils/Tools/cesm_setup
+
+================================================================================
+Originator: jedwards
+Date: 15 May 2014
+Model: scripts
+Version: scripts4_140515
+One-line: The env_test.xml needs to be read for tests, but not production
+
+M            60267   ccsm_utils/Tools/xml2env
+M            60267   ccsm_utils/Tools/ccsm_getenv
+M            60267   ccsm_utils/Tools/testcase_begin
+M            60267   ccsm_utils/Tools/testcase_env.csh
+M            60267   ccsm_utils/Tools/testcase_end
+M            60267   ccsm_utils/Tools/testcase_setup.csh
+
+
+================================================================================
+Originator: jedwards
+Date: 12 May 2014
+Model: scripts
+Version: scripts4_140512a
+One-line: Fix error in create_test (sharedlibroot option didn't work)
+
+M    create_test
+
+================================================================================
+Originator: jedwards
+Date: 12 May 2014
+Model: scripts
+Version: scripts4_140512
+One-line: remove bad aquap definition, fix scam test  
+
+M           ccsm_utils/Case.template/config_compsets.xml
+M           ccsm_utils/Testlistxml/testlist.xml
+
+
+================================================================================
+Originator: mlevy
+Date: 9 May 2014
+Model: scripts
+Version: scripts4_140509c
+One-line: Fix for bug 1882 (typo in declaration of tri-grids)
+
+M            60101   ccsm_utils/Case.template/config_grid.xml
+
+================================================================================
+Originator: aliceb
+Date: 9 May 2014
+Model: scripts
+Version: scripts4_140509b
+One-line: updates to st_archive, config_archive.xml, create_newcase and added config_archive.xsd
+
+M       ccsm_utils/Tools/st_archive
+A       ccsm_utils/Case.template/config_archive.xsd
+M       ccsm_utils/Case.template/config_archive.xml
+M       create_newcase
+
+================================================================================
+Originator: mlevy
+Date: 9 May 2014
+Model: scripts
+Version: scripts4_140509
+One-line: $CASE.test would return non-zero exit status due to bad csh script
+
+M            60088   ccsm_utils/Tools/testcase_end
+
+================================================================================
+Originator: jedwards
+Date: 7 May 2014
+Model: scripts
+Version: scripts4_140507a
+One-line: Fixes IOP tests 
+
+M            60022   ccsm_utils/Tools/testcase_begin
+M            60022   ccsm_utils/Tools/testcase_end
+
+================================================================================
+Originator: jedwards
+Date: 7 May 2014
+Model: scripts
+Version: scripts4_140507
+One-line: allow each component to build with or without omp independently
+
+M   ccsm_utils/Tools/cesm_buildexe
+
+
+================================================================================
+Originator: jedwards
+Date: 6 May 2014
+Model: scripts
+Version: scripts4_140506
+One-line: clean up and rearrange cesm_postrun_setup
+
+M     ccsm_utils/Tools/cesm_postrun_setup
+
+
+================================================================================
+Originator: jshollen
+Date: 2 May 2014
+Model: scripts
+Version: scripts4_140502a
+One-line: prevent variable expansion when finding CESMSCRATCHROOT in
+create_test
+
+M       create_test
+
+================================================================================
+Originator: sacks
+Date: 2 May 2014
+Model: scripts
+Version: scripts4_140502
+One-line: add and tweak tests in aux_clm45 and aux_glc test lists
+
+M       ccsm_utils/Testlistxml/testlist.xml
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_changeFlags/README
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_changeFlags/user_nl_clm
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_changeFlags/xmlchange_cmnds
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_decrease
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_increase
+A  +    ccsm_utils/Testlistxml/testmods_dirs/clm/glcMEC_long
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetEarly/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetLate/user_nl_clm
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/tropicAtl_subsetMid/user_nl_clm
+
+================================================================================
+Originator: mlevy
+Date: 30 Apr 2014
+Model: scripts
+Version: scripts4_140430
+One-line: Add prebeta tests for 3 new compsets
+
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: mlevy
+Date: 29 Apr 2014
+Model: scripts
+Version: scripts4_140429b
+One-line: Add 3 new compsets (B + RCP + ecosys)
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jshollen
+Date: 29 Apr 2014
+Model: scripts
+Version: scripts4_140429a
+One-line: Fix SSP, ERH tests
+
+M       ccsm_utils/Testcases/ERH_script
+M       ccsm_utils/Testcases/SSP_script
+
+================================================================================
+Originator: santos
+Date: 29 Apr 2014
+Model: scripts
+Version: scripts4_140429
+One-line: Added new SC-WACCM B compsets.
+
+M       ccsm_utils/Case.template/config_compsets.xml
+        - Add new SC-WACCM compsets (1850, 55TR, RCP26, RCP45, and RCP85).
+        - Change nuclear winter compset to a generic black carbon compset.
+        - Correct 1850 WACCM5 use_case.
+        - Correct descriptions of GEOS compsets.
+
+ccsm_utils/Testlistxml/testlist.xml
+        - Add tests for new compsets.
+
+================================================================================
+Originator: fvitt
+Date: 24 Apr 2014
+Model: scripts
+Version: scripts4_140424
+One-line: Added new compsets FSDSSOA and FSDSMAM
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: jshollen
+Date: 23 Apr 2014
+Model: scripts
+Version: scripts4_140423a
+One-line: Forgot Changelog for previous trunk tag
+
+================================================================================
+Originator: jshollen
+Date: 23 Apr 2014
+Model: scripts
+Version: scripts4_140423
+One-line: Fixed endless recursion bug in ConfigCase.pm, fixed ERI test script to work with new st_archive script. 
+
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       ccsm_utils/Testcases/ERI_script
+
+================================================================================
+Originator: jshollen
+Date: 18 Apr 2014
+Model: scripts
+Version: scripts4_140418
+One-line: cfg_ref set_machine call needs to be set to yellowstone for namelist comparison tests
+to work 
+
+M       create_test
+
+================================================================================
+Originator: jshollen
+Date: 16 Apr 2014
+Model: scripts
+Version: scripts4_140416
+One-line: With Jim's help, changes to build,clean build, and test scripts to fix the 
+shared builds
+
+M       ccsm_utils/Tools/preview_namelists
+D       ccsm_utils/Tools/clean_build
+M       ccsm_utils/Tools/cesm_buildexe
+M       ccsm_utils/Tools/cesm_clean_build
+M       ccsm_utils/Testcases/CME_build.csh
+M       ccsm_utils/Testcases/PEA_build.csh
+M       ccsm_utils/Testcases/NCK_build.csh
+
+================================================================================
+Originator: aliceb
+Date: 14 Apr 2014
+Model: scripts
+Version: scripts4_140414b
+One-line: updates to st_archive, config_archive.xml, and config_definition.xml in support of time series generation.
+
+M       ccsm_utils/Tools/st_archive
+M       ccsm_utils/Case.template/config_archive.xml
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jedwards
+Date: 14 Apr 2014
+Model: scripts
+Version: scripts4_140414
+One-line: rename SCRATCHROOT to CESMSCRATCHROOT
+
+M    ccsm_utils/Tools/ccsm_getenv
+M    ccsm_utils/Case.template/config_definition.xml
+M    create_test
+
+================================================================================
+Originator: aliceb
+Date: 09 Apr 2014
+Model: scripts
+Version: scripts4_140409
+One-line:  Updates to st_archive script usage and group definitions in config_definition.xml
+
+M       ccsm_utils/Tools/st_archive
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: aliceb
+Date: 03 Apr 2014
+Model: scripts
+Version: scripts4_140403
+One-line:  Updates to support new st_archive perl script
+
+M       create_clone
+A       ccsm_utils/Tools/st_archive
+D       ccsm_utils/Tools/st_archive.sh
+M       ccsm_utils/Tools/cesm_postrun_setup
+M       ccsm_utils/Tools/xmlchange
+A       ccsm_utils/Case.template/config_archive.xml
+M       ccsm_utils/Case.template/ConfigCase.pm
+M       ccsm_utils/Case.template/config_definition.xml
+M       create_newcase
+
+================================================================================
+Originator: erik
+Date: 02 Apr 2014
+Model: scripts
+Version: scripts4_140402b
+One-line:  Always send MODEL_GEN_COMP
+
+M       ccsm_utils/Tools/cesm_setup
+
+================================================================================
+Originator: jshollen
+Date: 02 Apr 2014
+Model: scripts
+Version: scripts4_140402a
+One-line:  Fixed merge issue, code cleanup
+
+M       create_test
+
+================================================================================
+Originator: jshollen
+Date: 02 Apr 2014
+Model: scripts
+Version: scripts4_140402
+One-line:  Shared builds use new $SCRATCHROOT, multi-instance builds should now be fixed
+
+M       create_test
+M       ccsm_utils/Tools/cesm_buildexe
+MM      ccsm_utils/Case.template/config_definition.xml
+M       create_newcase
+
+================================================================================
+Originator: erik
+Date: 30 Mar 2014
+Model: scripts
+Version: scripts4_140330
+One-line:  Fix bug when model_gen_comp NOT used (fixes bug 1961)
+
+Set MODEL_GEN_COMP to UNSET if not used, and always pass it, and test it
+against UNSET to see if it should be used.
+
+M       ccsm_utils/Tools/testcase_env.csh
+M       ccsm_utils/Tools/cesm_setup
+M       ccsm_utils/Tools/testcase_end
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jshollen
+Date: 28 Mar 2014
+Model: scripts
+Version: scripts4_140328
+One-line:  Fix shared build bug in csm_share, added proper shared build cleaning 
+to .clean_build scripts. 
+
+M       ccsm_utils/Tools/cesm_buildexe
+M       ccsm_utils/Tools/cesm_clean_build
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: erik
+Date: 20 Mar 2014
+Model: scripts
+Version: scripts4_140320b
+One-line:  Fix some reporting issues with -model_gen_comp option
+
+M       ccsm_utils/Tools/testcase_end
+M       ccsm_utils/Tools/component_compare.sh
+M       ccsm_utils/Tools/component_gen_comp
+M       ccsm_utils/Tools/component_generate.sh
+
+================================================================================
+Originator: erik
+Date: 20 Mar 2014
+Model: scripts
+Version: scripts4_140320
+One-line:  Seperate out clm4_0 tests from aux_clm to aux_clm40 and aux_clm45
+           Also fix path for USUMB test and add model_gen_comp option to create_test
+
+M       ccsm_utils/Testlistxml/testlist.xml --- split and remove aux_clm into aux_clm40 and aux_clm45
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds
+
+   Add -model_gen_comp option to create_test (bug 1922)
+M       ccsm_utils/Tools/testcase_end
+M       ccsm_utils/Tools/cesm_setup
+M       ccsm_utils/Tools/testcase_setup.csh
+M       create_test
+M       ccsm_utils/Case.template/config_definition.xml
+
+================================================================================
+Originator: jshollen
+Date: 17 Mar 2014
+Model: scripts
+Version: scripts4_140317
+One-line:  Bug fixes for shared library builds, fixes threaded/non-threaded
+and mpi-serial builds. 
+
+M       create_test
+M       ccsm_utils/Tools/cesm_buildexe
+
+Performing status on external item at 'ccsm_utils/Tools/perl5lib':
+================================================================================
+Originator: jshollen
+Date: 13 Mar 2014
+Model: scripts
+Version: scripts4_140313a
+One-line:  Fix typos in resolution strings, add missing ICE & OCN DOMAiN_FILE 
+entries for same per Brian, add mira prebeta test list. 
+
+M       ccsm_utils/Case.template/config_compsets.xml
+M       ccsm_utils/Case.template/config_grid.xml
+M       ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: erik
+Date: 13 Mar 2014
+Model: scripts
+Version: scripts4_140313
+One-line:  Fix my screwup in the testlist
+
+M   ccsm_utils/Testlistxml/testlist.xml
+
+================================================================================
+Originator: erik
+Date: 12 Mar 2014
+Model: scripts
+Version: scripts4_140312
+One-line: Start adding in CLM50 compsets and tests, fix USUMB test
+          so uses DIN_LOC_ROOT_CLMFORC, add more metadata to -list grids, remove WRF grid.
+
+M       ccsm_utils/Case.template/config_grid.xml -- Remove WRF wus12 grid
+M       create_newcase -- Add more metadata to -list grids (bug 1932)
+M       ccsm_utils/Testlistxml/testmods_dirs/clm/USUMB/xmlchange_cmnds - set
+            DIN_LOC_ROOT_CLMFORC (bug 1936)
+M       ccsm_utils/Case.template/config_compsets.xml - Add CLM50 compsets
+M       ccsm_utils/Testlistxml/testlist.xml ---------- Add CLM50 tests
+
+================================================================================
+Originator: jshollen
+Date: 11 March 2014
+Model: scripts
+Version: scripts4_140311
+One-line:  CESM library builds (mct, gptl, pio, csm_share) can now be shared,
+needs Machines4_140311
+
+M       create_test
+M      ccsm_utils/Tools
+M       ccsm_utils/Tools/ccsm_getenv
+M       ccsm_utils/Tools/cesm_buildexe
+MM      ccsm_utils/Case.template/config_definition.xml
+M       create_newcase
 
 ================================================================================
 Originator: sacks

@@ -288,35 +288,14 @@ if (! $clean ) {
     if( -e "$caseroot/env_test.xml" && -e "$caseroot/PESetupHist")
     {
 	print "creating test script $xmlvars{'CASE'}.test\n";
-	my $scriptsroot = $xmlvars{'SCRIPTSROOT'};
-	# Run mkbatch for the test script
-	my $sysmod = "env PHASE=set_batch TESTMODE=test $xmlvars{'CCSM_MACHDIR'}/mkbatch.$xmlvars{'MACH'}";
+        # Run mkbatch for the test script
+	my $mkbatch ="./Tools/mkbatch.$xmlvars{'MACH'}";
+	$mkbatch = "$xmlvars{'CCSM_MACHDIR'}/mkbatch.$xmlvars{'MACH'}" if(! -e $mkbatch);
+
+	my $sysmod = "env PHASE=set_batch TESTMODE=test $mkbatch";
 	system($sysmod) == 0 or die "ERROR: $sysmod failed: $?$eol";
 
-	# Set up the call to testcase_env.csh, setting the appropriate env variables as needed. 
-	$sysmod = "env CASE=$xmlvars{'CASE'} TEST_ARGV=\"$xmlvars{'TEST_ARGV'}\" ";
-	$sysmod .= "TEST_TESTID=$xmlvars{'TEST_TESTID'}  BASELINE_ROOT=$xmlvars{'CCSM_BASELINE'} "; 
-
-	if(defined $xmlvars{'BASELINE_ROOT'} ) 
-	{
-	    $sysmod .= "BASELINE_ROOT=$xmlvars{'BASELINE_ROOT'} ";
-	}
-	if($xmlvars{'GENERATE_BASELINE'} eq "TRUE")
-	{
-	    $sysmod .= "GENERATE_BASELINE='' baseline_name_gen=$xmlvars{'BASELINE_NAME_GEN'} BASEGEN_CASE=$xmlvars{'BASEGEN_CASE'} ";
-	}
-	if($xmlvars{'COMPARE_BASELINE'} eq "TRUE")
-	{
-	    $sysmod .= "COMPARE_BASELINE='' baseline_name_cmp=$xmlvars{'BASELINE_NAME_CMP'} BASECMP_CASE=$xmlvars{'BASECMP_CASE'} ";
-	}
-
-        $sysmod .= "MODEL_GEN_COMP=$xmlvars{'MODEL_GEN_COMP'} ";
-	
-	if($xmlvars{'CLEANUP'} eq 'TRUE')
-	{
-	    $sysmod .= "CLEANUP='' "; 
-	}
-	$sysmod .= " $xmlvars{'CCSMROOT'}/scripts/ccsm_utils/Tools/testcase_env.csh";
+	$sysmod = " $xmlvars{'CCSMROOT'}/scripts/ccsm_utils/Tools/testcase_env.csh";
 	system($sysmod) == 0 or die "ERROR: $sysmod failed: $?\n";
 
 	my $testbatch = "$xmlvars{'CASE'}.test";

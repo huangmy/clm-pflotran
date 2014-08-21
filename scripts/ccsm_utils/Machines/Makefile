@@ -5,11 +5,12 @@
 #   MODEL=<model>  ~ a standard macro definition, often found in the included 
 #                    MACFILE, used to trigger special compilation flags
 # Supported compilers
-# ibm, bgl, bgp, pgi, intel, pathscale, gnu, lahey
+# ibm, bgl, bgp, pgi, intel, pathscale, gnu, nag
 #===============================================================================
 
 # Set up special characters
 null  :=
+comma := ,
 
 # Load dependency search path.
 dirs := . $(shell cat Filepath)
@@ -32,12 +33,33 @@ exec_se: $(EXEC_SE)  $(CURDIR)/Depends
 complib: $(COMPLIB)  $(CURDIR)/Depends
 
 # Determine whether to compile threaded or not
+# Set the THREADDIR for the shared build 
+# based on the threaded build status
 compile_threaded = false
-ifeq ($(strip $(BUILD_THREADED)),TRUE)
-   compile_threaded = true
-endif
 ifeq ($(strip $(SMP)),TRUE)
    compile_threaded = true
+   THREADDIR = threads
+else
+   THREADDIR = nothreads
+endif
+ifeq ($(strip $(BUILD_THREADED)),TRUE)
+   compile_threaded = true
+   THREADDIR = threads
+else
+   THREADDIR = nothreads
+endif
+
+# set the debug directory based on the debug status
+ifeq ($(strip $(DEBUG)),TRUE)
+   DEBUGDIR = debug
+else
+   DEBUGDIR = nodebug
+endif
+
+ifeq ($(strip $(USE_ESMF_LIB)), TRUE)
+   ESMFDIR = esmf
+else
+   ESMFDIR = noesmf
 endif
 
 # Determine whether any C++ code will be included in the build;
@@ -58,6 +80,11 @@ endif
 #===============================================================================
 
 CPPDEFS := $(USER_CPPDEFS) -D$(OS) 
+
+# Unless DEBUG mode is enabled, use NDEBUG to turn off assert statements.
+ifneq ($(strip $(DEBUG)),TRUE)
+   CPPDEFS += -DNDEBUG
+endif
 
 # USE_ESMF_LIB is currently only defined in env_build.xml
 ifeq ($(USE_ESMF_LIB), TRUE)
@@ -105,6 +132,18 @@ ifeq ($(USE_CXX), true)
   ifeq ($(SUPPORTS_CXX), FALSE)
     $(error Fatal attempt to include C++ code on a compiler/machine combo that has not been set up to support C++)
   endif
+endif
+
+# Not clear how to escape commas for libraries with their own configure
+# script, and they don't need this defined anyway.
+ifneq ($(MODEL),mct)
+ifneq ($(MODEL),pio)
+  ifeq ($(HAS_F2008_CONTIGUOUS),TRUE)
+    CPPDEFS += -DUSE_CONTIGUOUS=contiguous,
+  else
+    CPPDEFS += -DUSE_CONTIGUOUS=
+  endif
+endif
 endif
 
 ifndef AR
@@ -157,7 +196,8 @@ ifeq ($(findstring -DLINUX,$(CPPDEFS)),-DLINUX)
 endif
 
 ifdef CPRE
-  FPPDEFS := $(patsubst -D%,$(CPRE)%,$(CPPDEFS)) 
+  FPPDEFS := $(subst $(comma),\\$(comma),$(CPPDEFS))
+  FPPDEFS := $(patsubst -D%,$(CPRE)%,$(FPPDEFS)) 
 else
   FPPDEFS := $(CPPDEFS)
 endif
@@ -199,8 +239,7 @@ ifeq ($(strip $(MPILIB)), mpi-serial)
   MPIFC   := $(SFC)
   MPICC   := $(SCC)
   MPICXX  := $(SCXX)
-  CONFIG_ARGS += --enable-mpiserial MCT_PATH=$(EXEROOT)/mct/mpi-serial
-  INC_MPI := $(EXEROOT)/mct/mpi-serial
+  CONFIG_ARGS += --enable-mpiserial MCT_PATH=$(SHAREDPATH)/mct/mpi-serial
 else
   CC  := $(MPICC)
   FC  := $(MPIFC)
@@ -214,7 +253,7 @@ endif
 #===============================================================================
 # Set include paths (needed after override for any model specific builds below)
 #===============================================================================
-INCLDIR += -I$(EXEROOT)/pio
+INCLDIR += -I$(SHAREDPATH)/include -I$(SHAREDPATH)/$(COMP_INTERFACE)/$(ESMFDIR)/$(NINST_VALUE)/csm_share
 
 ifdef INC_NETCDF
   INCLDIR += -I$(INC_NETCDF)
@@ -246,23 +285,31 @@ else
        # GCC needs to be able to link to
        # nagfor runtime to get autoconf
        # tests to work.
-       # Hardcoded to NAG version 5.3 (ugh).
+       # No longer hard-coded to $(NAG), as we now have
+       # modules on goldbach. The modules on goldbach 
+       # now have $COMPILER_PATH defined, so we can 
+       # get the base path to the compiler without any 
+       # acrobatics.
        CFLAGS += -Wl,--as-needed,--allow-shlib-undefined
-       SLIBS += -L$(NAG)/lib/NAG_Fortran -lf53
+       SLIBS += -L$(COMPILER_PATH)/lib/NAG_Fortran -lf53
     endif
   endif
 endif
 
+ifeq ($(COMP_OCN), pop2)
+  INCLDIR += -I$(EXEROOT)/ocn/cvmix
+endif
+
 ifndef MCT_LIBDIR
-  MCT_LIBDIR=$(EXEROOT)/mct
+  MCT_LIBDIR=$(SHAREDPATH)/mct
 endif
 
 ifndef PIO_LIBDIR
-  PIO_LIBDIR=$(EXEROOT)/pio
+  PIO_LIBDIR=$(SHAREDPATH)/pio
 endif
 
 ifndef GPTL_LIBDIR
-  GPTL_LIBDIR=$(EXEROOT)/gptl
+  GPTL_LIBDIR=$(SHAREDPATH)/gptl
 endif
 
 ifndef GLC_DIR
@@ -272,8 +319,7 @@ ifndef CISM_LIBDIR
   CISM_LIBDIR=$(GLC_DIR)/lib
 endif
 
-INCLDIR +=  -I$(MCT_LIBDIR)/mct -I$(MCT_LIBDIR)/mpeu -I$(PIO_LIBDIR) -I$(GPTL_LIBDIR) -I$(CODEROOT)/utils/pio -I$(EXEROOT)/lib/include -I$(CODEROOT)/csm_share/shr
-
+INCLDIR += -I$(SHAREDPATH)/include -I$(CODEROOT)/csm_share/shr
 #
 # Use the MCT dir for the cache for all configure calls because it is the first one 
 #
@@ -305,19 +351,9 @@ rrtmg_sw_k_g.o: rrtmg_sw_k_g.f90
 	$(FC) -c $(FPPFLAGS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
 
 
-ifeq ($(strip $(COMPILER)),lahey)
-binary_io.o: binary_io.F90
-	$(FC) -c $(FPPDEFS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
-wrap_nf.o: wrap_nf.F90
-	$(FC) -c $(FPPDEFS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
-wrap_mpi.o: wrap_mpi.F90
-	$(FC) -c $(FPPDEFS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
-apex_subs.o: apex_subs.F90
-	$(FC) -c $(FPPDEFS) $(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS_NOOPT) $<
-endif
 ifdef COSP_LIBDIR
 INCLDIR+=-I$(COSP_LIBDIR) -I$(COSP_LIBDIR)/../
-$(COSP_LIBDIR)/libcosp.a: abortutils.o
+$(COSP_LIBDIR)/libcosp.a: cam_abortutils.o
 	$(MAKE) -C $(COSP_LIBDIR) F90='$(FC)' F90FLAGS='$(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS) $(FC_AUTO_R8)' \
 	F90FLAGS_noauto='$(INCLDIR) $(INCS) $(FREEFLAGS) $(FFLAGS)' \
 	F90FLAGS_fixed='$(INCLDIR) $(INCS) $(FIXEDFLAGS) $(FFLAGS) $(FC_AUTO_R8)'
@@ -386,14 +422,6 @@ ifeq ($(USE_CXX), true)
   endif
 endif
 
-
-# User libraries (mct, mpeu, pio)
-ifndef ULIBS
-   ifdef LIBROOT
-     ULIBS += -L$(LIBROOT) -lcsm_share 
-   endif
-endif
-
 # Machine stuff to appear last on the link step
 ifndef MLIBS
      MLIBS  :=
@@ -403,8 +431,9 @@ endif
 # Drive configure scripts for support libraries (mct)
 #------------------------------------------------------------------------------
 
+
 $(MCT_LIBDIR)/Makefile.conf: 
-	cd $(MCT_LIBDIR); \
+	@echo "SHAREDLIBROOT |$(SHAREDLIBROOT)| SHAREDPATH |$(SHAREDPATH)|"; \
 	$(CONFIG_SHELL) $(CODEROOT)/utils/mct/configure $(CONFIG_ARGS) --srcdir $(CODEROOT)/utils/mct
 
 $(MCT_LIBDIR)/mpeu/libmpeu.a: $(MCT_LIBDIR)/Makefile.conf
@@ -414,15 +443,14 @@ $(MCT_LIBDIR)/mct/libmct.a: $(MCT_LIBDIR)/mpeu/libmpeu.a
 	$(MAKE) -C $(MCT_LIBDIR)/mct
 
 $(MCT_LIBDIR)/mpi-serial/libmpi-serial.a: $(MCT_LIBDIR)/Makefile.conf
-	$(MAKE) -C $(MCT_LIBDIR)/mpi-serial
+	$(MAKE) -C $(MCT_LIBDIR)/mpi-serial; \
 
 
 MCTLIBS = $(MCT_LIBDIR)/mct/libmct.a $(MCT_LIBDIR)/mpeu/libmpeu.a 
 PIOLIB = $(PIO_LIBDIR)/libpio.a
+GPTLLIB = $(SHAREDPATH)/gptl/libgptl.a
 
-ULIBS += -L$(MCT_LIBDIR)/mct -lmct -L$(MCT_LIBDIR)/mpeu -lmpeu -L$(PIO_LIBDIR) -lpio -lgptl
-
-
+ULIBS += -L$(SHAREDPATH)/$(COMP_INTERFACE)/$(ESMFDIR)/$(NINST_VALUE)/csm_share -lcsm_share -L$(SHAREDPATH)/lib -lpio -lgptl -lmct -lmpeu
 
 #------------------------------------------------------------------------------
 # Drive cmake script for cism and pio
@@ -487,9 +515,10 @@ touch_filepath:
 
 # Get list of files and build dependency file for all .o files
 #   using perl scripts mkSrcfiles and mkDepends
-
+# if a source is of form .F90.in strip the .in before creating the list of objects
 SOURCES := $(shell cat Srcfiles)
-OBJS    := $(addsuffix .o, $(basename $(SOURCES)))
+BASENAMES := $(basename $(basename $(SOURCES)))
+OBJS    := $(addsuffix .o, $(BASENAMES))
 INCS    := $(foreach dir,$(cpp_dirs),-I$(dir)) 
 
 CURDIR := $(shell pwd)
@@ -550,6 +579,9 @@ ifeq ($(ULIBDEP),$(null))
      ULIBDEP += $(LIBROOT)/libice.a
      ULIBDEP += $(LIBROOT)/liblnd.a
      ULIBDEP += $(LIBROOT)/libocn.a
+     ifeq ($(COMP_OCN), pop2)
+       ULIBDEP += $(LIBROOT)/libcvmix.a
+     endif
      ULIBDEP += $(LIBROOT)/librof.a
      ULIBDEP += $(LIBROOT)/libglc.a
      ULIBDEP += $(LIBROOT)/libwav.a
@@ -580,30 +612,38 @@ endif
 
 # libcsm_share.a is in ULIBDEP, but -lcsm_share is in ULIBS rather than CLIBS,
 # so this needs to be added after creating CLIBS above
-ULIBDEP += $(LIBROOT)/libcsm_share.a
+CSMSHARELIB = $(SHAREDPATH)/$(COMP_INTERFACE)/$(ESMFDIR)/$(NINST_VALUE)/csm_share/libcsm_share.a
+ULIBDEP += $(CSMSHARELIB)
 
 #-------------------------------------------------------------------------------
 # build rules: 
 #-------------------------------------------------------------------------------
 
 .SUFFIXES:
-.SUFFIXES: .F90 .F .f90 .f .c .cpp .o
+.SUFFIXES: .F90 .F .f90 .f .c .cpp .o .in
 
 ifeq ($(MPILIB),mpi-serial)
   MPISERIAL = $(MCT_LIBDIR)/mpi-serial/libmpi-serial.a
-  MLIBS+= -L$(MCT_LIBDIR)/mpi-serial -lmpi-serial
+  MLIBS += $(MPISERIAL)
 endif
 
+$(MCTLIBS)  : $(MPISERIAL)
 
-$(MCTLIBS) $(PIOLIB) : $(MPISERIAL)
+$(PIOLIB) : $(MPISERIAL) $(GPTLLIB)
 
-$(OBJS): $(MCTLIBS) $(PIOLIB)
+$(CSMSHARELIB):  $(MCTLIBS) $(PIOLIB) $(GPTLLIB) 
+ifneq ($(MODEL),csm_share)
+  $(OBJS):  $(CSMSHARELIB)
+endif
 
-$(EXEC_SE): $(OBJS) $(ULIBDEP)
+$(EXEC_SE): $(OBJS) $(ULIBDEP) $(CSMSHARELIB) $(MCTLIBS) $(PIOLIB) $(GPTLLIB)
 	$(LD) -o $(EXEC_SE) $(OBJS) $(CLIBS) $(ULIBS) $(SLIBS) $(MLIBS) $(LDFLAGS)
 
-$(COMPLIB): $(OBJS)
+$(COMPLIB): $(OBJS) 
 	$(AR) -r $(COMPLIB) $(OBJS)
+
+$(LIBROOT)/libcvmix.a:
+	$(MAKE) -f $(CODEROOT)/ocn/pop2/source/cvmix/Makefile SRC_DIR=$(CODEROOT)/ocn/pop2/source/cvmix FC=$(SFC) FCFLAGS="$(FFLAGS) $(FREEFLAGS)" LIB_DIR=$(LIBROOT)
 
 .c.o:
 	$(CC) -c $(INCLDIR) $(INCS) $(CFLAGS)  $<
@@ -617,6 +657,10 @@ $(COMPLIB): $(OBJS)
 	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) $(FREEFLAGS)  $<
 .cpp.o:
 	$(CXX) -c $(INCLDIR) $(INCS) $(CXXFLAGS)  $<
+
+%.F90: %.F90.in
+	$(CCSMROOT)/tools/cprnc/genf90/genf90.pl $< > $@
+
 
 mostlyclean:
 	$(RM) -f *.f *.f90 

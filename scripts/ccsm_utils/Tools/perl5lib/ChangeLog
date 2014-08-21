@@ -2,6 +2,45 @@
   Description of changes
 ==============================================================
 ==============================================================
+Tag name:  perl5lib_140806
+Originator(s):  erik
+Date: Aug 06, 2014
+One-lne Summary: Add unit test for Testing modules and work more
+                 on it's language
+
+M       Testing/TestLists.pm
+A       t/07.t
+A       t/ccsm_utils
+A       t/ccsm_utils/Testlistxml
+A       t/ccsm_utils/Testlistxml/testlist.xml
+
+==============================================================
+Tag name:  perl5lib_140805
+Originator(s):  erik
+Date: Aug 05, 2014
+One-lne Summary: Make it more clear that when a configuration isn't
+  being tested it's a warning
+
+M       Testing/TestLists.pm --- Up the language when a compset/grid
+              is NOT being tested.
+
+==============================================================
+Tag name:  perl5lib_140722
+Originator(s):  jshollen
+Date: Jul 22, 2014
+One-lne Summary: Add Testing/TestLists.pm, Testing/CESMTest.pm
+
+Adding modules in support of parsing test lists
+
+M      .
+A  +    t/testTestLists.t
+A  +    t/testlist07Jul2014.xml
+M       ChangeLog
+A  +    Testing
+A  +    Testing/CESMTest.pm
+A  +    Testing/TestLists.pm
+
+==============================================================
 Tag name:  perl5lib_140520
 Originator(s):  sacks
 Date: May 20, 2014

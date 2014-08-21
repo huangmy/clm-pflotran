@@ -1,6 +1,6 @@
 !===============================================================================
-! SVN $Id: main.F90 56036 2013-12-13 22:22:05Z mlevy@ucar.edu $
-! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/gen_mapping_files/runoff_to_ocn/src/main.F90 $
+! SVN $Id: main.F90 59443 2014-04-22 22:57:10Z mlevy@ucar.edu $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b/gen_mapping_files/runoff_to_ocn/src/main.F90 $
 !===============================================================================
 
 PROGRAM main
@@ -81,7 +81,7 @@ PROGRAM main
 
    write(6,F10) "correct/smooth/sort runoff -> ocean map"
    write(6,F10) "SVN &
-   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
+   & $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b/gen_mapping_files/runoff_to_ocn/src/main.F90 $"
 
    call shr_timer_init()
 
@@ -141,12 +141,12 @@ PROGRAM main
      stop
    end if
 
-   !----------------------------------------------------------------------------
-   write(6,F10) "Step 1: read grid info & create nearest neighbor map"
-   !----------------------------------------------------------------------------
    call shr_timer_get  (t01,"Step 1: Grid Read, Gen NN")
    call shr_timer_start(t01)
 if (step1) then
+   !----------------------------------------------------------------------------
+   write(6,F10) "Step 1: read grid info & create nearest neighbor map"
+   !----------------------------------------------------------------------------
    call map_gridRead(map_orig , trim(file_roff), trim(file_ocn), gridtype)
 
    call date_and_time(dstr,tstr)
@@ -156,7 +156,10 @@ if (step1) then
    call mapsort_sort(map_orig)  ! sort map
    call map_check(map_orig)
    call map_write(map_orig, trim(file_nn)) 
-else if (step2) then
+else if (step2.or.step3) then
+   !----------------------------------------------------------------------------
+   write(6,F10) "Step 1: read nearest neighbor map"
+   !----------------------------------------------------------------------------
    call map_read (map_orig, trim(file_nn))  ! read corrected r2o map
    call mapsort_sort(map_orig)  ! sort map
    call map_check(map_orig)
@@ -165,12 +168,12 @@ endif
    call shr_timer_print(t01)
 
 
-   !----------------------------------------------------------------------------
-   write(6,F10) "Step 2:  create smoothing map"
-   !----------------------------------------------------------------------------
    call shr_timer_get  (t06,"Step 2: Create the smoothing map")
    call shr_timer_start(t06)
 if (step2) then
+   !----------------------------------------------------------------------------
+   write(6,F10) "Step 2:  create smoothing map"
+   !----------------------------------------------------------------------------
    write(6,F02) "   eFold distance = ",eFold
    write(6,F02) "   rMax  distance = ",rMax
    call smooth_init(map_orig,map_smooth)
@@ -180,6 +183,9 @@ if (step2) then
    call map_check(map_smooth)
    call map_write(map_smooth, trim(file_smooth)) 
 else if (step3) then
+   !----------------------------------------------------------------------------
+   write(6,F10) "Step 2:  read smoothing map"
+   !----------------------------------------------------------------------------
    call map_read (map_smooth, trim(file_smooth))  ! read corrected r2o map
    call mapsort_sort(map_smooth)  ! sort map
    call map_check(map_smooth)
@@ -202,7 +208,11 @@ if (step3) then
    call mapsort_sort(map_new)
    call map_check(map_new)
    call map_write(map_new, trim(file_new)) 
-else
+else if (.not.(step1.or.step2)) then
+   ! If we want to generate the rof->ocn nearest-neighbor or ocn->ocn smooth
+   ! map, we won't necessarily have the rof->ocn nnsm map to sort and check.
+   ! It only makes sense to call this step if we are skipping all three
+   ! steps.
    call map_read(map_new, trim(file_new)) 
    call mapsort_sort(map_new)
    call map_check(map_new)

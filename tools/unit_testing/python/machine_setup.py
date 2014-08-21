@@ -182,6 +182,15 @@ class MachineCompilerSettings(object):
             "CPPDEFS",
             lambda b, m: "add_config_definitions("+b+" "+m+")"
             )
+        def format_contiguous(build_type, match):
+            comma = "," if self.machine_dict["COMPILER"] != "ibm" else "\\\,"
+            contig_def = "contiguous"+comma if match == "TRUE" else ""
+            return "add_config_definitions("+build_type+\
+                " -DUSE_CONTIGUOUS="+contig_def+")"
+        add_formatted_flags(
+            "HAS_F2008_CONTIGUOUS",
+            format_contiguous
+            )
 
         macros_printer.print_header("Fortran flags.")
         add_formatted_flags(

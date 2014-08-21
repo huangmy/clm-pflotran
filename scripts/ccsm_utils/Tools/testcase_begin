@@ -11,11 +11,11 @@
 setenv TESTSTATUS_OUT   $CASEROOT/TestStatus
 setenv TESTSTATUS_LOG   $CASEROOT/TestStatus.out
 setenv TESTSTATUS_OUT_NLCOMP $CASEROOT/TestStatus.nlcomp
-if( $?COMPARE_BASELINE ) then
+if( "$COMPARE_BASELINE" == "TRUE" ) then
   setenv BASECMP_CPLLOGFILE  $BASECMP_DIR/cpl.log
   setenv COMPARE_NAMELISTS   TRUE
 endif
-if( $?GENERATE_BASELINE ) then
+if( "$GENERATE_BASELINE" == "TRUE" ) then
   setenv BASEGEN_CPLLOGFILE  $BASEGEN_DIR/cpl.log
 endif
 
@@ -60,8 +60,11 @@ if ( ${CASE} =~ *_IOP*) then
   cd $SCRIPTSROOT
   ./create_test ${iopbase_argv} -clean off -testid ${TEST_TESTID}
   cd $CASEROOT  || exit -9
+  ./xmlchange  HIST_OPTION='$STOP_OPTION'
+  ./xmlchange  HIST_N='$STOP_N'
   cd ../${iopbase_case}  || exit -9
-  cp $CASEROOT/env*.xml.* .
+  cp $CASEROOT/env_build.xml* .
+  cp $CASEROOT/env_run.xml* .
   foreach file (env_build.xml*)
     ./xmlchange -file $file -id EXEROOT        -val ${EXEROOT}
     ./xmlchange -file $file -id BUILD_COMPLETE -val TRUE

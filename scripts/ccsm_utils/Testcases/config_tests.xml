@@ -132,6 +132,16 @@
           CCSM_TCOST="4"
           DOUT_S="FALSE" />
           
+<ccsmtest NAME="OEM"
+          DESC="pop/atm task/thread count BFB test "
+          INFO_DBUG="2"
+          STOP_OPTION="ndays"
+          STOP_N="10"
+          REST_OPTION="none"
+          TIMER_LEVEL="12"
+          CCSM_TCOST="4"
+          DOUT_S="FALSE" />
+
 <ccsmtest NAME="SMS"
           DESC="smoke startup test (default length)"
           INFO_DBUG="2"

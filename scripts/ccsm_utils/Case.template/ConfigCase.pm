@@ -16,7 +16,7 @@ my $pkg_nm = 'ConfigCase';
 #   my $value = $cfg->get($id);
 #
 #   # Write an xml file out
-#   $cfg->write_file("$caseroot/env_run.xml", "xml");
+#   $cfg->write_file("$caseroot/env_run.xml", "xml","$ccsmroot");
 #
 #   # Write out documentation in a readme file
 #   $cfg->write_doc("$caseroot/README/readme_env");
@@ -306,6 +306,7 @@ sub write_file
     my $self = shift;
     my $filename = shift;   # filepath for output namelist
     my $format = shift;
+    my $ccsmroot = shift;   # used to read the config_archive.xml file
 
     # determine what file to write
     my @groups;
@@ -339,6 +340,8 @@ sub write_file
                     run_dirderv run_defpts); 
     } elsif ($filename =~ "env_test") {
        @groups = qw(case_test);
+    } elsif ($filename =~ "env_archive") {
+       @groups = qw(case_archive run_dout);
     }
 
     my $fh;
@@ -462,6 +465,24 @@ EOD
 
 EOD
 }
+
+    if($filename =~ "env_archive.xml" && $xmode =~ "normal") {
+    print $fh <<"EOD";
+<!-- ========================================================================== -->
+<!--                                                                            -->
+<!--       These are the variables specific to the short and long term          -->
+<!--       archiver. We recommend that users *NEVER* run diagnostics            -->
+<!--       or post-processing packages in the same location as the short-term   -->
+<!--       (DOUT_S_ROOT.locked) archiver when the model job is running.         -->
+<!--       Instead, You may run these packages in the (DOUT_S_ROOT)             -->
+<!--       location which contains hard-links back to the files in the          -->
+<!--       (DOUT_S_ROOT.locked) directory.                                      -->
+<!--                                                                            -->
+<!-- ========================================================================== -->
+
+EOD
+}
+
     foreach my $group (@groups) {
 	if ($group =~ /component/) {
 	    foreach my $comp ( @comps ) {
@@ -491,7 +512,7 @@ EOD
 		if ($group =~ m/mach_pes_/ || $xmode =~ "expert") {
 		    $self->_write_xml2($fh, $group);
 		} else {
-		    $self->_write_xml($fh, $group);
+		    $self->_write_xml($fh, $group, $ccsmroot);
 		    if ($group =~ 'build_component') {
 			# do nothing
 		    } else {
@@ -770,6 +791,7 @@ sub _write_env
     my $self = shift;
     my $fh = shift;   # filepath for output namelist
     my $group = shift;
+    my $ccsmroot = shift; # used to read config_archive
 
     print $fh <<"EOD";
 
@@ -783,6 +805,18 @@ EOD
 	    my $i = $self->{$id}->{'index'};
 	    $id_indices{$i} = $id;
 	}
+    }
+
+
+    # check if the group is set to case_archive 
+    if( $group eq 'case_archive') {
+	my $archive_file = qq($ccsmroot/config_archive.xml);
+	open CONFIG_ARCHIVE, $archive_file or die $!;
+	while (<CONFIG_ARCHIVE>) {
+	    chomp;
+	    print $fh "$_\n";
+	}
+	close (CONFIG_ARCHIVE);
     }
 
     # add the entry elements
@@ -822,6 +856,7 @@ sub _write_xml
     my $self = shift;
     my $fh = shift;   # filepath for output namelist
     my $group = shift;
+    my $ccsmroot = shift; # used to read config_archive
 
     # separate the groups with spaces
     print $fh <<"EOD";
@@ -836,6 +871,17 @@ EOD
 	    my $i = $self->{$id}->{'index'};
             $id_indices{$i} = $id;
 	}
+    }
+
+    # check if the group is set to case_archive 
+    if( $group eq 'case_archive') {
+	my $archive_file = qq($ccsmroot/config_archive.xml);
+	open CONFIG_ARCHIVE, $archive_file or die $!;
+	while (<CONFIG_ARCHIVE>) {
+	    chomp;
+	    print $fh "$_\n";
+	}
+	close (CONFIG_ARCHIVE);
     }
 
     # add the entry elements
@@ -1421,6 +1467,8 @@ sub _resolveValues
 	my $value = shift;
 	my $parsers = shift;
 	#print "in _resolveValues: value: $value\n";
+	# We want to resolve $values from either tthe other xml files, or 
+	# the value can come from the 
 	if($value =~ /(\$[\w_]+)/)
 	{
 		#print "in _resolveValues: value: $value\n";
@@ -1430,16 +1478,37 @@ sub _resolveValues
 		my $needed = $unresolved;
 		$needed =~ s/\$//g;
 	
+		my $found = 0;
 		foreach my $parser(values %$parsers)
 		{
 			my @resolveplease = $parser->findnodes("//entry[\@id=\'$needed\']");
-			foreach my $r(@resolveplease)
+			if(@resolveplease)
 			{
-				my $rid = $r->getAttribute('id');
-				my $rvalue = $r->getAttribute('value');
-				$value =~ s/\$$needed/$rvalue/g;
-				#print "value after substitution: $value\n";
+				$found = 1;
+				foreach my $r(@resolveplease)
+				{
+					my $rid = $r->getAttribute('id');
+					my $rvalue = $r->getAttribute('value');
+					$value =~ s/\$$needed/$rvalue/g;
+					#print "value after substitution: $value\n";
+				}
 			}
+		}
+		# Check the environment if not found in the xml files. 
+		if(!$found)
+		{
+			if(exists $ENV{$needed})
+			{
+				$found = 1;
+				my $rvalue = $ENV{$needed};
+				$value =~ s/\$$needed/$rvalue/g;
+			}
+		}
+		#if the value is not found in any of the xml files or in the environment, then
+		# return undefined. 
+		if(!$found)
+		{
+			return undef;
 		}
 		_resolveValues($value, $parsers);
 	}

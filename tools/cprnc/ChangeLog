@@ -1,3 +1,28 @@
+==============================================================
+Tag name: cprnc_140625
+Originator: jedwards
+Date: Jun 25, 2014
+One-line Summary:Port to nag compiler
+
+M   filestruct.F90
+M   compare_vars_mod.F90.in
+
+==============================================================
+Tag name: cprnc_140429
+Originator: jedwards
+Date: Apr 29, 2014
+One-line Summary:Update the genf90 external
+
+M SVN_EXTERNAL_DIRECTORIES
+
+==============================================================
+Tag name: cprnc_140408
+Originator: jamroz
+Date: Apr 8, 2014
+One-line Summary: Some CMake fixes for cprnc to be used as a subproject with
+add_subdirectory.
+
+M       CMakeLists.txt
 
 ==============================================================
 Tag name: cprnc_140203

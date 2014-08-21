@@ -1,12 +1,12 @@
 #! /bin/csh -fx
 
 # directory in which pio is built
-set pio_dir=$EXEROOT/pio
+set pio_dir=$1/pio
 
-# directory in which pio obj files are built
-set pio_obj_dir=$OBJROOT/pio
 
-cd $pio_obj_dir
+
+
+cd $pio_dir
 
 # ----------------------------------------------------------------------
 # Set options to cmake
@@ -19,17 +19,16 @@ set cmake_opts="$cmake_opts -D GENF90_PATH=$CCSMROOT/tools/cprnc/genf90"
 # create the pio makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
-$GMAKE $pio_dir/Makefile MODEL=pio USER_CMAKE_OPTS="$cmake_opts" \
+$GMAKE  $pio_dir/Makefile MODEL=pio USER_CMAKE_OPTS="$cmake_opts" \
        PIO_LIBDIR=$pio_dir \
        -f $CASETOOLS/Makefile || exit 1
 
 # ----------------------------------------------------------------------
-# create the glimmer-cism library (or libraries), using the makefile
+# create the pio library (or libraries), using the makefile
 # created by cmake
 # ----------------------------------------------------------------------
-pushd $pio_dir
 $GMAKE -j $GMAKE_J || exit 2
-popd
-
+cp -p lib*.a $pio_dir/../lib
+cp -p *.h *.mod $pio_dir/../include
 exit 0
 

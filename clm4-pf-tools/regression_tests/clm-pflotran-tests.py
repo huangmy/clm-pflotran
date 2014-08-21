@@ -498,6 +498,7 @@ class RegressionTest(object):
             exe_path = "{0}/bld/cesm.exe".format(exe_case_dir)
             if not os.path.isfile(exe_path):
                 raise Exception("ERROR: could not find executable for reuse:\n{0}".format(exe_path))
+            status += self._run_xml_change("env_build.xml", "CESMSCRATCHROOT", "{0}".format(exe_case_dir))
             status += self._run_xml_change("env_build.xml", "EXEROOT", "{0}/bld".format(exe_case_dir))
             status += self._run_xml_change("env_build.xml", "BUILD_COMPLETE", "TRUE")
             print("#./{0}.build".format(self._name), file=self._case_script)
@@ -1136,6 +1137,8 @@ class RegressionTest(object):
         status += self._run_xml_change(xmlfile, "SUPPORTED_BY", "'clm-pflotran test case'")
         bld_dir = "{0}/{1}".format(os.getcwd(), "bld")
         os.mkdir(bld_dir)
+        srcatch_dir = "{0}".format(os.getcwd())
+        status += self._run_xml_change(xmlfile, "CESMSCRATCHROOT", srcatch_dir)
         status += self._run_xml_change(xmlfile, "EXEROOT", bld_dir)
 
         if status is 0:

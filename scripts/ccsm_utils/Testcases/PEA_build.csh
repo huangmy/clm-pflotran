@@ -4,6 +4,16 @@
 source ./Tools/ccsm_getenv     || exit -2
 
 cd $CASEROOT
+./$CASE.clean_build
+
+if(-e mpilib.original) then
+  set mpiliborig=`cat mpilib.original`
+  ./xmlchange -file env_build.xml -id MPILIB -val $mpiliborig
+  ./cesm_setup -clean
+  ./cesm_setup
+else
+  echo $MPILIB > mpilib.original
+endif
 
 ./$CASE.build
 mv -f $EXEROOT/cesm.exe $EXEROOT/cesm.exe.mpi

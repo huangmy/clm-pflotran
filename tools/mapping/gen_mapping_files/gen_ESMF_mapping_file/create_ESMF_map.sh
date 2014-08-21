@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #===============================================================================
-# SVN $Id: create_ESMF_map.sh 46423 2013-04-26 18:11:07Z mlevy@ucar.edu $
-# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a/gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh $
+# SVN $Id: create_ESMF_map.sh 60836 2014-06-03 23:13:57Z mlevy@ucar.edu $
+# SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b/gen_mapping_files/gen_ESMF_mapping_file/create_ESMF_map.sh $
 #
 # Create needed mapping files for gen_domain and coupler mapping
 # Currently supported on yellowstone, geyser, caldera and jaguarpf
@@ -317,12 +317,12 @@ case $MACH in
     module load esmf
 
     if [ $serial == "TRUE" ]; then
-      module load esmf-6.1.1-ncdfio-uni-O
+      module load esmf-6.3.0r-ncdfio-uni-O
       if [ -z "$MPIEXEC" ]; then
         MPIEXEC=""
       fi
     else
-      module load esmf-6.1.1-ncdfio-mpi-O
+      module load esmf-6.3.0r-ncdfio-mpi-O
       if [ -z "$MPIEXEC" ]; then
         MPIEXEC="mpirun.lsf"
       fi
@@ -423,6 +423,9 @@ if [ $type_dst == "regional" ]; then
     echo "regional destination"
 fi
 echo "cmd is $cmd"
+if [ $serial == "TRUE" ]; then
+  ESMF_RegridWeightGen --version | grep ESMF_VERSION_STRING
+fi
 echo ""
 runcmd $cmd
 if [ "$debug" != "YES" ] && [ ! -f "$fmap" ]; then
@@ -431,7 +434,7 @@ if [ "$debug" != "YES" ] && [ ! -f "$fmap" ]; then
 fi
 HIST="$cmd"
 HOST=`hostname`
-ESMF_VER=`$ESMF_REGRID --version | grep VERSION_STRING | tr -d ' ' | sed s/:/": "/g`
+ESMF_VER=`$MPIEXEC $ESMF_REGRID --version | grep VERSION_STRING | tr -d ' ' | sed s/:/": "/g`
 if [ -z "$ESMF_VER" ]; then
   ESMF_VER="Version number unavailable, if CVS_revision att exists it contains version"
 fi
