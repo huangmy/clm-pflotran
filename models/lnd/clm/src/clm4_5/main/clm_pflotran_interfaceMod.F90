@@ -1227,18 +1227,6 @@ contains
 
     nlevmapped = clm_pf_idata%nzclm_mapped
 
-    do fc = 1,num_hydrologyc
-      c = filter_hydrologyc(fc)
-      g = col%gridcell(c)
-      gcount = g - bounds%begg
-      do j = 1, nlevsoi
-        cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j) * cps%watsat(c,j) * cps%dz(c,j) * denh2o
-        cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
-             cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
-        cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
-      enddo
-    enddo
-
     if (pflotran_m%option%iflowmode == TH_MODE .and. &
         pflotran_m%option%use_th_freezing) then
 
@@ -1249,14 +1237,29 @@ contains
         g = col%gridcell(c)
         gcount = g - bounds%begg
         do j = 1, nlevsoi
-          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevmapped + j) * cps%watsat(c,j) * cps%dz(c,j) * denice
-          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j) / cps%dz(c,j) / denh2o + &
-                                cws%h2osoi_ice(c,j) / cps%dz(c,j) / denice
+          cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denh2o
+          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denice
+          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j)/cps%dz(c,j)/denh2o + &
+                                cws%h2osoi_ice(c,j)/cps%dz(c,j)/denice
           cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
         enddo
       enddo
 
       call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
+
+    else
+
+      do fc = 1,num_hydrologyc
+        c = filter_hydrologyc(fc)
+        g = col%gridcell(c)
+        gcount = g - bounds%begg
+        do j = 1, nlevsoi
+          cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denh2o
+          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j)/cps%dz(c,j)/denh2o + &
+                                cws%h2osoi_ice(c,j)/cps%dz(c,j)/denice
+          cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
+        enddo
+      enddo
 
     endif
 
