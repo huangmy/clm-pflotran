@@ -17,3 +17,4 @@ syntax: glob
 *.d
 *.orig
 test_cases/*
+clm4-pf-tools/regression_tests/local.cfg
