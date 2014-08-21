@@ -329,6 +329,7 @@ module SoilMoistStressMod
   use clmtype        , only : column_wstate_type
   use clmtype        , only : column_estate_type
   use SoiWatRetCurveParMod,only : soil_suction
+  use clm_varctl     , only : use_pflotran, pflotran_th_mode
   implicit none
   type(bounds_type),        intent(in) :: bounds                        !bounds
   real(r8)                , intent(in) :: rootfr_unf(bounds%begp: , 1: )!                  !
@@ -348,6 +349,7 @@ module SoilMoistStressMod
   real(r8) :: smp_node, s_node  !temporary variables
   real(r8) :: smp_node_lf       !temporary variable
   integer :: p, f, j, c, l      !indices
+  real(r8) :: temp_threshold    !temperature threshold below which transpiration will shut off
 
   ! Enforce expected array sizes   
   SHR_ASSERT_ALL((ubound(rootfr_unf)     == (/bounds%endp, nlevgrnd/)), errMsg(__FILE__, __LINE__))  
@@ -370,6 +372,15 @@ module SoilMoistStressMod
    bsw                   => cps_data%bsw                  , & !clapp-hornberg shape parameter
    t_soisno              => ces_data%t_soisno               & !soil temperature
   ) 
+
+  if (use_pflotran .and. pflotran_th_mode) then
+     ! PFLOTRAN is running in TH MODE
+     temp_threshold = tfrz
+  else
+     ! DEFAULT CLM behavior or PFLOTRAN not in TH MODE
+     temp_threshold = tfrz-2._r8
+  endif
+
   do j = 1,nlevgrnd
     do f = 1, fn
       p = filterp(f)
@@ -378,7 +389,7 @@ module SoilMoistStressMod
 
       ! Root resistance factors
       ! rootr effectively defines the active root fraction in each layer      
-      if (h2osoi_liqvol(c,j) .le. 0._r8 .or. t_soisno(c,j) .le. tfrz-2._r8) then
+      if (h2osoi_liqvol(c,j) .le. 0._r8 .or. t_soisno(c,j) .le. temp_threshold) then
         rootr(p,j) = 0._r8
       else
         s_node = max(h2osoi_liqvol(c,j)/eff_porosity(c,j),0.01_r8)
