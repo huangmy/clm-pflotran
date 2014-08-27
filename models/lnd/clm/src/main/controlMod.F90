@@ -39,6 +39,7 @@ module controlMod
   use SurfaceAlbedoMod        , only: albice, lake_melt_icealb
   use UrbanParamsType         , only: urban_hac, urban_traffic
   use clm_varcon              , only: h2osno_max
+  use clm_pflotran_interfaceMod, only : clm_pf_readnl
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -349,6 +350,10 @@ contains
 
     call control_spmd()
     
+    if (use_pflotran) then
+       call clm_pf_readnl(NLFilename)
+    end if
+
     ! ----------------------------------------------------------------------
     ! consistency checks
     ! ----------------------------------------------------------------------

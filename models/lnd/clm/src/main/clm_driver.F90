@@ -135,6 +135,9 @@ contains
     ! the calling tree is given in the description of this module.
     !
     ! !USES:
+    use clm_varctl, only : use_pflotran
+    use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
+         clm_pf_update_soil_temperature, clm_pf_update_drainage
     !
     ! !ARGUMENTS:
     implicit none
@@ -573,6 +576,17 @@ contains
        call t_stopf('hydro without drainage')
 
        ! ============================================================================
+       ! Update soil temperatures from PFLOTRAN
+       ! ============================================================================
+       if (use_pflotran) then
+          ! TODO(2013-08-27) clm_pf_update_states --> soil
+          ! temperature, soil moisture, water table?
+          call clm_pf_update_soil_temperature(bounds_clump, &
+               filter(nc)%num_urbanl,  filter(nc)%urbanl, &
+               filter(nc)%num_nolakec, filter(nc)%nolakec)
+       end if
+
+       ! ============================================================================
        ! Lake hydrology
        ! ============================================================================
 
@@ -725,13 +739,17 @@ contains
 
        call t_startf('hydro2 drainage')
 
-       call HydrologyDrainage(bounds_clump,                   &
-            filter(nc)%num_nolakec, filter(nc)%nolakec,       &
-            filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
-            filter(nc)%num_urbanc, filter(nc)%urbanc,         &                 
-            filter(nc)%num_do_smb_c, filter(nc)%do_smb_c,     &                
-            atm2lnd_vars, temperature_vars,                   &
-            soilhydrology_vars, soilstate_vars, waterstate_vars, waterflux_vars)
+       if (use_pflotran) then
+          call clm_pf_update_drainage(filter(nc)%num_hydrologyc, filter(nc)%hydrologyc)
+       else
+          call HydrologyDrainage(bounds_clump,                   &
+               filter(nc)%num_nolakec, filter(nc)%nolakec,       &
+               filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
+               filter(nc)%num_urbanc, filter(nc)%urbanc,         &                 
+               filter(nc)%num_do_smb_c, filter(nc)%do_smb_c,     &                
+               atm2lnd_vars, temperature_vars,                   &
+               soilhydrology_vars, soilstate_vars, waterstate_vars, waterflux_vars)
+       end if
 
        call t_stopf('hydro2 drainage')     
 
@@ -1014,6 +1032,9 @@ contains
                soilstate_vars, solarabs_vars, surfalb_vars, temperature_vars,   &
                waterflux_vars, waterstate_vars, EDbio_vars, rdate=rdate )
 
+          if (use_pflotran) then
+             call clm_pf_write_restart(rdate)
+          end if
           call t_stopf('clm_drv_io_wrest')
        end if
        call t_stopf('clm_drv_io')

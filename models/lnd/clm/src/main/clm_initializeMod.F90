@@ -395,6 +395,8 @@ contains
     use lnd2atmMod            , only : lnd2atm_minimal
     use glc2lndMod            , only : glc2lnd_type
     use lnd2glcMod            , only : lnd2glc_type 
+    use clm_pflotran_interfaceMod, only : clm_pf_interface_init, &
+         clm_pf_set_restart_stamp
     !
     ! !ARGUMENTS    
     implicit none
@@ -831,6 +833,10 @@ contains
             soilstate_vars, solarabs_vars, surfalb_vars, temperature_vars,   &
             waterflux_vars, waterstate_vars, EDbio_vars)
 
+       if (use_pflotran) then
+          call clm_pf_set_restart_stamp(fnamer)
+       end if
+
     end if
 
     ! ------------------------------------------------------------------------
@@ -1032,6 +1038,11 @@ contains
        write(iulog,*)
     endif
     call t_stopf('init_wlog')
+
+    if (use_pflotran) then
+       call clm_pf_interface_init(bounds_proc)
+    !call pflotranModelGetSaturation( pflotran_m )
+    end if
 
     call t_stopf('clm_init2')
 

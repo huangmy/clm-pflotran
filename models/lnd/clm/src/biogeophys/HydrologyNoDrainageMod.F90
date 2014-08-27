@@ -67,6 +67,8 @@ contains
     use SnowHydrologyMod     , only : SnowWater, BuildSnowFilter 
     use SoilHydrologyMod     , only : CLMVICMap, SurfaceRunoff, Infiltration, WaterTable
     use SoilWaterMovementMod , only : SoilWater 
+    use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture, &
+         clm_pf_set_sflow_forcing, clm_pf_update_h2osfc
     !
     ! !ARGUMENTS:
     type(bounds_type)        , intent(in)    :: bounds               
@@ -169,15 +171,40 @@ contains
               soilhydrology_vars, waterstate_vars)
       end if
 
-      call SurfaceRunoff(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
-           soilhydrology_vars, soilstate_vars, waterflux_vars, waterstate_vars)
+      ! moved vol_liq from SurfaceRunoff to Infiltration
+      if (use_pflotran.and.pflotran_surfaceflow) then
+         call clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc)
+      else
+         ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
+         call SurfaceRunoff(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
+              soilhydrology_vars, soilstate_vars, waterflux_vars, waterstate_vars)
 
-      call Infiltration(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc,&
-           energyflux_vars, soilhydrology_vars, soilstate_vars, temperature_vars, &
-           waterflux_vars, waterstate_vars)
+         ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
+         call Infiltration(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc,&
+              energyflux_vars, soilhydrology_vars, soilstate_vars, temperature_vars, &
+              waterflux_vars, waterstate_vars)
 
-      call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
-            soilhydrology_vars, soilstate_vars, waterflux_vars, waterstate_vars, temperature_vars)
+      endif
+
+      if (use_pflotran) then
+         ! TODO (GB): Remove computation of ET flux from clm_pf_step_th and
+         ! create another subroutine clm_pf_set_et_forcing()
+         call clm_pf_step_th(bounds, &
+              num_nolakec, filter_nolakec, &
+              num_hydrologyc, filter_hydrologyc, &
+              num_snowc, filter_snowc, &
+              num_nosnowc, filter_nosnowc)
+         ! TODO(2013-08-27) move to clm_driver, update all states at once?
+         call clm_pf_update_soil_moisture(cws, cps, bounds, &
+              num_hydrologyc, filter_hydrologyc)
+         if(pflotran_surfaceflow) then
+            call clm_pf_update_h2osfc(bounds, num_hydrologyc, filter_hydrologyc)
+         endif
+      else
+         call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
+              soilhydrology_vars, soilstate_vars, waterflux_vars, waterstate_vars, temperature_vars)
+
+      end if
 
       if (use_vichydro) then
          ! mapping soilmoist from CLM to VIC layers for runoff calculations
@@ -185,9 +212,14 @@ contains
               soilhydrology_vars, waterstate_vars)
       end if
 
-      call WaterTable(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
-           soilhydrology_vars, soilstate_vars, temperature_vars, waterstate_vars, waterflux_vars) 
-
+      if (use_pflotran) then
+         ! TODO(2013-08-27)
+         !call clm_pf_update_water_table()
+      else
+         call WaterTable(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
+              soilhydrology_vars, soilstate_vars, temperature_vars, waterstate_vars, waterflux_vars) 
+      end if
+                  
       ! Natural compaction and metamorphosis.
       call SnowCompaction(bounds, num_snowc, filter_snowc, &
            temperature_vars, waterstate_vars)
