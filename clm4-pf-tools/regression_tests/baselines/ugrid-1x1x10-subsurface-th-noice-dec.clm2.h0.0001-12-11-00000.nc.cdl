@@ -1,4 +1,4 @@
-netcdf ugrid-1x1x10-subsurface-richards-may.clm2.h0.0001-01-11-00000 {
+netcdf ugrid-1x1x10-subsurface-th-noice-dec.clm2.h0.0001-12-11-00000 {
 dimensions:
 	lndgrid = 1 ;
 	gridcell = 1 ;
@@ -10,6 +10,8 @@ dimensions:
 	levlak = 10 ;
 	numrad = 2 ;
 	levsno = 5 ;
+	ltype = 9 ;
+	natpft = 17 ;
 	string_length = 8 ;
 	levdcmp = 1 ;
 	hist_interval = 2 ;
@@ -26,7 +28,7 @@ variables:
 		levdcmp:units = "m" ;
 	float time(time) ;
 		time:long_name = "time" ;
-		time:units = "days since 0001-01-01 00:00:00" ;
+		time:units = "days since 0001-12-01 00:00:00" ;
 		time:calendar = "noleap" ;
 		time:bounds = "time_bounds" ;
 	int mcdate(time) ;
@@ -113,14 +115,14 @@ variables:
 		AR:_FillValue = 1.e+36f ;
 		AR:missing_value = 1.e+36f ;
 	float BAF_CROP(time, lndgrid) ;
-		BAF_CROP:long_name = "timestep fractional area burned for crop" ;
-		BAF_CROP:units = "proportion" ;
+		BAF_CROP:long_name = "fractional area burned for crop" ;
+		BAF_CROP:units = "proportion/sec" ;
 		BAF_CROP:cell_methods = "time: mean" ;
 		BAF_CROP:_FillValue = 1.e+36f ;
 		BAF_CROP:missing_value = 1.e+36f ;
 	float BAF_PEATF(time, lndgrid) ;
-		BAF_PEATF:long_name = "timestep fractional area burned in peatland" ;
-		BAF_PEATF:units = "proportion" ;
+		BAF_PEATF:long_name = "fractional area burned in peatland" ;
+		BAF_PEATF:units = "proportion/sec" ;
 		BAF_PEATF:cell_methods = "time: mean" ;
 		BAF_PEATF:_FillValue = 1.e+36f ;
 		BAF_PEATF:missing_value = 1.e+36f ;
@@ -431,8 +433,8 @@ variables:
 		ESAI:_FillValue = 1.e+36f ;
 		ESAI:missing_value = 1.e+36f ;
 	float FAREA_BURNED(time, lndgrid) ;
-		FAREA_BURNED:long_name = "timestep fractional area burned" ;
-		FAREA_BURNED:units = "proportion" ;
+		FAREA_BURNED:long_name = "fractional area burned" ;
+		FAREA_BURNED:units = "proportion/sec" ;
 		FAREA_BURNED:cell_methods = "time: mean" ;
 		FAREA_BURNED:_FillValue = 1.e+36f ;
 		FAREA_BURNED:missing_value = 1.e+36f ;
@@ -953,8 +955,8 @@ variables:
 		LEAF_MR:_FillValue = 1.e+36f ;
 		LEAF_MR:missing_value = 1.e+36f ;
 	float LFC2(time, lndgrid) ;
-		LFC2:long_name = "conversion area fraction of BET and BDT that burned in this timestep" ;
-		LFC2:units = "per timestep" ;
+		LFC2:long_name = "conversion area fraction of BET and BDT that burned" ;
+		LFC2:units = "per sec" ;
 		LFC2:cell_methods = "time: mean" ;
 		LFC2:_FillValue = 1.e+36f ;
 		LFC2:missing_value = 1.e+36f ;
@@ -1271,8 +1273,8 @@ variables:
 		NET_NMIN:_FillValue = 1.e+36f ;
 		NET_NMIN:missing_value = 1.e+36f ;
 	float NFIRE(time, lndgrid) ;
-		NFIRE:long_name = "timestep fire counts valid only in Reg.C" ;
-		NFIRE:units = "counts/km2/timestep" ;
+		NFIRE:long_name = "fire counts valid only in Reg.C" ;
+		NFIRE:units = "counts/km2/sec" ;
 		NFIRE:cell_methods = "time: mean" ;
 		NFIRE:_FillValue = 1.e+36f ;
 		NFIRE:missing_value = 1.e+36f ;
@@ -1318,6 +1320,18 @@ variables:
 		PCO2:cell_methods = "time: mean" ;
 		PCO2:_FillValue = 1.e+36f ;
 		PCO2:missing_value = 1.e+36f ;
+	float PCT_LANDUNIT(time, ltype, lndgrid) ;
+		PCT_LANDUNIT:long_name = "% of each landunit on grid cell" ;
+		PCT_LANDUNIT:units = "%" ;
+		PCT_LANDUNIT:cell_methods = "time: mean" ;
+		PCT_LANDUNIT:_FillValue = 1.e+36f ;
+		PCT_LANDUNIT:missing_value = 1.e+36f ;
+	float PCT_NAT_PFT(time, natpft, lndgrid) ;
+		PCT_NAT_PFT:long_name = "% of each PFT on the natural vegetation (i.e., soil) landunit" ;
+		PCT_NAT_PFT:units = "%" ;
+		PCT_NAT_PFT:cell_methods = "time: mean" ;
+		PCT_NAT_PFT:_FillValue = 1.e+36f ;
+		PCT_NAT_PFT:missing_value = 1.e+36f ;
 	float PFT_CTRUNC(time, lndgrid) ;
 		PFT_CTRUNC:long_name = "pft-level sink for C truncation" ;
 		PFT_CTRUNC:units = "gC/m^2" ;
@@ -2463,18 +2477,44 @@ variables:
 		:title = "CLM History file information" ;
 		:comment = "NOTE: None of the variables are weighted by land fraction!" ;
 		:Conventions = "CF-1.0" ;
-		:history = "created on 08/14/14 18:41:14" ;
+		:history = "created on 08/21/14 13:04:56" ;
 		:source = "Community Land Model CLM4.0" ;
 		:hostname = "userdefined" ;
-		:username = "bandre" ;
-		:version = "clm4_5_67" ;
+		:username = "gbisht" ;
+		:version = "" ;
 		:revision_id = "$Id: histFileMod.F90 42903 2012-12-21 15:32:10Z muszala $" ;
 		:case_title = "UNSET" ;
-		:case_id = "ugrid-1x1x10-subsurface-richards-may" ;
+		:case_id = "ugrid-1x1x10-subsurface-th-noice-dec" ;
 		:Surface_dataset = "surfdata_1x1pt_US-Brw_simyr1850_ugrid_c131015.nc" ;
 		:Initial_conditions_dataset = "arbitrary initialization" ;
-		:PFT_physiological_constants_dataset = "clm_params.c130821.nc" ;
-		:Time_constant_3Dvars_filename = "./ugrid-1x1x10-subsurface-richards-may.clm2.h0.0001-01-01-00000.nc" ;
+		:PFT_physiological_constants_dataset = "clm_params.c140423.nc" ;
+		:ltype_vegetated_or_bare_soil = 1 ;
+		:ltype_crop = 2 ;
+		:ltype_landice = 3 ;
+		:ltype_landice_multiple_elevation_classes = 4 ;
+		:ltype_deep_lake = 5 ;
+		:ltype_wetland = 6 ;
+		:ltype_urban_tbd = 7 ;
+		:ltype_urban_hd = 8 ;
+		:ltype_urban_md = 9 ;
+		:natpft_not_vegetated = 1 ;
+		:natpft_needleleaf_evergreen_temperate_tree = 2 ;
+		:natpft_needleleaf_evergreen_boreal_tree = 3 ;
+		:natpft_needleleaf_deciduous_boreal_tree = 4 ;
+		:natpft_broadleaf_evergreen_tropical_tree = 5 ;
+		:natpft_broadleaf_evergreen_temperate_tree = 6 ;
+		:natpft_broadleaf_deciduous_tropical_tree = 7 ;
+		:natpft_broadleaf_deciduous_temperate_tree = 8 ;
+		:natpft_broadleaf_deciduous_boreal_tree = 9 ;
+		:natpft_broadleaf_evergreen_shrub = 10 ;
+		:natpft_broadleaf_deciduous_temperate_shrub = 11 ;
+		:natpft_broadleaf_deciduous_boreal_shrub = 12 ;
+		:natpft_c3_arctic_grass = 13 ;
+		:natpft_c3_non-arctic_grass = 14 ;
+		:natpft_c4_grass = 15 ;
+		:natpft_c3_crop = 16 ;
+		:natpft_c3_irrigated = 17 ;
+		:Time_constant_3Dvars_filename = "./ugrid-1x1x10-subsurface-th-noice-dec.clm2.h0.0001-12-01-00000.nc" ;
 		:Time_constant_3Dvars = "ZSOI:DZSOI:WATSAT:SUCSAT:BSW:HKSAT:ZLAKE:DZLAKE" ;
 data:
 
@@ -2488,7 +2528,7 @@ data:
 
  time = 10 ;
 
- mcdate = 10111 ;
+ mcdate = 11211 ;
 
  mcsec = 0 ;
 
@@ -2502,10 +2542,10 @@ data:
   0, 10 ;
 
  date_written =
-  "08/14/14" ;
+  "08/21/14" ;
 
  time_written =
-  "18:41:14" ;
+  "13:04:56" ;
 
  lon = 203.3741 ;
 
@@ -2522,22 +2562,22 @@ data:
  pftmask = 1 ;
 
  ACTUAL_IMMOB =
-  2.792563e-12 ;
+  2.486472e-12 ;
 
  AGNPP =
   0 ;
 
  ALT =
-  0 ;
-
- ALTMAX =
-  0 ;
-
- ALTMAX_LASTYEAR =
   35.17762 ;
 
+ ALTMAX =
+  35.17762 ;
+
+ ALTMAX_LASTYEAR =
+  0 ;
+
  AR =
-  5.349577e-11 ;
+  7.960612e-12 ;
 
  BAF_CROP =
   0 ;
@@ -2546,19 +2586,19 @@ data:
   0 ;
 
  BCDEP =
-  8.212629e-15 ;
+  9.379948e-15 ;
 
  BGNPP =
   0 ;
 
  BTRAN =
-  0.4348051 ;
+  0.1078257 ;
 
  BUILDHEAT =
   0 ;
 
  COL_CTRUNC =
-  6.528451e-07 ;
+  6.863895e-07 ;
 
  COL_FIRE_CLOSS =
   0 ;
@@ -2567,34 +2607,34 @@ data:
   0 ;
 
  COL_NTRUNC =
-  5.512859e-08 ;
+  5.783908e-08 ;
 
  CPOOL =
   0 ;
 
  CWDC =
-  1.007952e-05 ;
+  1.00802e-05 ;
 
  CWDC_HR =
   0 ;
 
  CWDC_LOSS =
-  2.39069e-14 ;
+  1.970069e-14 ;
 
  CWDC_TO_LITR2C =
-  1.816925e-14 ;
+  1.497252e-14 ;
 
  CWDC_TO_LITR3C =
-  5.737657e-15 ;
+  4.728165e-15 ;
 
  CWDN =
-  2.015903e-08 ;
+  2.01604e-08 ;
 
  CWDN_TO_LITR2N =
-  3.633849e-17 ;
+  2.994505e-17 ;
 
  CWDN_TO_LITR3N =
-  1.147531e-17 ;
+  9.456331e-18 ;
 
  DEADCROOTC =
   0 ;
@@ -2609,7 +2649,7 @@ data:
   7.316681e-05 ;
 
  DENIT =
-  5.417566e-10 ;
+  5.364011e-10 ;
 
  DISPVEGC =
   0.04592589 ;
@@ -2618,7 +2658,7 @@ data:
   0.000306729 ;
 
  DSTDEP =
-  2.347785e-12 ;
+  2.429351e-12 ;
 
  DSTFLXT =
   0 ;
@@ -2666,61 +2706,61 @@ data:
   _ ;
 
  EFLX_LH_TOT =
-  164.9164 ;
+  20.27448 ;
 
  EFLX_LH_TOT_R =
-  164.9164 ;
+  20.27448 ;
 
  EFLX_LH_TOT_U =
   _ ;
 
  ELAI =
-  7.462099e-05 ;
+  3.288821e-05 ;
 
  ER =
-  2.527519e-09 ;
+  2.295617e-09 ;
 
  ERRH2O =
-  NaNf ;
+  -21334.26 ;
 
  ERRH2OSNO =
-  NaNf ;
+  0 ;
 
  ERRSEB =
-  2.284504e-15 ;
+  -2.692513e-15 ;
 
  ERRSOI =
-  -1.133143e-10 ;
+  31.49953 ;
 
  ERRSOL =
-  2.312965e-19 ;
+  2.428613e-18 ;
 
  ESAI =
-  0.283699 ;
+  0.1238028 ;
 
  FAREA_BURNED =
   0 ;
 
  FCEV =
-  0 ;
+  -0.002222243 ;
 
  FCOV =
   0.04321459 ;
 
  FCTR =
-  3.356419e-05 ;
+  1.605916e-06 ;
 
  FGEV =
-  164.9164 ;
+  20.2767 ;
 
  FGR =
-  -1189.921 ;
+  -179.1293 ;
 
  FGR12 =
-  -91.34821 ;
+  -140.0393 ;
 
  FGR_R =
-  -1189.921 ;
+  -179.1293 ;
 
  FGR_U =
   _ ;
@@ -2729,25 +2769,25 @@ data:
   0 ;
 
  FIRA =
-  122.074 ;
+  43.5969 ;
 
  FIRA_R =
-  122.074 ;
+  43.5969 ;
 
  FIRA_U =
   _ ;
 
  FIRE =
-  297.6741 ;
+  253.4133 ;
 
  FIRE_R =
-  297.6741 ;
+  253.4133 ;
 
  FIRE_U =
   _ ;
 
  FLDS =
-  175.6001 ;
+  209.8164 ;
 
  FPG =
   1 ;
@@ -2783,58 +2823,58 @@ data:
   3.801882 ;
 
  FSA =
-  0.003212643 ;
+  0.005229128 ;
 
  FSAT =
   0.04321459 ;
 
  FSA_R =
-  0.003212643 ;
+  0.005229128 ;
 
  FSA_U =
   _ ;
 
  FSDS =
-  1.349922 ;
+  1.081071 ;
 
  FSDSND =
-  0.2021056 ;
+  0.161336 ;
 
  FSDSNDLN =
-  0.2748096 ;
+  0.2028889 ;
 
  FSDSNI =
-  0.4728553 ;
+  0.3791994 ;
 
  FSDSVD =
-  0.1210692 ;
+  0.09656592 ;
 
  FSDSVDLN =
-  0.1647158 ;
+  0.1214908 ;
 
  FSDSVI =
-  0.5538917 ;
+  0.4439695 ;
 
  FSDSVILN =
-  0.7510275 ;
+  0.5571046 ;
 
  FSH =
-  902.9333 ;
+  115.2632 ;
 
  FSH_G =
-  915.5654 ;
+  118.176 ;
 
  FSH_NODYNLNDUSE =
-  902.9333 ;
+  115.2632 ;
 
  FSH_R =
-  902.9333 ;
+  115.2632 ;
 
  FSH_U =
   _ ;
 
  FSH_V =
-  -12.63204 ;
+  -2.912843 ;
 
  FSM =
   0 ;
@@ -2846,43 +2886,43 @@ data:
   _ ;
 
  FSNO =
-  0 ;
+  0.09263449 ;
 
  FSNO_EFF =
-  0 ;
+  0.09263449 ;
 
  FSR =
-  1.346709 ;
+  1.075842 ;
 
  FSRND =
-  0.2016271 ;
+  0.160553 ;
 
  FSRNDLN =
-  0.2748096 ;
+  0.2028889 ;
 
  FSRNI =
-  0.4717275 ;
+  0.3773678 ;
 
  FSRVD =
-  0.1207829 ;
+  0.09609688 ;
 
  FSRVDLN =
-  0.1647158 ;
+  0.1214908 ;
 
  FSRVI =
-  0.5525717 ;
+  0.441824 ;
 
  FUELC =
-  0.6050977 ;
+  0.6051024 ;
 
  GC_HEAT1 =
-  15542.91 ;
+  24572.86 ;
 
  GC_ICE1 =
-  1131.731 ;
+  15600.65 ;
 
  GC_LIQ1 =
-  5696.198 ;
+  5733.624 ;
 
  GPP =
   0 ;
@@ -2891,28 +2931,28 @@ data:
   0 ;
 
  GROSS_NMIN =
-  2.382246e-10 ;
+  2.205943e-10 ;
 
  H2OCAN =
-  7.263586e-26 ;
+  0.003328117 ;
 
  H2OSFC =
   0 ;
 
  H2OSNO =
-  0 ;
+  1.007236 ;
 
  H2OSNO_TOP =
   0 ;
 
  H2OSOI =
-  61.77112,
-  5.483615,
-  0.7179126,
-  0.3328188,
-  0.3591484,
-  0.4033425,
-  0.5111392,
+  112.0138,
+  104.7138,
+  90.94819,
+  68.84698,
+  24.51885,
+  0.6702147,
+  0.5100264,
   0.5319805,
   0.43482,
   0.43482,
@@ -2923,25 +2963,25 @@ data:
   0 ;
 
  HC =
-  15541.68 ;
+  24601.41 ;
 
  HCSOI =
-  15541.68 ;
+  24601.37 ;
 
  HEAT_FROM_AC =
   0 ;
 
  HR =
-  2.474023e-09 ;
+  2.287657e-09 ;
 
  HTOP =
   0.08136796 ;
 
  INT_SNOW =
-  0 ;
+  5701.555 ;
 
  LAISHA =
-  7.44656e-05 ;
+  3.288821e-05 ;
 
  LAISUN =
   0 ;
@@ -2962,7 +3002,7 @@ data:
   _ ;
 
  LAND_UPTAKE =
-  2.527519e-09 ;
+  2.295617e-09 ;
 
  LAND_USE_FLUX =
   0 ;
@@ -2980,7 +3020,7 @@ data:
   0.0002335622 ;
 
  LEAF_MR =
-  5.349577e-11 ;
+  7.960612e-12 ;
 
  LFC2 =
   0 ;
@@ -2992,70 +3032,70 @@ data:
   4.330564e-10 ;
 
  LITHR =
-  9.140403e-11 ;
+  8.143318e-11 ;
 
  LITR1C =
-  8.201702e-05 ;
+  8.672467e-05 ;
 
  LITR1C_TO_SOIL1C =
-  1.411802e-10 ;
+  1.258897e-10 ;
 
  LITR1N =
-  3.200147e-06 ;
+  3.383832e-06 ;
 
  LITR1N_TNDNCY_VERT_TRANS =
   0 ;
 
  LITR1N_TO_SOIL1N =
-  9.030463e-12 ;
+  8.052398e-12 ;
 
  LITR1_HR =
-  9.026278e-11 ;
+  8.048688e-11 ;
 
  LITR2C =
-  1.145819e-05 ;
+  1.151279e-05 ;
 
  LITR2C_TO_SOIL2C =
-  8.864951e-13 ;
+  7.352571e-13 ;
 
  LITR2N =
-  1.585131e-07 ;
+  1.592744e-07 ;
 
  LITR2N_TNDNCY_VERT_TRANS =
   0 ;
 
  LITR2N_TO_SOIL2N =
-  2.725293e-14 ;
+  2.260468e-14 ;
 
  LITR2_HR =
-  1.083494e-12 ;
+  8.986476e-13 ;
 
  LITR3C =
-  5.958816e-06 ;
+  5.964315e-06 ;
 
  LITR3C_TO_SOIL3C =
-  1.413906e-13 ;
+  1.16658e-13 ;
 
  LITR3N =
-  8.244619e-08 ;
+  8.25242e-08 ;
 
  LITR3N_TNDNCY_VERT_TRANS =
   0 ;
 
  LITR3N_TO_SOIL3N =
-  2.755326e-15 ;
+  2.273426e-15 ;
 
  LITR3_HR =
-  5.77511e-14 ;
+  4.764905e-14 ;
 
  LITTERC =
-  9.943403e-05 ;
+  0.0001042018 ;
 
  LITTERC_HR =
-  9.140403e-11 ;
+  8.143318e-11 ;
 
  LITTERC_LOSS =
-  2.336122e-10 ;
+  2.081748e-10 ;
 
  LIVECROOTC =
   0 ;
@@ -3070,37 +3110,37 @@ data:
   0 ;
 
  MEG_acetaldehyde =
-  4.527824e-19 ;
+  8.639308e-20 ;
 
  MEG_acetic_acid =
-  6.791735e-20 ;
+  1.295896e-20 ;
 
  MEG_acetone =
-  1.412667e-17 ;
+  3.584283e-18 ;
 
  MEG_carene_3 =
-  5.590259e-18 ;
+  1.394105e-18 ;
 
  MEG_ethanol =
-  4.527824e-19 ;
+  8.639308e-20 ;
 
  MEG_formaldehyde =
-  9.055647e-20 ;
+  1.727862e-20 ;
 
  MEG_isoprene =
-  8.821433e-20 ;
+  1.295734e-20 ;
 
  MEG_methanol =
-  9.406597e-18 ;
+  2.354334e-18 ;
 
  MEG_pinene_a =
-  8.580484e-18 ;
+  2.075581e-18 ;
 
  MEG_thujene_a =
-  2.075384e-19 ;
+  5.175615e-20 ;
 
  MR =
-  5.349577e-11 ;
+  7.960612e-12 ;
 
  M_LITR1C_TO_LEACHING =
   0 ;
@@ -3124,7 +3164,7 @@ data:
   0 ;
 
  NBP =
-  -2.527519e-09 ;
+  -2.295617e-09 ;
 
  NDEPLOY =
   0 ;
@@ -3133,13 +3173,13 @@ data:
   4.381302e-10 ;
 
  NEE =
-  2.527519e-09 ;
+  2.295617e-09 ;
 
  NEP =
-  -2.527519e-09 ;
+  -2.295617e-09 ;
 
  NET_NMIN =
-  2.354321e-10 ;
+  2.181078e-10 ;
 
  NFIRE =
   0 ;
@@ -3148,10 +3188,10 @@ data:
   0 ;
 
  NPP =
-  -5.349577e-11 ;
+  -7.960612e-12 ;
 
  OCDEP =
-  3.347111e-14 ;
+  5.767127e-14 ;
 
  O_SCALAR =
   1 ;
@@ -3160,10 +3200,40 @@ data:
   0 ;
 
  PBOT =
-  102896.6 ;
+  100282 ;
 
  PCO2 =
-  29.29465 ;
+  28.5503 ;
+
+ PCT_LANDUNIT =
+  100,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0 ;
+
+ PCT_NAT_PFT =
+  43.14175,
+  0,
+  0.9366546,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  35.65684,
+  20.26476,
+  0,
+  0,
+  0,
+  0 ;
 
  PFT_CTRUNC =
   0 ;
@@ -3181,7 +3251,7 @@ data:
   0 ;
 
  POTENTIAL_IMMOB =
-  2.792563e-12 ;
+  2.486472e-12 ;
 
  PROD100C =
   0 ;
@@ -3226,10 +3296,10 @@ data:
   0 ;
 
  Q2M =
-  0.0005265512 ;
+  0.0006840445 ;
 
  QBOT =
-  0.000428 ;
+  0.0006677502 ;
 
  QCHARGE =
   0 ;
@@ -3244,7 +3314,7 @@ data:
   0 ;
 
  QDRIP =
-  0 ;
+  2.640192e-06 ;
 
  QFLOOD =
   0 ;
@@ -3259,10 +3329,10 @@ data:
   0 ;
 
  QINFL =
-  -2.305838e-07 ;
+  -7.157576e-07 ;
 
  QINTR =
-  0 ;
+  5.966577e-09 ;
 
  QIRRIG =
   0 ;
@@ -3274,13 +3344,13 @@ data:
   0 ;
 
  QRUNOFF =
-  NaNf ;
+  0 ;
 
  QRUNOFF_NODYNLNDUSE =
-  NaNf ;
+  0 ;
 
  QRUNOFF_R =
-  NaNf ;
+  0 ;
 
  QRUNOFF_U =
   _ ;
@@ -3295,13 +3365,13 @@ data:
   0 ;
 
  QSOIL =
-  6.594018e-05 ;
+  8.02843e-06 ;
 
  QVEGE =
-  0 ;
+  -8.88542e-10 ;
 
  QVEGT =
-  1.342031e-11 ;
+  6.421096e-13 ;
 
  RAIN =
   0 ;
@@ -3313,10 +3383,10 @@ data:
   0 ;
 
  RH2M =
-  86.59962 ;
+  82.53503 ;
 
  RH2M_R =
-  86.59962 ;
+  82.53503 ;
 
  RH2M_U =
   _ ;
@@ -3325,7 +3395,7 @@ data:
   0 ;
 
  SABG =
-  0.003212643 ;
+  0.005229128 ;
 
  SABG_PEN =
   0 ;
@@ -3340,7 +3410,7 @@ data:
   0 ;
 
  SMINN =
-  9.344616e-05 ;
+  9.25291e-05 ;
 
  SMINN_LEACHED =
   0 ;
@@ -3355,16 +3425,16 @@ data:
   0 ;
 
  SMINN_TO_DENIT_S1S2 =
-  1.833332e-15 ;
+  1.387414e-15 ;
 
  SMINN_TO_DENIT_S2S3 =
-  1.000093e-17 ;
+  5.386107e-18 ;
 
  SMINN_TO_DENIT_S3S4 =
   0 ;
 
  SMINN_TO_DENIT_S4 =
-  2.380403e-12 ;
+  2.20455e-12 ;
 
  SMINN_TO_NPOOL =
   0 ;
@@ -3373,19 +3443,19 @@ data:
   0 ;
 
  SMINN_TO_SOIL1N_L1 =
-  2.734558e-12 ;
+  2.438413e-12 ;
 
  SMINN_TO_SOIL2N_L2 =
-  4.662166e-14 ;
+  3.866674e-14 ;
 
  SMINN_TO_SOIL2N_S1 =
-  -1.833332e-13 ;
+  -1.387414e-13 ;
 
  SMINN_TO_SOIL3N_L3 =
-  1.138374e-14 ;
+  9.392376e-15 ;
 
  SMINN_TO_SOIL3N_S2 =
-  -1.000093e-15 ;
+  -5.386107e-16 ;
 
  SMINN_TO_SOIL4N_S3 =
   0 ;
@@ -3412,10 +3482,10 @@ data:
   0 ;
 
  SNOW =
-  0 ;
+  2.645833e-06 ;
 
  SNOWDP =
-  0 ;
+  0.05721925 ;
 
  SNOWICE =
   0 ;
@@ -3424,49 +3494,49 @@ data:
   0 ;
 
  SNOW_DEPTH =
-  0 ;
+  0.3393665 ;
 
  SNOW_SINKS =
-  NaNf ;
+  0 ;
 
  SNOW_SOURCES =
-  NaNf ;
+  0 ;
 
  SOIL1C =
-  4.575478e-05 ;
+  4.317984e-05 ;
 
  SOIL1C_TO_SOIL2C =
-  5.657139e-12 ;
+  4.281163e-12 ;
 
  SOIL1N =
-  3.812898e-06 ;
+  3.59832e-06 ;
 
  SOIL1N_TNDNCY_VERT_TRANS =
   0 ;
 
  SOIL1N_TO_SOIL2N =
-  6.547615e-13 ;
+  4.95505e-13 ;
 
  SOIL1_HR =
-  2.199999e-12 ;
+  1.664897e-12 ;
 
  SOIL2C =
-  1.02575e-06 ;
+  7.48613e-07 ;
 
  SOIL2C_TO_SOIL3C =
-  1.84108e-14 ;
+  9.915333e-15 ;
 
  SOIL2N =
-  8.547915e-08 ;
+  6.238442e-08 ;
 
  SOIL2N_TNDNCY_VERT_TRANS =
   0 ;
 
  SOIL2N_TO_SOIL3N =
-  2.841173e-15 ;
+  1.530144e-15 ;
 
  SOIL2_HR =
-  1.568327e-14 ;
+  8.446395e-15 ;
 
  SOIL3C =
   0 ;
@@ -3487,36 +3557,36 @@ data:
   0 ;
 
  SOIL4C =
-  9.998965 ;
+  9.998931 ;
 
  SOIL4N =
-  0.9998965 ;
+  0.9998931 ;
 
  SOIL4N_TNDNCY_VERT_TRANS =
   0 ;
 
  SOIL4N_TO_SMINN =
-  2.380403e-10 ;
+  2.20455e-10 ;
 
  SOIL4_HR =
-  2.380403e-09 ;
+  2.20455e-09 ;
 
  SOILC =
-  9.999012 ;
+  9.998975 ;
 
  SOILC_HR =
-  2.382619e-09 ;
+  2.206223e-09 ;
 
  SOILC_LOSS =
-  2.382619e-09 ;
+  2.206223e-09 ;
 
  SOILICE =
-  987.4191,
-  131.3236,
-  16.99091,
-  0.6766695,
-  0,
-  0,
+  1791.61,
+  2636.784,
+  3773.649,
+  4702.485,
+  2730.469,
+  43.5658,
   0,
   0,
   0,
@@ -3528,13 +3598,13 @@ data:
   0 ;
 
  SOILLIQ =
-  4.993491,
-  8.022411,
-  14.11471,
-  24.21265,
-  44.39087,
-  82.19415,
-  171.7329,
+  7.905451,
+  12.4526,
+  20.20596,
+  33.16058,
+  52.92856,
+  89.06902,
+  171.359,
   294.6844,
   397.1168,
   654.7349,
@@ -3545,13 +3615,13 @@ data:
   0 ;
 
  SOILPSI =
-  -0.006222399,
-  -0.009163565,
-  -0.01626393,
-  -0.03385048,
-  -0.06138426,
-  -0.08688863,
-  -0.007249492,
+  -0.001614295,
+  -0.002141721,
+  -0.003991764,
+  -0.007423317,
+  -0.02070509,
+  -0.04458776,
+  -0.007394454,
   -0.001716864,
   -0.002032011,
   -0.002032011,
@@ -3562,19 +3632,19 @@ data:
   -15 ;
 
  SOILWATER_10CM =
-  1165.998 ;
+  8838.811 ;
 
  SOMC_FIRE =
   0 ;
 
  SOMHR =
-  2.382619e-09 ;
+  2.206223e-09 ;
 
  SOM_C_LEACHED =
   0 ;
 
  SR =
-  2.474023e-09 ;
+  2.287657e-09 ;
 
  STORVEGC =
   0.5590618 ;
@@ -3586,37 +3656,37 @@ data:
   0 ;
 
  SoilAlpha =
-  0.9999979 ;
+  0.9999983 ;
 
  SoilAlpha_U =
   _ ;
 
  TAUX =
-  -0.2430635 ;
+  -0.1106166 ;
 
  TAUY =
-  -0.2430635 ;
+  -0.1106166 ;
 
  TBOT =
-  249.3361 ;
+  254.895 ;
 
  TBUILD =
   _ ;
 
  TG =
-  272.1678 ;
+  259.0969 ;
 
  TG_R =
-  272.1678 ;
+  259.0969 ;
 
  TG_U =
   _ ;
 
  TH2OSFC =
-  270.2048 ;
+  256.6124 ;
 
  THBOT =
-  249.3361 ;
+  254.895 ;
 
  TKE1 =
   _ ;
@@ -3637,25 +3707,25 @@ data:
   _ ;
 
  TOTCOLC =
-  10.60409 ;
+  10.60407 ;
 
  TOTCOLN =
-  1.022667 ;
+  1.022662 ;
 
  TOTECOSYSC =
-  10.60411 ;
+  10.60408 ;
 
  TOTECOSYSN =
-  1.022667 ;
+  1.022662 ;
 
  TOTLITC =
-  9.943403e-05 ;
+  0.0001042018 ;
 
  TOTLITN =
-  3.441106e-06 ;
+  3.625631e-06 ;
 
  TOTPFTC =
-  0.6049635 ;
+  0.6049823 ;
 
  TOTPFTN =
   0.02266947 ;
@@ -3667,10 +3737,10 @@ data:
   0 ;
 
  TOTSOMC =
-  9.999012 ;
+  9.998975 ;
 
  TOTSOMN =
-  0.9999004 ;
+  0.9998968 ;
 
  TOTVEGC =
   0.6049877 ;
@@ -3679,54 +3749,54 @@ data:
   0.02266947 ;
 
  TREFMNAV =
-  247.2426 ;
+  250.3591 ;
 
  TREFMNAV_R =
-  247.2426 ;
+  250.3591 ;
 
  TREFMNAV_U =
   _ ;
 
  TREFMXAV =
-  254.8445 ;
+  259.6437 ;
 
  TREFMXAV_R =
-  254.8445 ;
+  259.6437 ;
 
  TREFMXAV_U =
   _ ;
 
  TSA =
-  250.6742 ;
+  254.9926 ;
 
  TSAI =
   0.283699 ;
 
  TSA_R =
-  250.6742 ;
+  254.9926 ;
 
  TSA_U =
   _ ;
 
  TSOI =
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15,
-  273.15 ;
+  256.4846,
+  258.0693,
+  260.5571,
+  264.4254,
+  270.0911,
+  277.4968,
+  285.3669,
+  290.991,
+  292.9063,
+  293.141,
+  293.141,
+  293.141,
+  293.141,
+  293.141,
+  293.141 ;
 
  TSOI_10CM =
-  272.9774 ;
+  261.3651 ;
 
  TSOI_ICE =
   _,
@@ -3746,16 +3816,16 @@ data:
   _ ;
 
  TV =
-  257.1849 ;
+  254.9296 ;
 
  TWS =
-  NaNf ;
+  0 ;
 
  T_SCALAR =
-  0.3628874 ;
+  0.2743462 ;
 
  U10 =
-  6.698101 ;
+  4.90622 ;
 
  URBAN_AC =
   0 ;
@@ -3764,7 +3834,7 @@ data:
   0 ;
 
  VOCFLXT =
-  6.679157e-16 ;
+  1.658626e-16 ;
 
  VOLR =
   0 ;
@@ -3776,10 +3846,10 @@ data:
   0 ;
 
  WF =
-  32.29668 ;
+  127.1782 ;
 
  WIND =
-  5.896027 ;
+  4.747006 ;
 
  WOODC =
   0.0365834 ;
@@ -3797,10 +3867,10 @@ data:
   0 ;
 
  W_SCALAR =
-  0.5667818 ;
+  0.6942864 ;
 
  XSMRPOOL =
-  -2.417715e-05 ;
+  -5.408195e-06 ;
 
  XSMRPOOL_RECOVER =
   0 ;

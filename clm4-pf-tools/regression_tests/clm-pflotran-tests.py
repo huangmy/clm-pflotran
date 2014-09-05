@@ -258,7 +258,7 @@ class RegressionTest(object):
     clm_config_opts = -clm4me on -vsoilc_centbgc no-cent -nofire
     
     [env_run]
-    run_refdate = 0001-05-01
+    run_startdate = 0001-05-01
     stop_option = ndays
     stop_n = 2
     clm_bldnml_opts = -mask navy
