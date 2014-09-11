@@ -583,7 +583,7 @@ contains
           ! temperature, soil moisture, water table?
           call clm_pf_update_soil_temperature(bounds_clump, &
                filter(nc)%num_urbanl,  filter(nc)%urbanl, &
-               filter(nc)%num_nolakec, filter(nc)%nolakec)
+               filter(nc)%num_nolakec, filter(nc)%nolakec, temperature_vars, col)
        end if
 
        ! ============================================================================
@@ -740,7 +740,8 @@ contains
        call t_startf('hydro2 drainage')
 
        if (use_pflotran) then
-          call clm_pf_update_drainage(filter(nc)%num_hydrologyc, filter(nc)%hydrologyc)
+          call clm_pf_update_drainage(filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
+               waterflux_vars)
        else
           call HydrologyDrainage(bounds_clump,                   &
                filter(nc)%num_nolakec, filter(nc)%nolakec,       &

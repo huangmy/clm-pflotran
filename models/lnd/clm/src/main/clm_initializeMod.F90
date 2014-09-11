@@ -394,7 +394,8 @@ contains
     use initVerticalMod       , only : initVertical
     use lnd2atmMod            , only : lnd2atm_minimal
     use glc2lndMod            , only : glc2lnd_type
-    use lnd2glcMod            , only : lnd2glc_type 
+    use lnd2glcMod            , only : lnd2glc_type
+    use clm_varctl,             only : use_pflotran
     use clm_pflotran_interfaceMod, only : clm_pf_interface_init, &
          clm_pf_set_restart_stamp
     !
@@ -1040,7 +1041,8 @@ contains
     call t_stopf('init_wlog')
 
     if (use_pflotran) then
-       call clm_pf_interface_init(bounds_proc)
+       call clm_pf_interface_init(bounds_proc, col, lun, grc, soilstate_vars, &
+            waterstate_vars, waterflux_vars, temperature_vars, soilhydrology_vars)
     !call pflotranModelGetSaturation( pflotran_m )
     end if
 

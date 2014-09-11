@@ -224,6 +224,13 @@ module clm_varctl
   character(len=fname_len), public :: fglcmask = ' '        
   !
   !----------------------------------------------------------
+  ! pflotran interface
+  !----------------------------------------------------------
+  logical, public :: use_pflotran = .false.
+  logical, public :: pflotran_surfaceflow = .false.
+  logical, public :: pflotran_th_mode = .false.
+  !
+  !----------------------------------------------------------
   ! single column control variables
   !----------------------------------------------------------
 

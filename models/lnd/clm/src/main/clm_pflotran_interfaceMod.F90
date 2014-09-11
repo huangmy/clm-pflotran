@@ -190,18 +190,38 @@ contains
 !-----------------------------------------------------------------------
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_interface_init(bounds)
+  subroutine clm_pf_interface_init(bounds, col, lun, grc, &
+       soilstate_vars, waterstate_vars, waterflux_vars, temperature_vars, &
+       soilhydrology_vars)
 
     use decompMod, only : bounds_type
+    use GridcellType    , only : gridcell_type
+    use ColumnType      , only : column_type
+    use LandUnitType    , only : landunit_type
+    use SoilStateType   , only : soilstate_type
+    use WaterStateType  , only : waterstate_type
+    use WaterFluxType   , only : waterflux_type
+    use TemperatureType , only : temperature_type
+    use SoilHydrologyType , only : soilhydrology_type
 
     implicit none
 
     type(bounds_type), intent(in) :: bounds  ! bounds
+    type(gridcell_type), intent(in) :: grc
+    type(column_type), intent(in) :: col
+    type(landunit_type), intent(in) :: lun
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(waterstate_type), intent(in) :: waterstate_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
+    type(temperature_type), intent(in) :: temperature_vars
+    type(soilhydrology_type), intent(in) :: soilhydrology_vars
 
     character(len=256) :: subname = "clm_pf_interface_init()"
 
 #ifdef CLM_PFLOTRAN
-    call interface_init_clm_pf(bounds)
+    call interface_init_clm_pf(bounds, col, lun, grc, &
+       soilstate_vars, waterstate_vars, waterflux_vars, temperature_vars, &
+       soilhydrology_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -209,20 +229,27 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc)
+  subroutine clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc, &
+       atm2lnd_vars, waterflux_vars)
 
     use filterMod, only : clumpfilter
     use decompMod, only : bounds_type
+    use atm2lndType, only : atm2lnd_type
+    use WaterfluxType, only : waterflux_type
 
     implicit none
 
     type(bounds_type), intent(in) :: bounds     ! bounds
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(atm2lnd_type), intent(in) :: atm2lnd_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
+
     character(len=256) :: subname = "clm_pf_set_sflow_forcing"
 
 #ifdef CLM_PFLOTRAN
-    call set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+    call set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc, &
+         atm2lnd_vars, waterflux_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -231,24 +258,30 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_soil_moisture(cws, cps, bounds, &
-       num_hydrologyc, filter_hydrologyc)
+  subroutine clm_pf_update_soil_moisture(waterstate_vars, soilstate_vars, bounds, &
+       num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)
 
-    use clmtype,   only : column_wstate_type, column_pstate_type
+    use WaterStateType, only : waterstate_type
+    use SoilStateType, only : soilstate_type
     use filterMod, only : clumpfilter
     use decompMod, only : bounds_type
+    use ColumnType, only : column_type
+    use SoilHydrologyType, only : soilhydrology_type
 
     implicit none
 
-    type(column_wstate_type), intent(inout) :: cws
-    type(column_pstate_type), intent(inout) :: cps
+    type(waterstate_type), intent(inout) :: waterstate_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
     type(bounds_type), intent(in) :: bounds  ! bounds
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(column_type), intent(in) :: col
+    type(soilhydrology_type), intent(out) :: soilhydrology_vars
+
     character(len=256) :: subname = "clm_pf_update_soil_moisture"
 
 #ifdef CLM_PFLOTRAN
-    call update_soil_moisture_clm_pf(cws, cps, bounds, num_hydrologyc, filter_hydrologyc)
+    call update_soil_moisture_clm_pf(waterstate_vars, soilstate_vars, bounds, num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -258,11 +291,14 @@ contains
   !-----------------------------------------------------------------------------
   subroutine clm_pf_update_soil_temperature(bounds, &
        num_urbanl, filter_urbanl, &
-       num_nolakec, filter_nolakec)
+       num_nolakec, filter_nolakec, temperature_vars, col)
 
-    use clmtype,   only : column_wstate_type, column_pstate_type
+    use WaterStateType, only : waterstate_type
+    use SoilStateType, only : soilstate_type
     use filterMod, only : clumpfilter
     use decompMod, only : bounds_type
+    use TemperatureType, only : temperature_type
+    use ColumnType, only : column_type
 
     implicit none
 
@@ -271,13 +307,15 @@ contains
     integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
     integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
     integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
+    type(temperature_type), intent(in) :: temperature_vars
+    type(column_type), intent(in) :: col
 
     character(len=256) :: subname = "clm_pf_update_soil_temperature"
 
 #ifdef CLM_PFLOTRAN
     call update_soil_temperature_clm_pf(bounds, &
        num_urbanl, filter_urbanl, &
-       num_nolakec, filter_nolakec)
+       num_nolakec, filter_nolakec, temperature_vars, col)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -285,18 +323,21 @@ contains
 
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_drainage(num_hydrologyc, filter_hydrologyc)
+  subroutine clm_pf_update_drainage(num_hydrologyc, filter_hydrologyc, waterflux_vars)
 
     use decompMod, only : bounds_type
+    use WaterFluxType, only : waterflux_type
 
     implicit none
 
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterflux_type), intent(out) :: waterflux_vars
+
     character(len=256) :: subname = "clm_pf_update_drainage"
 
 #ifdef CLM_PFLOTRAN
-    call update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc)
+    call update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc, waterflux_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -304,19 +345,21 @@ contains
   end subroutine clm_pf_update_drainage
 
   !-----------------------------------------------------------------------------
-  subroutine clm_pf_update_h2osfc(bounds, num_hydrologyc, filter_hydrologyc)
+  subroutine clm_pf_update_h2osfc(num_hydrologyc, filter_hydrologyc, &
+       waterstate_vars)
 
-    use decompMod, only : bounds_type
+    use WaterStateType, only : waterstate_type
 
     implicit none
 
-    type(bounds_type), intent(in) :: bounds  ! bounds
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterstate_type), intent(out) :: waterstate_vars
+
     character(len=256) :: subname = "clm_pf_update_h2osfc"
 
 #ifdef CLM_PFLOTRAN
-    call update_h2osfc_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+    call update_h2osfc_clm_pf(num_hydrologyc, filter_hydrologyc, waterstate_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -329,9 +372,13 @@ contains
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
-       num_nosnowc, filter_nosnowc)
+       num_nosnowc, filter_nosnowc, &
+       waterstate_vars, waterflux_vars, soilstate_vars, patch_vars)
 
-    use clmtype,              only : r8, column_wstate_type, column_pstate_type
+    use WaterStateType, only : waterstate_type
+    use WaterFluxType, only : waterflux_type
+    use SoilStateType, only : soilstate_type
+    use PatchType, only : patch_type
     use filterMod,            only : clumpfilter
     use decompMod, only : bounds_type
 
@@ -347,6 +394,11 @@ contains
     integer, intent(in)  :: num_nosnowc         ! number of column non-snow points
     integer, intent(in)  :: filter_nosnowc(:)   ! column filter for non-snow points
 
+    type(waterstate_type), intent(in) :: waterstate_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(patch_type), intent(in) :: patch_vars
+
     character(len=256) :: subname = "clm_pf_step_th"
 
 #ifdef CLM_PFLOTRAN
@@ -354,7 +406,8 @@ contains
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
-       num_nosnowc, filter_nosnowc)
+       num_nosnowc, filter_nosnowc, &
+       waterstate_vars, waterflux_vars, soilstate_vars, patch_vars)
 #else
     call pflotran_not_available(subname)
 #endif
@@ -364,7 +417,7 @@ contains
   !-----------------------------------------------------------------------------
   subroutine clm_pf_vecget_gflux(gflux_clm_loc)
 
-    use clmtype , only: r8
+    use shr_kind_mod  , only : r8 => shr_kind_r8
 
     implicit none
     real(r8), pointer :: gflux_clm_loc(:)
@@ -383,7 +436,7 @@ contains
   !-----------------------------------------------------------------------------
   subroutine clm_pf_vecrestore_gflux(gflux_clm_loc)
 
-    use clmtype    , only: r8
+    use shr_kind_mod  , only : r8 => shr_kind_r8
 
     implicit none
     real(r8), pointer :: gflux_clm_loc(:)
@@ -460,7 +513,7 @@ contains
   ! Wrapper around pflotran init
   !
   ! !USES:
-    use clmtype    , only: r8
+    use shr_kind_mod  , only : r8 => shr_kind_r8
   ! !ARGUMENTS:
     implicit none
 
@@ -490,7 +543,7 @@ contains
   ! Wrapper around pflotran init
   !
   ! !USES:
-    use clmtype    , only: r8
+    use shr_kind_mod  , only : r8 => shr_kind_r8
   ! !ARGUMENTS:
     implicit none
 
@@ -518,7 +571,9 @@ contains
   ! !IROUTINE: interface_init_clm_pf
   !
   ! !INTERFACE:
-  subroutine interface_init_clm_pf(bounds)
+  subroutine interface_init_clm_pf(bounds, col, lun, grc, &
+       soilstate_vars, waterstate_vars, waterflux_vars, temperature_vars, &
+       soilhydrology_vars)
     !
     ! !DESCRIPTION:
     ! initialize the pflotran iterface
@@ -526,21 +581,29 @@ contains
     ! !USES:
     use shr_assert_mod , only : shr_assert
     use shr_log_mod    , only : errMsg => shr_log_errMsg
-    use clmtype
     use clm_varctl      , only : iulog, fsurdat, scmlon, scmlat, single_column
     use clm_varctl      , only : use_pflotran, pflotran_surfaceflow, pflotran_th_mode
-    use decompMod       , only : bounds_type, get_proc_total, &
-         ldecomp
+    use decompMod       , only : bounds_type, get_proc_total, ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
     use shr_kind_mod    , only: r8 => shr_kind_r8
     use domainMod       , only : ldomain
-    
+
+    use GridcellType    , only : gridcell_type
+    use ColumnType      , only : column_type
+    use LandUnitType    , only : landunit_type
+    use SoilStateType   , only : soilstate_type
+    use WaterStateType  , only : waterstate_type
+    use WaterFluxType   , only : waterflux_type
+    use TemperatureType , only : temperature_type
+    use SoilHydrologyType , only : soilhydrology_type
+
     use fileutils       , only : getfil
     use spmdMod         , only : mpicom, masterproc, iam
     use organicFileMod  , only : organicrd
     use landunit_varcon , only : istsoil, istice, istdlak, istwet, istice_mec
     use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
     use clm_varcon      , only : zisoi, zsoi, denice, denh2o
+    use clm_varcon      , only : grlnd
     use abortutils      , only : endrun
 
     use ncdio_pio
@@ -564,7 +627,16 @@ contains
 #include "finclude/petscvec.h90"
 #include "finclude/petscviewer.h"
 
-    type(bounds_type), intent(in) :: bounds  ! bounds
+    type(bounds_type), intent(in) :: bounds
+    type(column_type), intent(in) :: col
+    type(landunit_type), intent(in) :: lun
+    type(gridcell_type), intent(in) :: grc
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(waterstate_type), intent(in) :: waterstate_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
+    type(temperature_type), intent(in) :: temperature_vars
+    type(soilhydrology_type), intent(in) :: soilhydrology_vars
+
     !
     ! !REVISION HISTORY:
     ! Created by Gautam Bisht
@@ -676,19 +748,19 @@ contains
          cgridcell  =>  col%gridcell   , & !  [integer (:)]  gridcell index of column
          cwtgcell   =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
          ctype      =>  col%itype      , & !  [integer (:)]  column type index
-         hksat      =>  cps%hksat      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-         sucsat     =>  cps%sucsat     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
-         watsat     =>  cps%watsat     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
-         h2osoi_vol =>  cws%h2osoi_vol , & !  [real(r8) (:,:)]  volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-         h2osoi_liq =>  cws%h2osoi_liq , & !  [real(r8) (:,:)]  liquid water (kg/m2)
-         h2osoi_ice =>  cws%h2osoi_ice , & !  [real(r8) (:,:)]  ice lens (kg/m2)
-         t_soisno   =>  ces%t_soisno   , & !  [real(r8) (:,:)]  soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
+         hksat      =>  soilstate_vars%hksat_col      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
+         sucsat     =>  soilstate_vars%sucsat_col     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
+         watsat     =>  soilstate_vars%watsat_col     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
+         h2osoi_vol =>  waterstate_vars%h2osoi_vol_col , & !  [real(r8) (:,:)]  volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+         h2osoi_liq =>  waterstate_vars%h2osoi_liq_col , & !  [real(r8) (:,:)]  liquid water (kg/m2)
+         h2osoi_ice =>  waterstate_vars%h2osoi_ice_col , & !  [real(r8) (:,:)]  ice lens (kg/m2)
+         t_soisno   =>  temperature_vars%t_soisno_col   , & !  [real(r8) (:,:)]  soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
          topo       =>  ldomain%topo   , & !  [real(r8) (:)]  topography
-         zwt        =>  cws%zwt        , & !  [real(r8) (:)]  water table depth (m)
+         zwt        =>  soilhydrology_vars%zwt_col , & !  [real(r8) (:)]  water table depth (m)
          latdeg     =>  grc%latdeg     , & !  [real(r8) (:)]  latitude (radians)
          londeg     =>  grc%londeg     , & !  [real(r8) (:)]  longitude (radians)
          lakpoi     =>  lun%lakpoi     , & !  [logical (:)]  true => landunit is a lake point
-         dz         =>  cps%dz           & !  [real(r8) (:,:)]  layer thickness (m)
+         dz         =>  col%dz           & !  [real(r8) (:,:)]  layer thickness (m)
          )
 
     ! Determine necessary indices
@@ -1094,14 +1166,16 @@ contains
   ! !IROUTINE: set_sflow_forcing_clm_pf
   !
   ! !INTERFACE:
-  subroutine set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+  subroutine set_sflow_forcing_clm_pf(bounds, num_hydrologyc, filter_hydrologyc, &
+       atm2lnd_vars, waterflux_vars)
   !
   ! !DESCRIPTION:
   !
   !
   ! !USES:
-    use clmtype
-    use clm_atmlnd, only : a2l_downscaled_col
+    use shr_kind_mod    , only: r8 => shr_kind_r8
+    use atm2lndType, only : atm2lnd_type
+    use WaterfluxType, only : waterflux_type
     use clm_varctl          , only : iulog
     use decompMod           , only : bounds_type
     use clm_time_manager, only : get_step_size
@@ -1111,6 +1185,8 @@ contains
     type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num_hydrologyc        ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:)  ! column filter for soil points
+    type(atm2lnd_type), intent(in) :: atm2lnd_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
 
   ! !LOCAL VARIABLES:
 #include "finclude/petscsys.h"
@@ -1126,13 +1202,13 @@ contains
     character(len=32) :: subname = 'set_sflow_forcing_clm_pf'  ! subroutine name
     !-----------------------------------------------------------------------
 
-    associate(&
-    qflx_snow_h2osfc  =>    cwf%qflx_snow_h2osfc  , & ! Input:  [real(r8) (:)]  snow falling on surface water (mm/s)
-    qflx_floodc       =>    cwf%qflx_floodc       , & ! Input:  [real(r8) (:)]  column flux of flood water from RTM
-    qflx_top_soil     =>    cwf%qflx_top_soil     , & ! Input:  [real(r8) (:)]  net water input into soil from top (mm/s)
-    qflx_infl         =>    cwf%qflx_infl         , & ! Output: [real(r8) (:)] infiltration (mm H2O /s)
-    qflx_surf         =>    cwf%qflx_surf         , & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
-    forc_t            =>    a2l_downscaled_col%forc_t & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
+    associate( &
+    qflx_snow_h2osfc  =>    waterflux_vars%qflx_snow_h2osfc_col  , & ! Input:  [real(r8) (:)]  snow falling on surface water (mm/s)
+    qflx_floodc       =>    waterflux_vars%qflx_floodc_col       , & ! Input:  [real(r8) (:)]  column flux of flood water from RTM
+    qflx_top_soil     =>    waterflux_vars%qflx_top_soil_col     , & ! Input:  [real(r8) (:)]  net water input into soil from top (mm/s)
+    qflx_infl         =>    waterflux_vars%qflx_infl_col         , & ! Output: [real(r8) (:)] infiltration (mm H2O /s)
+    qflx_surf         =>    waterflux_vars%qflx_surf_col         , & ! Output: [real(r8) (:)]  surface runoff (mm H2O /s)
+    forc_t            =>    atm2lnd_vars%forc_t_downscaled_col & ! Input:  [real(r8) (:)]  atmospheric temperature (Kelvin)
     )
 
     call VecGetArrayF90(clm_pf_idata%rain_clm,rain_clm_loc,ierr)
@@ -1165,14 +1241,18 @@ contains
   ! !IROUTINE: update_soil_moisture_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_soil_moisture_clm_pf(cws, cps, bounds, &
-       num_hydrologyc, filter_hydrologyc)
+  subroutine update_soil_moisture_clm_pf(waterstate_vars, soilstate_vars, bounds, &
+       num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)
   !
   ! !DESCRIPTION:
   ! 
   !
   ! !USES:
-    use clmtype,              only : r8, col, column_wstate_type, column_pstate_type
+    use ColumnType, only : column_type
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+    use WaterStateType, only : waterstate_type
+    use SoilStateType, only : soilstate_type
+    use SoilHydrologyType, only : soilhydrology_type
     use clm_varctl          , only : iulog
     use decompMod           , only : bounds_type
     use clm_time_manager    , only : get_nstep
@@ -1188,18 +1268,20 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    type(column_wstate_type), intent(inout) :: cws
-    type(column_pstate_type), intent(inout) :: cps
+    type(waterstate_type), intent(inout) :: waterstate_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
     type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num_hydrologyc        ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:)  ! column filter for soil points
+    type(column_type), intent(in) :: col
+    type(soilhydrology_type), intent(out) :: soilhydrology_vars
 
   ! !LOCAL VARIABLES:
     integer  :: nstep                    ! time step number
     integer  :: nc, fc, c, fp, p, l, g, gcount   ! indices
 
-    ! cps%dz(:,:) == layer thickness depth (m)
-    ! cws%h2osoi_liq(:,:)  == liquid water (kg/m2)
+    ! col%dz(:,:) == layer thickness depth (m)
+    ! waterstate_vars%h2osoi_liq(:,:)  == liquid water (kg/m2)
     ! h2osoi_ice(:,:)  == ice lens (kg/m2)
     ! h2osoi_vol(:,:) == volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
     ! col%cgridcell(:) == column's gridcell
@@ -1237,11 +1319,11 @@ contains
         g = col%gridcell(c)
         gcount = g - bounds%begg
         do j = 1, nlevsoi
-          cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denh2o
-          cws%h2osoi_ice(c,j) = sat_ice_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denice
-          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j)/cps%dz(c,j)/denh2o + &
-                                cws%h2osoi_ice(c,j)/cps%dz(c,j)/denice
-          cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
+          waterstate_vars%h2osoi_liq_col(c,j) = sat_clm_loc(gcount*nlevmapped + j)*soilstate_vars%watsat_col(c,j)*col%dz(c,j)*denh2o
+          waterstate_vars%h2osoi_ice_col(c,j) = sat_ice_clm_loc(gcount*nlevmapped + j)*soilstate_vars%watsat_col(c,j)*col%dz(c,j)*denice
+          waterstate_vars%h2osoi_vol_col(c,j) = waterstate_vars%h2osoi_liq_col(c,j)/col%dz(c,j)/denh2o + &
+                                waterstate_vars%h2osoi_ice_col(c,j)/col%dz(c,j)/denice
+          waterstate_vars%h2osoi_vol_col(c,j) = min(waterstate_vars%h2osoi_vol_col(c,j), soilstate_vars%watsat_col(c,j))
         enddo
       enddo
 
@@ -1254,10 +1336,10 @@ contains
         g = col%gridcell(c)
         gcount = g - bounds%begg
         do j = 1, nlevsoi
-          cws%h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*cps%watsat(c,j)*cps%dz(c,j)*denh2o
-          cws%h2osoi_vol(c,j) = cws%h2osoi_liq(c,j)/cps%dz(c,j)/denh2o + &
-                                cws%h2osoi_ice(c,j)/cps%dz(c,j)/denice
-          cws%h2osoi_vol(c,j) = min(cws%h2osoi_vol(c,j), cps%watsat(c,j))
+          waterstate_vars%h2osoi_liq_col(c,j) = sat_clm_loc(gcount*nlevmapped + j)*soilstate_vars%watsat_col(c,j)*col%dz(c,j)*denh2o
+          waterstate_vars%h2osoi_vol_col(c,j) = waterstate_vars%h2osoi_liq_col(c,j)/col%dz(c,j)/denh2o + &
+                                waterstate_vars%h2osoi_ice_col(c,j)/col%dz(c,j)/denice
+          waterstate_vars%h2osoi_vol_col(c,j) = min(waterstate_vars%h2osoi_vol_col(c,j), soilstate_vars%watsat_col(c,j))
         enddo
       enddo
 
@@ -1268,7 +1350,7 @@ contains
 
     do fc = 1, num_hydrologyc
        c = filter_hydrologyc(fc)
-      cws%qcharge(c) = 0.0_r8
+      soilhydrology_vars%qcharge_col(c) = 0.0_r8
     end do
 
   end subroutine update_soil_moisture_clm_pf
@@ -1285,13 +1367,21 @@ contains
        num_nolakec, filter_nolakec, &
        num_hydrologyc, filter_hydrologyc, &
        num_snowc, filter_snowc, &
-       num_nosnowc, filter_nosnowc)
+       num_nosnowc, filter_nosnowc, &
+       waterstate_vars, waterflux_vars, soilstate_vars, patch_vars)
   !
   ! !DESCRIPTION:
   ! 
   !
   ! !USES:
-    use clmtype, only : r8, pft, col, pps, pwf, pwf_a, cps, cws, cwf
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+
+    use ColumnType, only : col
+    use PatchType, only : pft
+    use WaterStateType, only : waterstate_type
+    use WaterFluxType, only : waterflux_type
+    use SoilStateType, only : soilstate_type
+    use PatchType, only : patch_type
 
     use pflotran_model_module, only :pflotranModelUpdateFlowConds, &
          pflotranModelStepperRunTillPauseTime, &
@@ -1300,7 +1390,7 @@ contains
     use clm_pflotran_interface_data
     use clm_varctl                 , only : iulog
     use decompMod                  , only : bounds_type
-    use clm_varpar                 , only : max_pft_per_col
+    use clm_varpar                 , only : max_patch_per_col
     use clm_varpar      , only : nlevsoi
     use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
     use abortutils  , only : endrun
@@ -1321,6 +1411,10 @@ contains
     integer, intent(in)  :: filter_snowc(:)     ! column filter for snow points
     integer, intent(in)  :: num_nosnowc         ! number of column non-snow points
     integer, intent(in)  :: filter_nosnowc(:)   ! column filter for non-snow points
+    type(waterstate_type), intent(in) :: waterstate_vars
+    type(waterflux_type), intent(in) :: waterflux_vars
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(patch_type), intent(in) :: patch_vars
 
   ! !LOCAL VARIABLES:
     integer  :: c, fc, g, gcount, j, p   ! do loop indices
@@ -1341,21 +1435,21 @@ contains
     real(r8) :: area
 
   !EOP
-  !-----------------------------------------------------------------------
+  !---s--------------------------------------------------------------------
     !den = 998.2_r8 ! [kg/m^3]
     !den = 1000._r8 ! [kg/m^3]
 
     associate( &
-         qflx_tran_veg_col => pwf_a%qflx_tran_veg  , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
+         qflx_tran_veg_col => waterflux_vars%qflx_tran_veg_col  , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
          ! Assign local pointers to derived type members (pft-level)
-         qflx_tran_veg_pft => pwf%qflx_tran_veg    , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
-         qflx_evap_soi_pft => pwf%qflx_evap_soi    , & !  [real(r8) (:)]  soil evaporation (mm H2O/s) (+ = to atm)
-         rootr_pft         => pps%rootr            , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
+         qflx_tran_veg_patch => waterflux_vars%qflx_tran_veg_patch    , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
+         qflx_evap_soi_patch => waterflux_vars%qflx_evap_soi_patch    , & !  [real(r8) (:)]  soil evaporation (mm H2O/s) (+ = to atm)
+         rootr_patch         => soilstate_vars%rootr_patch            , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
          pwtgcell          => pft%wtgcell          , & !  [real(r8) (:)]  weight relative to gridcell for each pft
          pwtcol            => pft%wtcol            , & !  [real(r8) (:)]  weight relative to column for each pft
          pfti              => col%pfti             , & !  [integer (:)]  beginning pft index for each column
-         rootr_col         => cps%rootr_column     , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
-         wtcol             => pft%wtcol              & !  [real(r8) (:)]  pft weight relative to column
+         rootr_col         => soilstate_vars%rootr_col , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
+         wtcol             => patch_vars%wtcol              & !  [real(r8) (:)]  pft weight relative to column
          )
 
     nstep = get_nstep()
@@ -1392,12 +1486,12 @@ contains
         j = 1
         area = area_clm_loc(gcount*nlevsoi+j)
         qflx_clm_loc(gcount*nlevmapped + j) = qflx_clm_loc(gcount*nlevmapped + j) + &
-             cwf%qflx_infl(c)*col%wtgcell(c)*area
+             waterflux_vars%qflx_infl_col(c)*col%wtgcell(c)*area
       end if
     enddo
 
     ! Compute the Transpiration sink at grid-level for each soil layer
-    ! qflx_tran_veg_pft [mm/sec], while
+    ! qflx_tran_veg_patch [mm/sec], while
     ! qflx_clm_loc      [kg/sec] (assuming top surf-area = 1 m^2)
 
     ! (i) Initialize root faction at column level to be zero
@@ -1411,7 +1505,7 @@ contains
     temp(:) = 0._r8
 
     ! (ii) Compute the root fraction at column level
-    do pftindex = 1,max_pft_per_col
+    do pftindex = 1,max_patch_per_col
       do j = 1,nlevsoi
         do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
@@ -1419,7 +1513,7 @@ contains
             p = pfti(c) + pftindex - 1
             if (pwtgcell(p)>0._r8) then
               rootr_col(c,j) = rootr_col(c,j) + &
-              rootr_pft(p,j) * qflx_tran_veg_pft(p) * pwtcol(p)
+              rootr_patch(p,j) * qflx_tran_veg_patch(p) * pwtcol(p)
             end if
           end if
         end do
@@ -1431,7 +1525,7 @@ contains
         if (pftindex <= col%npfts(c)) then
           p = pfti(c) + pftindex - 1
           if (pwtgcell(p)>0._r8) then
-            temp(c) = temp(c) + qflx_tran_veg_pft(p) * pwtcol(p)
+            temp(c) = temp(c) + qflx_tran_veg_patch(p) * pwtcol(p)
           end if
         end if
       end do
@@ -1472,7 +1566,8 @@ contains
   ! !INTERFACE:
   subroutine update_soil_temperature_clm_pf(bounds, &
        num_urbanl, filter_urbanl, &
-       num_nolakec, filter_nolakec)
+       num_nolakec, filter_nolakec, &
+       temperature_vars, col)
 
   !
   ! !DESCRIPTION:
@@ -1480,11 +1575,12 @@ contains
   !
   ! !USES:
     use shr_kind_mod  , only : r8 => shr_kind_r8
-    use clmtype
     use clm_time_manager  , only : get_step_size
     use clm_varctl    , only : iulog
-    use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi, max_pft_per_col
+    use clm_varpar    , only : nlevsno, nlevgrnd
     use decompMod     , only : bounds_type
+    use ColumnType, only : column_type
+    use TemperatureType, only : temperature_type
 
     use clm_pflotran_interface_data, only : clm_pf_idata
 
@@ -1500,6 +1596,8 @@ contains
     integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
     integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
     integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
+    type(column_type), intent(in) :: col
+    type(temperature_type), intent(in) :: temperature_vars
 
   ! !LOCAL VARIABLES:
     character(len=256) :: subname = 'Update_soil_temperature_clm_pf'
@@ -1514,7 +1612,7 @@ contains
   !-----------------------------------------------------------------------
 
     associate( &
-         t_soisno   => ces%t_soisno  , & !  [real(r8) (:,:)]  soil temperature (Kelvin)
+         t_soisno_col   => temperature_vars%t_soisno_col  , & !  [real(r8) (:,:)]  soil temperature (Kelvin)
          cgridcell  => col%gridcell    & !  [integer (:)]  column's gridcell
          )
 
@@ -1527,10 +1625,10 @@ contains
        g = cgridcell(c)
        gcount = g - bounds%begg
        do j = 1, nlevmapped
-          t_soisno(c,j) = temp_clm_loc(gcount*nlevmapped+j) + 273.15_r8
+          t_soisno_col(c,j) = temp_clm_loc(gcount*nlevmapped+j) + 273.15_r8
        enddo
        if ( nlevmapped /= nlevgrnd) then
-          t_soisno(c, nlevmapped+1:nlevgrnd) = t_soisno(c, nlevmapped)
+          t_soisno_col(c, nlevmapped+1:nlevgrnd) = t_soisno_col(c, nlevmapped)
        end if
     enddo
 
@@ -1544,7 +1642,8 @@ contains
   ! !IROUTINE: update_drainage_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc)
+  subroutine update_drainage_clm_pf(num_hydrologyc, filter_hydrologyc, &
+       waterflux_vars)
 
   !
   ! !DESCRIPTION:
@@ -1552,28 +1651,28 @@ contains
   !
   ! !USES:
     use shr_kind_mod  , only : r8 => shr_kind_r8
-    use clmtype
-    use clm_varctl    , only : iulog
+
+    use WaterFluxType, only : waterflux_type
 
     implicit none
     integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterflux_type), intent(out) :: waterflux_vars
 
 !
 !EOP
 !
 ! !OTHER LOCAL VARIABLES:
 !
-    character(len=256) :: subname = 'update_drainage_clm_pf'
     integer  :: c,fc                               ! indices
 
     do fc = 1, num_hydrologyc
        c = filter_hydrologyc(fc)
-       cwf%qflx_drain_perched(c) = 0._r8   ! perched wt sub-surface runoff (mm H2O /s)
-       cwf%qflx_drain(c)         = 0._r8   ! sub-surface runoff (mm H2O /s)
-       pwf%qflx_irrig(c)         = 0._r8   ! irrigation flux (mm H2O /s)
-       cwf%qflx_qrgwl(c)         = 0._r8   ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
-       cwf%qflx_rsub_sat(c)      = 0._r8   ! soil saturation excess [mm h2o/s]
+       waterflux_vars%qflx_drain_perched_col(c) = 0._r8   ! perched wt sub-surface runoff (mm H2O /s)
+       waterflux_vars%qflx_drain_col(c)         = 0._r8   ! sub-surface runoff (mm H2O /s)
+       waterflux_vars%qflx_irrig_col(c)         = 0._r8   ! irrigation flux (mm H2O /s)
+       waterflux_vars%qflx_qrgwl_col(c)         = 0._r8   ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
+       waterflux_vars%qflx_rsub_sat_col(c)      = 0._r8   ! soil saturation excess [mm h2o/s]
     end do
 
     end subroutine update_drainage_clm_pf
@@ -1584,7 +1683,8 @@ contains
   ! !IROUTINE: update_h2osfc_clm_pf
   !
   ! !INTERFACE:
-  subroutine update_h2osfc_clm_pf(bounds, num_hydrologyc, filter_hydrologyc)
+  subroutine update_h2osfc_clm_pf(num_hydrologyc, filter_hydrologyc, &
+       waterstate_vars)
 
   !
   ! !DESCRIPTION:
@@ -1592,9 +1692,8 @@ contains
   !
   ! !USES:
     use shr_kind_mod  , only : r8 => shr_kind_r8
-    use clmtype
-    use clm_varctl    , only : iulog
-    use decompMod, only : bounds_type
+
+    use WaterStateType, only : waterstate_type
 
     implicit none
 
@@ -1604,21 +1703,21 @@ contains
 
     integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterstate_type), intent(out) :: waterstate_vars
 
 !
 !EOP
 !
 ! !OTHER LOCAL VARIABLES:
 !
-    type(bounds_type) , intent(in)  :: bounds
-    character(len=256) :: subname = 'update_drainage_clm_pf'
+
     integer  :: c,fc                               ! indices
     integer  :: ccount
     PetscScalar, pointer :: h2osfc_clm_loc(:)
     PetscErrorCode :: ierr
 
     associate(&
-    h2osfc             =>    cws%h2osfc              & ! Input:  [real(r8) (:)]  surface water (mm)
+         h2osfc => waterstate_vars%h2osfc_col & ! Input:  [real(r8) (:)]  surface water (mm)
     )
 
     call VecGetArrayF90(clm_pf_idata%h2osfc_clm, h2osfc_clm_loc, ierr); CHKERRQ(ierr)

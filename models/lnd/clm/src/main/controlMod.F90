@@ -216,6 +216,10 @@ contains
          use_vancouver, use_mexicocity, use_noio
 
 
+    ! CLM-PFLOTRAN
+    namelist /clm_inparm/ &
+         use_pflotran
+
     ! ----------------------------------------------------------------------
     ! Default values
     ! ----------------------------------------------------------------------

@@ -61,6 +61,7 @@ contains
     use column_varcon        , only : icol_roof, icol_road_imperv, icol_road_perv, icol_sunwall
     use column_varcon        , only : icol_shadewall
     use clm_varctl           , only : use_cn
+    use clm_varctl           , only : use_pflotran, pflotran_surfaceflow, pflotran_th_mode
     use clm_varpar           , only : nlevgrnd, nlevsno, nlevsoi, nlevurb
     use clm_time_manager     , only : get_step_size, get_nstep
     use SnowHydrologyMod     , only : SnowCompaction, CombineSnowLayers, DivideSnowLayers
@@ -69,6 +70,8 @@ contains
     use SoilWaterMovementMod , only : SoilWater 
     use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture, &
          clm_pf_set_sflow_forcing, clm_pf_update_h2osfc
+    use PatchType , only : pft ! FIXME(bja, 2014-09) remove when pflotran interface has a separate call for ET see below
+
     !
     ! !ARGUMENTS:
     type(bounds_type)        , intent(in)    :: bounds               
@@ -172,8 +175,9 @@ contains
       end if
 
       ! moved vol_liq from SurfaceRunoff to Infiltration
-      if (use_pflotran.and.pflotran_surfaceflow) then
-         call clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc)
+      if (use_pflotran .and. pflotran_surfaceflow) then
+         call clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc, &
+              atm2lnd_vars, waterflux_vars)
       else
          ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
          call SurfaceRunoff(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
@@ -193,12 +197,13 @@ contains
               num_nolakec, filter_nolakec, &
               num_hydrologyc, filter_hydrologyc, &
               num_snowc, filter_snowc, &
-              num_nosnowc, filter_nosnowc)
+              num_nosnowc, filter_nosnowc, &
+              waterstate_vars, waterflux_vars, soilstate_vars, pft)
          ! TODO(2013-08-27) move to clm_driver, update all states at once?
-         call clm_pf_update_soil_moisture(cws, cps, bounds, &
-              num_hydrologyc, filter_hydrologyc)
+         call clm_pf_update_soil_moisture(waterstate_vars, soilstate_vars, bounds, &
+              num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)
          if(pflotran_surfaceflow) then
-            call clm_pf_update_h2osfc(bounds, num_hydrologyc, filter_hydrologyc)
+            call clm_pf_update_h2osfc(num_hydrologyc, filter_hydrologyc, waterstate_vars)
          endif
       else
          call SoilWater(bounds, num_hydrologyc, filter_hydrologyc, num_urbanc, filter_urbanc, &
