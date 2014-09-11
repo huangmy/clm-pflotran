@@ -151,6 +151,7 @@ contains
      use clm_varctl       , only : glc_dyn_runoff_routing, create_glacier_mec_landunit
      use clm_time_manager , only : get_step_size, get_nstep
      use subgridAveMod
+     use clm_varctl       , only : use_pflotran
      !
      ! !ARGUMENTS:
      type(bounds_type)     , intent(in)    :: bounds  
@@ -314,7 +315,7 @@ contains
           end if
        end do
 
-       if ( found ) then
+       if ( found .and. .not.(use_pflotran) ) then
           write(iulog,*)'WARNING:  water balance error ',&
                ' nstep= ',nstep, &
                ' local indexc= ',indexc,&
@@ -445,7 +446,7 @@ contains
              end if
           end if
        end do
-       if ( found ) then
+       if ( found .and. .not.(use_pflotran)) then
           write(iulog,*)'WARNING:  snow balance error '
           write(iulog,*)'nstep= ',nstep, &
                ' local indexc= ',indexc, &
@@ -613,7 +614,7 @@ contains
              end if
           end if
        end do
-       if ( found ) then
+       if ( found .and. .not.(use_pflotran)) then
           if (abs(errsoi_col(indexc)) > 1.e-3_r8 .and. (nstep > 2) ) then
              write(iulog,*)'BalanceCheck: soil balance error (mm)'
              write(iulog,*)'nstep         = ',nstep
