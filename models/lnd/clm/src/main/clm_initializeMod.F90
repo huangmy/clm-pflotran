@@ -1042,7 +1042,7 @@ contains
 
     if (use_pflotran) then
        call clm_pf_interface_init(bounds_proc, col, lun, grc, soilstate_vars, &
-            waterstate_vars, waterflux_vars, temperature_vars, soilhydrology_vars)
+            waterstate_vars, temperature_vars, soilhydrology_vars)
     !call pflotranModelGetSaturation( pflotran_m )
     end if
 

@@ -176,7 +176,7 @@ contains
 
       ! moved vol_liq from SurfaceRunoff to Infiltration
       if (use_pflotran .and. pflotran_surfaceflow) then
-         call clm_pf_set_sflow_forcing(bounds, num_hydrologyc, filter_hydrologyc, &
+         call clm_pf_set_sflow_forcing(num_hydrologyc, filter_hydrologyc, &
               atm2lnd_vars, waterflux_vars)
       else
          ! TODO(bja): if not use_pflotran or not pflotran_surfaceflow then
@@ -194,11 +194,8 @@ contains
          ! TODO (GB): Remove computation of ET flux from clm_pf_step_th and
          ! create another subroutine clm_pf_set_et_forcing()
          call clm_pf_step_th(bounds, &
-              num_nolakec, filter_nolakec, &
               num_hydrologyc, filter_hydrologyc, &
-              num_snowc, filter_snowc, &
-              num_nosnowc, filter_nosnowc, &
-              waterstate_vars, waterflux_vars, soilstate_vars, pft)
+              waterflux_vars, soilstate_vars, pft)
          ! TODO(2013-08-27) move to clm_driver, update all states at once?
          call clm_pf_update_soil_moisture(waterstate_vars, soilstate_vars, bounds, &
               num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)

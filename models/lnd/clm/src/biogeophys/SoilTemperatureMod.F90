@@ -414,7 +414,6 @@ contains
          tk_snow(begc:endc) = 0._r8
          fn_snow(begc:endc) = 0._r8
          call ComputeThermPropAndHeatDiffFlux_PF(bounds, num_nolakec, filter_nolakec, &
-              dtime,                                                                  &
               tk( begc:endc, -nlevsno+1: ),                                           &
               cv( begc:endc, -nlevsno+1: ),                                           &
               dz_h2osfc( begc:endc ),                                                 &
@@ -422,7 +421,7 @@ contains
               tk_h2osfc( begc:endc),                                                  &
               fn_snow( begc:endc),                                                    &
               fn_h2osfc( begc:endc), &
-              col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+              soilstate_vars, temperature_vars, waterstate_vars)
 
          ! Set up vector r and vectors a, b, c that define tridiagonal
 
@@ -444,7 +443,7 @@ contains
               c_h2osfc( begc:endc ),                            &
               dz_h2osfc( begc:endc ),                           &
               rvector( begc:endc, -nlevsno: ), &
-              col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+              temperature_vars, waterstate_vars)
 
          ! Set up the banded diagonal matrix
 
@@ -459,7 +458,7 @@ contains
               c_h2osfc( begc:endc ),                            &
               dz_h2osfc( begc:endc ),                           &
               bmatrix( begc:endc, 1:, -nlevsno: ), &
-              col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+              waterstate_vars)
          
       endif
 
@@ -516,7 +515,7 @@ contains
               fn( begc:endc, -nlevsno+1: ),                                      &
               fn_snow( begc:endc),                                               &
               fn_h2osfc( begc:endc), &
-              col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+              temperature_vars, waterstate_vars)
       end if
 
       ! Melting or Freezing
@@ -4740,9 +4739,9 @@ contains
   end subroutine SetMatrix_Soil_StandingSurfaceWater
 
   !-----------------------------------------------------------------------
-  subroutine ComputeThermPropAndHeatDiffFlux_PF(bounds, num_nolakec, filter_nolakec, dtime, &
+  subroutine ComputeThermPropAndHeatDiffFlux_PF(bounds, num_nolakec, filter_nolakec, &
        tk, cv, dz_h2osfc, tk_snow, tk_h2osfc, fn_snow, fn_h2osfc, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       soilstate_vars, temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -4754,19 +4753,12 @@ contains
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : tkwat
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds                     ! bounds
     integer , intent(in)  :: num_nolakec                        ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                  ! column filter for non-lake points
-    real(r8), intent(in)  :: dtime                              ! land model time step (sec)
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )     ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: cv (bounds%begc: ,-nlevsno+1: )    ! heat capacity [J/(m2 K)]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )           !
@@ -4774,12 +4766,9 @@ contains
     real(r8), intent(out) :: tk_h2osfc( bounds%begc: )          !
     real(r8), intent(out) :: fn_snow( bounds%begc: )            !
     real(r8), intent(out) :: fn_h2osfc(bounds%begc: )           !
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
     type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                           ! indices
@@ -4810,7 +4799,6 @@ contains
    dz                        =>    col%dz             , & ! Input:  [real(r8) (:,:)]  layer depth (m)
    z                         =>    col%z              , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    t_soisno_col              =>    temperature_vars%t_soisno_col , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   eflx_bot_col                  =>    energyflux_vars%eflx_bot_col      , & ! Input:  [real(r8) (:)]  heat flux from beneath column (W/m**2) [+ = upward]
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
@@ -4872,7 +4860,7 @@ contains
   subroutine SetRHSVec_PF(bounds, num_nolakec, filter_nolakec, dtime, &
        hs_h2osfc, hs_top_snow, hs_soil, hs_top, dhsdT, sabg_lyr_col, tk, &
        tk_h2osfc, tk_snow, fact, fn, fn_snow, fn_h2osfc, c_h2osfc, dz_h2osfc, rvector, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -4889,17 +4877,10 @@ contains
     !
     ! !USES:
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
-    use clm_varcon      , only : cnfac, denh2o, cpliq
     use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar      , only : nlevsno, nlevgrnd, nlevurb
+    use clm_varpar      , only : nlevsno, nlevgrnd
     use clm_varctl      , only : iulog
     use abortutils      , only : endrun
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -4923,19 +4904,12 @@ contains
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                   ! heat capacity of surface water [col]
     real(r8), intent(in)  :: dz_h2osfc( bounds%begc: )                  ! Thickness of standing water [m]
     real(r8), intent(out) :: rvector( bounds%begc: , -nlevsno: )        ! RHS vector used in numerical solution of temperature
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                   ! indices
     integer  :: fc                                                      ! lake filtered column indices
-    real(r8) :: rt (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)        ! "r" vector for tridiagonal solution
-    real(r8) :: dzm                                                     ! used in computing tridiagonal matrix
-    real(r8) :: dzp                                                     ! used in computing tridiagonal matrix
     real(r8) :: rt_snow(bounds%begc:bounds%endc,-nlevsno:-1)            ! RHS vector corresponding to snow layers
     real(r8) :: rt_ssw(bounds%begc:bounds%endc,1)                       ! RHS vector corresponding to standing surface water
     real(r8) :: rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector corresponding to soil layer
@@ -4970,7 +4944,6 @@ contains
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
    zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
    z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
@@ -4994,7 +4967,6 @@ contains
     !h2osfc_col(1) = 0._r8
     ! Set entries in RHS vector for snow layers
     call SetRHSVec_Snow_PF(bounds, num_nolakec, filter_nolakec, &
-         dtime,                                                 &
          hs_top_snow( begc:endc ),                              &
          hs_top( begc:endc ),                                   &
          dhsdT( begc:endc ),                                    &
@@ -5004,7 +4976,7 @@ contains
          fn_snow( begc: ),                                      &
          dz_h2osfc( begc: ),                                    &
          rt_snow( begc:endc, -nlevsno:), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         temperature_vars, waterstate_vars)
 
     ! Set entries in RHS vector for surface water layer
     call SetRHSVec_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, &
@@ -5017,13 +4989,11 @@ contains
          fn_snow( begc: ),                                                      &
          fn_h2osfc( begc:endc ),                                                &
          rt_ssw( begc:endc, 1:1), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         temperature_vars, waterstate_vars)
 
     ! Set entries in RHS vector for soil layers
     call SetRHSVec_Soil_PF(bounds, num_nolakec, filter_nolakec, &
-         hs_top_snow( begc:endc ),                              &
          hs_soil( begc:endc ),                                  &
-         hs_top( begc:endc ),                                   &
          dhsdT( begc:endc ),                                    &
          sabg_lyr_col (begc:endc, -nlevsno+1: ),                &
          fact( begc:endc, -nlevsno+1: ),                        &
@@ -5032,7 +5002,7 @@ contains
          fn_h2osfc( begc:endc ),                                &
          c_h2osfc( begc:endc ),                                 &
          rt_soil( begc:endc, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         temperature_vars, waterstate_vars)
 
     ! Combine the RHS vector
     do fc = 1,num_nolakec
@@ -5048,9 +5018,9 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetRHSVec_Snow_PF(bounds, num_nolakec, filter_nolakec, &
-       dtime, hs_top_snow, hs_top, dhsdT, sabg_lyr_col, &
+       hs_top_snow, hs_top, dhsdT, sabg_lyr_col, &
        fact, fn, fn_snow, dz_h2osfc, rt, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5059,19 +5029,12 @@ contains
     ! !USES:
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds                             ! bounds
     integer , intent(in)  :: num_nolakec                                ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                          ! column filter for non-lake points
-    real(r8), intent(in)  :: dtime                                      ! land model time step (sec)
     real(r8), intent(in)  :: hs_top_snow( bounds%begc: )                ! heat flux on top snow layer [W/m2]
     real(r8), intent(in)  :: hs_top( bounds%begc: )                     ! net energy flux into surface layer (col) [W/m2]
     real(r8), intent(in)  :: dhsdT( bounds%begc: )                      ! temperature derivative of "hs" [col]
@@ -5081,12 +5044,8 @@ contains
     real(r8), intent(in)  :: fn_snow( bounds%begc:)                     ! heat diffusion through snow-h2osfc interface [W/m2]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(out) :: rt(bounds%begc: , -nlevsno: )              ! rhs vector entries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -5108,7 +5067,6 @@ contains
     rt(begc:endc, : ) = 0._r8
 
     call SetRHSVec_SnowNonUrban_PF(bounds, num_nolakec, filter_nolakec, &
-         dtime,                                                         &
          hs_top_snow( begc:endc ),                                      &
          hs_top( begc:endc ),                                           &
          dhsdT( begc:endc ),                                            &
@@ -5118,7 +5076,7 @@ contains
          fn_snow( begc:),                                               &
          dz_h2osfc( begc:endc ),                                        &
          rt( begc:endc, -nlevsno:), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         temperature_vars, waterstate_vars)
 
     end associate
 
@@ -5127,9 +5085,9 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetRHSVec_SnowNonUrban_PF(bounds, num_nolakec, filter_nolakec, &
-       dtime, hs_top_snow, hs_top, dhsdT, sabg_lyr_col, &
+       hs_top_snow, hs_top, dhsdT, sabg_lyr_col, &
        fact, fn, fn_snow, dz_h2osfc, rt, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5140,19 +5098,12 @@ contains
     use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds                             ! bounds
     integer , intent(in)  :: num_nolakec                                ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                          ! column filter for non-lake points
-    real(r8), intent(in)  :: dtime                                      ! land model time step (sec)
     real(r8), intent(in)  :: hs_top_snow( bounds%begc: )                ! heat flux on top snow layer [W/m2]
     real(r8), intent(in)  :: hs_top( bounds%begc: )                     ! net energy flux into surface layer (col) [W/m2]
     real(r8), intent(in)  :: dhsdT( bounds%begc: )                      ! temperature derivative of "hs" [col]
@@ -5162,12 +5113,8 @@ contains
     real(r8), intent(in)  :: fn_snow( bounds%begc:)                     ! heat diffusion through snow-h2osfc interface [W/m2]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(inout) :: rt(bounds%begc: , -nlevsno: )            ! rhs vector entries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                   ! indices
@@ -5261,7 +5208,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetRHSVec_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, dtime, &
        hs_h2osfc, dhsdT, tk_h2osfc, c_h2osfc, dz_h2osfc, fn_snow, fn_h2osfc, rt, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5271,13 +5218,7 @@ contains
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno
     !
     ! !ARGUMENTS:
     implicit none
@@ -5293,17 +5234,13 @@ contains
     real(r8), intent(in)  :: fn_snow( bounds%begc:)             ! heat diffusion through snow-h2osfc interface [W/m2]
     real(r8), intent(in)  :: fn_h2osfc (bounds%begc: )          ! heat diffusion through standing-water/soil interface [W/m2]
     real(r8), intent(out) :: rt(bounds%begc:bounds%endc, 1:1 )  ! rhs vector entries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
-    integer  :: j,c                                             ! indices
+    integer  :: c                                             ! indices
     integer  :: fc                                              ! lake filtered column indices
-    real(r8) :: dzm                                             ! used in computing tridiagonal matrix
+
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -5322,7 +5259,6 @@ contains
    z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
@@ -5356,9 +5292,9 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetRHSVec_Soil_PF(bounds, num_nolakec, filter_nolakec, &
-       hs_top_snow, hs_soil, hs_top, dhsdT, sabg_lyr_col, fact, fn, &
+       hs_soil, dhsdT, sabg_lyr_col, fact, fn, &
        fn_snow, fn_h2osfc, c_h2osfc, rt, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5366,24 +5302,15 @@ contains
     !
     ! !USES:
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
-    use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds                                     ! bounds
     integer , intent(in)  :: num_nolakec                                        ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                                  ! column filter for non-lake points
-    real(r8), intent(in)  :: hs_top_snow(bounds%begc: )                         ! heat flux on top snow layer [W/m2]
     real(r8), intent(in)  :: hs_soil(bounds%begc: )                             ! heat flux on soil [W/m2]
-    real(r8), intent(in)  :: hs_top(bounds%begc: )                              ! net energy flux into surface layer (col) [W/m2]
     real(r8), intent(in)  :: dhsdT(bounds%begc: )                               ! temperature derivative of "hs" [col]
     real(r8), intent(in)  :: sabg_lyr_col(bounds%begc:, -nlevsno+1: )           ! absorbed solar radiation (col,lyr) [W/m2]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )                 ! used in computing tridiagonal matrix [col, lev]
@@ -5392,12 +5319,8 @@ contains
     real(r8), intent(in)  :: fn_h2osfc (bounds%begc: )                          ! heat diffusion through standing-water/soil interface [W/m2]
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                           ! heat capacity of surface water [col]
     real(r8), intent(out) :: rt(bounds%begc: ,1: )                              ! rhs vector entries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -5420,9 +5343,7 @@ contains
     rt(begc:endc, : ) = nan
 
     call SetRHSVec_SoilNonUrban_PF(bounds, num_nolakec, filter_nolakec, &
-         hs_top_snow( begc:endc ),                                   &
          hs_soil( begc:endc ),                                       &
-         hs_top( begc:endc ),                                        &
          dhsdT( begc:endc ),                                         &
          sabg_lyr_col (begc:endc, -nlevsno+1: ),                     &
          fact( begc:endc, -nlevsno+1: ),                             &
@@ -5431,7 +5352,7 @@ contains
          fn_h2osfc( begc:endc ),                                     &
          c_h2osfc( begc:endc ),                                      &
          rt( begc:endc, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         temperature_vars, waterstate_vars)
 
     end associate
 
@@ -5439,9 +5360,9 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetRHSVec_SoilNonUrban_PF(bounds, num_nolakec, filter_nolakec, &
-       hs_top_snow, hs_soil, hs_top, dhsdT, sabg_lyr_col, fact, fn, fn_snow, &
+       hs_soil, dhsdT, sabg_lyr_col, fact, fn, fn_snow, &
        fn_h2osfc, c_h2osfc, rt, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5451,22 +5372,14 @@ contains
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
     use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds                                     ! bounds
     integer , intent(in)  :: num_nolakec                                        ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                                  ! column filter for non-lake points
-    real(r8), intent(in)  :: hs_top_snow(bounds%begc: )                         ! heat flux on top snow layer [W/m2]
     real(r8), intent(in)  :: hs_soil(bounds%begc: )                             ! heat flux on soil [W/m2]
-    real(r8), intent(in)  :: hs_top(bounds%begc: )                              ! net energy flux into surface layer (col) [W/m2]
     real(r8), intent(in)  :: dhsdT(bounds%begc: )                               ! temperature derivative of "hs" [col]
     real(r8), intent(in)  :: sabg_lyr_col(bounds%begc:, -nlevsno+1: )           ! absorbed solar radiation (col,lyr) [W/m2]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )                 ! used in computing tridiagonal matrix [col, lev]
@@ -5475,12 +5388,9 @@ contains
     real(r8), intent(in)  :: fn_h2osfc (bounds%begc: )                          ! heat diffusion through standing-water/soil interface [W/m2]
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                           ! heat capacity of surface water [col]
     real(r8), intent(inout) :: rt(bounds%begc: ,1: )                            ! rhs vector entries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                           ! indices
@@ -5502,8 +5412,6 @@ contains
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
    urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
    clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
    ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
@@ -5557,7 +5465,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
        dhsdT, tk, tk_h2osfc, tk_snow, fact, c_h2osfc, dz_h2osfc, bmatrix, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
 
     !
     ! !DESCRIPTION:
@@ -5577,15 +5485,8 @@ contains
     !
     ! !USES:
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
-    use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -5602,21 +5503,9 @@ contains
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                          ! heat capacity of surface water [col]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                          ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix(bounds%begc: , 1:,-nlevsno: )             ! matrix for numerical solution of temperature
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
-    integer  :: j,c                                                            ! indices
-    integer  :: fc                                                             ! lake filtered column indices
-    real(r8) :: at (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)               ! "a" vector for tridiagonal matrix
-    real(r8) :: bt (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)               ! "b" vector for tridiagonal matrix
-    real(r8) :: ct (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)               ! "c" vector for tridiagonal matrix
-    real(r8) :: dzm                                                            ! used in computing tridiagonal matrix
-    real(r8) :: dzp                                                            ! used in computing tridiagonal matrix
     real(r8) :: bmatrix_snow(bounds%begc:bounds%endc,nband,-nlevsno:-1      )  ! block-diagonal matrix for snow layers
     real(r8) :: bmatrix_ssw(bounds%begc:bounds%endc,nband,       0:0       )   ! block-diagonal matrix for standing surface water
     real(r8) :: bmatrix_soil(bounds%begc:bounds%endc,nband,      1:nlevgrnd)   ! block-diagonal matrix for soil layers
@@ -5639,16 +5528,9 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix)   == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
-   t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
    ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   t_grnd_col                    =>    temperature_vars%t_grnd_col                    , & ! Input:  [real(r8) (:)]  ground surface temperature [K]
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
@@ -5659,14 +5541,13 @@ contains
          dhsdT( begc:endc ),                                        &
          tk( begc:endc, -nlevsno+1: ),                              &
          fact( begc:endc, -nlevsno+1: ),                            &
-         bmatrix_snow( begc:endc, 1:, -nlevsno: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         bmatrix_snow( begc:endc, 1:, -nlevsno: ))
 
     call SetMatrix_Snow_Soil_PF(bounds, num_nolakec, filter_nolakec, nband, &
          tk( begc:endc, -nlevsno+1: ),                                   &
          fact( begc:endc, -nlevsno+1: ),                                 &
          bmatrix_snow_soil( begc:endc, 1:, -1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_Soil_PF(bounds, num_nolakec, filter_nolakec, nband, &
          dhsdT( begc:endc ),                                        &
@@ -5675,13 +5556,13 @@ contains
          dz_h2osfc( begc:endc ),                                    &
          fact( begc:endc, -nlevsno+1: ),                            &
          bmatrix_soil( begc:endc, 1:, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_Soil_Snow_PF(bounds, num_nolakec, filter_nolakec, nband, &
          tk( begc:endc, -nlevsno+1: ),                                   &
          fact( begc:endc, -nlevsno+1: ),                                 &
          bmatrix_soil_snow( begc:endc, 1:, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
          dhsdT( begc:endc ),                                                               &
@@ -5691,7 +5572,7 @@ contains
          c_h2osfc( begc:endc ),                                                            &
          dz_h2osfc( begc:endc ),                                                           &
          bmatrix_ssw( begc:endc, 1:, 0: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_StandingSurfaceWater_Soil_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
          tk( begc:endc, -nlevsno+1: ),                                                          &
@@ -5700,14 +5581,14 @@ contains
          c_h2osfc( begc:endc ),                                                                 &
          dz_h2osfc( begc:endc ),                                                                &
          bmatrix_ssw_soil( begc:endc, 1:, 0: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_Soil_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, nband, &
          tk_h2osfc( begc:endc ),                                                         &
          fact( begc:endc, -nlevsno+1: ),                                                 &
          dz_h2osfc( begc:endc ),                                                         &
          bmatrix_soil_ssw( begc:endc, 1:, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_StandingSurfaceWater_Snow_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
          tk( begc:endc, -nlevsno+1: ),                                                          &
@@ -5716,14 +5597,14 @@ contains
          c_h2osfc( begc:endc ),                                                                 &
          dz_h2osfc( begc:endc ),                                                                &
          bmatrix_ssw_snow( begc:endc, 1:, 0: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call SetMatrix_Snow_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, nband, &
          tk_snow( begc:endc ),                                                              &
          fact( begc:endc, -nlevsno+1: ),                                                    &
          dz_h2osfc( begc:endc ),                                                            &
          bmatrix_snow_ssw( begc:endc, 1:, -1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     call AssembleMatrixFromSubmatrices_PF(bounds, num_nolakec, filter_nolakec, nband, &
          bmatrix_snow( begc:endc, 1:, -nlevsno: ),                                 &
@@ -5735,8 +5616,7 @@ contains
          bmatrix_soil_snow( begc:endc, 1:, 1: ),                                   &
          bmatrix_soil_ssw( begc:endc, 1:, 1: ),                                    &
          bmatrix_snow_ssw( begc:endc, 1:, -1: ),                                    &
-         bmatrix( begc:endc, 1:, -nlevsno: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         bmatrix( begc:endc, 1:, -nlevsno: ))
 
     end associate
 
@@ -5744,23 +5624,15 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Snow_PF(bounds, num_nolakec, filter_nolakec, nband, &
-       dhsdT, tk, fact, bmatrix_snow, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       dhsdT, tk, fact, bmatrix_snow)
 
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to internal snow layers
     !
     ! !USES:
-    use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -5772,12 +5644,7 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )               ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )           ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(out) :: bmatrix_snow(bounds%begc: , 1:, -nlevsno: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
-    type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -5798,8 +5665,7 @@ contains
          dhsdT( begc:endc ),                                                &
          tk( begc:endc, -nlevsno+1: ),                                      &
          fact( begc:endc, -nlevsno+1: ),                                    &
-         bmatrix_snow( begc:endc, 1:, -nlevsno: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         bmatrix_snow( begc:endc, 1:, -nlevsno: ))
 
   end associate
 
@@ -5808,8 +5674,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetMatrix_SnowNonUrban_PF(bounds, num_nolakec, filter_nolakec, nband, &
-       dhsdT, tk, fact, bmatrix_snow, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       dhsdT, tk, fact, bmatrix_snow)
 
     !
     ! !DESCRIPTION:
@@ -5818,13 +5683,7 @@ contains
     ! !USES:
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -5836,12 +5695,7 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )                 ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )             ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(inout) :: bmatrix_snow(bounds%begc: , 1:, -nlevsno: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
-    type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                       ! indices
@@ -5905,23 +5759,15 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Snow_Soil_PF(bounds, num_nolakec, filter_nolakec, nband, &
-       tk, fact, bmatrix_snow_soil, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       tk, fact, bmatrix_snow_soil, waterstate_vars)
 
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to snow-soil interaction
     !
     ! !USES:
-    use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
 
     implicit none
     type(bounds_type), intent(in) :: bounds                               ! bounds
@@ -5931,12 +5777,8 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )               ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )           ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(out) :: bmatrix_snow_soil(bounds%begc: , 1:,-1: )    ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -5956,7 +5798,7 @@ contains
          tk( begc:endc, -nlevsno+1: ),                                           &
          fact( begc:endc, -nlevsno+1: ),                                         &
          bmatrix_snow_soil( begc:endc, 1:, -1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     end associate
 
@@ -5965,7 +5807,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Snow_SoilNonUrban_PF(bounds, num_nolakec, filter_nolakec, nband, &
        tk, fact, bmatrix_snow_soil, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to snow-soil interaction for
@@ -5974,13 +5816,8 @@ contains
     ! !USES:
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
+
     !
     ! !ARGUMENTS:
     implicit none
@@ -5991,17 +5828,12 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )               ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )           ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(inout) :: bmatrix_snow_soil(bounds%begc: , 1:,-1: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                     ! indices
     integer  :: fc                                                        ! lake filtered column indices
-    real(r8) :: dzm                                                       ! used in computing tridiagonal matrix
     real(r8) :: dzp                                                       ! used in computing tridiagonal matrix
     !-----------------------------------------------------------------------
 
@@ -6012,14 +5844,10 @@ contains
 
    associate(&
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
    clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   z                         =>    col%z                           & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    )
 
     !
@@ -6051,7 +5879,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Snow_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, nband, &
        tk_snow, fact, dz_h2osfc, bmatrix_snow_ssw, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to soil layer-standing surface water interaction
@@ -6060,12 +5888,6 @@ contains
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6077,12 +5899,7 @@ contains
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )         ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix_snow_ssw(bounds%begc: , 1:, -1: )   ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: c                                                       ! indices
@@ -6100,7 +5917,6 @@ contains
    dz                        =>    col%dz                        , & ! Input:  [real(r8) (:,:)]  layer depth (m)
    z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
@@ -6128,21 +5944,14 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Soil_PF(bounds, num_nolakec, filter_nolakec, nband, &
        dhsdT, tk, tk_h2osfc, dz_h2osfc, fact, bmatrix_soil, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to internal soil layers.
     !
     ! !USES:
-    use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -6156,18 +5965,10 @@ contains
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )              ! Thickness of standing water [m]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )    ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(out) :: bmatrix_soil(bounds%begc: , 1:, 1: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
-    integer  :: j,c,l                                              ! indices
-    integer  :: fc                                                 ! lake filtered column indices
-    real(r8) :: dzm                                                ! used in computing tridiagonal matrix
-    real(r8) :: dzp                                                ! used in computing tridiagonal matrix
+
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -6180,8 +5981,6 @@ contains
 
    associate(&
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
    ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
    clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
@@ -6201,7 +6000,7 @@ contains
          dz_h2osfc( begc:endc ),                                            &
          fact( begc:endc, -nlevsno+1: ),                                    &
          bmatrix_soil( begc:endc, 1:, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     end associate
 
@@ -6210,7 +6009,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_SoilNonUrban_PF(bounds, num_nolakec, filter_nolakec, nband, &
        dhsdT, tk, tk_h2osfc, dz_h2osfc, fact, bmatrix_soil, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to internal soil layers.
@@ -6218,13 +6017,7 @@ contains
     ! !USES:
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -6238,12 +6031,7 @@ contains
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                ! Thickness of standing water [m]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )      ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(inout) :: bmatrix_soil(bounds%begc: , 1:, 1: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                ! indices
@@ -6262,8 +6050,6 @@ contains
 
    associate(&
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
    ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
@@ -6331,21 +6117,15 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Soil_Snow_PF(bounds, num_nolakec, filter_nolakec, nband, &
        tk, fact, bmatrix_soil_snow, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to soil-snow interaction
     !
     ! !USES:
-    use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6356,12 +6136,8 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )             ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )         ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(out) :: bmatrix_soil_snow(bounds%begc: , 1: ,1: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
+
     !------------------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -6381,7 +6157,7 @@ contains
          tk( begc:endc, -nlevsno+1: ),                                           &
          fact( begc:endc, -nlevsno+1: ),                                         &
          bmatrix_soil_snow( begc:endc, 1:, 1: ), &
-         col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+         waterstate_vars)
 
     end associate
 
@@ -6390,7 +6166,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Soil_SnowNonUrban_PF(bounds, num_nolakec, filter_nolakec, nband, &
        tk, fact, bmatrix_soil_snow, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to soil-snow interaction for
@@ -6399,13 +6175,8 @@ contains
     ! !USES:
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6416,18 +6187,13 @@ contains
     real(r8), intent(in)  :: tk(bounds%begc: ,-nlevsno+1: )               ! thermal conductivity [W/(m K)]
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )           ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(inout) :: bmatrix_soil_snow(bounds%begc: , 1: ,1: )  ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l                                                     ! indices
     integer  :: fc                                                        ! lake filtered column indices
     real(r8) :: dzm                                                       ! used in computing tridiagonal matrix
-    real(r8) :: dzp                                                       ! used in computing tridiagonal matrix
+
     !-----------------------------------------------------------------------
 
     ! Enforce expected array sizes
@@ -6437,7 +6203,6 @@ contains
 
    associate(&
    snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
    ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
    urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
    clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
@@ -6482,8 +6247,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SetMatrix_Soil_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, nband, &
-       tk_h2osfc, fact, dz_h2osfc, bmatrix_soil_ssw, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       tk_h2osfc, fact, dz_h2osfc, bmatrix_soil_ssw, waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to soil layer-standing surface water interaction
@@ -6492,12 +6256,7 @@ contains
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6509,12 +6268,7 @@ contains
     real(r8), intent(in)  :: fact( bounds%begc: , -nlevsno+1: )         ! used in computing tridiagonal matrix [col, lev]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix_soil_ssw(bounds%begc: , 1:, 1: )   ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: c                                                       ! indices
@@ -6530,7 +6284,6 @@ contains
 
    associate(& 
    z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
    begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
    endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
@@ -6560,7 +6313,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_StandingSurfaceWater_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
        dhsdT, tk, tk_h2osfc, fact, c_h2osfc, dz_h2osfc, bmatrix_ssw, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to internal standing water layer
@@ -6569,12 +6322,7 @@ contains
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6590,12 +6338,7 @@ contains
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )              ! heat capacity of surface water [col]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )              ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix_ssw(bounds%begc: , 1:, 0: )   ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: c                                                  ! indices
@@ -6644,7 +6387,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_StandingSurfaceWater_Soil_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
        tk, tk_h2osfc, fact, c_h2osfc, dz_h2osfc, bmatrix_ssw_soil, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to standing surface water-soil layer interaction
@@ -6653,12 +6396,7 @@ contains
     use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6673,12 +6411,7 @@ contains
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                   ! heat capacity of surface water [col]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix_ssw_soil(bounds%begc: , 1: ,0: )   ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: c                                                       ! indices
@@ -6725,21 +6458,15 @@ contains
   !-----------------------------------------------------------------------
   subroutine SetMatrix_StandingSurfaceWater_Snow_PF(bounds, num_nolakec, filter_nolakec, dtime, nband, &
        tk, tk_snow, fact, c_h2osfc, dz_h2osfc, bmatrix_ssw_snow, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       waterstate_vars)
     !
     ! !DESCRIPTION:
     ! Setup the matrix entries correspodning to standing surface water-soil layer interaction
     !
     ! !USES:
-    use clm_varcon     , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varpar     , only : nlevsno, nlevgrnd
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6754,12 +6481,7 @@ contains
     real(r8), intent(in)  :: c_h2osfc( bounds%begc: )                   ! heat capacity of surface water [col]
     real(r8), intent(in)  :: dz_h2osfc(bounds%begc: )                   ! Thickness of standing water [m]
     real(r8), intent(out) :: bmatrix_ssw_snow(bounds%begc: , 1: ,0: )   ! matrix enteries
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: c                                                       ! indices
@@ -6806,8 +6528,7 @@ contains
   !-----------------------------------------------------------------------
   subroutine AssembleMatrixFromSubmatrices_PF(bounds, num_nolakec, filter_nolakec, nband, &
        bmatrix_snow, bmatrix_ssw, bmatrix_soil, bmatrix_snow_soil, &
-       bmatrix_ssw_soil, bmatrix_ssw_snow, bmatrix_soil_snow, bmatrix_soil_ssw, bmatrix_snow_ssw, bmatrix, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       bmatrix_ssw_soil, bmatrix_ssw_snow, bmatrix_soil_snow, bmatrix_soil_ssw, bmatrix_snow_ssw, bmatrix)
 
     !
     ! !DESCRIPTION:
@@ -6853,15 +6574,8 @@ contains
     !
     ! !USES:
     use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
-    use clm_varcon      , only : cnfac
     use column_varcon  , only : icol_roof, icol_sunwall, icol_shadewall
-    use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
-    use TemperatureType, only : temperature_type
-    use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
+    use clm_varpar     , only : nlevsno, nlevgrnd
     !
     ! !ARGUMENTS:
     implicit none
@@ -6879,15 +6593,9 @@ contains
     real(r8), intent(in)  :: bmatrix_soil_ssw( bounds%begc:bounds%endc,nband, 1:1        )  ! off-diagonal matrix for soil-standing surface water interaction
     real(r8), intent(in)  :: bmatrix_snow_ssw( bounds%begc:bounds%endc,nband,-1:-1       )  ! off-diagonal matrix for snow-standing surface water interaction
     real(r8), intent(out) :: bmatrix(          bounds%begc:           , 1:  ,-nlevsno: )    ! full matrix used in numerical solution of temperature
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
-    type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
-    integer  :: j,c                                                                         ! indices
+    integer  :: c                                                                         ! indices
     integer  :: fc                                                                          ! lake filtered column indices
     !-----------------------------------------------------------------------
 
@@ -6904,18 +6612,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix)             == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
-   t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   t_grnd_col                    =>    temperature_vars%t_grnd_col                    , & ! Input:  [real(r8) (:)]  ground surface temperature [K]
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+        begc   =>    bounds%begc, & ! Input:  [integer ] beginning column index
+        endc   =>    bounds%endc  & ! Input:  [integer ] ending column index
    )
 
     ! Assemble the full matrix
@@ -6964,19 +6662,15 @@ contains
   !-----------------------------------------------------------------------
   subroutine SaveThermalBCFluxForPFLOTRAN(bounds, num_nolakec, filter_nolakec, &
         tk, tk_snow, tk_h2osfc, dz_h2osfc, hs_soil, hs_h2osfc, fn, fn_snow, fn_h2osfc, &
-       col, lun, soilstate_vars, temperature_vars, waterstate_vars, energyflux_vars)
+       temperature_vars, waterstate_vars)
     ! !USES:
     use clm_varcon                 , only : cnfac
     use clm_varpar                 , only : nlevsno, nlevgrnd
     use clm_pflotran_interfaceMod  , only : clm_pf_vecget_gflux, clm_pf_vecrestore_gflux
     use clm_varctl                 , only : pflotran_surfaceflow
     use clm_time_manager, only : get_nstep
-    use ColumnType, only : column_type
-    use LandUnitType, only : landunit_type
     use TemperatureType, only : temperature_type
     use WaterStateType, only : waterstate_type
-    use SoilStateType, only : soilstate_type
-    use EnergyFluxType, only : energyflux_type
     !
     ! !ARGUMENTS:
     implicit none
@@ -6992,12 +6686,8 @@ contains
     real(r8), intent(in)  :: fn( bounds%begc: , -nlevsno+1: )          ! heat diffusion through the layer interface [W/m2]
     real(r8), intent(in)  :: fn_snow( bounds%begc: )                   ! heat flux on soil [W/m2]
     real(r8), intent(in)  :: fn_h2osfc( bounds%begc: )                 ! heat flux on soil [W/m2]
-    type(column_type), intent(in) :: col
-    type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(energyflux_type), intent(in) :: energyflux_vars
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,g                                                  ! indices
@@ -7024,9 +6714,7 @@ contains
    h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
    t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   begc                      =>    bounds%begc                   , &
-   endc                      =>    bounds%endc                     &
+   snl                       =>    col%snl                         & ! Input:  [integer (:)]  number of snow layers
    )
     call clm_pf_vecget_gflux(gflux_clm_loc)
     gflux_clm_loc = 0._r8

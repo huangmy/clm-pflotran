@@ -582,7 +582,6 @@ contains
           ! TODO(2013-08-27) clm_pf_update_states --> soil
           ! temperature, soil moisture, water table?
           call clm_pf_update_soil_temperature(bounds_clump, &
-               filter(nc)%num_urbanl,  filter(nc)%urbanl, &
                filter(nc)%num_nolakec, filter(nc)%nolakec, temperature_vars, col)
        end if
 
