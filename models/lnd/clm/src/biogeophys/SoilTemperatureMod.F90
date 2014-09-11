@@ -160,7 +160,6 @@ contains
     use clm_varpar       , only : nlevsno, nlevgrnd, nlevurb
     use clm_varctl       , only : iulog
     use clm_varcon       , only : cnfac, cpice, cpliq, denh2o
-    use landunit_varcon  , only : istice, istice_mec, istsoil, istcrop
     use column_varcon    , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
     use landunit_varcon  , only : istwet, istice, istice_mec, istsoil, istcrop
     use BandDiagonalMod  , only : BandDiagonal
@@ -4787,20 +4786,16 @@ contains
     SHR_ASSERT_ALL((ubound(fn_snow)    == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
    associate(&
-   t_building                =>    temperature_vars%t_building_lun , & ! Input:  [real(r8) (:)]  internal building temperature (K)
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   t_h2osfc_col              =>    temperature_vars%t_h2osfc_col , & ! Input:  [real(r8) (:)]  surface water temperature               
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col        , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   thk_col                       =>    soilstate_vars%thk_col            , & ! Input:  [real(r8) (:,:)]  thermal conductivity of each layer  [W/m-K] (-nlevsno+1:nlevgrnd)
-   snl                       =>    col%snl            , & ! Input:  [integer (:)]  number of snow layers
-   zi                        =>    col%zi             , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   dz                        =>    col%dz             , & ! Input:  [real(r8) (:,:)]  layer depth (m)
-   z                         =>    col%z              , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col              =>    temperature_vars%t_soisno_col , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   clandunit   =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   urbpoi      =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   t_h2osfc    =>    temperature_vars%t_h2osfc_col , & ! Input:  [real(r8) (:)]  surface water temperature               
+   h2osfc      =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   thk         =>    soilstate_vars%thk_col        , & ! Input:  [real(r8) (:,:)]  thermal conductivity of each layer  [W/m-K] (-nlevsno+1:nlevgrnd)
+   snl         =>    col%snl            , & ! Input:  [integer (:)]  number of snow layers
+   zi          =>    col%zi             , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
+   dz          =>    col%dz             , & ! Input:  [real(r8) (:,:)]  layer depth (m)
+   z           =>    col%z              , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   t_soisno    =>    temperature_vars%t_soisno_col & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    )
 
    do fc = 1,num_nolakec
@@ -4814,38 +4809,38 @@ contains
             fn_snow(c) = 0._r8
          else
             ! Snow is present
-            if (h2osfc_col(c) == 0._r8) then
+            if (h2osfc(c) == 0._r8) then
                ! Standing water is absent
                tk_snow(c) = 0._r8
                fn_snow(c) = 0._r8
             else
                ! Standing water is present
-               zh2osfc = 1.0e-3*(0.5*h2osfc_col(c)) !convert to [m] from [mm]
+               zh2osfc = 1.0e-3*(0.5*h2osfc(c)) !convert to [m] from [mm]
 
                j = 0
                zsnow = 0.5_r8*dz(c,j)
-               tk_snow(c) = tkwat*thk_col(c,j)*(zsnow       + zh2osfc        ) &
-                                          /(zsnow*tkwat + zh2osfc*thk_col(c,j))
+               tk_snow(c) = tkwat*thk(c,j)*(zsnow       + zh2osfc        ) &
+                                          /(zsnow*tkwat + zh2osfc*thk(c,j))
 
                ! surface water layer has two coefficients
                dzm = (0.5*dz_h2osfc(c) + z(c,j))
-               fn_snow(c) = tk_snow(c)*(t_soisno_col(c,j) - t_h2osfc_col(c))/dzm
+               fn_snow(c) = tk_snow(c)*(t_soisno(c,j) - t_h2osfc(c))/dzm
                
             endif
          endif
 
 
-         if (h2osfc_col(c) == 0._r8) then
+         if (h2osfc(c) == 0._r8) then
             ! Standing water is absent
             fn_h2osfc(c) = 0._r8
          else
              ! Standing water is present
              j = 1
-             zh2osfc = 1.0e-3*(0.5*h2osfc_col(c)) !convert to [m] from [mm]
-             tk_h2osfc(c)= tkwat*thk_col(c,j)*(z(c,j)        + zh2osfc       ) &
-                                         /(z(c,j)*tkwat + zh2osfc*thk_col(c,j))
+             zh2osfc = 1.0e-3*(0.5*h2osfc(c)) !convert to [m] from [mm]
+             tk_h2osfc(c)= tkwat*thk(c,j)*(z(c,j)        + zh2osfc       ) &
+                                         /(z(c,j)*tkwat + zh2osfc*thk(c,j))
              dzm = (zh2osfc + z(c,j))
-             fn_h2osfc(c) = tk_h2osfc(c)*(t_soisno_col(c,j) - t_h2osfc_col(c))/dzm
+             fn_h2osfc(c) = tk_h2osfc(c)*(t_soisno(c,j) - t_h2osfc(c))/dzm
           endif
 
       end if
@@ -4934,18 +4929,10 @@ contains
     SHR_ASSERT_ALL((ubound(rvector)      == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   frac_sno_eff_col              =>    waterstate_vars%frac_sno_eff_col              , & ! Input:  [real(r8) (:)]  eff. fraction of ground covered by snow (0 to 1)
-   frac_h2osfc_col               =>    waterstate_vars%frac_h2osfc_col               , & ! Input:  [real(r8) (:)]  fraction of ground covered by surface water (0 to 1)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
-   t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   urbpoi      =>    lun%urbpoi     , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit   =>    col%landunit   , & ! Input:  [integer (:)]  column's landunit
+   begc        =>    bounds%begc    , & ! Input:  [integer ] beginning column index
+   endc        =>    bounds%endc      & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -4964,7 +4951,7 @@ contains
     end do
 
 
-    !h2osfc_col(1) = 0._r8
+    !waterstate_vars%h2osfc(1) = 0._r8
     ! Set entries in RHS vector for snow layers
     call SetRHSVec_Snow_PF(bounds, num_nolakec, filter_nolakec, &
          hs_top_snow( begc:endc ),                              &
@@ -5059,8 +5046,8 @@ contains
     SHR_ASSERT_ALL((ubound(rt)           == (/bounds%endc, -1/)),       errMsg(__FILE__, __LINE__))
 
    associate(&
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc   =>    bounds%begc   , & ! Input:  [integer ] beginning column index
+   endc   =>    bounds%endc     & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -5132,15 +5119,14 @@ contains
     SHR_ASSERT_ALL((ubound(rt)           == (/bounds%endc, -1/)),       errMsg(__FILE__, __LINE__))
 
    associate(&
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   urbpoi       =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit    =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   snl          =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
+   h2osfc       =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   z            =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   t_soisno     =>    temperature_vars%t_soisno_col , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
+   begc         =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
+   endc         =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
 
     !
@@ -5152,16 +5138,16 @@ contains
           l = clandunit(c)
           if (.not. urbpoi(l)) then
 
-             if (h2osfc_col(c) == 0._r8) then
+             if (h2osfc(c) == 0._r8) then
              
                 ! Surface-water is absent
              
                 if (j >= snl(c)+1) then
                    if (j == snl(c)+1) then
-                      rt(c,j-1) = t_soisno_col(c,j) +  fact(c,j)*( hs_top_snow(c) &
-                           - dhsdT(c)*t_soisno_col(c,j) + cnfac*fn(c,j) )
+                      rt(c,j-1) = t_soisno(c,j) +  fact(c,j)*( hs_top_snow(c) &
+                           - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
                    else
-                      rt(c,j-1) = t_soisno_col(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
+                      rt(c,j-1) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
                       rt(c,j-1) = rt(c,j-1) + fact(c,j)*sabg_lyr_col(c,j)
 
                    end if
@@ -5177,20 +5163,20 @@ contains
                       ! Top snow layer
                       if ( snl(c) < -1 ) then
                          ! More than one snow layer present
-                         rt(c,j-1) = t_soisno_col(c,j) +  fact(c,j)*( hs_top_snow(c) &
-                            - dhsdT(c)*t_soisno_col(c,j) + cnfac*fn(c,j) )
+                         rt(c,j-1) = t_soisno(c,j) +  fact(c,j)*( hs_top_snow(c) &
+                            - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
                       else
                          ! One snow layer present
-                         rt(c,j-1) = t_soisno_col(c,j) +  fact(c,j)*( hs_top_snow(c) &
-                            - dhsdT(c)*t_soisno_col(c,j) + cnfac*fn_snow(c) )
+                         rt(c,j-1) = t_soisno(c,j) +  fact(c,j)*( hs_top_snow(c) &
+                            - dhsdT(c)*t_soisno(c,j) + cnfac*fn_snow(c) )
                       endif
                    else
                       if (j < 0) then
                          ! Snow layer not in contact with standing water
-                         rt(c,j-1) = t_soisno_col(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
+                         rt(c,j-1) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
                       else
                          ! Snow layer in contact with standing water
-                         rt(c,j-1) = t_soisno_col(c,j) + cnfac*fact(c,0)*( fn_snow(c) - fn(c,j-1) )
+                         rt(c,j-1) = t_soisno(c,j) + cnfac*fact(c,0)*( fn_snow(c) - fn(c,j-1) )
                       endif
                       rt(c,j-1) = rt(c,j-1) + fact(c,j)*sabg_lyr_col(c,j)
 
@@ -5254,13 +5240,12 @@ contains
     SHR_ASSERT_ALL((ubound(rt)           == (/bounds%endc,1/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   t_h2osfc    =>    temperature_vars%t_h2osfc_col , & ! Input:  [real(r8) (:)]  surface water temperature
+   z           =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   snl         =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
+   h2osfc      =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   begc        =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
+   endc        =>    bounds%endc                     & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -5272,15 +5257,15 @@ contains
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (h2osfc_col(c) > 0._r8) then
+       if (h2osfc(c) > 0._r8) then
 
           if (snl(c) == 0) then
              ! Snow is absent
-             rt(c,1)= t_h2osfc_col(c) +  (dtime/c_h2osfc(c)) &
-                  *( hs_h2osfc(c) - dhsdT(c)*t_h2osfc_col(c) + cnfac*fn_h2osfc(c) )!rhs for h2osfc
+             rt(c,1)= t_h2osfc(c) +  (dtime/c_h2osfc(c)) &
+                  *( hs_h2osfc(c) - dhsdT(c)*t_h2osfc(c) + cnfac*fn_h2osfc(c) )!rhs for h2osfc
           else
              ! Snow is present
-             rt(c,1)= t_h2osfc_col(c) +  cnfac*(dtime/c_h2osfc(c))*( fn_h2osfc(c) - fn_snow(c) )
+             rt(c,1)= t_h2osfc(c) +  cnfac*(dtime/c_h2osfc(c))*( fn_h2osfc(c) - fn_snow(c) )
           end if
        end if
 
@@ -5335,8 +5320,8 @@ contains
     SHR_ASSERT_ALL((ubound(rt)           == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc     =>    bounds%begc    , & ! Input:  [integer ] beginning column index
+   endc     =>    bounds%endc      & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -5409,16 +5394,13 @@ contains
     SHR_ASSERT_ALL((ubound(rt)           == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   snl          =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
+   urbpoi       =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit    =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   h2osfc       =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   zi           =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
+   z            =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   t_soisno     =>    temperature_vars%t_soisno_col   & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
    )
 
     !
@@ -5431,28 +5413,28 @@ contains
           if (.not. urbpoi(l)) then
           
              if (j == 1) then
-                if (h2osfc_col(c) > 0._r8) then
+                if (h2osfc(c) > 0._r8) then
                    ! Standing surface water overlaying soil layers
-                   rt(c,j) = t_soisno_col(c,j) + &
+                   rt(c,j) = t_soisno(c,j) + &
                              fact(c,j)*cnfac*( fn(c,j) - fn_h2osfc(c))
                 else if (snl(c) < 0) then
                 
                    ! Snow overlaying soil layers
-                   rt(c,j) = t_soisno_col(c,j) + &
+                   rt(c,j) = t_soisno(c,j) + &
                              fact(c,j)*cnfac*( fn(c,j) - fn_snow(c))
                 else
                 
                    ! Both, snow and standing water absent
-                   rt(c,j) = t_soisno_col(c,j) + &
-                             fact(c,j)*(hs_soil(c) - dhsdT(c)*t_soisno_col(c,j) &
+                   rt(c,j) = t_soisno(c,j) + &
+                             fact(c,j)*(hs_soil(c) - dhsdT(c)*t_soisno(c,j) &
                                         + cnfac*fn(c,j))
                 end if
              
              else if (j <= nlevgrnd-1) then
-                rt(c,j) = t_soisno_col(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
+                rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
 
              else if (j == nlevgrnd) then
-                rt(c,j) = t_soisno_col(c,j) - cnfac*fact(c,j)*fn(c,j-1) + fact(c,j)*fn(c,j)
+                rt(c,j) = t_soisno(c,j) - cnfac*fact(c,j)*fn(c,j-1) + fact(c,j)*fn(c,j)
              end if
           end if
        enddo
@@ -5528,11 +5510,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix)   == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc     =>    bounds%begc    , & ! Input:  [integer ] beginning column index
+   endc     =>    bounds%endc      & ! Input:  [integer ] ending column index
    )
 
     ! Assemble smaller matrices
@@ -5654,8 +5633,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow)   == (/bounds%endc, nband, -1/)),  errMsg(__FILE__, __LINE__))
 
    associate(&
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc     =>    bounds%begc    , & ! Input:  [integer ] beginning column index
+   endc     =>    bounds%endc      & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -5711,14 +5690,11 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow)   == (/bounds%endc, nband, -1/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   snl         =>    col%snl       , & ! Input:  [integer (:)]  number of snow layers                    
+   urbpoi      =>    lun%urbpoi    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit   =>    col%landunit  , & ! Input:  [integer (:)]  column's landunit
+   z           =>    col%z         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   zi          =>    col%zi          & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
    )
 
     !
@@ -5787,8 +5763,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow_soil)   == (/bounds%endc, nband, -1/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc     =>    bounds%begc   , & ! Input:  [integer ] beginning column index
+   endc     =>    bounds%endc     & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -5843,11 +5819,11 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow_soil)   == (/bounds%endc, nband, -1/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   z                         =>    col%z                           & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   snl        =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
+   urbpoi     =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit  =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   h2osfc     =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   z          =>    col%z                           & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    )
 
     !
@@ -5859,7 +5835,7 @@ contains
           l = clandunit(c)
           if (.not. urbpoi(l)) then
              if (j >= snl(c)+1) then
-                if (h2osfc_col(c) == 0._r8) then
+                if (h2osfc(c) == 0._r8) then
                    ! Snow is present, but standing water is absent
                    dzp = z(c,j+1)-z(c,j)
                    bmatrix_snow_soil(c,1,j-1) =  -(1._r8-cnfac)*fact(c,j)*tk(c,j)/dzp
@@ -5914,21 +5890,19 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow_ssw)    == (/bounds%endc, nband, -1/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   dz                        =>    col%dz                        , & ! Input:  [real(r8) (:,:)]  layer depth (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   dz        =>    col%dz                        , & ! Input:  [real(r8) (:,:)]  layer depth (m)
+   z         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   snl       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
+   h2osfc    =>    waterstate_vars%h2osfc_col      & ! Input:  [real(r8) (:)]  surface water (mm)                      
    )
 
     ! Initialize
-    bmatrix_snow_ssw(begc:endc, :, :) = 0.0_r8
+    bmatrix_snow_ssw(bounds%begc:bounds%endc, :, :) = 0.0_r8
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (snl(c) < 0._r8 .and. h2osfc_col(c) > 0._r8) then
+       if (snl(c) < 0._r8 .and. h2osfc(c) > 0._r8) then
           dzm = (0.5*dz_h2osfc(c) + 0.5*dz(c,0))
           bmatrix_snow_ssw(c,2,-1) = -(1._r8 - cnfac)*fact(c,0)*tk_snow(c)/dzm
        else
@@ -5980,14 +5954,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_soil)   == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc    =>    bounds%begc   , & ! Input:  [integer ] beginning column index
+   endc    =>    bounds%endc     & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -6049,15 +6017,11 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_soil)   == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   snl         =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
+   h2osfc      =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   urbpoi      =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit   =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   z           =>    col%z                           & ! Input:  [real(r8) (:,:)]  layer thickness (m)
    )
 
     !
@@ -6075,7 +6039,7 @@ contains
                    dzp     = (z(c,j+1)-z(c,j))
 
                   bmatrix_soil(c,4,j) = 0._r8
-                  if (h2osfc_col(c) > 0._r8) then
+                  if (h2osfc(c) > 0._r8) then
                      ! Standing surface water overlaying soil layers
                      dzm = (0.5*dz_h2osfc(c) + z(c,j))
                      bmatrix_soil(c,3,j) = 1._r8 + (1._r8 - cnfac)*fact(c,j)* &
@@ -6146,8 +6110,8 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_soil_snow)   == (/bounds%endc, nband, 1/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   begc   =>    bounds%begc   , & ! Input:  [integer ] beginning column index
+   endc   =>    bounds%endc     & ! Input:  [integer ] ending column index
    )
 
     ! Initialize
@@ -6202,15 +6166,11 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_soil_snow)   == (/bounds%endc, nband, 1/)), errMsg(__FILE__, __LINE__))
 
    associate(&
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
-   ctype                     =>    col%itype                     , & ! Input:  [integer (:)]  column type
-   urbpoi                    =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
-   clandunit                 =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   zi                        =>    col%zi                        , & ! Input:  [real(r8) (:,:)]  interface level below a "z" level (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   snl          =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers                    
+   urbpoi       =>    lun%urbpoi                    , & ! Input:  [logical (:)]  true => landunit is an urban point
+   clandunit    =>    col%landunit                  , & ! Input:  [integer (:)]  column's landunit
+   z            =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc       =>    waterstate_vars%h2osfc_col      & ! Input:  [real(r8) (:)]  surface water (mm)                      
    )
 
     !
@@ -6227,7 +6187,7 @@ contains
                    bmatrix_soil_snow(c,5,j) = 0._r8
                 else if (j == 1) then
                    ! Snow is present
-                   if (h2osfc_col(c) == 0._r8) then
+                   if (h2osfc(c) == 0._r8) then
                       ! this is the snow/soil interface layer
                       dzm     = (z(c,j)-z(c,j-1))
                       bmatrix_soil_snow(c,5,j) =  -(1._r8-cnfac) * fact(c,j)* tk(c,j-1)/dzm
@@ -6283,19 +6243,17 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_soil_ssw)   == (/bounds%endc, nband, 1/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   z          =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc     =>    waterstate_vars%h2osfc_col      & ! Input:  [real(r8) (:)]  surface water (mm)                      
    )
 
     ! Initialize
-    bmatrix_soil_ssw(begc:endc, :, :) = 0.0_r8
+    bmatrix_soil_ssw(bounds%begc:bounds%endc, :, :) = 0.0_r8
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (h2osfc_col(c) > 0._r8) then
+       if (h2osfc(c) > 0._r8) then
           ! surface water layer has two coefficients
           dzm=(0.5*dz_h2osfc(c) + z(c,1))
 
@@ -6356,19 +6314,17 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_ssw)   == (/bounds%endc, nband, 0/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   z          =>    col%z                     , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc     =>    waterstate_vars%h2osfc_col  & ! Input:  [real(r8) (:)]  surface water (mm)                      
    )
 
     ! Initialize
-    bmatrix_ssw(begc:endc, :, :) = 0.0_r8
+    bmatrix_ssw(bounds%begc:bounds%endc, :, :) = 0.0_r8
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (h2osfc_col(c) > 0._r8) then
+       if (h2osfc(c) > 0._r8) then
           ! surface water layer has two coefficients
           dzm=(0.5*dz_h2osfc(c) + z(c,1))
 
@@ -6428,19 +6384,17 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_ssw_soil)   == (/bounds%endc, nband, 0/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   z          =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc     =>    waterstate_vars%h2osfc_col      & ! Input:  [real(r8) (:)]  surface water (mm)                      
    )
 
     ! Initialize
-    bmatrix_ssw_soil(begc:endc, :, :) = 0.0_r8
+    bmatrix_ssw_soil(bounds%begc:bounds%endc, :, :) = 0.0_r8
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (h2osfc_col(c) > 0._r8) then
+       if (h2osfc(c) > 0._r8) then
           ! surface water layer has two coefficients
           dzp=(0.5*dz_h2osfc(c) + z(c,1))
 
@@ -6498,21 +6452,19 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_ssw_snow)    == (/bounds%endc, nband, 0/)), errMsg(__FILE__, __LINE__))
 
    associate(& 
-   dz                        =>    col%dz                        , & ! Input:  [real(r8) (:,:)]  layer depth (m)
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
-   snl                       =>    col%snl                       , & ! Input:  [integer (:)]  number of snow layers
-   begc                      =>    bounds%begc                   , & ! Input:  [integer ] beginning column index
-   endc                      =>    bounds%endc                     & ! Input:  [integer ] ending column index
+   dz         =>    col%dz                        , & ! Input:  [real(r8) (:,:)]  layer depth (m)
+   z          =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc     =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)                      
+   snl        =>    col%snl                         & ! Input:  [integer (:)]  number of snow layers
    )
 
     ! Initialize
-    bmatrix_ssw_snow(begc:endc, :, :) = 0.0_r8
+    bmatrix_ssw_snow(bounds%begc:bounds%endc, :, :) = 0.0_r8
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
-       if (snl(c) < 0 .and. h2osfc_col(c) > 0._r8) then
+       if (snl(c) < 0 .and. h2osfc(c) > 0._r8) then
           dzm = (0.5*dz_h2osfc(c) + 0.5*dz(c,0))
           bmatrix_ssw_snow(c,4,0) = -(1._r8*(dtime/c_h2osfc(c))*tk_snow(c)/dzm)
        else
@@ -6611,14 +6563,9 @@ contains
     SHR_ASSERT_ALL((ubound(bmatrix_snow_ssw)    == (/bounds%endc, nband, -1/)),       errMsg(__FILE__, __LINE__))
     SHR_ASSERT_ALL((ubound(bmatrix)             == (/bounds%endc, nband, nlevgrnd/)), errMsg(__FILE__, __LINE__))
 
-   associate(&
-        begc   =>    bounds%begc, & ! Input:  [integer ] beginning column index
-        endc   =>    bounds%endc  & ! Input:  [integer ] ending column index
-   )
-
     ! Assemble the full matrix
 
-    bmatrix(begc:endc, :, :) = 0.0_r8
+    bmatrix(bounds%begc:bounds%endc, :, :) = 0.0_r8
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
 
@@ -6654,8 +6601,6 @@ contains
        bmatrix(c,4,1)  = bmatrix_soil_ssw(c,4,1)
 
     end do
-
-    end associate
 
   end subroutine AssembleMatrixFromSubmatrices_PF
 
@@ -6709,12 +6654,12 @@ contains
     SHR_ASSERT_ALL((ubound(fn_h2osfc)     == (/bounds%endc/)),           errMsg(__FILE__, __LINE__))
 
    associate(&
-   cgridcell                 =>    col%gridcell                  , & ! Input:  [integer  (:)] column's gridcell index
-   z                         =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
-   h2osfc_col                    =>    waterstate_vars%h2osfc_col                    , & ! Input:  [real(r8) (:)]  surface water (mm)
-   t_soisno_col                  =>    temperature_vars%t_soisno_col                  , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
-   t_h2osfc_col                  =>    temperature_vars%t_h2osfc_col                  , & ! Input:  [real(r8) (:)]  surface water temperature
-   snl                       =>    col%snl                         & ! Input:  [integer (:)]  number of snow layers
+   cgridcell    =>    col%gridcell                  , & ! Input:  [integer  (:)] column's gridcell index
+   z            =>    col%z                         , & ! Input:  [real(r8) (:,:)]  layer thickness (m)
+   h2osfc       =>    waterstate_vars%h2osfc_col    , & ! Input:  [real(r8) (:)]  surface water (mm)
+   t_soisno     =>    temperature_vars%t_soisno_col , & ! Input:  [real(r8) (:,:)]  soil temperature (Kelvin)
+   t_h2osfc     =>    temperature_vars%t_h2osfc_col , & ! Input:  [real(r8) (:)]  surface water temperature
+   snl          =>    col%snl                         & ! Input:  [integer (:)]  number of snow layers
    )
     call clm_pf_vecget_gflux(gflux_clm_loc)
     gflux_clm_loc = 0._r8
@@ -6725,17 +6670,17 @@ contains
 
        idx = g - bounds%begg + 1
 
-       if (snl(c) == 0 .and. h2osfc_col(c) == 0._r8) then
+       if (snl(c) == 0 .and. h2osfc(c) == 0._r8) then
           ! Both, snow and standing water is absent
           gflux_clm_loc(idx) = hs_soil(c)
 
-        else if (snl(c) < 0 .and. h2osfc_col(c) == 0._r8) then
+        else if (snl(c) < 0 .and. h2osfc(c) == 0._r8) then
           ! Snow is present, but standing water is absent
           j = 0
-          flux_n_plus_1 = tk(c,j)*(t_soisno_col(c,j+1)-t_soisno_col(c,j))/(z(c,j+1)-z(c,j))
+          flux_n_plus_1 = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
           gflux_clm_loc(idx) =  -(cnfac*fn(c,j) + (1-cnfac)*flux_n_plus_1)
 
-        else if (snl(c) == 0 .and. h2osfc_col(c) > 0._r8) then
+        else if (snl(c) == 0 .and. h2osfc(c) > 0._r8) then
           ! Snow is absent, but standing water is present
           if (pflotran_surfaceflow) then
              ! Surface flows simulated in PFLOTRAN
@@ -6743,8 +6688,8 @@ contains
           else
              ! Surface flows not simulated in PFLOTRAN
              j = 1
-             dzm = (1.0e-3*(0.5*h2osfc_col(c)) + z(c,j))
-             flux_n_plus_1 = tk_h2osfc(c)*(t_soisno_col(c,j) - t_h2osfc_col(c))/dzm
+             dzm = (1.0e-3*(0.5*h2osfc(c)) + z(c,j))
+             flux_n_plus_1 = tk_h2osfc(c)*(t_soisno(c,j) - t_h2osfc(c))/dzm
              gflux_clm_loc(idx) = -(cnfac*fn_h2osfc(c) + (1-cnfac)*flux_n_plus_1)
           end if
         else
@@ -6753,12 +6698,12 @@ contains
              ! Surface flows simulated in PFLOTRAN
              j = 0
              dzm = (0.5*dz_h2osfc(c) + z(c,j))
-             flux_n_plus_1 = tk_snow(c)*(t_soisno_col(c,j) - t_h2osfc_col(c))/dzm
+             flux_n_plus_1 = tk_snow(c)*(t_soisno(c,j) - t_h2osfc(c))/dzm
              gflux_clm_loc(idx) = -(cnfac*fn_snow(c) + (1-cnfac)*flux_n_plus_1)-fn_snow(c)
           else
              ! Surface flows not simulated in PFLOTRAN
-             dzm = (1.0e-3*(0.5*h2osfc_col(c)) + z(c,j))
-             flux_n_plus_1 = tk_h2osfc(c)*(t_soisno_col(c,j) - t_h2osfc_col(c))/dzm
+             dzm = (1.0e-3*(0.5*h2osfc(c)) + z(c,j))
+             flux_n_plus_1 = tk_h2osfc(c)*(t_soisno(c,j) - t_h2osfc(c))/dzm
              gflux_clm_loc(idx) = -(cnfac*fn_h2osfc(c) + (1-cnfac)*flux_n_plus_1)
           endif
         end if
