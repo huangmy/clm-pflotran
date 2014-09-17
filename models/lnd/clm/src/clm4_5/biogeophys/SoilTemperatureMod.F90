@@ -6242,7 +6242,7 @@ contains
                   
                      ! Snow overlaying soil layers
                      bmatrix_soil(c,3,j) = 1._r8 + (1._r8 - cnfac)*fact(c,j)* &
-                                           (tk(c,j)/dzp + tk(c,j)/dzm)
+                                           (tk(c,j)/dzp + tk(c,j-1)/dzm)
                   else
                   
                      ! Both, snow and standing water absent
