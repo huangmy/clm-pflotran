@@ -1574,7 +1574,7 @@ contains
           t_soisno(c,j) = temp_clm_loc(gcount*nlevmapped+j) + 273.15_r8
        enddo
        if ( nlevmapped /= nlevgrnd) then
-          t_soisno(c, nlevmapped+1:nlevgrnd) = t_soisno(c, nlevmapped)
+          t_soisno(c, nlevmapped+1:nlevgrnd) = t_soisno(c, nlevmapped) + 273.15_r8
        end if
     enddo
 
