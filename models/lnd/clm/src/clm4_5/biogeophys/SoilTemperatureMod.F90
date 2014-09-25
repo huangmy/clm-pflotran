@@ -123,7 +123,8 @@ contains
     use landunit_varcon, only : istwet, istice, istice_mec, istsoil, istcrop
     use clm_varpar     , only : nlevsno, nlevgrnd, nlevurb
     use BandDiagonalMod, only : BandDiagonal
-    use clm_varctl     , only : use_pflotran, pflotran_th_mode
+    use clm_varctl     , only : use_pflotran, pflotran_th_mode, pflotran_th_freezing
+    use clm_pflotran_interfaceMod, only : clm_pf_update_soil_therm_cond
     !
     ! !ARGUMENTS:
     implicit none
@@ -252,6 +253,15 @@ contains
          tk( begc:endc, -nlevsno+1: ),                      &
          cv( begc:endc, -nlevsno+1:),                       &
          tk_h2osfc( begc:endc))
+
+    if (use_pflotran .and. pflotran_th_mode) then
+      call clm_pf_update_soil_therm_cond(bounds, &
+           num_urbanl,                           &
+           filter_urbanl,                        &
+           num_nolakec,                          &
+           filter_nolakec,                       &
+           tk)
+    endif
 
     ! Net ground heat flux into the surface and its temperature derivative
     ! Added a pfts loop here to get the average of hs and dhsdT over
@@ -482,17 +492,20 @@ contains
     end do
 
     xmf_h2osfc=0.
-    ! compute phase change of h2osfc
-    call PhaseChangeH2osfc (bounds, num_nolakec, filter_nolakec, &
-         fact(bounds%begc:bounds%endc, :),                       &
-         dhsdT(bounds%begc:bounds%endc),                         &
-         c_h2osfc(bounds%begc:bounds%endc),                      &
-         xmf_h2osfc(bounds%begc:bounds%endc))
+    xmf=0._r8
+    if ( .not.(use_pflotran .and. pflotran_th_mode .and. pflotran_th_freezing) ) then
+       ! compute phase change of h2osfc
+       call PhaseChangeH2osfc (bounds, num_nolakec, filter_nolakec, &
+            fact(bounds%begc:bounds%endc, :),                       &
+            dhsdT(bounds%begc:bounds%endc),                         &
+            c_h2osfc(bounds%begc:bounds%endc),                      &
+            xmf_h2osfc(bounds%begc:bounds%endc))
 
-    call Phasechange_beta (bounds, num_nolakec, filter_nolakec, &
-         fact(bounds%begc:bounds%endc, :),                      &
-         dhsdT(bounds%begc:bounds%endc),                        &
-         xmf(bounds%begc:bounds%endc))
+       call Phasechange_beta (bounds, num_nolakec, filter_nolakec, &
+            fact(bounds%begc:bounds%endc, :),                      &
+            dhsdT(bounds%begc:bounds%endc),                        &
+            xmf(bounds%begc:bounds%endc))
+    endif
 
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
