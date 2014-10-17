@@ -1,5 +1,7 @@
 module clm_pflotran_interfaceMod
 
+#include "shr_assert.h"
+
   !-----------------------------------------------------------------------
   !BOP
   !
@@ -14,6 +16,8 @@ module clm_pflotran_interfaceMod
   use clm_pflotran_interface_data
   use pflotran_model_module
 #endif
+
+  use shr_log_mod    , only : errMsg => shr_log_errMsg
 
   ! !PUBLIC TYPES:
   implicit none
@@ -40,6 +44,7 @@ module clm_pflotran_interfaceMod
        clm_pf_set_sflow_forcing, &
        clm_pf_update_soil_moisture, &
        clm_pf_update_soil_temperature, &
+       clm_pf_update_soil_therm_cond, &
        clm_pf_update_drainage, &
        clm_pf_update_h2osfc, &
        clm_pf_step_th, &
@@ -307,6 +312,40 @@ contains
 #endif
   end subroutine clm_pf_update_soil_temperature
 
+  !-----------------------------------------------------------------------------
+  subroutine clm_pf_update_soil_therm_cond(bounds, &
+       num_urbanl, filter_urbanl, &
+       num_nolakec, filter_nolakec, tk)
+
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+    use filterMod, only : clumpfilter
+    use decompMod, only : bounds_type
+    use clm_varpar, only : nlevsno, nlevgrnd
+
+    implicit none
+
+    type(bounds_type), intent(in) :: bounds  ! bounds
+    integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
+    integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
+    integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
+    integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
+    real(r8), intent(out) :: tk (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)          ! thermal conductivity [W/(m K)]
+
+    character(len=256) :: subname = "clm_pf_update_soil_therm_cond"
+
+    ! Enforce expected array sizes
+    SHR_ASSERT_ALL((ubound(tk)  == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+
+#ifdef CLM_PFLOTRAN
+    call update_soil_therm_cond_clm_pf(bounds, &
+       num_urbanl, filter_urbanl, &
+       num_nolakec, filter_nolakec, &
+       tk)
+#else
+    call pflotran_not_available(subname)
+#endif
+  end subroutine clm_pf_update_soil_therm_cond
+
 
   !-----------------------------------------------------------------------------
   subroutine clm_pf_update_drainage(num_hydrologyc, filter_hydrologyc, waterflux_vars)
@@ -548,7 +587,7 @@ contains
     use shr_assert_mod , only : shr_assert
     use shr_log_mod    , only : errMsg => shr_log_errMsg
     use clm_varctl      , only : iulog, fsurdat
-    use clm_varctl      , only : pflotran_surfaceflow, pflotran_th_mode
+    use clm_varctl      , only : pflotran_surfaceflow, pflotran_th_mode, pflotran_th_freezing
     use decompMod       , only : bounds_type, get_proc_total, ldecomp
     use clm_varpar      , only : nlevsoi, nlevgrnd
     use shr_kind_mod    , only: r8 => shr_kind_r8
@@ -801,7 +840,10 @@ contains
     call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
                                   clm_npts, PF_SUB_TO_CLM_SUB)
 
-    if (pflotran_m%option%iflowmode == TH_MODE) pflotran_th_mode = .true.
+    if (pflotran_m%option%iflowmode == TH_MODE) then
+      pflotran_th_mode = .true.
+      if (pflotran_m%option%use_th_freezing) pflotran_th_freezing  = .true.
+    endif
 
     if (pflotran_m%option%nsurfflowdof > 0) then
       pflotran_surfaceflow = .true.
@@ -1046,7 +1088,7 @@ contains
     call pflotranModelGetTopFaceArea(pflotran_m)
 
     ! Get PFLOTRAN states
-    call pflotranModelGetUpdatedStates(pflotran_m)
+    call pflotranModelGetUpdatedData(pflotran_m)
 
     ! Initialize soil temperature
     if(pflotran_m%option%iflowmode==TH_MODE) then
@@ -1309,7 +1351,7 @@ contains
 
     use pflotran_model_module, only :pflotranModelUpdateFlowConds, &
          pflotranModelStepperRunTillPauseTime, &
-         pflotranModelGetUpdatedStates
+         pflotranModelGetUpdatedData
 
     use clm_pflotran_interface_data
     use decompMod                  , only : bounds_type
@@ -1467,7 +1509,7 @@ contains
 
     call pflotranModelUpdateFlowConds( pflotran_m )
     call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    call pflotranModelGetUpdatedStates( pflotran_m )
+    call pflotranModelGetUpdatedData( pflotran_m )
 
     end associate
   end subroutine step_th_clm_pf
@@ -1544,6 +1586,86 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%temp_clm, temp_clm_loc, ierr); CHKERRQ(ierr)
     end associate
   end subroutine update_soil_temperature_clm_pf
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: update_soil_therm_cond_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine update_soil_therm_cond_clm_pf(bounds, &
+       num_urbanl, filter_urbanl, &
+       num_nolakec, filter_nolakec, &
+       tk)
+
+  !
+  ! !DESCRIPTION:
+  ! Overwrites the effective thermal conductivity values computed by CLM with
+  ! values obtained from PFLOTRAN.
+  !
+  ! !USES:
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+    use clm_time_manager  , only : get_step_size
+    use clm_varctl    , only : iulog
+    use clm_varpar    , only : nlevsno, nlevgrnd, nlevsoi
+    use decompMod     , only : bounds_type
+    use ColumnType      , only : col
+
+    use clm_pflotran_interface_data, only : clm_pf_idata
+
+  ! !ARGUMENTS:
+    implicit none
+
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+
+    type(bounds_type) , intent(in)  :: bounds
+    integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
+    integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
+    integer , intent(in)  :: num_urbanl          ! number of urban landunits in clump
+    integer , intent(in)  :: filter_urbanl(:)    ! urban landunit filter
+    real(r8), intent(out) :: tk (bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)          ! thermal conductivity [W/(m K)]
+
+  ! !LOCAL VARIABLES:
+    character(len=256) :: subname = 'Update_soil_temperature_clm_pf'
+    integer  :: j,c,g                     !  indices
+    integer  :: fc                        ! lake filtered column indices
+    integer  :: gcount
+    integer  :: nlevmapped
+
+    PetscScalar, pointer :: eff_therm_cond_clm_loc(:)  !
+    PetscErrorCode :: ierr
+  !EOP
+  !-----------------------------------------------------------------------
+
+    ! Enforce expected array sizes
+    SHR_ASSERT_ALL((ubound(tk)  == (/bounds%endc, nlevgrnd/)), errMsg(__FILE__, __LINE__))
+
+    associate( &
+      cgridcell  =>  col%gridcell    & !  [integer (:)]  column's gridcell
+    )
+
+    call VecGetArrayF90(clm_pf_idata%eff_therm_cond_clm, eff_therm_cond_clm_loc, ierr); CHKERRQ(ierr)
+
+    nlevmapped = clm_pf_idata%nzclm_mapped
+
+    do fc = 1,num_nolakec
+       c = filter_nolakec(fc)
+       g = cgridcell(c)
+       gcount = g - bounds%begg
+       do j = 1, nlevmapped
+          tk(c,j) = eff_therm_cond_clm_loc(gcount*nlevmapped+j)
+       enddo
+       if ( nlevmapped /= nlevgrnd) then
+          tk(c, nlevmapped+1:nlevgrnd) = tk(c,j)
+       end if
+    enddo
+
+    call VecRestoreArrayF90(clm_pf_idata%eff_therm_cond_clm, eff_therm_cond_clm_loc, ierr); CHKERRQ(ierr)
+
+    end associate
+  end subroutine update_soil_therm_cond_clm_pf
 
   !-----------------------------------------------------------------------------
   !BOP
