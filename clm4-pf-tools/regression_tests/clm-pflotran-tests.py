@@ -1454,6 +1454,10 @@ endif
 """)
 
 def list_to_dict(input_list, upper_case=False):
+    """Convert a list of key value pairs, like the one returned by config
+    parser items(), into a dictionary
+
+    """
     output_dict = {}
     for item in input_list:
         key = item[0]
