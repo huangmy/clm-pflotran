@@ -597,6 +597,17 @@ contains
          call Phasechange_beta (bounds, num_nolakec, filter_nolakec, &
               dhsdT(bounds%begc:bounds%endc), &
               soilstate_vars, waterstate_vars, waterflux_vars, energyflux_vars, temperature_vars)
+      else
+
+         call PhaseChangeH2osfc_init_PF (bounds, num_nolakec, filter_nolakec, &
+              dhsdT(bounds%begc:bounds%endc), &
+              waterstate_vars, waterflux_vars, temperature_vars)
+
+         call Phasechange_beta_init_PF (bounds, num_nolakec, filter_nolakec, &
+              dhsdT(bounds%begc:bounds%endc), &
+              soilstate_vars, waterstate_vars, waterflux_vars, energyflux_vars, temperature_vars)
+
+
       endif
 
       do fc = 1,num_nolakec
@@ -6779,6 +6790,133 @@ contains
 
     end associate
   end subroutine SaveThermalBCFluxForPFLOTRAN
+
+  !-----------------------------------------------------------------------
+  subroutine PhaseChangeH2osfc_init_PF (bounds, num_nolakec, filter_nolakec, &
+       dhsdT, waterstate_vars, waterflux_vars, temperature_vars)
+    !
+    ! !DESCRIPTION:
+    ! Only freezing is considered.  When water freezes, move ice to bottom snow layer.
+    !
+    ! !USES:
+    use clm_time_manager , only : get_step_size
+    use clm_varcon       , only : tfrz, hfus, grav, denice, cnfac, cpice
+    use clm_varpar       , only : nlevsno, nlevgrnd
+    use clm_varctl       , only : iulog
+    !
+    ! !ARGUMENTS:
+    type(bounds_type)      , intent(in)    :: bounds
+    integer                , intent(in)    :: num_nolakec                          ! number of column non-lake points in column filter
+    integer                , intent(in)    :: filter_nolakec(:)                    ! column filter for non-lake points
+    real(r8)               , intent(in)    :: dhsdT ( bounds%begc: )               ! temperature derivative of "hs" [col               ]
+    type(waterstate_type)  , intent(inout) :: waterstate_vars
+    type(waterflux_type)   , intent(inout) :: waterflux_vars
+    type(temperature_type) , intent(inout) :: temperature_vars
+    !
+    ! !LOCAL VARIABLES:
+    integer  :: j,c,g                       !do loop index
+    integer  :: fc
+    !-----------------------------------------------------------------------
+
+    call t_startf( 'PhaseChangeH2osfc' )
+
+    ! Enforce expected array sizes
+    SHR_ASSERT_ALL((ubound(dhsdT) == (/bounds%endc/)), errMsg(__FILE__, __LINE__))
+
+    associate(                                                                   &
+         h2osfc                    =>    waterstate_vars%h2osfc_col            , & ! Output: [real(r8) (:)   ] surface water (mm)
+         int_snow                  =>    waterstate_vars%int_snow_col          , & ! Output: [real(r8) (:)   ] integrated snowfall [mm]
+         snow_depth                =>    waterstate_vars%snow_depth_col        , & ! Output: [real(r8) (:)   ] snow height (m)
+
+         qflx_h2osfc_to_ice        =>    waterflux_vars%qflx_h2osfc_to_ice_col , & ! Output: [real(r8) (:)   ] conversion of h2osfc to ice
+
+         xmf_h2osfc                =>    temperature_vars%xmf_h2osfc_col         &
+         )
+
+      ! Initialization
+
+      do fc = 1,num_nolakec
+         c = filter_nolakec(fc)
+         xmf_h2osfc(c)          = 0._r8
+         qflx_h2osfc_to_ice(c)  = 0._r8
+      end do
+
+    end associate
+
+  end subroutine PhaseChangeH2osfc_init_PF
+
+  !-----------------------------------------------------------------------
+  subroutine Phasechange_beta_init_PF (bounds, num_nolakec, filter_nolakec, dhsdT, &
+       soilstate_vars, waterstate_vars, waterflux_vars, energyflux_vars, temperature_vars)
+    !
+    ! !DESCRIPTION:
+    !
+    ! !USES:
+    use clm_time_manager , only : get_step_size
+    use clm_varpar       , only : nlevsno, nlevgrnd,nlevurb
+    use clm_varctl       , only : iulog
+    use clm_varcon       , only : tfrz, hfus, grav
+    use column_varcon    , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv
+    use landunit_varcon  , only : istsoil, istcrop, istice_mec
+    !
+    ! !ARGUMENTS:
+    type(bounds_type)      , intent(in)    :: bounds
+    integer                , intent(in)    :: num_nolakec                          ! number of column non-lake points in column filter
+    integer                , intent(in)    :: filter_nolakec(:)                    ! column filter for non-lake points
+    real(r8)               , intent(in)    :: dhsdT ( bounds%begc: )               ! temperature derivative of "hs" [col]
+    type(soilstate_type)   , intent(in)    :: soilstate_vars
+    type(waterstate_type)  , intent(inout) :: waterstate_vars
+    type(waterflux_type)   , intent(inout) :: waterflux_vars
+    type(energyflux_type)  , intent(inout) :: energyflux_vars
+    type(temperature_type) , intent(inout) :: temperature_vars
+    !
+    ! !LOCAL VARIABLES:
+    integer  :: j,c,g,l                            !do loop index
+    integer  :: fc
+    !-----------------------------------------------------------------------
+
+    call t_startf( 'PhaseChangebeta' )
+
+    ! Enforce expected array sizes
+    SHR_ASSERT_ALL((ubound(dhsdT) == (/bounds%endc/)), errMsg(__FILE__, __LINE__))
+
+    associate(                                                        &
+
+         qflx_snow_melt   =>    waterflux_vars%qflx_snow_melt_col   , & ! Output: [real(r8) (:)   ] net snow melt
+         qflx_snofrz_lyr  =>    waterflux_vars%qflx_snofrz_lyr_col  , & ! Output: [real(r8) (:,:) ] snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
+         qflx_snofrz_col  =>    waterflux_vars%qflx_snofrz_col      , & ! Output: [real(r8) (:)   ] column-integrated snow freezing rate (positive definite) [kg m-2 s-1]
+         qflx_glcice      =>    waterflux_vars%qflx_glcice_col      , & ! Output: [real(r8) (:)   ] flux of new glacier ice (mm H2O/s) [+ = ice grows]
+         qflx_glcice_melt =>    waterflux_vars%qflx_glcice_melt_col , & ! Output: [real(r8) (:)   ] ice melt (positive definite) (mm H2O/s)
+         qflx_snomelt     =>    waterflux_vars%qflx_snomelt_col     , & ! Output: [real(r8) (:)   ] snow melt (mm H2O /s)
+
+         eflx_snomelt     =>    energyflux_vars%eflx_snomelt_col    , & ! Output: [real(r8) (:)   ] snow melt heat flux (W/m**2)
+         eflx_snomelt_r   =>    energyflux_vars%eflx_snomelt_r_col  , & ! Output: [real(r8) (:)   ] rural snow melt heat flux (W/m**2)
+         eflx_snomelt_u   =>    energyflux_vars%eflx_snomelt_u_col  , & ! Output: [real(r8) (:)   ] urban snow melt heat flux (W/m**2)
+
+         xmf              =>    temperature_vars%xmf_col            , &
+
+         imelt            =>    temperature_vars%imelt_col            & ! Output: [integer  (:,:) ] flag for melting (=1), freezing (=2), Not=0 (new)
+         )
+
+      ! Initialization
+
+      do fc = 1,num_nolakec
+         c = filter_nolakec(fc)
+         l = col%landunit(c)
+
+         qflx_snomelt(c)                  = 0._r8
+         xmf(c)                           = 0._r8
+         qflx_snofrz_lyr(c,-nlevsno+1:0)  = 0._r8
+         qflx_snofrz_col(c)               = 0._r8
+         qflx_glcice_melt(c)              = 0._r8
+         qflx_snow_melt(c)                = 0._r8
+
+         imelt(c,j)                       = 0
+      end do
+
+    end associate
+
+  end subroutine Phasechange_beta_init_PF
 
 end module SoilTemperatureMod
 
