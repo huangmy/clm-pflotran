@@ -1078,7 +1078,7 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
 
     ! Set CLM soil properties onto PFLOTRAN grid
-    !call pflotranModelSetSoilProp(pflotran_m)
+    call pflotranModelSetSoilProp(pflotran_m)
     !call pflotranModelSetICs(pflotran_m)
 
     ! Initialize PFLOTRAN states
