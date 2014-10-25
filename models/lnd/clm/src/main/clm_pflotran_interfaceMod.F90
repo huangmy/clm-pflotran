@@ -692,8 +692,6 @@ contains
 
     logical :: readvar
 
-    integer, pointer :: clm_cell_ids_nindex(:)
-    integer, pointer :: clm_surf_cell_ids_nindex(:)
     integer :: clm_npts
     integer :: clm_surf_npts
     integer :: num_active_columns
@@ -712,6 +710,8 @@ contains
     PetscScalar, pointer :: temp_clm_loc(:)    ! Temperature
     PetscScalar, pointer :: sat_clm_loc(:)     ! Saturation
     PetscErrorCode :: ierr
+    integer, pointer :: clm_cell_ids_nindex(:)
+    integer, pointer :: clm_surf_cell_ids_nindex(:)
 
     associate( &
          ! Assign local pointers to derived subtypes components (landunit-level)
@@ -751,112 +751,13 @@ contains
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()
 
-    select type (simulation => pflotran_m%simulation)
-      class is (subsurface_simulation_type)
-         realization => simulation%realization
-         nullify(surf_realization)
-      class is (surface_simulation_type)
-         nullify(realization)
-         surf_realization => simulation%surf_realization
-      class is (surfsubsurface_simulation_type)
-         realization => simulation%realization
-         surf_realization => simulation%surf_realization
-      class default
-         pflotran_m%option%io_buffer = "clm-pflotran only works with surface and subsurface simulations."
-         write(*, '(/A/)') pflotran_m%option%io_buffer
-         call printErrMsg(pflotran_m%option)
-    end select
+    ! Allocate memory for CLM-PFLOTRAN interface data
+    call CreateCLMPFLOTRANInterfaceDate(bounds, clm_npts, clm_surf_npts)
 
-    ! Compute number of cells in CLM domain.
-    ! Assumption-1: One column per CLM grid cell.
+    ! Create CLM-PFLOTRAN mapping files
+    call CreateCLMPFLOTRANMaps(bounds, clm_npts, clm_surf_npts)
 
-    ! Check if the number of CLM vertical soil layers defined in the mapping
-    ! file read by PFLOTRAN matches either nlevsoi or nlevgrnd
-    clm_pf_idata%nzclm_mapped = pflotran_m%map_clm_sub_to_pf_sub%clm_nlevsoi
-    nlevmapped                = clm_pf_idata%nzclm_mapped
-    if ( (nlevmapped /= nlevsoi) .and. (nlevmapped /= nlevgrnd) ) then
-       call endrun(trim(subname)//' ERROR: Number of layers PFLOTRAN thinks CLM should '// &
-                'have do not match either nlevsoi or nlevgrnd. Abortting' )
-    end if
-
-    clm_npts = (bounds%endg - bounds%begg + 1)*nlevmapped
-    clm_surf_npts = (bounds%endg - bounds%begg + 1)
-    allocate(clm_cell_ids_nindex( 1:clm_npts))
-    allocate(clm_surf_cell_ids_nindex(1:clm_surf_npts))
-
-    ! Save cell IDs of CLM grid
-    clm_npts = 0
-    clm_surf_npts = 0
-    do g = bounds%begg, bounds%endg
-       do j = 1,nlevmapped
-          clm_npts = clm_npts + 1
-          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevmapped + j - 1
-       enddo
-       clm_surf_npts=clm_surf_npts + 1
-       clm_surf_cell_ids_nindex(clm_surf_npts)=(ldecomp%gdc2glo(g)-1)*nlevmapped
-    enddo
-
-    ! CLM: Subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlclm_sub = clm_npts
-    clm_pf_idata%ngclm_sub = clm_npts
-
-    ! CLM: Surface of subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlclm_2dsub = (bounds%endg - bounds%begg + 1)
-    clm_pf_idata%ngclm_2dsub = (bounds%endg - bounds%begg + 1)
-    ! For CLM: Same as surface of subsurface domain
-    clm_pf_idata%nlclm_srf = clm_surf_npts
-    clm_pf_idata%ngclm_srf = clm_surf_npts
-
-    ! PFLOTRAN: Subsurface domain (local and ghosted cells)
-    clm_pf_idata%nlpf_sub = realization%patch%grid%nlmax
-    clm_pf_idata%ngpf_sub = realization%patch%grid%ngmax
-
-    ! PFLOTRAN: Surface of subsurface domain (local and ghosted cells)
-    if(pflotran_m%option%iflowmode == TH_MODE) then
-      clm_pf_idata%nlpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
-      clm_pf_idata%ngpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
-    else
-      clm_pf_idata%nlpf_2dsub = 0
-      clm_pf_idata%ngpf_2dsub = 0
-    endif
-    
-    ! PFLOTRAN: Surface domain (local and ghosted cells)
-    if(associated(surf_realization) .and. pflotran_m%option%nsurfflowdof > 0) then
-      clm_pf_idata%nlpf_srf = surf_realization%patch%grid%nlmax
-      clm_pf_idata%ngpf_srf = surf_realization%patch%grid%ngmax
-    else
-      clm_pf_idata%nlpf_srf = 0
-      clm_pf_idata%ngpf_srf = 0
-    endif
-
-    ! Allocate vectors for data transfer between CLM and PFLOTRAN.
-    call CLMPFLOTRANIDataCreateVec(MPI_COMM_WORLD)
-
-    ! Initialize maps for transferring data between CLM and PFLOTRAN.
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, CLM_SUB_TO_PF_SUB)
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, CLM_SUB_TO_PF_EXTENDED_SUB)
-    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
-                                  clm_npts, PF_SUB_TO_CLM_SUB)
-
-    if (pflotran_m%option%iflowmode == TH_MODE) then
-      pflotran_th_mode = .true.
-      if (pflotran_m%option%use_th_freezing) pflotran_th_freezing  = .true.
-    endif
-
-    if (pflotran_m%option%nsurfflowdof > 0) then
-      pflotran_surfaceflow = .true.
-      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                    clm_surf_npts, PF_SRF_TO_CLM_SRF)
-      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                    clm_surf_npts, CLM_SRF_TO_PF_SRF)
-    else
-      if (pflotran_m%option%iflowmode == TH_MODE) then
-        call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
-                                      clm_surf_npts, CLM_SRF_TO_PF_2DSUB)
-      endif
-    endif
+    nlevmapped     = clm_pf_idata%nzclm_mapped
 
     call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
     call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
@@ -1136,6 +1037,199 @@ contains
     end associate
   end subroutine interface_init_clm_pf
 
+  !-----------------------------------------------------------------------
+  subroutine CreateCLMPFLOTRANInterfaceDate(bounds, clm_npts, clm_surf_npts)
+    !
+    ! !DESCRIPTION:
+    ! Allocates memory for CLM-PFLOTRAN interface
+    !
+    ! !USES:
+    use clm_varctl      , only : pflotran_surfaceflow, pflotran_th_mode, pflotran_th_freezing
+    use decompMod       , only : bounds_type, ldecomp
+    use clm_varpar      , only : nlevsoi, nlevgrnd
+    use shr_kind_mod    , only: r8 => shr_kind_r8
+    use spmdMod         , only : mpicom, masterproc, iam
+    use abortutils      , only : endrun
+    ! pflotran
+    use Option_module, only : printErrMsg
+    use Simulation_Base_class, only : simulation_base_type
+    use Subsurface_Simulation_class, only : subsurface_simulation_type
+    use Surface_Simulation_class, only : surface_simulation_type
+    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Realization_class, only : realization_type
+    use Surface_Realization_class, only : surface_realization_type
+    use PFLOTRAN_Constants_module
+    !
+    implicit none
+    !
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+#include "finclude/petscviewer.h"
+    !
+    ! !ARGUMENTS:
+    type(bounds_type), intent(in) :: bounds
+    integer, intent(inout) :: clm_npts
+    integer, intent(inout)  :: clm_surf_npts
+    !
+    ! LOCAL VARAIBLES:
+    integer  :: g,l,c,lev,j  ! indices
+    integer  :: gcount
+    integer :: nlevmapped
+    character(len= 128) :: subname = 'CreateCLMPFLOTRANInterfaceDate' ! subroutine name
+    class(realization_type), pointer    :: realization
+    class(surface_realization_type), pointer    :: surf_realization
+
+    ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
+    call CLMPFLOTRANIDataInit()
+
+    select type (simulation => pflotran_m%simulation)
+      class is (subsurface_simulation_type)
+         realization => simulation%realization
+         nullify(surf_realization)
+      class is (surface_simulation_type)
+         nullify(realization)
+         surf_realization => simulation%surf_realization
+      class is (surfsubsurface_simulation_type)
+         realization => simulation%realization
+         surf_realization => simulation%surf_realization
+      class default
+         pflotran_m%option%io_buffer = "clm-pflotran only works with surface and subsurface simulations."
+         write(*, '(/A/)') pflotran_m%option%io_buffer
+         call printErrMsg(pflotran_m%option)
+    end select
+
+    ! Compute number of cells in CLM domain.
+    ! Assumption-1: One column per CLM grid cell.
+
+    ! Check if the number of CLM vertical soil layers defined in the mapping
+    ! file read by PFLOTRAN matches either nlevsoi or nlevgrnd
+    clm_pf_idata%nzclm_mapped = pflotran_m%map_clm_sub_to_pf_sub%clm_nlevsoi
+    nlevmapped                = clm_pf_idata%nzclm_mapped
+    if ( (nlevmapped /= nlevsoi) .and. (nlevmapped /= nlevgrnd) ) then
+       call endrun(trim(subname)//' ERROR: Number of layers PFLOTRAN thinks CLM should '// &
+                'have do not match either nlevsoi or nlevgrnd. Abortting' )
+    end if
+
+    clm_npts = (bounds%endg - bounds%begg + 1)*nlevmapped
+    clm_surf_npts = (bounds%endg - bounds%begg + 1)
+
+    ! CLM: Subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlclm_sub = clm_npts
+    clm_pf_idata%ngclm_sub = clm_npts
+
+    ! CLM: Surface of subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlclm_2dsub = (bounds%endg - bounds%begg + 1)
+    clm_pf_idata%ngclm_2dsub = (bounds%endg - bounds%begg + 1)
+    ! For CLM: Same as surface of subsurface domain
+    clm_pf_idata%nlclm_srf = clm_surf_npts
+    clm_pf_idata%ngclm_srf = clm_surf_npts
+
+    ! PFLOTRAN: Subsurface domain (local and ghosted cells)
+    clm_pf_idata%nlpf_sub = realization%patch%grid%nlmax
+    clm_pf_idata%ngpf_sub = realization%patch%grid%ngmax
+
+    ! PFLOTRAN: Surface of subsurface domain (local and ghosted cells)
+    if (pflotran_m%option%iflowmode == TH_MODE) then
+      clm_pf_idata%nlpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
+      clm_pf_idata%ngpf_2dsub = pflotranModelNSurfCells3DDomain(pflotran_m)
+    else
+      clm_pf_idata%nlpf_2dsub = 0
+      clm_pf_idata%ngpf_2dsub = 0
+    endif
+
+    ! PFLOTRAN: Surface domain (local and ghosted cells)
+    if (associated(surf_realization) .and. pflotran_m%option%nsurfflowdof > 0) then
+      clm_pf_idata%nlpf_srf = surf_realization%patch%grid%nlmax
+      clm_pf_idata%ngpf_srf = surf_realization%patch%grid%ngmax
+    else
+      clm_pf_idata%nlpf_srf = 0
+      clm_pf_idata%ngpf_srf = 0
+    endif
+
+    ! Allocate vectors for data transfer between CLM and PFLOTRAN.
+    call CLMPFLOTRANIDataCreateVec(MPI_COMM_WORLD)
+
+  end subroutine CreateCLMPFLOTRANInterfaceDate
+
+  !-----------------------------------------------------------------------
+  subroutine CreateCLMPFLOTRANMaps(bounds, clm_npts, clm_surf_npts)
+    !
+    ! !DESCRIPTION:
+    ! Creates maps to transfer data between CLM and PFLOTRAN
+    !
+    ! !USES:
+    use clm_varctl      , only : pflotran_surfaceflow, pflotran_th_mode, pflotran_th_freezing
+    use decompMod       , only : bounds_type, ldecomp
+    use clm_varpar      , only : nlevsoi, nlevgrnd
+    use PFLOTRAN_Constants_module
+    !
+    implicit none
+    !
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+#include "finclude/petscviewer.h"
+    !
+    ! !ARGUMENTS:
+    type(bounds_type), intent(in) :: bounds
+    integer, intent(inout) :: clm_npts
+    integer, intent(inout)  :: clm_surf_npts
+    !
+    ! LOCAL VARAIBLES:
+    integer  :: g,l,c,lev,j  ! indices
+    integer  :: gcount
+    character(len= 128) :: subname = 'CreateCLMPFLOTRANMaps' ! subroutine name
+    integer :: nlevmapped
+    integer, pointer :: clm_cell_ids_nindex(:)
+    integer, pointer :: clm_surf_cell_ids_nindex(:)
+
+    ! Save cell IDs of CLM grid
+    allocate(clm_cell_ids_nindex(     1:clm_npts     ))
+    allocate(clm_surf_cell_ids_nindex(1:clm_surf_npts))
+
+    nlevmapped     = clm_pf_idata%nzclm_mapped
+    clm_npts       = 0
+    clm_surf_npts  = 0
+    do g = bounds%begg, bounds%endg
+       do j = 1,nlevmapped
+          clm_npts = clm_npts + 1
+          clm_cell_ids_nindex(clm_npts) = (ldecomp%gdc2glo(g)-1)*nlevmapped + j - 1
+       enddo
+       clm_surf_npts = clm_surf_npts + 1
+       clm_surf_cell_ids_nindex(clm_surf_npts) = (ldecomp%gdc2glo(g)-1)*nlevmapped
+    enddo
+
+    ! Initialize maps for transferring data between CLM and PFLOTRAN.
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, CLM_SUB_TO_PF_SUB)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, CLM_SUB_TO_PF_EXTENDED_SUB)
+    call pflotranModelInitMapping(pflotran_m, clm_cell_ids_nindex, &
+                                  clm_npts, PF_SUB_TO_CLM_SUB)
+
+    if (pflotran_m%option%iflowmode == TH_MODE) then
+      pflotran_th_mode = .true.
+      if (pflotran_m%option%use_th_freezing) pflotran_th_freezing  = .true.
+    endif
+
+    if (pflotran_m%option%nsurfflowdof > 0) then
+      pflotran_surfaceflow = .true.
+      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                    clm_surf_npts, PF_SRF_TO_CLM_SRF)
+      call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                    clm_surf_npts, CLM_SRF_TO_PF_SRF)
+    else
+      if (pflotran_m%option%iflowmode == TH_MODE) then
+        call pflotranModelInitMapping(pflotran_m, clm_surf_cell_ids_nindex, &
+                                      clm_surf_npts, CLM_SRF_TO_PF_2DSUB)
+      endif
+    endif
+
+    deallocate(clm_cell_ids_nindex)
+    deallocate(clm_surf_cell_ids_nindex)
+
+  end subroutine CreateCLMPFLOTRANMaps
 
   !-----------------------------------------------------------------------------
   !BOP
