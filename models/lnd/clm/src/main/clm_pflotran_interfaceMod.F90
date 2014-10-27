@@ -656,57 +656,15 @@ contains
     integer  :: g,l,c,lev,j  ! indices
     integer  :: gcount
 
-    !
-    ! From iniTimeConst.F90
-    !
-    type(file_desc_t)  :: ncid   ! netcdf id
-    real(r8) :: clay,sand        ! temporaries
-
-    real(r8),pointer :: sand3d(:,:)    ! read in - soil texture: percent sand
-    real(r8),pointer :: clay3d(:,:)    ! read in - soil texture: percent clay
-    real(r8),pointer :: organic3d(:,:) ! read in - organic matter: kg/m3
-
-    real(r8) :: om_frac                ! organic matter fraction
-    real(r8) :: om_watsat    = 0.9_r8  ! porosity of organic soil
-    real(r8) :: om_hksat     = 0.1_r8  ! saturated hydraulic conductivity of organic soil [mm/s]
-    real(r8) :: om_tkm       = 0.25_r8 ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
-    real(r8) :: om_sucsat    = 10.3_r8 ! saturated suction for organic matter (Letts, 2000)
-    real(r8) :: om_b         = 2.7_r8  ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
-    real(r8) :: organic_max  = 130._r8 ! organic matter (kg/m3) where soil is assumed to act like peat
-    real(r8) :: pc           = 0.5_r8   ! percolation threshold
-    real(r8) :: pcbeta       = 0.139_r8 ! percolation exponent
-    real(r8) :: perc_frac               ! "percolating" fraction of organic soil
-    real(r8) :: perc_norm               ! normalize to 1 when 100% organic soil
-    real(r8) :: uncon_hksat             ! series conductivity of mineral/organic soil
-    real(r8) :: uncon_frac              ! fraction of "unconnected" soil
-
-    real(r8) :: watsat_tmp, bsw_tmp, sucsat_tmp, press_tmp
-    real(r8) :: bd, tkm, bsw2_tmp,psisat_tmp
-    real(r8) :: vwcsat_tmp, xksat, hksat_tmp
-
-    character(len=256) :: locfn                    ! local filEname
     character(len= 32) :: subname = 'clm_pf_interface_init' ! subroutine name
-    integer :: mxsoil_color                        ! maximum number of soil color classes
-    
-    integer :: nlevmapped
 
-    logical :: readvar
+    integer :: nlevmapped
 
     integer :: clm_npts
     integer :: clm_surf_npts
     integer :: num_active_columns
 
-    class(realization_type), pointer    :: realization
-    class(surface_realization_type), pointer    :: surf_realization
-
-    !PetscViewer :: viewer
-    PetscScalar, pointer :: hksat_x_clm_loc(:) ! hydraulic conductivity in x-dir at saturation (mm H2O /s)
-    PetscScalar, pointer :: hksat_y_clm_loc(:) ! hydraulic conductivity in y-dir at saturation (mm H2O /s)
-    PetscScalar, pointer :: hksat_z_clm_loc(:) ! hydraulic conductivity in z-dir at saturation (mm H2O /s)
     PetscScalar, pointer :: watsat_clm_loc(:)  ! minimum soil suction (mm)
-    PetscScalar, pointer :: sucsat_clm_loc(:)  ! volumetric soil water at saturation (porosity)
-    PetscScalar, pointer :: bsw_clm_loc(:)     ! Clapp and Hornberger "b"
-    PetscScalar, pointer :: press_clm_loc(:)   ! Pressure
     PetscScalar, pointer :: temp_clm_loc(:)    ! Temperature
     PetscScalar, pointer :: sat_clm_loc(:)     ! Saturation
     PetscErrorCode :: ierr
@@ -722,17 +680,12 @@ contains
          cgridcell  =>  col%gridcell   , & !  [integer (:)]  gridcell index of column
          cwtgcell   =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
          ctype      =>  col%itype      , & !  [integer (:)]  column type index
-         hksat      =>  soilstate_vars%hksat_col      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-         sucsat     =>  soilstate_vars%sucsat_col     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
          watsat     =>  soilstate_vars%watsat_col     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
          h2osoi_vol =>  waterstate_vars%h2osoi_vol_col , & !  [real(r8) (:,:)]  volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
          h2osoi_liq =>  waterstate_vars%h2osoi_liq_col , & !  [real(r8) (:,:)]  liquid water (kg/m2)
          h2osoi_ice =>  waterstate_vars%h2osoi_ice_col , & !  [real(r8) (:,:)]  ice lens (kg/m2)
          t_soisno   =>  temperature_vars%t_soisno_col   , & !  [real(r8) (:,:)]  soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
          topo       =>  ldomain%topo   , & !  [real(r8) (:)]  topography
-         zwt        =>  soilhydrology_vars%zwt_col , & !  [real(r8) (:)]  water table depth (m)
-         latdeg     =>  grc%latdeg     , & !  [real(r8) (:)]  latitude (radians)
-         londeg     =>  grc%londeg     , & !  [real(r8) (:)]  longitude (radians)
          lakpoi     =>  lun%lakpoi     , & !  [logical (:)]  true => landunit is a lake point
          dz         =>  col%dz           & !  [real(r8) (:,:)]  layer thickness (m)
          )
@@ -757,229 +710,9 @@ contains
     ! Create CLM-PFLOTRAN mapping files
     call CreateCLMPFLOTRANMaps(bounds, clm_npts, clm_surf_npts)
 
-    nlevmapped     = clm_pf_idata%nzclm_mapped
-
-    call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
-    call VecGetArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
-    call VecGetArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
-    call VecGetArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
-    call VecGetArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
-
-    write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-    write(iulog,*) '%%                                                     %%'
-    write(iulog,*) '%%                                                     %%'
-    write(iulog,*) '%%          Within clm_pf_interface_init               %%'
-    write(iulog,*) '%%                                                     %%'
-    write(iulog,*) '%%                                                     %%'
-    write(iulog,*) '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-    write(iulog,*) ' '
-
-    allocate(sand3d(bounds%begg:bounds%endg, nlevsoi), clay3d(bounds%begg:bounds%endg, nlevsoi))
-    allocate(organic3d(bounds%begg:bounds%endg, nlevsoi))
-
-    ! --------------------------------------------------------------------
-    ! Read soil color, sand and clay from surface dataset
-    ! --------------------------------------------------------------------
-    if (masterproc) then
-       write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
-    endif
-
-    call getfil (fsurdat, locfn, 0)
-    call ncd_pio_openfile(ncid, locfn, 0)
-
-    ! Determine number of soil color classes - if number of soil color classes is not
-    ! on input dataset set it to 8
-    call ncd_io(ncid=ncid, varname='mxsoil_color', flag='read', data=mxsoil_color, &
-                  readvar=readvar)
-    if ( .not. readvar) mxsoil_color = 8
-
-    call ncd_io(ncid=ncid, varname='PCT_SAND', flag='read', data=sand3d, dim1name=grlnd, readvar=readvar)
-    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_SAND NOT on surfadata file' )
-
-    call ncd_io(ncid=ncid, varname='PCT_CLAY', flag='read', data=clay3d, dim1name=grlnd,readvar=readvar)
-    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfadata file' )
-
-
-    ! Ensure that there is only one active column in each grid cell.
-    !
-    ! NOTE(bja, 2014-02) should check each grid cell to ensure that
-    ! there is only one active column. Suggestion from from Bill
-    ! Sacks: "See reweightMod.F90 : checkWeights for
-    ! inspiration. Basically, you could have an array of size
-    ! begg:endg, where you accumulate a count of the number of active
-    ! columns in that grid cell. Then you could ensure that those
-    ! counts are 1 at every point."
-    num_active_columns = 0
-    do c = bounds%begc, bounds%endc
-       if (col%active(c)) then
-          num_active_columns = num_active_columns + 1
-       end if
-    end do
-    if (local_num_g /= num_active_columns) then
-      write (iulog,*), 'ERROR: CLM-PFLOTRAN requires one active column per grid cell: '
-      write (iulog, *) "decomMod - num grid cells = ", local_num_g
-      write (iulog, *) "num active columns = ", num_active_columns
-      call endrun( trim(subname)//' ERROR: More than 1 col per grid cell' )
-    endif
-
-    ! --------------------------------------------------------------------
-    ! If a organic matter dataset has been specified, read it
-    ! --------------------------------------------------------------------
-
-    call organicrd(organic3d)
-
-    gcount = 0 ! assumption that only 1 soil-column per grid cell
-    do c = bounds%begc, bounds%endc
-      if (.not. col%active(c)) then
-         ! only operate on active columns.
-         cycle
-      end if
-
-      ! Set gridcell and landunit indices
-      g = cgridcell(c)
-      l = clandunit(c)
-      gcount = g - bounds%begg
-
-      if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
-        write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
-        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
-        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
-      else if (urbpoi(l) .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
-        ! Urban Roof, sunwall, shadewall properties set to special value
-        write (iulog,*), 'ERROR: Unsupported Urban Land Unit type: '
-        write (iulog, *) "    urbpoi(l) = ", urbpoi(l) 
-        write (iulog, *) "    ctype(c) = ", ctype(c)
-        write (iulog,*), '  Supported Urban Land Unit types: '
-        write (iulog, *) "    icol_road_perv = ", icol_road_perv
-        write (iulog, *) "    icol_road_imperv = ", icol_road_imperv
-        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
-        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
-      else  ! soil columns of both urban and non-urban types
-
-        do lev = 1,nlevgrnd
-
-          ! duplicate clay and sand values from 10th soil layer
-          if (lev .le. nlevsoi) then
-            clay    = clay3d(g,lev)
-              sand    = sand3d(g,lev)
-            om_frac = (organic3d(g,lev)/organic_max)**2._r8
-          else
-            clay    = clay3d(g,nlevsoi)
-            sand    = sand3d(g,nlevsoi)
-            om_frac = 0._r8
-          endif
-
-          ! No organic matter for urban
-          if (urbpoi(l)) then
-            om_frac = 0._r8
-          end if
-
-          watsat_tmp = 0.489_r8 - 0.00126_r8*sand
-          bsw_tmp    = 2.91 + 0.159*clay
-          sucsat_tmp = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )
-          bd            = (1._r8-watsat_tmp)*2.7e3_r8
-          watsat_tmp = (1._r8 - om_frac)*watsat_tmp + om_watsat*om_frac
-          tkm           = (1._r8-om_frac)*(8.80_r8*sand+2.92_r8*clay)/(sand+clay)+om_tkm*om_frac ! W/(m K)
-          bsw_tmp    = (1._r8-om_frac)*(2.91_r8 + 0.159_r8*clay) + om_frac*om_b
-          bsw2_tmp   = -(3.10_r8 + 0.157_r8*clay - 0.003_r8*sand)
-          psisat_tmp = -(exp((1.54_r8 - 0.0095_r8*sand + 0.0063_r8*(100.0_r8-sand-clay))*log(10.0_r8))*9.8e-5_r8)
-          vwcsat_tmp = (50.5_r8 - 0.142_r8*sand - 0.037_r8*clay)/100.0_r8
-          sucsat_tmp = (1._r8-om_frac)*sucsat_tmp + om_sucsat*om_frac
-          xksat         = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
-
-          ! perc_frac is zero unless perf_frac greater than percolation threshold
-          if (om_frac > pc) then
-            perc_norm=(1._r8 - pc)**(-pcbeta)
-            perc_frac=perc_norm*(om_frac - pc)**pcbeta
-          else
-            perc_frac=0._r8
-          endif
-
-          !
-          !                                ||
-          !                                ||
-          !                               \||/
-          !
-          !
-          !            ******************************************
-          !            *                                        *
-          !            *                                        *
-          !            *           ORGANIC PERCOLATING          *
-          !            *               f_om*f_pre               *
-          !            *                                        *
-          ! ---\       ******************************************
-          ! ---/       *                    *                   *
-          !            *                    *                   *
-          !            *                    *                   *
-          !            *     ORGANIC        *       MINERAL     *
-          !            *  NON-PERCOLATING   *                   *
-          !            *                    *                   *
-          !            *   f_om*(1-f_pre)   *       1-f_om      *
-          !            *                    *                   *
-          !            ******************************************
-          !
-
-          ! ---------------------------------------------------------------
-          ! Hydraulic conductivity in Z-direction
-          ! ---------------------------------------------------------------
-
-          ! uncon_frac is fraction of mineral soil plus fraction of "nonpercolating" organic soil
-          uncon_frac=(1._r8-om_frac)+(1._r8-perc_frac)*om_frac
-
-          ! uncon_hksat is series addition of mineral/organic conductivites
-          if (om_frac .lt. 1._r8) then
-            uncon_hksat = uncon_frac/((1._r8-om_frac)/xksat &
-                         + ((1._r8-perc_frac)*om_frac)/om_hksat)
-          else
-            uncon_hksat = 0._r8
-          end if
-          hksat_tmp  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
-
-          ! ---------------------------------------------------------------
-          ! Hydraulic conductivity in X/Y-direction
-          ! ---------------------------------------------------------------
-
-          !
-          if (om_frac .lt. 1._r8) then
-            uncon_hksat = ( (1._r8 - om_frac)*xksat + &
-                            (1._r8 - perc_frac)*om_frac*om_hksat )/uncon_frac
-            hksat_tmp   = uncon_hksat*om_hksat/(om_frac*perc_frac*uncon_hksat &
-                          + (1._r8 - om_frac*perc_frac)*om_hksat)
-          else
-            uncon_hksat = 0._r8
-            hksat_tmp   = om_hksat
-          end if
-
-          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(c) - zsoi(lev))
-          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(2.0_r8 - zsoi(lev))
-
-          if (lev <= nlevmapped) then
-
-            hksat_x_clm_loc(gcount*nlevmapped + lev ) = hksat_x_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
-            hksat_y_clm_loc(gcount*nlevmapped + lev ) = hksat_y_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
-            hksat_z_clm_loc(gcount*nlevmapped + lev ) = hksat_z_clm_loc(gcount*nlevmapped + lev ) + hksat(c,lev)*cwtgcell(c)
-            sucsat_clm_loc( gcount*nlevmapped + lev ) = sucsat_clm_loc( gcount*nlevmapped + lev ) + sucsat(c,lev)*cwtgcell(c)
-            watsat_clm_loc( gcount*nlevmapped + lev ) = watsat_clm_loc( gcount*nlevmapped + lev ) + watsat(c,lev)*cwtgcell(c)
-            bsw_clm_loc(    gcount*nlevmapped + lev ) = bsw_clm_loc(    gcount*nlevmapped + lev ) + bsw_tmp*cwtgcell(c)
-            press_clm_loc(  gcount*nlevmapped + lev ) = press_clm_loc(  gcount*nlevmapped + lev ) + press_tmp*cwtgcell(c)
-          endif
-
-        enddo
-      endif
-    enddo ! do c = bounds%begc, bounds%endc
-
-    call VecRestoreArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
-    call VecRestoreArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
-    call VecRestoreArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
-    call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
-    call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
-
-    ! Set CLM soil properties onto PFLOTRAN grid
-    call pflotranModelSetSoilProp(pflotran_m)
+    call SetCLMSoilPropertiesToPFLOTRAN(bounds, col, lun, grc, &
+       soilstate_vars, waterstate_vars, temperature_vars, &
+       soilhydrology_vars)
     !call pflotranModelSetICs(pflotran_m)
 
     ! Initialize PFLOTRAN states
@@ -990,6 +723,8 @@ contains
 
     ! Get PFLOTRAN states
     call pflotranModelGetUpdatedData(pflotran_m)
+
+    nlevmapped     = clm_pf_idata%nzclm_mapped
 
     ! Initialize soil temperature
     if(pflotran_m%option%iflowmode==TH_MODE) then
@@ -1033,7 +768,6 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr)
     call VecRestoreArrayF90(clm_pf_idata%watsat_clm, watsat_clm_loc, ierr)
 
-    deallocate(sand3d,clay3d,organic3d)
     end associate
   end subroutine interface_init_clm_pf
 
@@ -1230,6 +964,378 @@ contains
     deallocate(clm_surf_cell_ids_nindex)
 
   end subroutine CreateCLMPFLOTRANMaps
+
+  !-----------------------------------------------------------------------
+  subroutine SetCLMSoilPropertiesToPFLOTRAN(bounds, col, lun, grc, &
+       soilstate_vars, waterstate_vars, temperature_vars, &
+       soilhydrology_vars)
+    !
+    ! !DESCRIPTION:
+    ! Set CLM's soil properties to PFLOTRAN.
+    !
+    ! !USES:
+    use shr_log_mod    , only : errMsg => shr_log_errMsg
+    use clm_varctl      , only : iulog, fsurdat
+    use clm_varctl      , only : pflotran_surfaceflow, pflotran_th_mode, pflotran_th_freezing
+    use decompMod       , only : bounds_type, get_proc_total, ldecomp
+    use clm_varpar      , only : nlevsoi, nlevgrnd
+    use shr_kind_mod    , only: r8 => shr_kind_r8
+    use domainMod       , only : ldomain
+
+    use GridcellType    , only : gridcell_type
+    use ColumnType      , only : column_type
+    use LandUnitType    , only : landunit_type
+    use SoilStateType   , only : soilstate_type
+    use WaterStateType  , only : waterstate_type
+    use TemperatureType , only : temperature_type
+    use SoilHydrologyType , only : soilhydrology_type
+
+    use fileutils       , only : getfil
+    use spmdMod         , only : mpicom, masterproc, iam
+    use organicFileMod  , only : organicrd
+    use landunit_varcon , only : istsoil, istice, istdlak, istwet, istice_mec
+    use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
+    use clm_varcon      , only : zsoi, denice, denh2o
+    use clm_varcon      , only : grlnd
+    use abortutils      , only : endrun
+
+    use ncdio_pio
+
+    ! pflotran
+    use Option_module, only : printErrMsg
+    use Simulation_Base_class, only : simulation_base_type
+    use Subsurface_Simulation_class, only : subsurface_simulation_type
+    use Surface_Simulation_class, only : surface_simulation_type
+    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Realization_class, only : realization_type
+    use Surface_Realization_class, only : surface_realization_type
+    use PFLOTRAN_Constants_module
+    !
+    ! !ARGUMENTS:
+
+    implicit none
+
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+#include "finclude/petscviewer.h"
+
+    type(bounds_type), intent(in) :: bounds
+    type(column_type), intent(in) :: col
+    type(landunit_type), intent(in) :: lun
+    type(gridcell_type), intent(in) :: grc
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(waterstate_type), intent(in) :: waterstate_vars
+    type(temperature_type), intent(in) :: temperature_vars
+    type(soilhydrology_type), intent(in) :: soilhydrology_vars
+
+    !
+    ! !REVISION HISTORY:
+    ! Created by Gautam Bisht
+    !
+    !EOP
+    !
+    ! LOCAL VARAIBLES:
+
+    integer  :: local_num_g      ! local number of gridcells across this processor
+    integer  :: local_num_l      ! local number of landunits across this processor
+    integer  :: local_num_c      ! local number of columns across this processor
+    integer  :: local_num_p      ! local number of pfts across this processor
+    integer  :: local_num_cohorts ! local number of ed cohorts across this processor
+    integer  :: g,l,c,lev,j  ! indices
+    integer  :: gcount
+
+    !
+    ! From iniTimeConst.F90
+    !
+    type(file_desc_t)  :: ncid   ! netcdf id
+    real(r8) :: clay,sand        ! temporaries
+
+    real(r8),pointer :: sand3d(:,:)    ! read in - soil texture: percent sand
+    real(r8),pointer :: clay3d(:,:)    ! read in - soil texture: percent clay
+    real(r8),pointer :: organic3d(:,:) ! read in - organic matter: kg/m3
+
+    real(r8) :: om_frac                ! organic matter fraction
+    real(r8) :: om_watsat    = 0.9_r8  ! porosity of organic soil
+    real(r8) :: om_hksat     = 0.1_r8  ! saturated hydraulic conductivity of organic soil [mm/s]
+    real(r8) :: om_tkm       = 0.25_r8 ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
+    real(r8) :: om_sucsat    = 10.3_r8 ! saturated suction for organic matter (Letts, 2000)
+    real(r8) :: om_b         = 2.7_r8  ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
+    real(r8) :: organic_max  = 130._r8 ! organic matter (kg/m3) where soil is assumed to act like peat
+    real(r8) :: pc           = 0.5_r8   ! percolation threshold
+    real(r8) :: pcbeta       = 0.139_r8 ! percolation exponent
+    real(r8) :: perc_frac               ! "percolating" fraction of organic soil
+    real(r8) :: perc_norm               ! normalize to 1 when 100% organic soil
+    real(r8) :: uncon_hksat             ! series conductivity of mineral/organic soil
+    real(r8) :: uncon_frac              ! fraction of "unconnected" soil
+
+    real(r8) :: watsat_tmp, bsw_tmp, sucsat_tmp, press_tmp
+    real(r8) :: bd, tkm, bsw2_tmp,psisat_tmp
+    real(r8) :: vwcsat_tmp, xksat, hksat_tmp
+
+    character(len=256) :: locfn                    ! local filEname
+    character(len= 32) :: subname = 'SetCLMSoilPropertiesToPFLOTRAN' ! subroutine name
+    integer :: mxsoil_color                        ! maximum number of soil color classes
+
+    integer :: nlevmapped
+
+    logical :: readvar
+
+    integer :: clm_npts
+    integer :: clm_surf_npts
+    integer :: num_active_columns
+
+    !PetscViewer :: viewer
+    PetscScalar, pointer :: hksat_x_clm_loc(:) ! hydraulic conductivity in x-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: hksat_y_clm_loc(:) ! hydraulic conductivity in y-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: hksat_z_clm_loc(:) ! hydraulic conductivity in z-dir at saturation (mm H2O /s)
+    PetscScalar, pointer :: watsat_clm_loc(:)  ! minimum soil suction (mm)
+    PetscScalar, pointer :: sucsat_clm_loc(:)  ! volumetric soil water at saturation (porosity)
+    PetscScalar, pointer :: bsw_clm_loc(:)     ! Clapp and Hornberger "b"
+    PetscScalar, pointer :: press_clm_loc(:)   ! Pressure
+    PetscScalar, pointer :: temp_clm_loc(:)    ! Temperature
+    PetscScalar, pointer :: sat_clm_loc(:)     ! Saturation
+    PetscErrorCode :: ierr
+
+    associate( &
+         ! Assign local pointers to derived subtypes components (landunit-level)
+         ltype      =>  lun%itype      , & !  [integer (:)]  landunit type index
+         urbpoi     =>  lun%urbpoi     , & !  [logical (:)]  true => landunit is an urban point
+         ! Assign local pointer to derived subtypes components (column-level)
+         clandunit  =>  col%landunit   , & !  [integer (:)]  landunit index of column
+         cgridcell  =>  col%gridcell   , & !  [integer (:)]  gridcell index of column
+         cwtgcell   =>  col%wtgcell    , & !  [real(r8) (:)]  weight (relative to gridcell
+         ctype      =>  col%itype      , & !  [integer (:)]  column type index
+         hksat      =>  soilstate_vars%hksat_col      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
+         sucsat     =>  soilstate_vars%sucsat_col     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
+         watsat     =>  soilstate_vars%watsat_col     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
+         zwt        =>  soilhydrology_vars%zwt_col , & !  [real(r8) (:)]  water table depth (m)
+         dz         =>  col%dz           & !  [real(r8) (:,:)]  layer thickness (m)
+         )
+
+    ! Determine necessary indices
+    call get_proc_total(iam, local_num_g, local_num_l, local_num_c, local_num_p, local_num_cohorts)
+
+    nlevmapped     = clm_pf_idata%nzclm_mapped
+
+    call VecGetArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
+    call VecGetArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
+    call VecGetArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
+    call VecGetArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
+    call VecGetArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
+
+    allocate(sand3d(bounds%begg:bounds%endg, nlevsoi), clay3d(bounds%begg:bounds%endg, nlevsoi))
+    allocate(organic3d(bounds%begg:bounds%endg, nlevsoi))
+
+    ! --------------------------------------------------------------------
+    ! Read soil color, sand and clay from surface dataset
+    ! --------------------------------------------------------------------
+    if (masterproc) then
+       write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
+    endif
+
+    call getfil (fsurdat, locfn, 0)
+    call ncd_pio_openfile(ncid, locfn, 0)
+
+    ! Determine number of soil color classes - if number of soil color classes is not
+    ! on input dataset set it to 8
+    call ncd_io(ncid=ncid, varname='mxsoil_color', flag='read', data=mxsoil_color, &
+                  readvar=readvar)
+    if ( .not. readvar) mxsoil_color = 8
+
+    call ncd_io(ncid=ncid, varname='PCT_SAND', flag='read', data=sand3d, dim1name=grlnd, readvar=readvar)
+    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_SAND NOT on surfadata file' )
+
+    call ncd_io(ncid=ncid, varname='PCT_CLAY', flag='read', data=clay3d, dim1name=grlnd,readvar=readvar)
+    if(.not. readvar) call endrun( trim(subname)//' ERROR: PCT_CLAY NOT on surfadata file' )
+
+
+    ! Ensure that there is only one active column in each grid cell.
+    !
+    ! NOTE(bja, 2014-02) should check each grid cell to ensure that
+    ! there is only one active column. Suggestion from from Bill
+    ! Sacks: "See reweightMod.F90 : checkWeights for
+    ! inspiration. Basically, you could have an array of size
+    ! begg:endg, where you accumulate a count of the number of active
+    ! columns in that grid cell. Then you could ensure that those
+    ! counts are 1 at every point."
+    num_active_columns = 0
+    do c = bounds%begc, bounds%endc
+       if (col%active(c)) then
+          num_active_columns = num_active_columns + 1
+       end if
+    end do
+    if (local_num_g /= num_active_columns) then
+      write (iulog,*), 'ERROR: CLM-PFLOTRAN requires one active column per grid cell: '
+      write (iulog, *) "decomMod - num grid cells = ", local_num_g
+      write (iulog, *) "num active columns = ", num_active_columns
+      call endrun( trim(subname)//' ERROR: More than 1 col per grid cell' )
+    endif
+
+    ! --------------------------------------------------------------------
+    ! If a organic matter dataset has been specified, read it
+    ! --------------------------------------------------------------------
+
+    call organicrd(organic3d)
+
+    gcount = 0 ! assumption that only 1 soil-column per grid cell
+    do c = bounds%begc, bounds%endc
+      if (.not. col%active(c)) then
+         ! only operate on active columns.
+         cycle
+      end if
+
+      ! Set gridcell and landunit indices
+      g = cgridcell(c)
+      l = clandunit(c)
+      gcount = g - bounds%begg
+
+      if (ltype(l)==istdlak .or. ltype(l)==istwet .or. ltype(l)==istice .or. ltype(l)==istice_mec) then
+        write (iulog,*), 'WARNING: Land Unit type Lake/Wet/Ice/Ice_mec ... within the domain'
+        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
+      else if (urbpoi(l) .and. (ctype(c) /= icol_road_perv) .and. (ctype(c) /= icol_road_imperv) )then
+        ! Urban Roof, sunwall, shadewall properties set to special value
+        write (iulog,*), 'ERROR: Unsupported Urban Land Unit type: '
+        write (iulog, *) "    urbpoi(l) = ", urbpoi(l)
+        write (iulog, *) "    ctype(c) = ", ctype(c)
+        write (iulog,*), '  Supported Urban Land Unit types: '
+        write (iulog, *) "    icol_road_perv = ", icol_road_perv
+        write (iulog, *) "    icol_road_imperv = ", icol_road_imperv
+        write (iulog,*), 'CLM-CN -- PFLOTRAN does not support this land unit presently'
+        call endrun( trim(subname)//' ERROR: Land Unit type not supported' )
+      else  ! soil columns of both urban and non-urban types
+
+        do lev = 1,nlevgrnd
+
+          ! duplicate clay and sand values from 10th soil layer
+          if (lev .le. nlevsoi) then
+            clay    = clay3d(g,lev)
+              sand    = sand3d(g,lev)
+            om_frac = (organic3d(g,lev)/organic_max)**2._r8
+          else
+            clay    = clay3d(g,nlevsoi)
+            sand    = sand3d(g,nlevsoi)
+            om_frac = 0._r8
+          endif
+
+          ! No organic matter for urban
+          if (urbpoi(l)) then
+            om_frac = 0._r8
+          end if
+
+          watsat_tmp = 0.489_r8 - 0.00126_r8*sand
+          bsw_tmp    = 2.91 + 0.159*clay
+          sucsat_tmp = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )
+          bd            = (1._r8-watsat_tmp)*2.7e3_r8
+          watsat_tmp = (1._r8 - om_frac)*watsat_tmp + om_watsat*om_frac
+          tkm           = (1._r8-om_frac)*(8.80_r8*sand+2.92_r8*clay)/(sand+clay)+om_tkm*om_frac ! W/(m K)
+          bsw_tmp    = (1._r8-om_frac)*(2.91_r8 + 0.159_r8*clay) + om_frac*om_b
+          bsw2_tmp   = -(3.10_r8 + 0.157_r8*clay - 0.003_r8*sand)
+          psisat_tmp = -(exp((1.54_r8 - 0.0095_r8*sand + 0.0063_r8*(100.0_r8-sand-clay))*log(10.0_r8))*9.8e-5_r8)
+          vwcsat_tmp = (50.5_r8 - 0.142_r8*sand - 0.037_r8*clay)/100.0_r8
+          sucsat_tmp = (1._r8-om_frac)*sucsat_tmp + om_sucsat*om_frac
+          xksat         = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
+
+          ! perc_frac is zero unless perf_frac greater than percolation threshold
+          if (om_frac > pc) then
+            perc_norm=(1._r8 - pc)**(-pcbeta)
+            perc_frac=perc_norm*(om_frac - pc)**pcbeta
+          else
+            perc_frac=0._r8
+          endif
+
+          !
+          !                                ||
+          !                                ||
+          !                               \||/
+          !
+          !
+          !            ******************************************
+          !            *                                        *
+          !            *                                        *
+          !            *           ORGANIC PERCOLATING          *
+          !            *               f_om*f_pre               *
+          !            *                                        *
+          ! ---\       ******************************************
+          ! ---/       *                    *                   *
+          !            *                    *                   *
+          !            *                    *                   *
+          !            *     ORGANIC        *       MINERAL     *
+          !            *  NON-PERCOLATING   *                   *
+          !            *                    *                   *
+          !            *   f_om*(1-f_pre)   *       1-f_om      *
+          !            *                    *                   *
+          !            ******************************************
+          !
+
+          ! ---------------------------------------------------------------
+          ! Hydraulic conductivity in Z-direction
+          ! ---------------------------------------------------------------
+
+          ! uncon_frac is fraction of mineral soil plus fraction of "nonpercolating" organic soil
+          uncon_frac=(1._r8-om_frac)+(1._r8-perc_frac)*om_frac
+
+          ! uncon_hksat is series addition of mineral/organic conductivites
+          if (om_frac .lt. 1._r8) then
+            uncon_hksat = uncon_frac/((1._r8-om_frac)/xksat &
+                         + ((1._r8-perc_frac)*om_frac)/om_hksat)
+          else
+            uncon_hksat = 0._r8
+          end if
+          hksat_tmp  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
+
+          ! ---------------------------------------------------------------
+          ! Hydraulic conductivity in X/Y-direction
+          ! ---------------------------------------------------------------
+
+          !
+          if (om_frac .lt. 1._r8) then
+            uncon_hksat = ( (1._r8 - om_frac)*xksat + &
+                            (1._r8 - perc_frac)*om_frac*om_hksat )/uncon_frac
+            hksat_tmp   = uncon_hksat*om_hksat/(om_frac*perc_frac*uncon_hksat &
+                          + (1._r8 - om_frac*perc_frac)*om_hksat)
+          else
+            uncon_hksat = 0._r8
+            hksat_tmp   = om_hksat
+          end if
+
+          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(zwt(c) - zsoi(lev))
+          press_tmp = 101325.0_r8 - 998.2_r8*9.81_r8*(2.0_r8 - zsoi(lev))
+
+          if (lev <= nlevmapped) then
+
+            hksat_x_clm_loc(gcount*nlevmapped + lev ) = hksat_x_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_y_clm_loc(gcount*nlevmapped + lev ) = hksat_y_clm_loc(gcount*nlevmapped + lev ) + hksat_tmp*cwtgcell(c)
+            hksat_z_clm_loc(gcount*nlevmapped + lev ) = hksat_z_clm_loc(gcount*nlevmapped + lev ) + hksat(c,lev)*cwtgcell(c)
+            sucsat_clm_loc( gcount*nlevmapped + lev ) = sucsat_clm_loc( gcount*nlevmapped + lev ) + sucsat(c,lev)*cwtgcell(c)
+            watsat_clm_loc( gcount*nlevmapped + lev ) = watsat_clm_loc( gcount*nlevmapped + lev ) + watsat(c,lev)*cwtgcell(c)
+            bsw_clm_loc(    gcount*nlevmapped + lev ) = bsw_clm_loc(    gcount*nlevmapped + lev ) + bsw_tmp*cwtgcell(c)
+            press_clm_loc(  gcount*nlevmapped + lev ) = press_clm_loc(  gcount*nlevmapped + lev ) + press_tmp*cwtgcell(c)
+          endif
+
+        enddo
+      endif
+    enddo ! do c = bounds%begc, bounds%endc
+
+    call VecRestoreArrayF90(clm_pf_idata%hksat_x_clm, hksat_x_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%hksat_y_clm, hksat_y_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%hksat_z_clm, hksat_z_clm_loc, ierr)
+    call VecRestoreArrayF90(clm_pf_idata%sucsat_clm,  sucsat_clm_loc,  ierr)
+    call VecRestoreArrayF90(clm_pf_idata%watsat_clm,  watsat_clm_loc,  ierr)
+    call VecRestoreArrayF90(clm_pf_idata%bsw_clm,     bsw_clm_loc,     ierr)
+    call VecRestoreArrayF90(clm_pf_idata%press_clm,   press_clm_loc,   ierr)
+
+    ! Set CLM soil properties onto PFLOTRAN grid
+    call pflotranModelSetSoilProp(pflotran_m)
+
+    deallocate(sand3d,clay3d,organic3d)
+    end associate
+
+  end subroutine SetCLMSoilPropertiesToPFLOTRAN
+
 
   !-----------------------------------------------------------------------------
   !BOP
