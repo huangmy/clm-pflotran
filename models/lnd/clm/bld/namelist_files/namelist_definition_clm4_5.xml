@@ -1274,6 +1274,12 @@ Runtime flag to turn on/off pflotran interface.
 pflotran file prefix.
 </entry>
 
+<entry id="use_clm_soils" type="logical" category="default_settings"
+       group="clm_inparm" valid_values="">
+Runtime flag to use soil properties from CLM (or PFLOTRAN) when running a CLM-PFLOTRAN simulation.
+</entry>
+
+
 <!-- ========================================================================================  -->
 <!-- namelist elements associated with the Hydrology1Mod                                       -->
 <!-- ========================================================================================  -->

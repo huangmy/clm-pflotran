@@ -230,6 +230,7 @@ module clm_varctl
   logical, public :: pflotran_surfaceflow = .false.
   logical, public :: pflotran_th_mode = .false.
   logical, public :: pflotran_th_freezing = .false.
+  logical, public :: use_clm_soils = .true.
   !
   !----------------------------------------------------------
   ! single column control variables

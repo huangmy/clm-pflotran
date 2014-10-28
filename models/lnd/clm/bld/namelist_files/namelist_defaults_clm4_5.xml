@@ -69,6 +69,7 @@ attributes from the config_cache.xml file (with keys converted to upper-case).
 <!-- pflotran interface -->
 <use_pflotran>.false.</use_pflotran>
 <pflotran_prefix>pflotran</pflotran_prefix>
+<use_clm_soils>.true.</use_clm_soils>
 
 <!-- ================================================================== -->
 <!-- The default filenames are given relative to the root directory
