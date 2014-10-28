@@ -1687,7 +1687,7 @@ contains
     if (pflotran_m%option%iflowmode == TH_MODE .and. &
         pflotran_m%option%use_th_freezing) then
 
-      call VecGetArrayF90(clm_pf_idata%sat_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
+      call VecGetArrayF90(clm_pf_idata%sat_ice_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
 
       do fc = 1,num_hydrologyc
         c = filter_hydrologyc(fc)
@@ -1702,7 +1702,7 @@ contains
         enddo
       enddo
 
-      call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
+      call VecRestoreArrayF90(clm_pf_idata%sat_ice_clm, sat_ice_clm_loc, ierr); CHKERRQ(ierr)
 
     else
 
