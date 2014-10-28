@@ -29,6 +29,7 @@ module SoilHydrologyMod
   public :: WaterTable           ! Calculate water table before imposing drainage
   public :: Drainage             ! Calculate subsurface drainage
   public :: CLMVICMap
+  public :: UpdateInfiltrationForPFLOTRAN
   !-----------------------------------------------------------------------
 
 contains
@@ -1463,5 +1464,57 @@ contains
      end associate
 
    end subroutine CLMVICMap
+
+   !-----------------------------------------------------------------------
+   subroutine UpdateInfiltrationForPFLOTRAN(bounds, num_hydrologyc, filter_hydrologyc, &
+        soilstate_vars, temperature_vars, &
+        waterflux_vars, waterstate_vars)
+     !
+     ! !DESCRIPTION:
+     !
+     ! !USES:
+     use shr_const_mod, only : SHR_CONST_TKFRZ
+     use clm_time_manager , only : get_step_size
+     !
+     ! !ARGUMENTS:
+     type(bounds_type)        , intent(in)    :: bounds
+     integer                  , intent(in)    :: num_hydrologyc       ! number of column soil points in column filter
+     integer                  , intent(in)    :: filter_hydrologyc(:) ! column filter for soil points
+     type(soilstate_type)     , intent(in)    :: soilstate_vars
+     type(waterstate_type)    , intent(in)    :: waterstate_vars
+     type(temperature_type)   , intent(in)    :: temperature_vars
+     type(waterflux_type)     , intent(inout) :: waterflux_vars
+     !
+     ! !LOCAL VARIABLES:
+     integer  :: c,fc                               ! indices
+     real(r8) :: dtime                              !land model time step (sec)
+     real(r8) :: qflx_infl_max                      ! maximum allowable infiltration rate
+     !-----------------------------------------------------------------------
+
+     associate(                                                        &
+          dz               =>    col%dz                              , & ! Input:  [real(r8) (:,:) ] layer depth (m)
+          t_soisno         =>    temperature_vars%t_soisno_col       , & ! Input:  [real(r8) (:,:) ] soil temperature (Kelvin)
+          h2osoi_vol       =>    waterstate_vars%h2osoi_vol_col      , & ! Input:  [real(r8) (:,:) ] volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+          qflx_infl        =>    waterflux_vars%qflx_infl_col        , & ! Output: [real(r8) (:)   ] infiltration (mm H2O /s)
+          watsat           =>    soilstate_vars%watsat_col             & ! Input:  [real(r8) (:,:) ] volumetric soil water at saturation (porosity)
+          )
+
+       dtime = get_step_size()
+
+       do fc = 1, num_hydrologyc
+          c = filter_hydrologyc(fc)
+          if (t_soisno(c,1) < SHR_CONST_TKFRZ .or. h2osoi_vol(c,1) >= 0.98_r8*watsat(c,1)) then
+             qflx_infl(c) = 0._r8
+          else
+             !               (porosity    - occupied_space)* [m]    * [mm/m]  * [s^{-1}]
+             qflx_infl_max = (watsat(c,1) - h2osoi_vol(c,1))*dz(c,1)*1.0e-3_r8/dtime
+             qflx_infl(c)  = min(qflx_infl(c), qflx_infl_max)
+          end if
+       end do
+
+      end associate
+
+    end subroutine UpdateInfiltrationForPFLOTRAN
+
 
 end module SoilHydrologyMod

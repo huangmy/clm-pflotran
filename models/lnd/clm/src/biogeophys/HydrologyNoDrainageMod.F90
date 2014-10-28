@@ -68,6 +68,7 @@ contains
     use SnowHydrologyMod     , only : SnowWater, BuildSnowFilter 
     use SoilHydrologyMod     , only : CLMVICMap, SurfaceRunoff, Infiltration, WaterTable
     use SoilWaterMovementMod , only : SoilWater 
+    use SoilHydrologyMod     , only : UpdateInfiltrationForPFLOTRAN
     use clm_pflotran_interfaceMod, only : clm_pf_step_th, clm_pf_update_soil_moisture, &
          clm_pf_set_sflow_forcing, clm_pf_update_h2osfc
     use PatchType , only : pft ! FIXME(bja, 2014-09) remove when pflotran interface has a separate call for ET see below
@@ -188,6 +189,10 @@ contains
               energyflux_vars, soilhydrology_vars, soilstate_vars, temperature_vars, &
               waterflux_vars, waterstate_vars)
 
+        if (use_pflotran) then
+           call UpdateInfiltrationForPFLOTRAN(bounds, num_hydrologyc, filter_hydrologyc, &
+                soilstate_vars, temperature_vars, waterflux_vars, waterstate_vars)
+        endif
       endif
 
       if (use_pflotran) then

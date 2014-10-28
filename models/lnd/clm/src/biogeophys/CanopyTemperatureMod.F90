@@ -76,6 +76,7 @@ contains
     use column_varcon      , only : icol_road_imperv, icol_road_perv
     use landunit_varcon    , only : istice, istice_mec, istwet, istsoil, istdlak, istcrop, istdlak
     use clm_varpar         , only : nlevgrnd, nlevurb, nlevsno, nlevsoi
+    use clm_varctl         , only : use_pflotran
     !
     ! !ARGUMENTS:
     type(bounds_type)      , intent(in)    :: bounds    
@@ -223,6 +224,11 @@ contains
 
       ! calculate moisture stress/resistance for soil evaporation
       call calc_soilevap_stress(bounds, num_nolakec, filter_nolakec, soilstate_vars, waterstate_vars)
+
+      if (use_pflotran) then
+         call update_soilevap_stress_for_PFLOTRAN(bounds, num_nolakec, filter_nolakec, &
+              temperature_vars, soilstate_vars)
+      endif
 
       do fc = 1,num_nolakec
          c = filter_nolakec(fc)
@@ -483,5 +489,43 @@ contains
     end associate
 
   end subroutine CanopyTemperature
+
+  !------------------------------------------------------------------------------
+  subroutine update_soilevap_stress_for_PFLOTRAN(bounds, &
+       num_nolakec, filter_nolakec, temperature_vars, soilstate_vars)
+    !
+    ! !DESCRIPTION:
+    !
+    ! !USES:
+    use shr_const_mod, only : SHR_CONST_TKFRZ
+    !
+    ! !ARGUMENTS:
+    type(bounds_type)      , intent(in)    :: bounds
+    integer                , intent(in)    :: num_nolakec         ! number of column non-lake points in column filter
+    integer                , intent(in)    :: filter_nolakec(:)   ! column filter for non-lake points
+    type(temperature_type) , intent(in)    :: temperature_vars
+    type(soilstate_type)   , intent(inout) :: soilstate_vars
+    !
+    ! !LOCAL VARIABLES:
+    integer  :: g,l,c,p      ! indices
+    integer  :: fc           ! lake filter column index
+    !------------------------------------------------------------------------------
+
+    associate(                                                          &
+         soilbeta         =>    soilstate_vars%soilbeta_col           , & ! Output: [real(r8) (:)   ] factor that reduces ground evaporation
+         t_soisno         =>    temperature_vars%t_soisno_col           & ! Input:  [real(r8) (:,:) ] soil temperature (Kelvin)
+         )
+
+       do fc = 1,num_nolakec
+          c = filter_nolakec(fc)
+          l = col%landunit(c)
+         if (t_soisno(c,1) < SHR_CONST_TKFRZ) then
+            soilbeta(c) = 0._r8
+         end if
+      enddo
+
+     end associate
+
+   end subroutine update_soilevap_stress_for_PFLOTRAN
 
 end module CanopyTemperatureMod
