@@ -220,6 +220,9 @@ contains
     namelist /clm_inparm/ &
          use_pflotran, use_clm_soils
 
+    namelist /clm_inparm/ &
+         shutoff_soilevap_below_tfrz
+
     ! ----------------------------------------------------------------------
     ! Default values
     ! ----------------------------------------------------------------------
@@ -467,6 +470,7 @@ contains
     call mpi_bcast (use_noio, 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (use_pflotran, 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (use_clm_soils, 1, MPI_LOGICAL, 0, mpicom, ier)
+    call mpi_bcast (shutoff_soilevap_below_tfrz, 1, MPI_LOGICAL, 0, mpicom, ier)
 
     ! initial file variables
     call mpi_bcast (nrevsn, len(nrevsn), MPI_CHARACTER, 0, mpicom, ier)

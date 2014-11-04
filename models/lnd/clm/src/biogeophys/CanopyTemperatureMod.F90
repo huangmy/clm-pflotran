@@ -76,7 +76,7 @@ contains
     use column_varcon      , only : icol_road_imperv, icol_road_perv
     use landunit_varcon    , only : istice, istice_mec, istwet, istsoil, istdlak, istcrop, istdlak
     use clm_varpar         , only : nlevgrnd, nlevurb, nlevsno, nlevsoi
-    use clm_varctl         , only : use_pflotran
+    use clm_varctl         , only : use_pflotran, shutoff_soilevap_below_tfrz
     !
     ! !ARGUMENTS:
     type(bounds_type)      , intent(in)    :: bounds    
@@ -225,7 +225,7 @@ contains
       ! calculate moisture stress/resistance for soil evaporation
       call calc_soilevap_stress(bounds, num_nolakec, filter_nolakec, soilstate_vars, waterstate_vars)
 
-      if (use_pflotran) then
+      if (use_pflotran .or. shutoff_soilevap_below_tfrz) then
          call update_soilevap_stress_for_PFLOTRAN(bounds, num_nolakec, filter_nolakec, &
               temperature_vars, soilstate_vars)
       endif
