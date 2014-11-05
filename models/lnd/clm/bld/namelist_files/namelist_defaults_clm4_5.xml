@@ -70,6 +70,7 @@ attributes from the config_cache.xml file (with keys converted to upper-case).
 <use_pflotran>.false.</use_pflotran>
 <pflotran_prefix>pflotran</pflotran_prefix>
 <use_clm_soils>.true.</use_clm_soils>
+<shutoff_soilevap_below_tfrz>.false.</shutoff_soilevap_below_tfrz>
 
 <!-- ================================================================== -->
 <!-- The default filenames are given relative to the root directory

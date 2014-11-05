@@ -1279,6 +1279,11 @@ pflotran file prefix.
 Runtime flag to use soil properties from CLM (or PFLOTRAN) when running a CLM-PFLOTRAN simulation.
 </entry>
 
+<entry id="shutoff_soilevap_below_tfrz" type="logical" category="default_settings"
+       group="clm_inparm" valid_values="">
+Runtime flag to turn off soil evaporation for temperature below freezing conditions.
+</entry>
+
 
 <!-- ========================================================================================  -->
 <!-- namelist elements associated with the Hydrology1Mod                                       -->
