@@ -1780,12 +1780,81 @@ contains
     type(patch_type), intent(in) :: patch_vars
 
   ! !LOCAL VARIABLES:
-    integer  :: c, fc, g, gcount, j, p   ! do loop indices
-    integer  :: pftindex                        ! pft index
     real(r8) :: dtime                      ! land model time step (sec)
     integer  :: nstep                      ! time step number
 
-    !real(r8) :: den
+  !EOP
+  !-----------------------------------------------------------------------
+    nstep = get_nstep()
+    dtime = get_step_size()
+
+    call set_et_forcing(bounds,              &
+                        num_hydrologyc,      &
+                        filter_hydrologyc,   &
+                        waterflux_vars,      &
+                        soilstate_vars,      &
+                        patch_vars           &
+                       )
+
+    call pflotranModelUpdateFlowConds( pflotran_m )
+    call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
+    call pflotranModelGetUpdatedData( pflotran_m )
+
+  end subroutine step_th_clm_pf
+
+
+  !-----------------------------------------------------------------------------
+  !BOP
+  !
+  ! !IROUTINE: step_th_clm_pf
+  !
+  ! !INTERFACE:
+  subroutine set_et_forcing(bounds, &
+       num_hydrologyc, filter_hydrologyc, &
+       waterflux_vars, soilstate_vars, patch_vars)
+  !
+  ! !DESCRIPTION:
+  !
+  !
+  ! !USES:
+    use shr_kind_mod  , only : r8 => shr_kind_r8
+
+    use ColumnType, only : col
+    use PatchType, only : pft
+    use WaterFluxType, only : waterflux_type
+    use SoilStateType, only : soilstate_type
+    use PatchType, only : patch_type
+
+    use pflotran_model_module, only :pflotranModelUpdateFlowConds, &
+         pflotranModelStepperRunTillPauseTime, &
+         pflotranModelGetUpdatedData
+
+    use clm_pflotran_interface_data
+    use decompMod                  , only : bounds_type
+    use clm_varpar                 , only : max_patch_per_col
+    use clm_varpar      , only : nlevsoi
+    use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
+    use abortutils  , only : endrun
+
+  ! !ARGUMENTS:
+    implicit none
+
+#include "finclude/petscsys.h"
+#include "finclude/petscvec.h"
+#include "finclude/petscvec.h90"
+
+    type(bounds_type), intent(in) :: bounds
+    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterflux_type), intent(in) :: waterflux_vars
+    type(soilstate_type), intent(in) :: soilstate_vars
+    type(patch_type), intent(in) :: patch_vars
+
+  ! !LOCAL VARIABLES:
+    integer  :: c, fc, g, gcount, j, p     ! do loop indices
+    integer  :: pftindex                   ! pft index
+    real(r8) :: dtime                      ! land model time step (sec)
+    integer  :: nstep                      ! time step number
     real(r8) :: temp(bounds%begc:bounds%endc) ! accumulator for rootr weighting
 
     PetscScalar, pointer :: sat_clm_loc(:)    !
@@ -1797,23 +1866,24 @@ contains
 
   !EOP
   !-----------------------------------------------------------------------
-    !den = 998.2_r8 ! [kg/m^3]
-    !den = 1000._r8 ! [kg/m^3]
 
     associate( &
-         qflx_tran_veg_col => waterflux_vars%qflx_tran_veg_col  , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
-         ! Assign local pointers to derived type members (pft-level)
+         qflx_tran_veg_col   => waterflux_vars%qflx_tran_veg_col      , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
+
          qflx_tran_veg_patch => waterflux_vars%qflx_tran_veg_patch    , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
          qflx_evap_soi_patch => waterflux_vars%qflx_evap_soi_patch    , & !  [real(r8) (:)]  soil evaporation (mm H2O/s) (+ = to atm)
+
          rootr_patch         => soilstate_vars%rootr_patch            , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
-         pwtgcell          => pft%wtgcell          , & !  [real(r8) (:)]  weight relative to gridcell for each pft
-         pwtcol            => pft%wtcol            , & !  [real(r8) (:)]  weight relative to column for each pft
-         pfti              => col%pfti             , & !  [integer (:)]  beginning pft index for each column
-         rootr_col         => soilstate_vars%rootr_col , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
-         wtcol             => patch_vars%wtcol              & !  [real(r8) (:)]  pft weight relative to column
+         rootr_col           => soilstate_vars%rootr_col              , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
+
+         pwtgcell            => pft%wtgcell                           , & !  [real(r8) (:)]  weight relative to gridcell for each pft
+         pwtcol              => pft%wtcol                             , & !  [real(r8) (:)]  weight relative to column for each pft
+
+         pfti                => col%pfti                              , & !  [integer (:)]  beginning pft index for each column
+
+         wtcol               => patch_vars%wtcol                        & !  [real(r8) (:)]  pft weight relative to column
          )
 
-    nstep = get_nstep()
     dtime = get_step_size()
 
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
@@ -1912,12 +1982,9 @@ contains
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
 
-    call pflotranModelUpdateFlowConds( pflotran_m )
-    call pflotranModelStepperRunTillPauseTime( pflotran_m, (nstep+1.0d0)*dtime )
-    call pflotranModelGetUpdatedData( pflotran_m )
-
     end associate
-  end subroutine step_th_clm_pf
+
+  end subroutine set_et_forcing
 
   !-----------------------------------------------------------------------------
   !BOP
