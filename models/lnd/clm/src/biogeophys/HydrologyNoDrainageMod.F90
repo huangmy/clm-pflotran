@@ -200,7 +200,7 @@ contains
          ! create another subroutine clm_pf_set_et_forcing()
          call clm_pf_step_th(bounds, &
               num_hydrologyc, filter_hydrologyc, &
-              waterflux_vars, soilstate_vars, pft)
+              waterflux_vars, waterstate_vars, soilstate_vars, pft)
          ! TODO(2013-08-27) move to clm_driver, update all states at once?
          call clm_pf_update_soil_moisture(waterstate_vars, soilstate_vars, bounds, &
               num_hydrologyc, filter_hydrologyc, col, soilhydrology_vars)

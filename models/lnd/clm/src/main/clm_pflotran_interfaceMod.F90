@@ -393,9 +393,10 @@ contains
   !-----------------------------------------------------------------------------
   subroutine clm_pf_step_th(bounds, &
        num_hydrologyc, filter_hydrologyc, &
-       waterflux_vars, soilstate_vars, patch_vars)
+       waterflux_vars, waterstate_vars, soilstate_vars, patch_vars)
 
     use WaterFluxType, only : waterflux_type
+    use WaterStateType, only : waterstate_type
     use SoilStateType, only : soilstate_type
     use PatchType, only : patch_type
     use filterMod,            only : clumpfilter
@@ -408,13 +409,14 @@ contains
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
 
     type(waterflux_type), intent(in) :: waterflux_vars
+    type(waterstate_type), intent(in) :: waterstate_vars
     type(soilstate_type), intent(in) :: soilstate_vars
     type(patch_type), intent(in) :: patch_vars
 
 #ifdef CLM_PFLOTRAN
     call step_th_clm_pf(bounds, &
        num_hydrologyc, filter_hydrologyc, &
-       waterflux_vars, soilstate_vars, patch_vars)
+       waterflux_vars, waterstate_vars, soilstate_vars, patch_vars)
 #else
     character(len=256) :: subname = "clm_pf_step_th"
     call pflotran_not_available(subname)
@@ -1740,7 +1742,7 @@ contains
   ! !INTERFACE:
   subroutine step_th_clm_pf(bounds, &
        num_hydrologyc, filter_hydrologyc, &
-       waterflux_vars, soilstate_vars, patch_vars)
+       waterflux_vars, waterstate_vars, soilstate_vars, patch_vars)
   !
   ! !DESCRIPTION:
   ! 
@@ -1751,6 +1753,7 @@ contains
     use ColumnType, only : col
     use PatchType, only : pft
     use WaterFluxType, only : waterflux_type
+    use WaterStateType, only : waterstate_type
     use SoilStateType, only : soilstate_type
     use PatchType, only : patch_type
 
@@ -1776,6 +1779,7 @@ contains
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
     type(waterflux_type), intent(in) :: waterflux_vars
+    type(waterstate_type), intent(in) :: waterstate_vars
     type(soilstate_type), intent(in) :: soilstate_vars
     type(patch_type), intent(in) :: patch_vars
 
@@ -1792,6 +1796,7 @@ contains
                         num_hydrologyc,      &
                         filter_hydrologyc,   &
                         waterflux_vars,      &
+                        waterstate_vars,     &
                         soilstate_vars,      &
                         patch_vars           &
                        )
@@ -1806,35 +1811,31 @@ contains
   !-----------------------------------------------------------------------------
   !BOP
   !
-  ! !IROUTINE: step_th_clm_pf
+  ! !IROUTINE: set_et_forcing
   !
   ! !INTERFACE:
   subroutine set_et_forcing(bounds, &
        num_hydrologyc, filter_hydrologyc, &
-       waterflux_vars, soilstate_vars, patch_vars)
+       waterflux_vars, waterstate_vars, soilstate_vars, patch_vars)
   !
   ! !DESCRIPTION:
   !
   !
   ! !USES:
-    use shr_kind_mod  , only : r8 => shr_kind_r8
-
-    use ColumnType, only : col
-    use PatchType, only : pft
-    use WaterFluxType, only : waterflux_type
-    use SoilStateType, only : soilstate_type
-    use PatchType, only : patch_type
-
-    use pflotran_model_module, only :pflotranModelUpdateFlowConds, &
-         pflotranModelStepperRunTillPauseTime, &
-         pflotranModelGetUpdatedData
-
     use clm_pflotran_interface_data
-    use decompMod                  , only : bounds_type
-    use clm_varpar                 , only : max_patch_per_col
-    use clm_varpar      , only : nlevsoi
-    use clm_time_manager, only : get_step_size, get_nstep, is_perpetual
-    use abortutils  , only : endrun
+    use shr_kind_mod                  , only : r8 => shr_kind_r8
+    use ColumnType                    , only : col
+    use PatchType                     , only : pft
+    use WaterFluxType                 , only : waterflux_type
+    use WaterStateType                , only : waterstate_type
+    use SoilStateType                 , only : soilstate_type
+    use PatchType                     , only : patch_type
+    use decompMod                     , only : bounds_type
+    use clm_varpar                    , only : max_patch_per_col
+    use clm_varpar                    , only : nlevsoi
+    use clm_time_manager              , only : get_step_size, get_nstep, is_perpetual
+    use abortutils                    , only : endrun
+    use clm_varcon                    , only : denh2o
 
   ! !ARGUMENTS:
     implicit none
@@ -1843,26 +1844,33 @@ contains
 #include "finclude/petscvec.h"
 #include "finclude/petscvec.h90"
 
-    type(bounds_type), intent(in) :: bounds
-    integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
-    integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
-    type(waterflux_type), intent(in) :: waterflux_vars
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(patch_type), intent(in) :: patch_vars
+    type(bounds_type), intent(in)      :: bounds
+    integer, intent(in)                :: num_hydrologyc       ! number of column soil points in column filter
+    integer, intent(in)                :: filter_hydrologyc(:) ! column filter for soil points
+    type(waterflux_type), intent(in)   :: waterflux_vars
+    type(waterstate_type), intent(in)  :: waterstate_vars
+    type(soilstate_type), intent(in)   :: soilstate_vars
+    type(patch_type), intent(in)       :: patch_vars
 
   ! !LOCAL VARIABLES:
-    integer  :: c, fc, g, gcount, j, p     ! do loop indices
-    integer  :: pftindex                   ! pft index
-    real(r8) :: dtime                      ! land model time step (sec)
-    integer  :: nstep                      ! time step number
+    integer  :: c, fc, g, gcount, j, p        ! do loop indices
+    integer  :: pftindex                      ! pft index
+    real(r8) :: dtime                         ! land model time step (sec)
+    integer  :: nstep                         ! time step number
     real(r8) :: temp(bounds%begc:bounds%endc) ! accumulator for rootr weighting
-
-    PetscScalar, pointer :: sat_clm_loc(:)    !
-    PetscScalar, pointer :: qflx_clm_loc(:)   !
-    PetscScalar, pointer :: area_clm_loc(:)   !
-    PetscErrorCode :: ierr
-    integer :: nlevmapped
+    integer  :: nlevmapped
+    integer  :: idx
     real(r8) :: area
+    real(r8) :: max_et_rate
+    real(r8) :: max_infil_rate
+
+    ! Pointers to PETSc vectors
+    PetscScalar, pointer :: sat_clm_loc(:)
+    PetscScalar, pointer :: qflx_clm_loc(:)
+    PetscScalar, pointer :: area_clm_loc(:)
+    PetscScalar, pointer :: thetares2_clm_loc(:)
+
+    PetscErrorCode :: ierr
 
   !EOP
   !-----------------------------------------------------------------------
@@ -1873,6 +1881,9 @@ contains
          qflx_tran_veg_patch => waterflux_vars%qflx_tran_veg_patch    , & !  [real(r8) (:)]  vegetation transpiration (mm H2O/s) (+ = to atm)
          qflx_evap_soi_patch => waterflux_vars%qflx_evap_soi_patch    , & !  [real(r8) (:)]  soil evaporation (mm H2O/s) (+ = to atm)
 
+         h2osoi_liq          =>  waterstate_vars%h2osoi_liq_col       , & !  [real(r8) (:,:) ]  liquid water (kg/m2)
+
+         watsat              =>  soilstate_vars%watsat_col            , & ! Input:  [real(r8) (:,:) ] volumetric soil water at saturation (porosity)
          rootr_patch         => soilstate_vars%rootr_patch            , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
          rootr_col           => soilstate_vars%rootr_col              , & !  [real(r8) (:,:)]  effective fraction of roots in each soil layer
 
@@ -1881,7 +1892,8 @@ contains
 
          pfti                => col%pfti                              , & !  [integer (:)]  beginning pft index for each column
 
-         wtcol               => patch_vars%wtcol                        & !  [real(r8) (:)]  pft weight relative to column
+         wtcol               => patch_vars%wtcol                      , & !  [real(r8) (:)]  pft weight relative to column
+         dz                  =>  col%dz                                 & !  [real(r8) (:,:)]  layer thickness (m)
          )
 
     dtime = get_step_size()
@@ -1889,6 +1901,7 @@ contains
     call VecGetArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecGetArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
+    call VecGetArrayF90(clm_pf_idata%thetares2_clm, thetares2_clm_loc, ierr); CHKERRQ(ierr)
 
     nlevmapped = clm_pf_idata%nzclm_mapped
 
@@ -1978,9 +1991,43 @@ contains
       end do
     end do
 
+
+    ! If needed, downregulate QFLX from CLM
+    do j = 1, nlevsoi
+      do fc = 1, num_hydrologyc
+        c      = filter_hydrologyc(fc)
+        g      = col%gridcell(c)
+        gcount = g - bounds%begg
+        idx    = gcount*nlevmapped + j
+
+        area   = area_clm_loc(idx)
+
+        ! maximum ET sink/infiltration source
+        max_et_rate    = (h2osoi_liq(c,j)*area - thetares2_clm_loc(idx)*dz(c,j)*denh2o*area)/dtime
+        max_infil_rate = (watsat(c,j)*dz(c,j)*denh2o*area - h2osoi_liq(c,j)*area)/dtime
+
+        if (qflx_clm_loc(idx) < 0.d0) then
+           if ( abs(qflx_clm_loc(idx)) > abs(qflx_clm_loc(idx))) then
+              write(*,*)'Downregulating ET: ',g,c,j,abs(qflx_clm_loc(idx)),abs(qflx_clm_loc)
+              qflx_clm_loc(idx) = -abs(max_et_rate)
+           end if
+        end if
+
+        if (qflx_clm_loc(idx) > 0.d0) then
+           if ( abs(qflx_clm_loc(idx)) > abs(max_infil_rate)) then
+              write(*,*)'Downregulating Infiltration: ',g,c,j,abs(qflx_clm_loc(idx)),abs(max_infil_rate)
+              qflx_clm_loc(idx) = abs(max_infil_rate)
+           end if
+        end if
+
+      end do
+    end do
+
+
     call VecRestoreArrayF90(clm_pf_idata%sat_clm, sat_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%qflx_clm, qflx_clm_loc, ierr); CHKERRQ(ierr)
     call VecRestoreArrayF90(clm_pf_idata%area_top_face_clm, area_clm_loc, ierr); CHKERRQ(ierr)
+    call VecRestoreArrayF90(clm_pf_idata%thetares2_clm, thetares2_clm_loc, ierr); CHKERRQ(ierr)
 
     end associate
 
