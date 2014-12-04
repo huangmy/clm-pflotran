@@ -618,9 +618,9 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Subsurface_Simulation_class, only : subsurface_simulation_type
-    use Surface_Simulation_class, only : surface_simulation_type
-    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Simulation_Subsurface_class, only : subsurface_simulation_type
+    use Simulation_Surface_class, only : surface_simulation_type
+    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
     use Realization_class, only : realization_type
     use Surface_Realization_class, only : surface_realization_type
     use PFLOTRAN_Constants_module
@@ -796,9 +796,9 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Subsurface_Simulation_class, only : subsurface_simulation_type
-    use Surface_Simulation_class, only : surface_simulation_type
-    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Simulation_Subsurface_class, only : subsurface_simulation_type
+    use Simulation_Surface_class, only : surface_simulation_type
+    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
     use Realization_class, only : realization_type
     use Surface_Realization_class, only : surface_realization_type
     use PFLOTRAN_Constants_module
@@ -1013,9 +1013,9 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Subsurface_Simulation_class, only : subsurface_simulation_type
-    use Surface_Simulation_class, only : surface_simulation_type
-    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Simulation_Subsurface_class, only : subsurface_simulation_type
+    use Simulation_Surface_class, only : surface_simulation_type
+    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
     use Realization_class, only : realization_type
     use Surface_Realization_class, only : surface_realization_type
     use PFLOTRAN_Constants_module
@@ -1384,9 +1384,9 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Subsurface_Simulation_class, only : subsurface_simulation_type
-    use Surface_Simulation_class, only : surface_simulation_type
-    use Surf_Subsurf_Simulation_class, only : surfsubsurface_simulation_type
+    use Simulation_Subsurface_class, only : subsurface_simulation_type
+    use Simulation_Surface_class, only : surface_simulation_type
+    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
     use Realization_class, only : realization_type
     use Surface_Realization_class, only : surface_realization_type
     use PFLOTRAN_Constants_module
