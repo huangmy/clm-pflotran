@@ -136,6 +136,7 @@ contains
     !
     ! !USES:
     use clm_varctl, only : use_pflotran
+    use clm_varctl, only : pflotran_th_mode
     use clm_pflotran_interfaceMod, only : clm_pf_write_restart, &
          clm_pf_update_soil_temperature, clm_pf_update_drainage
     !
@@ -578,7 +579,7 @@ contains
        ! ============================================================================
        ! Update soil temperatures from PFLOTRAN
        ! ============================================================================
-       if (use_pflotran) then
+       if (use_pflotran .and. pflotran_th_mode) then
           ! TODO(2013-08-27) clm_pf_update_states --> soil
           ! temperature, soil moisture, water table?
           call clm_pf_update_soil_temperature(bounds_clump, &
