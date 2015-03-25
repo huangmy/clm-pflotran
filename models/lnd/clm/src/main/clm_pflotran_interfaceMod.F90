@@ -215,9 +215,9 @@ contains
     type(gridcell_type), intent(in) :: grc
     type(column_type), intent(in) :: col
     type(landunit_type), intent(in) :: lun
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(waterstate_type), intent(in) :: waterstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
+    type(waterstate_type), intent(inout) :: waterstate_vars
+    type(temperature_type), intent(inout) :: temperature_vars
     type(soilhydrology_type), intent(in) :: soilhydrology_vars
 
 #ifdef CLM_PFLOTRAN
@@ -244,7 +244,7 @@ contains
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
     type(atm2lnd_type), intent(in) :: atm2lnd_vars
-    type(waterflux_type), intent(in) :: waterflux_vars
+    type(waterflux_type), intent(inout) :: waterflux_vars
 
 #ifdef CLM_PFLOTRAN
     call set_sflow_forcing_clm_pf(num_hydrologyc, filter_hydrologyc, &
@@ -300,7 +300,7 @@ contains
     type(bounds_type), intent(in) :: bounds  ! bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
-    type(temperature_type), intent(in) :: temperature_vars
+    type(temperature_type), intent(inout) :: temperature_vars
     type(column_type), intent(in) :: col
 
 #ifdef CLM_PFLOTRAN
@@ -410,7 +410,7 @@ contains
 
     type(waterflux_type), intent(in) :: waterflux_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(soilstate_type), intent(in) :: soilstate_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
     type(patch_type), intent(in) :: patch_vars
 
 #ifdef CLM_PFLOTRAN
@@ -638,9 +638,9 @@ contains
     type(column_type), intent(in) :: col
     type(landunit_type), intent(in) :: lun
     type(gridcell_type), intent(in) :: grc
-    type(soilstate_type), intent(in) :: soilstate_vars
-    type(waterstate_type), intent(in) :: waterstate_vars
-    type(temperature_type), intent(in) :: temperature_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
+    type(waterstate_type), intent(inout) :: waterstate_vars
+    type(temperature_type), intent(inout) :: temperature_vars
     type(soilhydrology_type), intent(in) :: soilhydrology_vars
 
     !
@@ -1404,7 +1404,7 @@ contains
     type(column_type), intent(in) :: col
     type(landunit_type), intent(in) :: lun
     type(gridcell_type), intent(in) :: grc
-    type(soilstate_type), intent(in) :: soilstate_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
     type(waterstate_type), intent(in) :: waterstate_vars
     type(temperature_type), intent(in) :: temperature_vars
     type(soilhydrology_type), intent(in) :: soilhydrology_vars
@@ -1567,7 +1567,7 @@ contains
     integer, intent(in) :: num_hydrologyc        ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:)  ! column filter for soil points
     type(atm2lnd_type), intent(in) :: atm2lnd_vars
-    type(waterflux_type), intent(in) :: waterflux_vars
+    type(waterflux_type), intent(inout) :: waterflux_vars
 
   ! !LOCAL VARIABLES:
 #include "finclude/petscsys.h"
@@ -1780,7 +1780,7 @@ contains
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
     type(waterflux_type), intent(in) :: waterflux_vars
     type(waterstate_type), intent(in) :: waterstate_vars
-    type(soilstate_type), intent(in) :: soilstate_vars
+    type(soilstate_type), intent(inout) :: soilstate_vars
     type(patch_type), intent(in) :: patch_vars
 
   ! !LOCAL VARIABLES:
@@ -1849,7 +1849,7 @@ contains
     integer, intent(in)                :: filter_hydrologyc(:) ! column filter for soil points
     type(waterflux_type), intent(in)   :: waterflux_vars
     type(waterstate_type), intent(in)  :: waterstate_vars
-    type(soilstate_type), intent(in)   :: soilstate_vars
+    type(soilstate_type), intent(inout)   :: soilstate_vars
     type(patch_type), intent(in)       :: patch_vars
 
   ! !LOCAL VARIABLES:
@@ -2067,7 +2067,7 @@ contains
     type(bounds_type) , intent(in)  :: bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
-    type(temperature_type), intent(in) :: temperature_vars
+    type(temperature_type), intent(inout) :: temperature_vars
     type(column_type), intent(in) :: col
 
   ! !LOCAL VARIABLES:
