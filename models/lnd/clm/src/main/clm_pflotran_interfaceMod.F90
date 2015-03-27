@@ -766,7 +766,7 @@ contains
           g = cgridcell(c)
           gcount = g - bounds%begg
           do j = 1, nlevsoi
-            h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*dz(c,j)*1.e3_r8
+            h2osoi_liq(c,j) = sat_clm_loc(gcount*nlevmapped + j)*watsat(c,j)*dz(c,j)*1.e3_r8
             h2osoi_vol(c,j) = h2osoi_liq(c,j)/dz(c,j)/denh2o + &
                  h2osoi_ice(c,j)/dz(c,j)/denice
             h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
