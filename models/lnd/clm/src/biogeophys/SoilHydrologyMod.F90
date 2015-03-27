@@ -1507,7 +1507,7 @@ contains
              qflx_infl(c) = 0._r8
           else
              !               (porosity    - occupied_space)* [m]    * [mm/m]  * [s^{-1}]
-             qflx_infl_max = (watsat(c,1) - h2osoi_vol(c,1))*dz(c,1)*1.0e-3_r8/dtime
+             qflx_infl_max = (watsat(c,1) - h2osoi_vol(c,1))*dz(c,1)*1.0e3_r8/dtime
              qflx_infl(c)  = min(qflx_infl(c), qflx_infl_max)
           end if
        end do
