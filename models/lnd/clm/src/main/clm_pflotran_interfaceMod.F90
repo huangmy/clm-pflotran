@@ -1452,6 +1452,7 @@ contains
          hksat      =>  soilstate_vars%hksat_col      , & !  [real(r8) (:,:)]  hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
          sucsat     =>  soilstate_vars%sucsat_col     , & !  [real(r8) (:,:)]  minimum soil suction (mm) (nlevgrnd)
          watsat     =>  soilstate_vars%watsat_col     , & !  [real(r8) (:,:)]  volumetric soil water at saturation (porosity) (nlevgrnd)
+         bsw        =>  soilstate_vars%bsw_col        , & !  [real(r8) (:,:)]  Clapp and Hornberger "b"
          zwt        =>  soilhydrology_vars%zwt_col , & !  [real(r8) (:)]  water table depth (m)
          dz         =>  col%dz           & !  [real(r8) (:,:)]  layer thickness (m)
          )
@@ -1526,10 +1527,12 @@ contains
             hksat(c,lev)  = hksat_z2_clm_loc(  gcount*nlevmapped + lev)
             watsat(c,lev) = watsat2_clm_loc( gcount*nlevmapped + lev)
             sucsat(c,lev) = sucsat2_clm_loc( gcount*nlevmapped + lev)
+            bsw(c,lev)    = bsw2_clm_loc(    gcount*nlevmapped + lev)
           else
             hksat(c,lev)  = hksat( c,nlevmapped)
             watsat(c,lev) = watsat(c,nlevmapped)
             sucsat(c,lev) = sucsat(c,nlevmapped)
+            bsw(c,lev)    = sucsat(c,nlevmapped)
           endif
         enddo
       endif
