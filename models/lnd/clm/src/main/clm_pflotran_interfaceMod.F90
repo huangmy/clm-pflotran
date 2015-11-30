@@ -2223,7 +2223,7 @@ contains
        c = filter_hydrologyc(fc)
        waterflux_vars%qflx_drain_perched_col(c) = 0._r8   ! perched wt sub-surface runoff (mm H2O /s)
        waterflux_vars%qflx_drain_col(c)         = 0._r8   ! sub-surface runoff (mm H2O /s)
-       waterflux_vars%qflx_irrig_patch(c)         = 0._r8   ! irrigation flux (mm H2O /s)
+       !waterflux_vars%qflx_irrig_patch(c)         = 0._r8   ! irrigation flux (mm H2O /s)
        waterflux_vars%qflx_qrgwl_col(c)         = 0._r8   ! qflx_surf at glaciers, wetlands, lakes (mm H2O /s)
        waterflux_vars%qflx_rsub_sat_col(c)      = 0._r8   ! soil saturation excess [mm h2o/s]
     end do
