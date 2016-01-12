@@ -57,15 +57,16 @@ else
 endif
 
 cat >! $file << EOF1
-#!/bin/csh -f
-###PBS -A ${account_name}
-#PBS -N ${jobname}
-#PBS -q regular
-#PBS -l mppwidth=${mppwidth}
-##PBS -l mppnppn=48
-#PBS -l walltime=${walltime}
-#PBS -j oe
-#PBS -S /bin/csh -V
+#!/bin/csh -f 
+
+#SBATCH  --job-name=${jobname}
+#SBATCH  --nodes=${mppwidth}
+#SBATCH  --ntasks-per-node=24
+#SBATCH  --output=${jobname}   
+#SBATCH  --exclusive                        
+#SBATCH  --time=${walltime}
+#SBATCH  --partition=regular
+###SBATCH  -A ${account_name} 
 
 EOF1
 
@@ -74,7 +75,7 @@ else if ($PHASE == set_exe) then
 #################################################################################
 
 set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
-set myaprun = `${CASEROOT}/Tools/taskmaker.pl -aprun`
+set myaprun = `${CASEROOT}/Tools/taskmaker.pl -srun`
 
 #if ($maxthrds > 1) then
 set myaprun = "-j 2 $myaprun "
@@ -86,7 +87,7 @@ cd \$RUNDIR
 echo "\`date\` -- CSM EXECUTION BEGINS HERE" 
 
 setenv OMP_NUM_THREADS ${maxthrds}
-aprun ${myaprun} >&! cesm.log.\$LID
+srun ${myaprun} >&! cesm.log.\$LID
 wait
 
 echo "\`date\` -- CSM EXECUTION HAS FINISHED" 
