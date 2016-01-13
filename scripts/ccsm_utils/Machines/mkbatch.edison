@@ -62,11 +62,11 @@ cat >! $file << EOF1
 #SBATCH  --job-name=${jobname}
 #SBATCH  --nodes=${mppwidth}
 #SBATCH  --ntasks-per-node=24
-#SBATCH  --output=${jobname}   
+#SBATCH  --output=${jobname}
 #SBATCH  --exclusive                        
 #SBATCH  --time=${walltime}
 #SBATCH  --partition=regular
-###SBATCH  -A ${account_name} 
+#SBATCH  -A ${account_name} 
 
 EOF1
 
@@ -75,11 +75,7 @@ else if ($PHASE == set_exe) then
 #################################################################################
 
 set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
-set myaprun = `${CASEROOT}/Tools/taskmaker.pl -srun`
-
-#if ($maxthrds > 1) then
-set myaprun = "-j 2 $myaprun "
-#endif
+set mppsum = `${CASEROOT}/Tools/taskmaker.pl -sumpes`
 
 cat >> ${CASEROOT}/${CASE}.run << EOF1
 sleep 25
@@ -87,7 +83,7 @@ cd \$RUNDIR
 echo "\`date\` -- CSM EXECUTION BEGINS HERE" 
 
 setenv OMP_NUM_THREADS ${maxthrds}
-srun ${myaprun} >&! cesm.log.\$LID
+srun -n ${mppsum} -c ${maxthrds} --label \$EXEROOT/cesm.exe  >&! cesm.log.\$LID
 wait
 
 echo "\`date\` -- CSM EXECUTION HAS FINISHED" 
