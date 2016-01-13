@@ -131,8 +131,8 @@
          <CCSM_BASELINE>/project/projectdirs/ccsm1/ccsm_baselines</CCSM_BASELINE>
          <CCSM_CPRNC>/project/projectdirs/ccsm1/tools/cprnc.edison/cprnc</CCSM_CPRNC>
          <OS>CNL</OS>
-         <BATCHQUERY>qstat -f</BATCHQUERY>
-         <BATCHSUBMIT>qsub</BATCHSUBMIT>
+         <BATCHQUERY>scontrol show job</BATCHQUERY>
+         <BATCHSUBMIT>sbatch</BATCHSUBMIT>
          <SUPPORTED_BY>cseg</SUPPORTED_BY>
          <GMAKE_J>8</GMAKE_J>
          <MAX_TASKS_PER_NODE>48</MAX_TASKS_PER_NODE>
