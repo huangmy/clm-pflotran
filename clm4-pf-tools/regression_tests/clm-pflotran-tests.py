@@ -1087,7 +1087,7 @@ class RegressionTest(object):
             macros_dict.update(self._env_build_info)
             macros_dict.update(self._local_config)
             macros_dict["case_dir"] = self._case_dir
-            macros_dict["petsc_include"] = "include {PETSC_DIR}/conf/variables".format(
+            macros_dict["petsc_include"] = "include {PETSC_DIR}/lib/petsc/conf/variables".format(
                 PETSC_DIR=self._local_config["PETSC_DIR"])
             macros_dict["user_include"] = ("-I{PETSC_DIR}/{PETSC_ARCH}/include "
                                            "-I{PETSC_DIR}/include "
