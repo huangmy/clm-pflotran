@@ -524,9 +524,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     real(r8), pointer :: gflux_clm_loc(:)
   ! !LOCAL VARIABLES:
@@ -554,9 +554,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     real(r8), pointer :: gflux_clm_loc(:)
     PetscErrorCode ierr
@@ -618,21 +618,21 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Simulation_Subsurface_class, only : subsurface_simulation_type
-    use Simulation_Surface_class, only : surface_simulation_type
-    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
-    use Realization_class, only : realization_type
-    use Surface_Realization_class, only : surface_realization_type
+    use Simulation_Subsurface_class, only : simulation_subsurface_type
+    use Simulation_Surface_class, only : simulation_surface_type
+    use Simulation_Surf_Subsurf_class, only : simulation_surfsubsurface_type
+    use Realization_Subsurface_class, only : realization_subsurface_type
+    use Realization_Surface_class, only : realization_surface_type
     use PFLOTRAN_Constants_module
     !
     ! !ARGUMENTS:
 
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
+#include "petsc/finclude/petscviewer.h"
 
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
@@ -796,19 +796,19 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Simulation_Subsurface_class, only : subsurface_simulation_type
-    use Simulation_Surface_class, only : surface_simulation_type
-    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
-    use Realization_class, only : realization_type
-    use Surface_Realization_class, only : surface_realization_type
+    use Simulation_Subsurface_class, only : simulation_subsurface_type
+    use Simulation_Surface_class, only : simulation_surface_type
+    use Simulation_Surf_Subsurf_class, only : simulation_surfsubsurface_type
+    use Realization_Subsurface_class, only : realization_subsurface_type
+    use Realization_Surface_class, only : realization_surface_type
     use PFLOTRAN_Constants_module
     !
     implicit none
     !
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
+#include "petsc/finclude/petscviewer.h"
     !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds
@@ -820,20 +820,20 @@ contains
     integer  :: gcount
     integer :: nlevmapped
     character(len= 128) :: subname = 'CreateCLMPFLOTRANInterfaceDate' ! subroutine name
-    class(realization_type), pointer    :: realization
-    class(surface_realization_type), pointer    :: surf_realization
+    class(realization_subsurface_type), pointer    :: realization
+    class(realization_surface_type), pointer    :: surf_realization
 
     ! Initialize PETSc vector for data transfer between CLM and PFLOTRAN
     call CLMPFLOTRANIDataInit()
 
     select type (simulation => pflotran_m%simulation)
-      class is (subsurface_simulation_type)
+      class is (simulation_subsurface_type)
          realization => simulation%realization
          nullify(surf_realization)
-      class is (surface_simulation_type)
+      class is (simulation_surface_type)
          nullify(realization)
          surf_realization => simulation%surf_realization
-      class is (surfsubsurface_simulation_type)
+      class is (simulation_surfsubsurface_type)
          realization => simulation%realization
          surf_realization => simulation%surf_realization
       class default
@@ -909,10 +909,10 @@ contains
     !
     implicit none
     !
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
+#include "petsc/finclude/petscviewer.h"
     !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds
@@ -1013,21 +1013,21 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Simulation_Subsurface_class, only : subsurface_simulation_type
-    use Simulation_Surface_class, only : surface_simulation_type
-    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
-    use Realization_class, only : realization_type
-    use Surface_Realization_class, only : surface_realization_type
+    use Simulation_Subsurface_class, only : simulation_subsurface_type
+    use Simulation_Surface_class, only : simulation_surface_type
+    use Simulation_Surf_Subsurf_class, only : simulation_surfsubsurface_type
+    use Realization_Subsurface_class, only : realization_subsurface_type
+    use Realization_Surface_class, only : realization_surface_type
     use PFLOTRAN_Constants_module
     !
     ! !ARGUMENTS:
 
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
+#include "petsc/finclude/petscviewer.h"
 
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
@@ -1384,21 +1384,21 @@ contains
     ! pflotran
     use Option_module, only : printErrMsg
     use Simulation_Base_class, only : simulation_base_type
-    use Simulation_Subsurface_class, only : subsurface_simulation_type
-    use Simulation_Surface_class, only : surface_simulation_type
-    use Simulation_Surf_Subsurf_class, only : surfsubsurface_simulation_type
-    use Realization_class, only : realization_type
-    use Surface_Realization_class, only : surface_realization_type
+    use Simulation_Subsurface_class, only : simulation_subsurface_type
+    use Simulation_Surface_class, only : simulation_surface_type
+    use Simulation_Surf_Subsurf_class, only : simulation_surfsubsurface_type
+    use Realization_Subsurface_class, only : realization_subsurface_type
+    use Realization_Surface_class, only : realization_surface_type
     use PFLOTRAN_Constants_module
     !
     ! !ARGUMENTS:
 
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscviewer.h"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
+#include "petsc/finclude/petscviewer.h"
 
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
@@ -1573,9 +1573,9 @@ contains
     type(waterflux_type), intent(inout) :: waterflux_vars
 
   ! !LOCAL VARIABLES:
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     integer  :: c,fc                       !indices
     integer  :: count
@@ -1645,9 +1645,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     type(waterstate_type), intent(inout) :: waterstate_vars
     type(soilstate_type), intent(inout) :: soilstate_vars
@@ -1774,9 +1774,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
@@ -1843,9 +1843,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type), intent(in)      :: bounds
     integer, intent(in)                :: num_hydrologyc       ! number of column soil points in column filter
@@ -2063,9 +2063,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type) , intent(in)  :: bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
@@ -2138,9 +2138,9 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type) , intent(in)  :: bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
@@ -2250,9 +2250,9 @@ contains
 
     implicit none
 
-#include "finclude/petscsys.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscvec.h90"
 
     integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
