@@ -464,10 +464,20 @@ contains
   subroutine clm_pf_write_restart(date_stamp)
 
     implicit none
+
+#ifdef CLM_PFLTORAN
+    use PFLOTRAN_Constants_module, only : MAXSTRINGLENGTH
+
+    character(len=MAXSTRINGLENGTH), intent (in) :: date_stamp_for_pflotran
+#endif
+
     character(len=*), intent(in) :: date_stamp
 
 #ifdef CLM_PFLOTRAN
-    call write_restart_clm_pf(date_stamp)
+    data_stamp_for_pflotran = trim(date_stamp)
+
+    call write_restart_clm_pf(date_stamp_for_pflotran)
+
 #else
     character(len=32) :: subname = "clm_pf_write_restart"
     call pflotran_not_available(subname)
@@ -495,7 +505,9 @@ contains
   !
   ! !USES:
   ! !ARGUMENTS:
-    character(len=32), intent(in) :: date_stamp ! file name date stamp
+    use PFLOTRAN_Constants_module, only : MAXSTRINGLENGTH
+
+    character(len=MAXSTRINGLENGTH), intent(in) :: date_stamp ! file name date stamp
   ! !LOCAL VARIABLES:
 
 
