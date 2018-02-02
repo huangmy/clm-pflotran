@@ -13,6 +13,11 @@ module clm_pflotran_interfaceMod
   ! !USES:
 
 #ifdef CLM_PFLOTRAN
+#include "petsc/finclude/petscsys.h"
+#include "petsc/finclude/petscvec.h"
+#include "petsc/finclude/petscviewer.h"
+  use petscsys
+  use petscvec
   use clm_pflotran_interface_data
   use pflotran_model_module
 #endif
@@ -535,11 +540,8 @@ contains
   ! !USES:
     use shr_kind_mod  , only : r8 => shr_kind_r8
   ! !ARGUMENTS:
-    implicit none
 
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
+    implicit none
 
     real(r8), pointer :: gflux_clm_loc(:)
   ! !LOCAL VARIABLES:
@@ -566,10 +568,6 @@ contains
     use shr_kind_mod  , only : r8 => shr_kind_r8
   ! !ARGUMENTS:
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     real(r8), pointer :: gflux_clm_loc(:)
     PetscErrorCode ierr
@@ -641,11 +639,6 @@ contains
     ! !ARGUMENTS:
 
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-#include "petsc/finclude/petscviewer.h"
 
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
@@ -818,11 +811,6 @@ contains
     !
     implicit none
     !
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-#include "petsc/finclude/petscviewer.h"
-    !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds
     integer, intent(inout) :: clm_npts
@@ -921,11 +909,6 @@ contains
     use PFLOTRAN_Constants_module
     !
     implicit none
-    !
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-#include "petsc/finclude/petscviewer.h"
     !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds
@@ -1036,11 +1019,6 @@ contains
     ! !ARGUMENTS:
 
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-#include "petsc/finclude/petscviewer.h"
 
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
@@ -1408,11 +1386,6 @@ contains
 
     implicit none
 
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-#include "petsc/finclude/petscviewer.h"
-
     type(bounds_type), intent(in) :: bounds
     type(column_type), intent(in) :: col
     type(landunit_type), intent(in) :: lun
@@ -1586,9 +1559,6 @@ contains
     type(waterflux_type), intent(inout) :: waterflux_vars
 
   ! !LOCAL VARIABLES:
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     integer  :: c,fc                       !indices
     integer  :: count
@@ -1657,10 +1627,6 @@ contains
 
   ! !ARGUMENTS:
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     type(waterstate_type), intent(inout) :: waterstate_vars
     type(soilstate_type), intent(inout) :: soilstate_vars
@@ -1787,10 +1753,6 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-
     type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer, intent(in) :: filter_hydrologyc(:) ! column filter for soil points
@@ -1855,10 +1817,6 @@ contains
 
   ! !ARGUMENTS:
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type), intent(in)      :: bounds
     integer, intent(in)                :: num_hydrologyc       ! number of column soil points in column filter
@@ -2076,10 +2034,6 @@ contains
   ! !ARGUMENTS:
     implicit none
 
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
-
     type(bounds_type) , intent(in)  :: bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)   ! column filter for non-lake points
@@ -2150,10 +2104,6 @@ contains
 
   ! !ARGUMENTS:
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     type(bounds_type) , intent(in)  :: bounds
     integer , intent(in)  :: num_nolakec         ! number of column non-lake points in column filter
@@ -2262,10 +2212,6 @@ contains
     use WaterStateType, only : waterstate_type
 
     implicit none
-
-#include "petsc/finclude/petscsys.h"
-#include "petsc/finclude/petscvec.h"
-#include "petsc/finclude/petscvec.h90"
 
     integer , intent(in) :: num_hydrologyc       ! number of column soil points in column filter
     integer , intent(in) :: filter_hydrologyc(:) ! column filter for soil points
