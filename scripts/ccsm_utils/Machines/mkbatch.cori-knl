@@ -3,8 +3,9 @@
 #################################################################################
 if ($PHASE == set_batch) then
 #################################################################################
+cd ${CASEROOT}
+source ${CASEROOT}/Tools/ccsm_getenv || exit -1
 
-source ./Tools/ccsm_getenv || exit -1
 set ntasks  = `${CASEROOT}/Tools/taskmaker.pl -sumonly`
 set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
 if ($maxthrds == 1) then
@@ -12,7 +13,7 @@ if ($maxthrds == 1) then
 else
     @ nodes = $ntasks / ${MAX_TASKS_PER_NODE}
 endif
-if ( $ntasks % ${MAX_TASKS_PER_NODE} > 0) then
+if ( $ntasks % ${PES_PER_NODE} > 0) then
   @ nodes = $nodes + 1
   @ ntasks = $nodes * ${MAX_TASKS_PER_NODE}
 endif
@@ -36,7 +37,7 @@ cat >! $file << EOF1
 #SBATCH --time=$tlimit
 #SBATCH --nodes=$nodes
 ##SBATCH --ntasks=$ntasks
-#SBATCH --cpus-per-task=$maxthrds
+##SBATCH --cpus-per-task=$maxthrds
 #SBATCH --exclusive
 ###SBATCH --mail-type=END
 ###SBATCH --mail-user=xyz@abc.com
@@ -44,24 +45,32 @@ cat >! $file << EOF1
 #SBATCH --error=cesm%jodid.err
 #SBATCH --license SCRATCH,project
 #SBATCH -p $qname
-#SBATCH -C haswell
+#SBATCH -C knl,quad,cache
+#SBATCH -S 2
 EOF1
 
 #################################################################################
 else if ($PHASE == set_exe) then
 #################################################################################
-source ./Tools/ccsm_getenv || exit -1
-set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
-set maxtasks = `${CASEROOT}/Tools/taskmaker.pl -sumtasks`
+cd ${CASEROOT}
+source ${CASEROOT}/Tools/ccsm_getenv || exit -1
+
 set ntasks  = `${CASEROOT}/Tools/taskmaker.pl -sumonly`
+set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
 if ($maxthrds == 1) then
     @ nodes = $ntasks / ${PES_PER_NODE}
 else
     @ nodes = $ntasks / ${MAX_TASKS_PER_NODE}
 endif
 
-@ aaa = ( 64 * $nodes ) / ${maxtasks} / 2 * 2
+if ( $ntasks % ${MAX_TASKS_PER_NODE} > 0) then
+  @ nodes = $nodes + 1
+  @ ntasks = $nodes * ${MAX_TASKS_PER_NODE}
+endif
 
+set maxthrds = `${CASEROOT}/Tools/taskmaker.pl -maxthrds`
+set maxtasks = `${CASEROOT}/Tools/taskmaker.pl -sumtasks`
+@ aaa = ( 256 * $nodes ) / $maxtasks / 4 * 4
 cat >> ${CASEROOT}/${CASE}.run << EOF1
 # -------------------------------------------------------------------------
 # Run the model
@@ -74,7 +83,8 @@ echo "\`date\` -- CSM EXECUTION BEGINS HERE"
 
 setenv OMP_STACKSIZE 128M
 setenv OMP_NUM_THREADS ${maxthrds}
-srun -c ${aaa} --label --ntasks=${maxtasks} --cpu_bind=cores --cpu_bind=verbose --kill-on-bad-exit \$EXEROOT/cesm.exe >&! cesm.log.\$LID
+sbcast -f --compress \$EXEROOT/cesm.exe /tmp/cesm.exe
+srun --label -n ${maxtasks} -c ${aaa} --cpu_bind=cores --cpu_bind=verbose --kill-on-bad-exit /tmp/cesm.exe >&! cesm.log.\$LID
 
 wait
 echo "\`date\` -- CSM EXECUTION HAS FINISHED" 
@@ -104,7 +114,7 @@ cat >! $CASEROOT/${CASE}.l_archive << EOF1
 #SBATCH --error=lta%jodid.err
 #SBATCH -p regular
 cd $CASEROOT 
-source ./Tools/ccsm_getenv || exit -1
+source $CASEROOT/Tools/ccsm_getenv || exit -1
 cd \$DOUT_S_ROOT
 $CASEROOT/Tools/lt_archive.sh -m copy_dirs_hsi
 exit 0
