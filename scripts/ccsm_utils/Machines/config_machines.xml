@@ -140,26 +140,49 @@
 </machine>
 
 <machine MACH="corip1">
-    <DESC>NERSC XC40 Haswell, os is CNL, 32 pes/node, batch system is SLURM</DESC>
-    <COMPILERS>intel,gnu,cray</COMPILERS>
-    <MPILIBS>mpt,mpi-serial</MPILIBS>
-    <CESMSCRATCHROOT>$ENV{SCRATCH}/</CESMSCRATCHROOT>
-    <RUNDIR>$CESMSCRATCHROOT/$CASE/run</RUNDIR>
-    <EXEROOT>$CESMSCRATCHROOT/$CASE/bld</EXEROOT>
-    <DIN_LOC_ROOT>/project/projectdirs/ccsm1/inputdata</DIN_LOC_ROOT>
-    <DIN_LOC_ROOT_CLMFORC>/project/projectdirs/ccsm1/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
-    <DOUT_S_ROOT>$CESMSCRATCHROOT/archive/$CASE</DOUT_S_ROOT>
-    <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
-    <CCSM_BASELINE>/project/projectdirs/ccsm1/baselines</CCSM_BASELINE>
-    <CCSM_CPRNC>/project/projectdirs/ccsm1/tools/cprnc.cori/cprnc</CCSM_CPRNC>
-    <OS>CNL</OS>
-    <BATCHQUERY>squeue</BATCHQUERY>
-    <BATCHSUBMIT>sbatch</BATCHSUBMIT>
-    <SUPPORTED_BY>acme</SUPPORTED_BY>
-    <GMAKE_J>8</GMAKE_J>
-    <MAX_TASKS_PER_NODE>32</MAX_TASKS_PER_NODE>
-    <PES_PER_NODE>32</PES_PER_NODE>
-    <PIO_CONFIG_OPTS> -D PIO_BUILD_TIMING:BOOL=ON </PIO_CONFIG_OPTS>
+         <DESC>NERSC XC40, os is CNL, 32 pes/node, batch system is SLURM</DESC>
+         <COMPILERS>intel,gnu,cray</COMPILERS>
+         <MPILIBS>mpt,mpi-serial</MPILIBS>
+         <RUNDIR>$SCRATCH/$CASE/run</RUNDIR>
+         <EXEROOT>$SCRATCH/$CASE/bld</EXEROOT>
+         <CESMSCRATCHROOT>$SCRATCH</CESMSCRATCHROOT>
+         <DIN_LOC_ROOT>/project/projectdirs/ccsm1/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/project/projectdirs/ccsm1/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>$SCRATCH/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
+         <DOUT_L_HTAR>FALSE</DOUT_L_HTAR>
+         <CCSM_BASELINE>/project/projectdirs/ccsm1/ccsm_baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>/project/projectdirs/ccsm1/tools/cprnc.edison/cprnc</CCSM_CPRNC>
+         <OS>CNL</OS>
+         <BATCHQUERY>squeue</BATCHQUERY>
+         <BATCHSUBMIT>sbatch</BATCHSUBMIT>
+         <SUPPORTED_BY>cseg</SUPPORTED_BY>
+         <GMAKE_J>8</GMAKE_J>
+         <MAX_TASKS_PER_NODE>64</MAX_TASKS_PER_NODE>
+         <PES_PER_NODE>32</PES_PER_NODE>
+</machine>
+
+<machine MACH="cori-knl">
+         <DESC>NERSC XC40, os is CNL, 68 pes/node, batch system is SLURM</DESC>
+         <COMPILERS>intel,gnu,cray</COMPILERS>
+         <MPILIBS>mpt,mpi-serial</MPILIBS>
+         <RUNDIR>$SCRATCH/$CASE/run</RUNDIR>
+         <EXEROOT>$SCRATCH/$CASE/bld</EXEROOT>
+         <CESMSCRATCHROOT>$SCRATCH</CESMSCRATCHROOT>
+         <DIN_LOC_ROOT>/project/projectdirs/ccsm1/inputdata</DIN_LOC_ROOT>
+         <DIN_LOC_ROOT_CLMFORC>/project/projectdirs/ccsm1/inputdata/atm/datm7</DIN_LOC_ROOT_CLMFORC>
+         <DOUT_S_ROOT>$SCRATCH/archive/$CASE</DOUT_S_ROOT>
+         <DOUT_L_MSROOT>csm/$CASE</DOUT_L_MSROOT>
+         <DOUT_L_HTAR>FALSE</DOUT_L_HTAR>
+         <CCSM_BASELINE>/project/projectdirs/ccsm1/ccsm_baselines</CCSM_BASELINE>
+         <CCSM_CPRNC>/project/projectdirs/ccsm1/tools/cprnc.edison/cprnc</CCSM_CPRNC>
+         <OS>CNL</OS>
+         <BATCHQUERY>squeue</BATCHQUERY>
+         <BATCHSUBMIT>sbatch</BATCHSUBMIT>
+         <SUPPORTED_BY>cseg</SUPPORTED_BY>
+         <GMAKE_J>32</GMAKE_J>
+         <MAX_TASKS_PER_NODE>128</MAX_TASKS_PER_NODE>
+         <PES_PER_NODE>64</PES_PER_NODE>
 </machine>
 
 <machine MACH="erebus">
