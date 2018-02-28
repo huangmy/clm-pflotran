@@ -6,34 +6,37 @@
 #=============================================================================== 
 
 source /opt/modules/default/init/csh 
-module rm PrgEnv-intel 
-module rm PrgEnv-cray 
-module rm PrgEnv-gnu 
-module rm intel 
-module rm cce 
-module rm cray-parallel-netcdf 
-module rm cray-parallel-hdf5 
-module rm pmi 
-module rm cray-libsci 
-module rm cray-shmem 
-module rm cray-mpich 
-module rm cray-netcdf 
-module rm cray-hdf5 
-module rm cray-hdf5-parallel 
-module rm cray-netcdf-hdf5parallel 
-module rm craype-haswell 
-module rm craype 
 
-module load PrgEnv-intel 
+module rm craype-mic-knl
+module rm craype-haswell
+module rm PrgEnv-intel
+module rm PrgEnv-cray
+module rm PrgEnv-gnu
+module rm intel
+module rm cce
+module rm cray-parallel-netcdf
+module rm cray-parallel-hdf5
+module rm pmi
+module rm cray-libsci
+module rm cray-mpich2
+module rm cray-mpich
+module rm cray-netcdf
+module rm cray-hdf5
+module rm cray-netcdf-hdf5parallel
+
+module load PrgEnv-intel
+
 module switch intel intel/17.0.2.174
-module rm cray-libsci 
+module rm cray-libsci
+module use /global/project/projectdirs/ccsm1/modulefiles/cori
+module load esmf/6.3.0rp1-defio-intel17.0-mpi-O
+module load craype-mic-knl
 module load papi/5.5.1.2
 module swap craype craype/2.5.12.3
-module load craype-haswell 
 module load cray-mpich/7.6.0
 
 if ( $MPILIB == "mpi-serial" ) then 
-  module load cray-hdf5/1.10.0.3 
+  module load cray-hdf5/1.10.0.3
   module load cray-netcdf/4.4.1.1.3
   setenv MKL -mkl=sequential
 endif 
@@ -43,10 +46,11 @@ if ( $MPILIB != "mpi-serial" ) then
   module load cray-parallel-netcdf/1.8.1.3
   setenv MKL -mkl
 endif 
-setenv PERL5LIB /global/project/projectdirs/ccsm1/perl5lib/lib/perl5/5.10.0
 
-module load cmake/3.8.2
+module load cmake/3.8.2 
 module load craype-hugepages2M
 
 setenv OMP_STACKSIZE 128M
-
+setenv OMP_PROC_BIND spread
+setenv OMP_PLACES threads
+setenv PERL5LIB /project/projectdirs/ccsm1/perl5lib
